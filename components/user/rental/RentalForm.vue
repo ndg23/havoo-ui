@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white rounded-lg shadow p-6">
+  <div class="bg-white rounded-lg -shadow p-6">
     <h2 class="text-xl font-semibold mb-6">Réserver {{ item.name }}</h2>
     
     <form @submit.prevent="handleSubmit" class="space-y-6">

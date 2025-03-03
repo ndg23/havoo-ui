@@ -2,7 +2,7 @@
   <div class="max-w-4xl mx-auto">
     <form @submit.prevent="handleSubmit" class="space-y-10">
       <!-- Images Upload Section -->
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="bg-white rounded-2xl -shadow-sm border border-gray-100 overflow-hidden">
         <div class="p-8 pb-0">
           <h2 class="text-xl font-semibold text-gray-900">Photos de l'objet</h2>
           <p class="text-gray-500 mt-1">Ajoutez jusqu'à 8 photos de haute qualité</p>
@@ -18,7 +18,7 @@
                           transition-opacity duration-300">
                 <button @click="removeImage(index)" 
                         class="absolute top-2 right-2 p-2.5 bg-white/90 backdrop-blur-sm rounded-xl
-                               shadow-lg hover:bg-white transition-all duration-200">
+                               -shadow-lg hover:bg-white transition-all duration-200">
                   <XMarkIcon class="w-4 h-4 text-gray-700" />
                 </button>
               </div>
@@ -44,7 +44,7 @@
       </div>
 
       <!-- Basic Information -->
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="bg-white rounded-2xl -shadow-sm border border-gray-100 overflow-hidden">
         <div class="p-8 pb-0">
           <h2 class="text-xl font-semibold text-gray-900">Informations de l'objet</h2>
           <p class="text-gray-500 mt-1">Décrivez votre objet avec précision</p>
@@ -121,7 +121,7 @@
       </div>
 
       <!-- Availability Section -->
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="bg-white rounded-2xl -shadow-sm border border-gray-100 overflow-hidden">
         <div class="p-8 pb-0">
           <h2 class="text-xl font-semibold text-gray-900">Disponibilité</h2>
           <p class="text-gray-500 mt-1">Définissez quand votre objet est disponible</p>

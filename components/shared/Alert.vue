@@ -2,7 +2,7 @@
   <div 
     v-if="show"
     :class="[
-      'fixed top-4 right-4 left-4 sm:max-w-sm sm:right-4 sm:left-auto p-4 rounded-xl shadow-lg border transition-all duration-300 z-50',
+      'fixed top-4 right-4 left-4 sm:max-w-sm sm:right-4 sm:left-auto p-4 rounded-xl -shadow-lg border transition-all duration-300 z-50',
       type === 'error' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-green-50 border-green-200 text-green-700'
     ]"
   >

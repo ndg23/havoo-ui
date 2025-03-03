@@ -106,7 +106,7 @@
         <div 
           v-for="(image, index) in form.images" 
           :key="index"
-              class="aspect-square rounded-xl overflow-hidden relative group shadow-sm"
+              class="aspect-square rounded-xl overflow-hidden relative group -shadow-sm"
         >
           <img 
             :src="image.url || URL.createObjectURL(image)"

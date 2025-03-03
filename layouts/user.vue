@@ -35,7 +35,7 @@
               />
               <ChevronDownIcon class="w-4 h-4" />
             </MenuButton>
-            <MenuItems class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border">
+            <MenuItems class="absolute right-0 mt-2 w-48 bg-white rounded-lg -shadow-lg border">
               <MenuItem v-slot="{ active }">
                 <NuxtLink 
                   to="/profile"

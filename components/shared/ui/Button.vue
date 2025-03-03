@@ -25,7 +25,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const variants = {
-  primary: 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-lg hover:shadow-blue-500/25',
+  primary: 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:-shadow-lg hover:-shadow-blue-500/25',
   secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200',
   white: 'bg-white text-gray-900 hover:bg-gray-50'
 }

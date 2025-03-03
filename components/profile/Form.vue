@@ -7,7 +7,7 @@
         <input
           v-model="formData.name"
           type="text"
-          class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          class="mt-1 block w-full rounded-xl border-gray-300 -shadow-sm focus:border-blue-500 focus:ring-blue-500"
         />
       </div>
 
@@ -16,7 +16,7 @@
         <input
           v-model="formData.email"
           type="email"
-          class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          class="mt-1 block w-full rounded-xl border-gray-300 -shadow-sm focus:border-blue-500 focus:ring-blue-500"
         />
       </div>
 
@@ -25,7 +25,7 @@
         <input
           v-model="formData.phone"
           type="tel"
-          class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          class="mt-1 block w-full rounded-xl border-gray-300 -shadow-sm focus:border-blue-500 focus:ring-blue-500"
         />
       </div>
     </div>
@@ -39,7 +39,7 @@
           <input
             v-model="formData.address.street"
             type="text"
-            class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            class="mt-1 block w-full rounded-xl border-gray-300 -shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
 
@@ -48,7 +48,7 @@
           <input
             v-model="formData.address.city"
             type="text"
-            class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            class="mt-1 block w-full rounded-xl border-gray-300 -shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
 
@@ -57,7 +57,7 @@
           <input
             v-model="formData.address.postalCode"
             type="text"
-            class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            class="mt-1 block w-full rounded-xl border-gray-300 -shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
       </div>
@@ -66,7 +66,7 @@
     <div class="pt-6 border-t border-gray-200">
       <button
         type="submit"
-        class="inline-flex justify-center px-6 py-3 border border-transparent rounded-xl shadow-sm 
+        class="inline-flex justify-center px-6 py-3 border border-transparent rounded-xl -shadow-sm 
                text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 
                focus:ring-offset-2 focus:ring-blue-500"
       >

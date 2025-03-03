@@ -19,21 +19,55 @@
                   <span class="relative">
                     l'expert
                     <svg class="absolute -bottom-4 left-0 w-full" height="12" viewBox="0 0 400 12" fill="none">
-                      <path d="M2 10C150.667 4.33333 374.4 -3.2 398 10" stroke="#2563EB" stroke-width="4"/>
+                      <path d="M2 10C150.667 4.33333 374.4 -3.2 398 10" stroke="#25D366" stroke-width="4"/>
                     </svg>
                   </span>
                   <br />
                   qu'il vous faut
                 </h1>
+
+                <p class="text-2xl text-gray-500 mb-12 leading-relaxed max-w-lg">
+                  Des professionnels qualifiés à votre service, avec une expérience 
+                  <span class="text-primary-500 font-medium">simple et efficace</span>.
+                </p>
+
+                <!-- Call-to-action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4 mb-12">
+                  <NuxtLink
+                    to="/demande"
+                    class="inline-flex items-center justify-center px-8 py-4 text-lg font-medium text-white bg-primary-500 rounded-2xl hover:bg-primary-600 transition-colors duration-200"
+                  >
+                    Demander un service
+                    <ArrowRightIcon class="w-5 h-5 ml-2" />
+                  </NuxtLink>
+                  <NuxtLink
+                    to="/auth/register-expert"
+                    class="inline-flex items-center justify-center px-8 py-4 text-lg font-medium text-primary-600 bg-primary-50 rounded-2xl hover:bg-primary-100 transition-colors duration-200"
+                  >
+                    Devenir expert
+                    <UserPlusIcon class="w-5 h-5 ml-2" />
+                  </NuxtLink>
+                </div>
+
+                <!-- Trust badges -->
+                <div class="flex items-center gap-6 text-gray-400">
+                  <div class="flex items-center gap-2">
+                    <ShieldCheckIcon class="w-5 h-5" />
+                    <span class="text-sm">Vérifié</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <StarIcon class="w-5 h-5" />
+                    <span class="text-sm">4.9/5</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <UserGroupIcon class="w-5 h-5" />
+                    <span class="text-sm">15K+ clients</span>
+                  </div>
+                </div>
               </div>
 
-              <p class="text-2xl text-gray-500 mb-12 leading-relaxed max-w-lg">
-                Des professionnels qualifiés à votre service, avec une expérience 
-                <span class="text-primary-500 font-medium">simple et efficace</span>.
-              </p>
-              
               <!-- Search Form -->
-              <div class="bg-white rounded-3xl shadow-[0_20px_50px_-20px_rgba(0,0,0,0.15)] p-3 mb-12">
+              <div class="bg-white rounded-3xl -shadow-[0_20px_50px_-20px_rgba(0,0,0,0.15)] p-3 mb-12">
                 <div class="flex flex-col md:flex-row gap-3">
                   <div class="flex-1">
                     <select class="w-full h-16 px-6 text-lg bg-gray-50 rounded-2xl border-0 focus:ring-2 focus:ring-primary-500">
@@ -82,7 +116,7 @@
                 <div class="absolute -left-8 -bottom-8 w-24 h-24 bg-yellow-500/10 rounded-full blur-2xl"></div>
                 
                 <!-- Main image -->
-                <div class="relative rounded-3xl overflow-hidden aspect-[4/3] shadow-2xl">
+                <div class="relative rounded-3xl overflow-hidden aspect-[4/3] -shadow-2xl">
                   <img 
                     src="https://images.pexels.com/photos/7232253/pexels-photo-7232253.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" 
                     alt="Services à domicile" 
@@ -93,7 +127,7 @@
                   
                   <!-- Floating stats card -->
                   <div class="absolute bottom-6 left-6 right-6">
-                    <div class="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
+                    <div class="bg-white/95 backdrop-blur-sm rounded-2xl p-6 -shadow-lg">
                       <div class="flex items-center justify-between">
                         <div>
                           <p class="text-sm text-gray-500 mb-1">Satisfaction client</p>
@@ -214,7 +248,7 @@
           <h2 class="text-4xl font-medium text-black mb-32 text-center">Une expérience sans égal</h2>
           <div class="grid md:grid-cols-3 gap-20">
             <div v-for="feature in features" :key="feature.id" class="text-center px-6">
-              <div class="w-20 h-20 rounded-full bg-white flex items-center justify-center mx-auto mb-10 shadow-sm">
+              <div class="w-20 h-20 rounded-full bg-white flex items-center justify-center mx-auto mb-10 -shadow-sm">
                 <span class="text-3xl text-primary-500">{{ feature.icon }}</span>
               </div>
               <h3 class="font-medium text-2xl text-black mb-6">{{ feature.title }}</h3>
@@ -255,6 +289,14 @@
   </template>
   
   <script setup>
+  import { 
+    ArrowRightIcon,
+    UserPlusIcon,
+    ShieldCheckIcon,
+    StarIcon,
+    UserGroupIcon
+  } from '@heroicons/vue/24/outline'
+
   const services = [
     { id: 'menage', name: 'Ménage', icon: '🧹', price: 'Dès 25€/h' },
     { id: 'jardinage', name: 'Jardinage', icon: '🌱', price: 'Dès 30€/h' },

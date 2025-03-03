@@ -14,7 +14,7 @@
           <input
             v-model="passwordForm.current"
             type="password"
-            class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            class="mt-1 block w-full rounded-xl border-gray-300 -shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
 
@@ -23,7 +23,7 @@
           <input
             v-model="passwordForm.new"
             type="password"
-            class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            class="mt-1 block w-full rounded-xl border-gray-300 -shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
 
@@ -32,7 +32,7 @@
           <input
             v-model="passwordForm.confirm"
             type="password"
-            class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            class="mt-1 block w-full rounded-xl border-gray-300 -shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
 
@@ -64,7 +64,7 @@
           :class="[twoFactorEnabled ? 'bg-blue-600' : 'bg-gray-200']"
         >
           <span
-            class="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 
+            class="pointer-events-none inline-block h-5 w-5 rounded-full bg-white -shadow transform ring-0 
                    transition ease-in-out duration-200"
             :class="[twoFactorEnabled ? 'translate-x-5' : 'translate-x-0']"
           />

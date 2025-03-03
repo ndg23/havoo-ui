@@ -1,5 +1,5 @@
 <template>
-  <nav class="bg-white shadow">
+  <nav class="bg-white -shadow">
     <div class="px-4 h-16 flex justify-between items-center">
       <!-- Titre de la page -->
       <h1 class="text-xl font-semibold text-gray-800">
@@ -25,7 +25,7 @@
           <!-- Menu déroulant -->
           <div
             v-if="showUserMenu"
-            class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1"
+            class="absolute right-0 mt-2 w-48 bg-white rounded-lg -shadow-lg py-1"
           >
             <NuxtLink
               to="/admin/profile"

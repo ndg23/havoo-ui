@@ -7,7 +7,7 @@
           <div class="fixed inset-0 bg-black opacity-50"></div>
           
           <!-- Modal -->
-          <div class="relative bg-white rounded-lg shadow-xl max-w-2xl w-full" @click.stop>
+          <div class="relative bg-white rounded-lg -shadow-xl max-w-2xl w-full" @click.stop>
             <div class="p-6">
               <slot />
             </div>

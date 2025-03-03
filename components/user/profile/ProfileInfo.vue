@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white shadow rounded-lg">
+  <div class="bg-white -shadow rounded-lg">
     <div class="p-6">
       <div class="flex items-center space-x-6">
         <div class="relative">
@@ -11,7 +11,7 @@
           <button
             v-if="editable"
             @click="$emit('edit-avatar')"
-            class="absolute bottom-0 right-0 bg-white rounded-full p-1 shadow hover:bg-gray-50"
+            class="absolute bottom-0 right-0 bg-white rounded-full p-1 -shadow hover:bg-gray-50"
           >
             <PencilIcon class="w-4 h-4 text-gray-600" />
           </button>

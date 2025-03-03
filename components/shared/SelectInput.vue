@@ -4,7 +4,7 @@
     <select
       :value="modelValue"
       @input="$emit('update:modelValue', ($event.target as HTMLSelectElement).value)"
-      class="block w-full rounded-lg border-gray-200 shadow-sm focus:border-orange-500 focus:ring-orange-500"
+      class="block w-full rounded-lg border-gray-200 -shadow-sm focus:border-orange-500 focus:ring-orange-500"
     >
       <option value="">Sélectionnez une option</option>
       <option v-for="option in options" :key="option.id" :value="option.id">

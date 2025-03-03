@@ -85,7 +85,7 @@
     </div>
 
     <!-- Photos with improved UI -->
-    <div class="bg-white rounded-xl border shadow-sm hover:shadow-md transition-shadow">
+    <div class="bg-white rounded-xl border -shadow-sm hover:-shadow-md transition--shadow">
       <div class="p-6">
         <h2 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
           <CameraIcon class="w-5 h-5 text-orange-500 mr-2" />
@@ -106,7 +106,7 @@
             <div 
               v-for="(image, index) in form.images" 
               :key="index"
-              class="aspect-square rounded-xl overflow-hidden relative group shadow-sm"
+              class="aspect-square rounded-xl overflow-hidden relative group -shadow-sm"
             >
               <img 
                 :src="image.url || URL.createObjectURL(image)"
@@ -155,7 +155,7 @@
     </div>
 
     <!-- Rental conditions -->
-    <div class="bg-white rounded-xl border shadow-sm hover:shadow-md transition-shadow">
+    <div class="bg-white rounded-xl border -shadow-sm hover:-shadow-md transition--shadow">
       <div class="p-6">
         <h2 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
           <ClipboardCheckIcon class="w-5 h-5 text-orange-500 mr-2" />
@@ -203,7 +203,7 @@
     </div>
 
     <!-- Availability with calendar features -->
-    <div class="bg-white rounded-xl border shadow-sm hover:shadow-md transition-shadow">
+    <div class="bg-white rounded-xl border -shadow-sm hover:-shadow-md transition--shadow">
       <div class="p-6">
         <h2 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
           <ClockIcon class="w-5 h-5 text-orange-500 mr-2" />
