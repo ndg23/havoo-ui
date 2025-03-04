@@ -163,37 +163,8 @@
       </div>
     </section>
 
-    <!-- Témoignages -->
-    <section class="py-20 bg-gray-50">
-      <div class="max-w-7xl mx-auto px-4">
-        <h2 class="text-3xl font-bold text-gray-900 text-center mb-12">
-          Ils nous font confiance
-        </h2>
-
-        <div class="grid md:grid-cols-3 gap-8">
-          <div 
-            v-for="review in reviews" 
-            :key="review.id"
-            class="bg-white p-6 rounded-2xl border border-gray-200"
-          >
-            <div class="flex items-center gap-1 mb-4">
-              <StarIcon v-for="i in 5" :key="i" class="w-5 h-5" :class="i <= review.rating ? 'text-yellow-400' : 'text-gray-200'" />
-            </div>
-            <p class="text-gray-600 mb-4">{{ review.comment }}</p>
-            <div class="flex items-center gap-3">
-              <img :src="review.avatar" class="w-10 h-10 rounded-full" :alt="review.name">
-              <div>
-                <div class="font-medium text-gray-900">{{ review.name }}</div>
-                <div class="text-sm text-gray-500">{{ review.service }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- CTA -->
-    <section class="py-20 bg-primary-500">
+    <section class="py-24 bg-primary-500">
       <div class="max-w-3xl mx-auto px-4 text-center">
         <h2 class="text-3xl font-bold text-white mb-6">
           Prêt à commencer ?
@@ -213,7 +184,7 @@
 </template>
 
 <script setup>
-import { ClipboardIcon, UserGroupIcon, CheckCircleIcon, StarIcon, ArrowRightIcon, ShieldCheckIcon, ClockIcon, CurrencyDollarIcon } from '@heroicons/vue/24/solid'
+import { ClipboardIcon, UserGroupIcon, CheckCircleIcon, ArrowRightIcon, ShieldCheckIcon, ClockIcon, CurrencyDollarIcon } from '@heroicons/vue/24/solid'
 
 const services = [
   {
@@ -243,33 +214,6 @@ const services = [
     icon: '👶',
     price: 'Dès 800 FCFA',
     description: 'Garde et accompagnement'
-  }
-]
-
-const reviews = [
-  {
-    id: 1,
-    name: 'Marie L.',
-    avatar: 'https://randomuser.me/api/portraits/women/1.jpg',
-    rating: 5,
-    service: 'Ménage',
-    comment: 'Service impeccable et professionnel. Je recommande vivement !'
-  },
-  {
-    id: 2,
-    name: 'Thomas D.',
-    avatar: 'https://randomuser.me/api/portraits/men/1.jpg',
-    rating: 5,
-    service: 'Bricolage',
-    comment: 'Travail soigné et expert très sympathique. Parfait !'
-  },
-  {
-    id: 3,
-    name: 'Sarah K.',
-    avatar: 'https://randomuser.me/api/portraits/women/2.jpg',
-    rating: 5,
-    service: "Garde d'enfants",
-    comment: 'Très bonne expérience. Mon fils était ravi !'
   }
 ]
 </script>
