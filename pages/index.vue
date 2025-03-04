@@ -4,7 +4,7 @@
     <section class="relative bg-gradient-to-br from-primary-500 to-primary-600 overflow-hidden">
       <div class="absolute inset-0 bg-grid-white/10"></div>
       
-      <div class="relative max-w-7xl mx-auto px-4 py-20 sm:py-32">
+      <div class="relative max-w-7xl mx-auto px-4 py-24 sm:py-32">
         <div class="grid lg:grid-cols-2 gap-12 items-center">
           <!-- Texte -->
           <div class="text-center lg:text-left space-y-6">
@@ -46,14 +46,9 @@
     </section>
 
     <!-- Services Section -->
-    <section class="py-20 bg-gray-50">
+    <section class="py-24 bg-gray-50">
       <div class="max-w-7xl mx-auto px-4">
-        <h2 class="text-3xl font-bold text-gray-900 text-center mb-4">
-          Nos services
-        </h2>
-        <p class="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
-          Des solutions simples et efficaces pour tous vos besoins quotidiens
-        </p>
+      
         
         <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <NuxtLink
@@ -93,43 +88,12 @@
           </NuxtLink>
         </div>
 
-        <!-- Avantages en dessous -->
-        <div class="mt-16 grid sm:grid-cols-3 gap-8">
-          <div class="flex items-start gap-4">
-            <div class="shrink-0 w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center">
-              <ShieldCheckIcon class="w-6 h-6 text-primary-600" />
-            </div>
-            <div>
-              <h4 class="font-medium text-gray-900 mb-1">Experts vérifiés</h4>
-              <p class="text-sm text-gray-600">Tous nos experts sont sélectionnés rigoureusement</p>
-            </div>
-          </div>
-
-          <div class="flex items-start gap-4">
-            <div class="shrink-0 w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center">
-              <ClockIcon class="w-6 h-6 text-primary-600" />
-            </div>
-            <div>
-              <h4 class="font-medium text-gray-900 mb-1">Service rapide</h4>
-              <p class="text-sm text-gray-600">Intervention sous 24h selon disponibilités</p>
-            </div>
-          </div>
-
-          <div class="flex items-start gap-4">
-            <div class="shrink-0 w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center">
-              <CurrencyDollarIcon class="w-6 h-6 text-primary-600" />
-            </div>
-            <div>
-              <h4 class="font-medium text-gray-900 mb-1">Prix transparents</h4>
-              <p class="text-sm text-gray-600">Tarifs clairs et sans surprise</p>
-            </div>
-          </div>
-        </div>
+      
       </div>
     </section>
 
     <!-- Comment ça marche -->
-    <section class="py-20">
+    <section class="py-24">
       <div class="max-w-7xl mx-auto px-4">
         <h2 class="text-3xl font-bold text-gray-900 text-center mb-12">
           Comment ça marche ?
@@ -163,37 +127,8 @@
       </div>
     </section>
 
-    <!-- Témoignages -->
-    <section class="py-20 bg-gray-50">
-      <div class="max-w-7xl mx-auto px-4">
-        <h2 class="text-3xl font-bold text-gray-900 text-center mb-12">
-          Ils nous font confiance
-        </h2>
-
-        <div class="grid md:grid-cols-3 gap-8">
-          <div 
-            v-for="review in reviews" 
-            :key="review.id"
-            class="bg-white p-6 rounded-2xl border border-gray-200"
-          >
-            <div class="flex items-center gap-1 mb-4">
-              <StarIcon v-for="i in 5" :key="i" class="w-5 h-5" :class="i <= review.rating ? 'text-yellow-400' : 'text-gray-200'" />
-            </div>
-            <p class="text-gray-600 mb-4">{{ review.comment }}</p>
-            <div class="flex items-center gap-3">
-              <img :src="review.avatar" class="w-10 h-10 rounded-full" :alt="review.name">
-              <div>
-                <div class="font-medium text-gray-900">{{ review.name }}</div>
-                <div class="text-sm text-gray-500">{{ review.service }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- CTA -->
-    <section class="py-20 bg-primary-500">
+    <section class="py-24 bg-primary-500">
       <div class="max-w-3xl mx-auto px-4 text-center">
         <h2 class="text-3xl font-bold text-white mb-6">
           Prêt à commencer ?
@@ -213,7 +148,7 @@
 </template>
 
 <script setup>
-import { ClipboardIcon, UserGroupIcon, CheckCircleIcon, StarIcon, ArrowRightIcon, ShieldCheckIcon, ClockIcon, CurrencyDollarIcon } from '@heroicons/vue/24/solid'
+import { ClipboardIcon, UserGroupIcon, CheckCircleIcon, ArrowRightIcon, ShieldCheckIcon, ClockIcon, CurrencyDollarIcon } from '@heroicons/vue/24/solid'
 
 const services = [
   {
@@ -243,33 +178,6 @@ const services = [
     icon: '👶',
     price: 'Dès 800 FCFA',
     description: 'Garde et accompagnement'
-  }
-]
-
-const reviews = [
-  {
-    id: 1,
-    name: 'Marie L.',
-    avatar: 'https://randomuser.me/api/portraits/women/1.jpg',
-    rating: 5,
-    service: 'Ménage',
-    comment: 'Service impeccable et professionnel. Je recommande vivement !'
-  },
-  {
-    id: 2,
-    name: 'Thomas D.',
-    avatar: 'https://randomuser.me/api/portraits/men/1.jpg',
-    rating: 5,
-    service: 'Bricolage',
-    comment: 'Travail soigné et expert très sympathique. Parfait !'
-  },
-  {
-    id: 3,
-    name: 'Sarah K.',
-    avatar: 'https://randomuser.me/api/portraits/women/2.jpg',
-    rating: 5,
-    service: "Garde d'enfants",
-    comment: 'Très bonne expérience. Mon fils était ravi !'
   }
 ]
 </script>
