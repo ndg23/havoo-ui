@@ -4,7 +4,7 @@
     <section class="relative bg-gradient-to-br from-primary-500 to-primary-600 overflow-hidden">
       <div class="absolute inset-0 bg-grid-white/10"></div>
       
-      <div class="relative max-w-7xl mx-auto px-4 py-20 sm:py-32">
+      <div class="relative max-w-7xl mx-auto px-4 py-24 sm:py-32">
         <div class="grid lg:grid-cols-2 gap-12 items-center">
           <!-- Texte -->
           <div class="text-center lg:text-left space-y-6">
@@ -46,14 +46,9 @@
     </section>
 
     <!-- Services Section -->
-    <section class="py-20 bg-gray-50">
+    <section class="py-24 bg-gray-50">
       <div class="max-w-7xl mx-auto px-4">
-        <h2 class="text-3xl font-bold text-gray-900 text-center mb-4">
-          Nos services
-        </h2>
-        <p class="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
-          Des solutions simples et efficaces pour tous vos besoins quotidiens
-        </p>
+      
         
         <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <NuxtLink
@@ -93,43 +88,12 @@
           </NuxtLink>
         </div>
 
-        <!-- Avantages en dessous -->
-        <div class="mt-16 grid sm:grid-cols-3 gap-8">
-          <div class="flex items-start gap-4">
-            <div class="shrink-0 w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center">
-              <ShieldCheckIcon class="w-6 h-6 text-primary-600" />
-            </div>
-            <div>
-              <h4 class="font-medium text-gray-900 mb-1">Experts vérifiés</h4>
-              <p class="text-sm text-gray-600">Tous nos experts sont sélectionnés rigoureusement</p>
-            </div>
-          </div>
-
-          <div class="flex items-start gap-4">
-            <div class="shrink-0 w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center">
-              <ClockIcon class="w-6 h-6 text-primary-600" />
-            </div>
-            <div>
-              <h4 class="font-medium text-gray-900 mb-1">Service rapide</h4>
-              <p class="text-sm text-gray-600">Intervention sous 24h selon disponibilités</p>
-            </div>
-          </div>
-
-          <div class="flex items-start gap-4">
-            <div class="shrink-0 w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center">
-              <CurrencyDollarIcon class="w-6 h-6 text-primary-600" />
-            </div>
-            <div>
-              <h4 class="font-medium text-gray-900 mb-1">Prix transparents</h4>
-              <p class="text-sm text-gray-600">Tarifs clairs et sans surprise</p>
-            </div>
-          </div>
-        </div>
+      
       </div>
     </section>
 
     <!-- Comment ça marche -->
-    <section class="py-20">
+    <section class="py-24">
       <div class="max-w-7xl mx-auto px-4">
         <h2 class="text-3xl font-bold text-gray-900 text-center mb-12">
           Comment ça marche ?
