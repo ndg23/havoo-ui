@@ -1,0 +1,12 @@
+<script setup>
+import { 
+  ArrowRightIcon,
+  UserPlusIcon,
+  ClipboardDocumentIcon,
+  InboxIcon,
+  UserGroupIcon,
+  SparklesIcon
+} from '@heroicons/vue/24/outline'
+
+// ... reste du code
+</script> 

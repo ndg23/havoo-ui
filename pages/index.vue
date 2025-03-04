@@ -1,344 +1,281 @@
 <template>
-    <div class="min-h-screen bg-white">
-      <!-- Hero Section -->
-      <section class="relative overflow-hidden py-32 lg:py-48">
-        <!-- Subtle gradient background -->
-        <div class="absolute inset-0 bg-gradient-to-br from-gray-50 to-white -z-10"></div>
-        
-        <div class="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16">
-          <div class="lg:grid lg:grid-cols-12 lg:gap-16 items-center">
-            <!-- Left Column: Text & Form -->
-            <div class="lg:col-span-6 max-w-xl mx-auto lg:max-w-none lg:mx-0">
-              <div class="relative">
-                <!-- Decorative element -->
-                <div class="absolute -left-8 -top-8 w-24 h-24 bg-primary-500/10 rounded-full blur-2xl"></div>
-                
-                <h1 class="text-6xl sm:text-7xl font-bold text-gray-900 tracking-tight leading-none mb-8">
-                  Trouvez
-                  <br />
-                  <span class="relative">
-                    l'expert
-                    <svg class="absolute -bottom-4 left-0 w-full" height="12" viewBox="0 0 400 12" fill="none">
-                      <path d="M2 10C150.667 4.33333 374.4 -3.2 398 10" stroke="#25D366" stroke-width="4"/>
-                    </svg>
-                  </span>
-                  <br />
-                  qu'il vous faut
-                </h1>
-
-                <p class="text-2xl text-gray-500 mb-12 leading-relaxed max-w-lg">
-                  Des professionnels qualifiés à votre service, avec une expérience 
-                  <span class="text-primary-500 font-medium">simple et efficace</span>.
-                </p>
-
-                <!-- Call-to-action Buttons -->
-                <div class="flex flex-col sm:flex-row gap-4 mb-12">
-                  <NuxtLink
-                    to="/demande"
-                    class="inline-flex items-center justify-center px-8 py-4 text-lg font-medium text-white bg-primary-500 rounded-2xl hover:bg-primary-600 transition-colors duration-200"
-                  >
-                    Demander un service
-                    <ArrowRightIcon class="w-5 h-5 ml-2" />
-                  </NuxtLink>
-                  <NuxtLink
-                    to="/auth/register-expert"
-                    class="inline-flex items-center justify-center px-8 py-4 text-lg font-medium text-primary-600 bg-primary-50 rounded-2xl hover:bg-primary-100 transition-colors duration-200"
-                  >
-                    Devenir expert
-                    <UserPlusIcon class="w-5 h-5 ml-2" />
-                  </NuxtLink>
-                </div>
-
-                <!-- Trust badges -->
-                <div class="flex items-center gap-6 text-gray-400">
-                  <div class="flex items-center gap-2">
-                    <ShieldCheckIcon class="w-5 h-5" />
-                    <span class="text-sm">Vérifié</span>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <StarIcon class="w-5 h-5" />
-                    <span class="text-sm">4.9/5</span>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <UserGroupIcon class="w-5 h-5" />
-                    <span class="text-sm">15K+ clients</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Search Form -->
-              <div class="bg-white rounded-3xl -shadow-[0_20px_50px_-20px_rgba(0,0,0,0.15)] p-3 mb-12">
-                <div class="flex flex-col md:flex-row gap-3">
-                  <div class="flex-1">
-                    <select class="w-full h-16 px-6 text-lg bg-gray-50 rounded-2xl border-0 focus:ring-2 focus:ring-primary-500">
-                      <option value="">✨ Type de service</option>
-                      <option value="menage">🧹 Ménage</option>
-                      <option value="jardinage">🌱 Jardinage</option>
-                      <option value="bricolage">🔨 Bricolage</option>
-                      <option value="garde">👶 Garde d'enfants</option>
-                    </select>
-                  </div>
-                  <button class="h-16 px-8 bg-primary-500 hover:bg-primary-600 text-white text-lg font-medium rounded-2xl transition-all duration-200 flex items-center gap-2">
-                    Rechercher
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Trust Badges -->
-              <div class="flex items-center gap-8">
-                <div class="flex items-center gap-3">
-                  <div class="w-12 h-12 rounded-2xl bg-primary-500/10 flex items-center justify-center">
-                    <svg class="w-6 h-6 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                    </svg>
-                  </div>
-                  <span class="text-gray-600">Experts vérifiés</span>
-                </div>
-                <div class="flex items-center gap-3">
-                  <div class="w-12 h-12 rounded-2xl bg-primary-500/10 flex items-center justify-center">
-                    <svg class="w-6 h-6 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                    </svg>
-                  </div>
-                  <span class="text-gray-600">Paiement sécurisé</span>
-                </div>
-              </div>
-            </div>
-  
-            <!-- Right Column: Image -->
-            <div class="mt-16 lg:mt-0 lg:col-span-6 relative">
-              <div class="relative">
-                <!-- Decorative elements -->
-                <div class="absolute -right-12 -top-12 w-32 h-32 bg-primary-500/10 rounded-full blur-3xl"></div>
-                <div class="absolute -left-8 -bottom-8 w-24 h-24 bg-yellow-500/10 rounded-full blur-2xl"></div>
-                
-                <!-- Main image -->
-                <div class="relative rounded-3xl overflow-hidden aspect-[4/3] -shadow-2xl">
-                  <img 
-                    src="https://images.pexels.com/photos/7232253/pexels-photo-7232253.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" 
-                    alt="Services à domicile" 
-                    class="w-full h-full object-cover"
-                  />
-                  <!-- Overlay gradient -->
-                  <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-                  
-                  <!-- Floating stats card -->
-                  <div class="absolute bottom-6 left-6 right-6">
-                    <div class="bg-white/95 backdrop-blur-sm rounded-2xl p-6 -shadow-lg">
-                      <div class="flex items-center justify-between">
-                        <div>
-                          <p class="text-sm text-gray-500 mb-1">Satisfaction client</p>
-                          <div class="flex items-center gap-2">
-                            <div class="text-yellow-400 flex">★★★★★</div>
-                            <span class="text-2xl font-bold text-gray-900">4.9/5</span>
-                          </div>
-                        </div>
-                        <div class="h-12 w-px bg-gray-200"></div>
-                        <div>
-                          <p class="text-sm text-gray-500 mb-1">Experts disponibles</p>
-                          <p class="text-2xl font-bold text-gray-900">200+</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-  
-      <!-- How It Works Section -->
-      <section class="py-24 px-4">
-        <div class="max-w-6xl mx-auto">
-          <div class="text-center mb-16">
-            <h2 class="text-3xl font-bold text-gray-900">
-              Comment ça marche ?
-            </h2>
-            <p class="mt-4 text-lg text-gray-600">
-              Trouvez votre expert en 3 étapes simples
+  <div class="min-h-screen">
+    <!-- Hero Section -->
+    <section class="relative bg-gradient-to-br from-primary-500 to-primary-600 overflow-hidden">
+      <div class="absolute inset-0 bg-grid-white/10"></div>
+      
+      <div class="relative max-w-7xl mx-auto px-4 py-20 sm:py-32">
+        <div class="grid lg:grid-cols-2 gap-12 items-center">
+          <!-- Texte -->
+          <div class="text-center lg:text-left space-y-6">
+            <h1 class="text-4xl sm:text-5xl font-bold text-white">
+              Trouvez l'expert idéal pour vos besoins
+            </h1>
+            <p class="text-xl text-white/90">
+              Des professionnels qualifiés pour tous vos services à domicile
             </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+              <NuxtLink 
+                to="/demande"
+                class="px-6 py-3 bg-white text-primary-600 rounded-xl font-medium hover:bg-gray-100 transition-colors"
+              >
+                Faire une demande
+              </NuxtLink>
+              <NuxtLink 
+                to="/experts"
+                class="px-6 py-3 bg-white/10 text-white rounded-xl font-medium hover:bg-white/20 transition-colors"
+              >
+                Voir les experts
+              </NuxtLink>
+            </div>
           </div>
 
-          <div class="grid md:grid-cols-3 gap-12">
-            <!-- Step 1 -->
-            <div class="relative">
-              <div class="flex flex-col items-center text-center">
-                <div class="w-16 h-16 bg-primary-50 rounded-2xl flex items-center justify-center mb-6">
-                  <svg class="w-8 h-8 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                  </svg>
+          <!-- Image/Illustration -->
+          <div class="relative lg:h-[500px] hidden lg:block">
+            <img 
+              src="https://images.pexels.com/photos/3768914/pexels-photo-3768914.jpeg"
+              alt="Services à domicile"
+              class="absolute inset-0 w-full h-full object-cover rounded-2xl -shadow-2xl"
+              onerror="this.onerror=null; this.src='https://images.pexels.com/photos/4239091/pexels-photo-4239091.jpeg'"
+            />
+            <!-- Overlay pour améliorer la lisibilité -->
+            <div class="absolute inset-0 bg-gradient-to-br from-primary-500/20 to-transparent rounded-2xl"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="py-20 bg-gray-50">
+      <div class="max-w-7xl mx-auto px-4">
+        <h2 class="text-3xl font-bold text-gray-900 text-center mb-4">
+          Nos services
+        </h2>
+        <p class="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
+          Des solutions simples et efficaces pour tous vos besoins quotidiens
+        </p>
+        
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <NuxtLink
+            v-for="service in services"
+            :key="service.id"
+            :to="`/demande?service=${service.id}`"
+            class="relative group overflow-hidden"
+          >
+            <!-- Card -->
+            <div class="bg-white rounded-2xl p-8 text-center border-2 border-transparent hover:border-primary-500 transition-all duration-300">
+              <!-- Icon avec cercle -->
+              <div class="relative inline-flex mb-6">
+                <div class="absolute inset-0 bg-primary-100 rounded-full transform transition-transform duration-300 group-hover:scale-110"></div>
+                <div class="relative w-16 h-16 flex items-center justify-center text-4xl">
+                  {{ service.icon }}
                 </div>
-                <h3 class="text-xl font-semibold text-gray-900 mb-3">
-                  1. Décrivez votre besoin
-                </h3>
-                <p class="text-gray-600">
-                  Remplissez un formulaire simple avec vos besoins et disponibilités
-                </p>
               </div>
-              <!-- Connection line -->
-              <div class="hidden md:block absolute top-8 left-full w-full h-0.5 bg-gray-100">
-                <div class="absolute -right-2 -top-1.5 w-3 h-3 rounded-full bg-gray-100"></div>
+
+              <!-- Texte -->
+              <h3 class="text-xl font-medium text-gray-900 mb-2">
+                {{ service.name }}
+              </h3>
+              <p class="text-gray-600 text-sm mb-4">
+                {{ service.description }}
+              </p>
+
+              <!-- Prix avec badge -->
+              <div class="inline-flex items-center px-3 py-1 rounded-full bg-primary-50 text-primary-600 text-sm font-medium">
+                {{ service.price }}
+              </div>
+
+              <!-- Flèche -->
+              <div class="mt-4 text-primary-500 transform translate-y-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                <ArrowRightIcon class="w-5 h-5 mx-auto" />
               </div>
             </div>
+          </NuxtLink>
+        </div>
 
-            <!-- Step 2 -->
-            <div class="relative">
-              <div class="flex flex-col items-center text-center">
-                <div class="w-16 h-16 bg-primary-50 rounded-2xl flex items-center justify-center mb-6">
-                  <svg class="w-8 h-8 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
-                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                  </svg>
-                </div>
-                <h3 class="text-xl font-semibold text-gray-900 mb-3">
-                  2. Recevez des devis
-                </h3>
-                <p class="text-gray-600">
-                  Les professionnels vous envoient leurs propositions rapidement
-                </p>
-              </div>
-              <!-- Connection line -->
-              <div class="hidden md:block absolute top-8 left-full w-full h-0.5 bg-gray-100">
-                <div class="absolute -right-2 -top-1.5 w-3 h-3 rounded-full bg-gray-100"></div>
-              </div>
+        <!-- Avantages en dessous -->
+        <div class="mt-16 grid sm:grid-cols-3 gap-8">
+          <div class="flex items-start gap-4">
+            <div class="shrink-0 w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center">
+              <ShieldCheckIcon class="w-6 h-6 text-primary-600" />
             </div>
-
-            <!-- Step 3 -->
-            <div class="relative">
-              <div class="flex flex-col items-center text-center">
-                <div class="w-16 h-16 bg-primary-50 rounded-2xl flex items-center justify-center mb-6">
-                  <svg class="w-8 h-8 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
-                      d="M5 13l4 4L19 7"/>
-                  </svg>
-                </div>
-                <h3 class="text-xl font-semibold text-gray-900 mb-3">
-                  3. Choisissez votre expert
-                </h3>
-                <p class="text-gray-600">
-                  Sélectionnez le professionnel qui vous correspond le mieux
-                </p>
-              </div>
+            <div>
+              <h4 class="font-medium text-gray-900 mb-1">Experts vérifiés</h4>
+              <p class="text-sm text-gray-600">Tous nos experts sont sélectionnés rigoureusement</p>
             </div>
           </div>
 
-          <!-- CTA -->
-          <div class="text-center mt-16">
-            <NuxtLink 
-              to="/demande" 
-              class="inline-flex items-center px-8 py-4 bg-primary-500 text-white font-medium rounded-xl hover:bg-primary-600 transition-colors"
-            >
-              Démarrer maintenant
-              <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-              </svg>
-            </NuxtLink>
-          </div>
-        </div>
-      </section>
-  
-      <!-- Features -->
-      <section class="py-40 px-8 bg-gray-50">
-        <div class="max-w-7xl mx-auto">
-          <h2 class="text-4xl font-medium text-black mb-32 text-center">Une expérience sans égal</h2>
-          <div class="grid md:grid-cols-3 gap-20">
-            <div v-for="feature in features" :key="feature.id" class="text-center px-6">
-              <div class="w-20 h-20 rounded-full bg-white flex items-center justify-center mx-auto mb-10 -shadow-sm">
-                <span class="text-3xl text-primary-500">{{ feature.icon }}</span>
-              </div>
-              <h3 class="font-medium text-2xl text-black mb-6">{{ feature.title }}</h3>
-              <p class="text-gray-400 text-lg leading-relaxed">{{ feature.description }}</p>
+          <div class="flex items-start gap-4">
+            <div class="shrink-0 w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center">
+              <ClockIcon class="w-6 h-6 text-primary-600" />
+            </div>
+            <div>
+              <h4 class="font-medium text-gray-900 mb-1">Service rapide</h4>
+              <p class="text-sm text-gray-600">Intervention sous 24h selon disponibilités</p>
             </div>
           </div>
-        </div>
-      </section>
-  
-      <!-- Testimonial Section -->
-      <section class="py-40 px-8 bg-white">
-        <div class="max-w-4xl mx-auto text-center">
-          <div class="text-yellow-400 flex justify-center text-2xl mb-6">★★★★★</div>
-          <p class="text-3xl font-medium text-black mb-8 leading-relaxed">
-            "Service impeccable, exactement quand j'en avais besoin. La qualité et le professionnalisme m'ont vraiment impressionnée."
-          </p>
-          <div class="flex justify-center items-center mt-12">
-            <img src="https://images.unsplash.com/photo-1518791841217-8cc77978b23a?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Client" class="w-16 h-16 rounded-full object-cover" />
-            <div class="ml-4 text-left">
-              <p class="text-black font-medium">Marie L.</p>
-              <p class="text-gray-400">Paris</p>
-            </div>
-          </div>
-        </div>
-      </section>
-  
-      <!-- Call to Action -->
-      <section class="py-40 px-8 bg-black text-white text-center">
-        <div class="max-w-4xl mx-auto">
-          <h2 class="text-5xl font-medium mb-10">Prêt à simplifier votre quotidien ?</h2>
-          <p class="text-2xl text-gray-400 mb-20 max-w-2xl mx-auto leading-relaxed">Trouvez le bon expert en quelques clics et profitez d'un service d'exception.</p>
-          <button class="bg-white text-black px-12 py-6 rounded-full text-xl font-medium hover:bg-gray-100 transition-colors">
-            Commencer maintenant
-          </button>
-        </div>
-      </section>
-    </div>
-  </template>
-  
-  <script setup>
-  import { 
-    ArrowRightIcon,
-    UserPlusIcon,
-    ShieldCheckIcon,
-    StarIcon,
-    UserGroupIcon
-  } from '@heroicons/vue/24/outline'
 
-  const services = [
-    { id: 'menage', name: 'Ménage', icon: '🧹', price: 'Dès 25€/h' },
-    { id: 'jardinage', name: 'Jardinage', icon: '🌱', price: 'Dès 30€/h' },
-    { id: 'bricolage', name: 'Bricolage', icon: '🔨', price: 'Dès 35€/h' },
-    { id: 'garde', name: 'Garde d\'enfants', icon: '👶', price: 'Dès 20€/h' },
-  ]
-  
-  const features = [
-    {
-      id: 1,
-      icon: '✓',
-      title: 'Professionnels vérifiés',
-      description: 'Tous nos experts sont rigoureusement sélectionnés pour vous garantir un service d\'excellence.'
-    },
-    {
-      id: 2,
-      icon: '✓',
-      title: 'Réservation instantanée',
-      description: 'Notre interface intuitive vous permet de réserver un expert en quelques secondes.'
-    },
-    {
-      id: 3,
-      icon: '✓',
-      title: 'Paiement sécurisé',
-      description: 'Vos transactions sont protégées par les méthodes de cryptage les plus avancées.'
-    }
-  ]
-  </script>
-  
-  <style scoped>
-  select {
-    -webkit-appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 1.5rem center;
-    background-size: 1.5em;
+          <div class="flex items-start gap-4">
+            <div class="shrink-0 w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center">
+              <CurrencyDollarIcon class="w-6 h-6 text-primary-600" />
+            </div>
+            <div>
+              <h4 class="font-medium text-gray-900 mb-1">Prix transparents</h4>
+              <p class="text-sm text-gray-600">Tarifs clairs et sans surprise</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Comment ça marche -->
+    <section class="py-20">
+      <div class="max-w-7xl mx-auto px-4">
+        <h2 class="text-3xl font-bold text-gray-900 text-center mb-12">
+          Comment ça marche ?
+        </h2>
+
+        <div class="grid md:grid-cols-3 gap-8">
+          <div class="text-center">
+            <div class="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <ClipboardIcon class="w-8 h-8 text-primary-600" />
+            </div>
+            <h3 class="text-xl font-medium text-gray-900 mb-2">1. Faites votre demande</h3>
+            <p class="text-gray-600">Décrivez votre besoin en quelques clics</p>
+          </div>
+
+          <div class="text-center">
+            <div class="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <UserGroupIcon class="w-8 h-8 text-primary-600" />
+            </div>
+            <h3 class="text-xl font-medium text-gray-900 mb-2">2. Choisissez votre expert</h3>
+            <p class="text-gray-600">Sélectionnez le professionnel qui vous convient</p>
+          </div>
+
+          <div class="text-center">
+            <div class="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircleIcon class="w-8 h-8 text-primary-600" />
+            </div>
+            <h3 class="text-xl font-medium text-gray-900 mb-2">3. Service réalisé</h3>
+            <p class="text-gray-600">Profitez d'un service de qualité</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Témoignages -->
+    <section class="py-20 bg-gray-50">
+      <div class="max-w-7xl mx-auto px-4">
+        <h2 class="text-3xl font-bold text-gray-900 text-center mb-12">
+          Ils nous font confiance
+        </h2>
+
+        <div class="grid md:grid-cols-3 gap-8">
+          <div 
+            v-for="review in reviews" 
+            :key="review.id"
+            class="bg-white p-6 rounded-2xl border border-gray-200"
+          >
+            <div class="flex items-center gap-1 mb-4">
+              <StarIcon v-for="i in 5" :key="i" class="w-5 h-5" :class="i <= review.rating ? 'text-yellow-400' : 'text-gray-200'" />
+            </div>
+            <p class="text-gray-600 mb-4">{{ review.comment }}</p>
+            <div class="flex items-center gap-3">
+              <img :src="review.avatar" class="w-10 h-10 rounded-full" :alt="review.name">
+              <div>
+                <div class="font-medium text-gray-900">{{ review.name }}</div>
+                <div class="text-sm text-gray-500">{{ review.service }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="py-20 bg-primary-500">
+      <div class="max-w-3xl mx-auto px-4 text-center">
+        <h2 class="text-3xl font-bold text-white mb-6">
+          Prêt à commencer ?
+        </h2>
+        <p class="text-xl text-white/90 mb-8">
+          Rejoignez des milliers de clients satisfaits
+        </p>
+        <NuxtLink 
+          to="/demande"
+          class="inline-block px-8 py-4 bg-white text-primary-600 rounded-xl font-medium hover:bg-gray-100 transition-colors"
+        >
+          Faire une demande
+        </NuxtLink>
+      </div>
+    </section>
+  </div>
+</template>
+
+<script setup>
+import { ClipboardIcon, UserGroupIcon, CheckCircleIcon, StarIcon, ArrowRightIcon, ShieldCheckIcon, ClockIcon, CurrencyDollarIcon } from '@heroicons/vue/24/solid'
+
+const services = [
+  {
+    id: 'menage',
+    name: 'Ménage',
+    icon: '🧹',
+    price: 'Dès 500 FCFA',
+    description: 'Entretien de votre domicile'
+  },
+  {
+    id: 'jardinage',
+    name: 'Jardinage',
+    icon: '🌱',
+    price: 'Dès 1000 FCFA',
+    description: 'Entretien de vos espaces verts'
+  },
+  {
+    id: 'bricolage',
+    name: 'Bricolage',
+    icon: '🔨',
+    price: 'Dès 1500 FCFA',
+    description: 'Réparations et installations'
+  },
+  {
+    id: 'garde',
+    name: "Garde d'enfants",
+    icon: '👶',
+    price: 'Dès 800 FCFA',
+    description: 'Garde et accompagnement'
   }
+]
 
-  /* Smooth transitions */
-  .transition-all {
-    transition-property: all;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 150ms;
+const reviews = [
+  {
+    id: 1,
+    name: 'Marie L.',
+    avatar: 'https://randomuser.me/api/portraits/women/1.jpg',
+    rating: 5,
+    service: 'Ménage',
+    comment: 'Service impeccable et professionnel. Je recommande vivement !'
+  },
+  {
+    id: 2,
+    name: 'Thomas D.',
+    avatar: 'https://randomuser.me/api/portraits/men/1.jpg',
+    rating: 5,
+    service: 'Bricolage',
+    comment: 'Travail soigné et expert très sympathique. Parfait !'
+  },
+  {
+    id: 3,
+    name: 'Sarah K.',
+    avatar: 'https://randomuser.me/api/portraits/women/2.jpg',
+    rating: 5,
+    service: "Garde d'enfants",
+    comment: 'Très bonne expérience. Mon fils était ravi !'
   }
-  </style>
+]
+</script>
+
+<style scoped>
+.bg-grid-white {
+  background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23fff' fill-opacity='0.1' fill-rule='evenodd'%3E%3Ccircle cx='2' cy='2' r='1'/%3E%3C/g%3E%3C/svg%3E");
+}
+</style>

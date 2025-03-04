@@ -14,265 +14,407 @@
       <!-- Form Card -->
       <div class="bg-white rounded-2xl -shadow-sm border border-gray-200 p-8">
         <form @submit.prevent="handleSubmit" class="space-y-6">
-          <!-- Name Inputs -->
-          <div class="grid grid-cols-2 gap-4">
-            <div class="relative">
-              <input
-                v-model="form.firstName"
-                type="text"
-                required
-                class="peer w-full h-14 px-4 pt-2 rounded-xl border-2 border-gray-200 placeholder-transparent focus:border-indigo-500 focus:ring-0 focus:outline-none transition-colors"
-                placeholder=" "
-                :class="{ 'border-red-300': errors.firstName }"
-              />
-              <label class="absolute left-4 top-4 text-gray-500 text-sm transition-all duration-200 
-                -translate-y-3 scale-85 peer-placeholder-shown:translate-y-0 
-                peer-placeholder-shown:scale-100 peer-focus:-translate-y-3 
-                peer-focus:scale-85"
-              >
-                Prénom
-              </label>
-            </div>
-
-            <div class="relative">
-              <input
-                v-model="form.lastName"
-                type="text"
-                required
-                class="peer w-full h-14 px-4 pt-2 rounded-xl border-2 border-gray-200 placeholder-transparent focus:border-indigo-500 focus:ring-0 focus:outline-none transition-colors"
-                placeholder=" "
-                :class="{ 'border-red-300': errors.lastName }"
-              />
-              <label class="absolute left-4 top-4 text-gray-500 text-sm transition-all duration-200 
-                -translate-y-3 scale-85 peer-placeholder-shown:translate-y-0 
-                peer-placeholder-shown:scale-100 peer-focus:-translate-y-3 
-                peer-focus:scale-85"
-              >
-                Nom
-              </label>
-            </div>
-          </div>
-
-          <!-- Email Input -->
-          <div class="relative">
-            <input
-              v-model="form.email"
-              type="email"
-              required
-              class="peer w-full h-14 px-4 pt-2 rounded-xl border-2 border-gray-200 placeholder-transparent focus:border-indigo-500 focus:ring-0 focus:outline-none transition-colors"
-              placeholder=" "
-              :class="{ 'border-red-300': errors.email }"
-            />
-            <label class="absolute left-4 top-4 text-gray-500 text-sm transition-all duration-200 
-              -translate-y-3 scale-85 peer-placeholder-shown:translate-y-0 
-              peer-placeholder-shown:scale-100 peer-focus:-translate-y-3 
-              peer-focus:scale-85"
-            >
-              Email professionnel
-            </label>
-          </div>
-
-          <!-- Phone Input -->
-          <div class="relative">
-            <input
-              v-model="form.phone"
-              type="tel"
-              required
-              class="peer w-full h-14 px-4 pt-2 rounded-xl border-2 border-gray-200 placeholder-transparent focus:border-indigo-500 focus:ring-0 focus:outline-none transition-colors"
-              placeholder=" "
-              :class="{ 'border-red-300': errors.phone }"
-            />
-            <label class="absolute left-4 top-4 text-gray-500 text-sm transition-all duration-200 
-              -translate-y-3 scale-85 peer-placeholder-shown:translate-y-0 
-              peer-placeholder-shown:scale-100 peer-focus:-translate-y-3 
-              peer-focus:scale-85"
-            >
-              Téléphone
-            </label>
-          </div>
-
-          <!-- Service Selection -->
-          <div class="relative">
-            <Listbox v-model="form.service" as="div">
-              <ListboxLabel class="block text-sm font-medium text-gray-500 mb-1">
-                Votre domaine d'expertise
-              </ListboxLabel>
+          <!-- Informations personnelles -->
+          <div>
+            <h2 class="text-lg font-medium text-gray-900 mb-4">
+              Informations personnelles
+            </h2>
+            <div class="grid grid-cols-2 gap-4">
               <div class="relative">
-                <ListboxButton class="w-full h-14 px-4 text-left rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none">
-                  <span class="block truncate">{{ form.service?.name || 'Sélectionnez votre domaine' }}</span>
-                  <span class="absolute inset-y-0 right-0 flex items-center pr-4">
-                    <ChevronUpDownIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
-                  </span>
-                </ListboxButton>
-
-                <Transition
-                  leave-active-class="transition duration-100 ease-in"
-                  leave-from-class="opacity-100"
-                  leave-to-class="opacity-0"
+                <input
+                  v-model="form.firstName"
+                  type="text"
+                  required
+                  class="peer w-full px-4 py-4 pt-6 rounded-xl border border-gray-200 focus:ring-primary-500 focus:border-primary-500 placeholder-transparent transition-all duration-200"
+                  placeholder="Prénom"
+                />
+                <label class="absolute left-4 top-4 text-gray-500 text-sm transition-all duration-200 
+                  -translate-y-3 scale-85 peer-placeholder-shown:translate-y-0 
+                  peer-placeholder-shown:scale-100 peer-focus:-translate-y-3 
+                  peer-focus:scale-85 pointer-events-none"
                 >
-                  <ListboxOptions class="absolute z-10 mt-1 w-full bg-white rounded-xl -shadow-lg border border-gray-200 py-1">
-                    <ListboxOption
-                      v-for="service in services"
-                      :key="service.id"
-                      :value="service"
-                      v-slot="{ active, selected }"
-                      as="template"
-                    >
-                      <li :class="[
-                        active ? 'bg-indigo-50 text-indigo-900' : 'text-gray-900',
-                        'relative cursor-pointer select-none py-3 px-4'
-                      ]">
-                        <span class="flex items-center">
-                          <span class="text-xl mr-3">{{ service.icon }}</span>
-                          <span :class="[selected ? 'font-semibold' : 'font-normal', 'block truncate']">
-                            {{ service.name }}
-                          </span>
-                        </span>
-                      </li>
-                    </ListboxOption>
-                  </ListboxOptions>
-                </Transition>
+                  Prénom
+                </label>
               </div>
-            </Listbox>
+
+              <div class="relative">
+                <input
+                  v-model="form.lastName"
+                  type="text"
+                  required
+                  class="peer w-full px-4 py-4 pt-6 rounded-xl border border-gray-200 focus:ring-primary-500 focus:border-primary-500 placeholder-transparent transition-all duration-200"
+                  placeholder="Nom"
+                />
+                <label class="absolute left-4 top-4 text-gray-500 text-sm transition-all duration-200 
+                  -translate-y-3 scale-85 peer-placeholder-shown:translate-y-0 
+                  peer-placeholder-shown:scale-100 peer-focus:-translate-y-3 
+                  peer-focus:scale-85 pointer-events-none"
+                >
+                  Nom
+                </label>
+              </div>
+            </div>
           </div>
 
-          <!-- Password Input -->
-          <div class="relative">
-            <input
-              v-model="form.password"
-              :type="showPassword ? 'text' : 'password'"
-              required
-              class="peer w-full h-14 px-4 pt-2 rounded-xl border-2 border-gray-200 placeholder-transparent focus:border-indigo-500 focus:ring-0 focus:outline-none transition-colors"
-              placeholder=" "
-              :class="{ 'border-red-300': errors.password }"
-            />
-            <label class="absolute left-4 top-4 text-gray-500 text-sm transition-all duration-200 
-              -translate-y-3 scale-85 peer-placeholder-shown:translate-y-0 
-              peer-placeholder-shown:scale-100 peer-focus:-translate-y-3 
-              peer-focus:scale-85"
-            >
-              Mot de passe
+          <!-- Contact -->
+          <div>
+            <h2 class="text-lg font-medium text-gray-900 mb-4">
+              Contact
+            </h2>
+            <div class="space-y-4">
+              <!-- Téléphone -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                  Numéro de téléphone
+                </label>
+                <div class="flex gap-3">
+                  <select
+                    v-model="form.phonePrefix"
+                    class="w-24 px-3 py-4 rounded-xl border border-gray-200 focus:ring-primary-500 focus:border-primary-500"
+                  >
+                    <option value="+33">🇫🇷 +33</option>
+                    <option value="+32">🇧🇪 +32</option>
+                    <option value="+41">🇨🇭 +41</option>
+                    <option value="+352">🇱🇺 +352</option>
+                  </select>
+                  <div class="relative flex-1">
+                    <input
+                      v-model="form.phone"
+                      type="tel"
+                      required
+                      class="peer w-full px-4 py-4 pt-6 rounded-xl border border-gray-200 focus:ring-primary-500 focus:border-primary-500 placeholder-transparent transition-all duration-200"
+                      placeholder="Téléphone"
+                    />
+                    <label class="absolute left-4 top-4 text-gray-500 text-sm transition-all duration-200 
+                      -translate-y-3 scale-85 peer-placeholder-shown:translate-y-0 
+                      peer-placeholder-shown:scale-100 peer-focus:-translate-y-3 
+                      peer-focus:scale-85 pointer-events-none"
+                    >
+                      Numéro de téléphone
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Adresse -->
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Adresse
+                  </label>
+                  <input
+                    v-model="form.address.street"
+                    type="text"
+                    required
+                    placeholder="Numéro et nom de rue"
+                    class="w-full px-4 py-3 rounded-xl border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  />
+                </div>
+
+                <div>
+                  <input
+                    v-model="form.address.complement"
+                    type="text"
+                    placeholder="Complément d'adresse (optionnel)"
+                    class="w-full px-4 py-3 rounded-xl border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  />
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <input
+                      v-model="form.address.postalCode"
+                      type="text"
+                      required
+                      placeholder="Code postal"
+                      class="w-full px-4 py-3 rounded-xl border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    />
+                  </div>
+                  <div>
+                    <input
+                      v-model="form.address.city"
+                      type="text"
+                      required
+                      placeholder="Ville"
+                      class="w-full px-4 py-3 rounded-xl border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <select
+                    v-model="form.address.country"
+                    required
+                    class="w-full px-4 py-3 rounded-xl border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  >
+                    <option value="">Sélectionnez un pays</option>
+                    <option value="FR">France</option>
+                    <option value="BE">Belgique</option>
+                    <option value="CH">Suisse</option>
+                    <option value="LU">Luxembourg</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Date de naissance -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Date de naissance
             </label>
-            <button 
-              type="button"
-              @click="showPassword = !showPassword"
-              class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-            >
-              <EyeIcon v-if="showPassword" class="w-5 h-5" />
-              <EyeSlashIcon v-else class="w-5 h-5" />
-            </button>
+            <input
+              v-model="form.birthDate"
+              type="date"
+              required
+              class="w-full px-4 py-3 rounded-xl border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            />
           </div>
 
-          <!-- Terms Checkbox -->
-          <label class="flex items-start gap-3">
-            <input
-              v-model="form.terms"
-              type="checkbox"
-              required
-              class="mt-1 w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-            />
-            <span class="text-sm text-gray-600">
-              J'accepte les <NuxtLink to="/legal/terms" class="text-indigo-600 hover:text-indigo-700">conditions d'utilisation</NuxtLink>
-              et la <NuxtLink to="/legal/privacy" class="text-indigo-600 hover:text-indigo-700">politique de confidentialité</NuxtLink>
-            </span>
-          </label>
+          <!-- Documents d'identité -->
+          <div>
+            <h2 class="text-lg font-medium text-gray-900 mb-4">
+              Documents d'identité
+            </h2>
+            
+            <!-- CNI Upload -->
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Carte d'identité (recto/verso)
+              </label>
+              <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl">
+                <div class="space-y-1 text-center">
+                  <DocumentIcon class="mx-auto h-12 w-12 text-gray-400" />
+                  <div class="flex text-sm text-gray-600">
+                    <label class="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500">
+                      <span>Télécharger un fichier</span>
+                      <input 
+                        type="file" 
+                        class="sr-only" 
+                        accept="image/*,.pdf"
+                        @change="handleCNIUpload"
+                        required
+                      />
+                    </label>
+                  </div>
+                  <p class="text-xs text-gray-500">
+                    PNG, JPG ou PDF jusqu'à 10MB
+                  </p>
+                </div>
+              </div>
+              <div v-if="form.cniFile" class="mt-2 text-sm text-gray-600">
+                Fichier sélectionné: {{ form.cniFile.name }}
+              </div>
+            </div>
+          </div>
 
-          <!-- Submit Button -->
+          <!-- Langues parlées -->
+          <div>
+            <h2 class="text-lg font-medium text-gray-900 mb-4">
+              Langues parlées
+            </h2>
+            <div class="space-y-3">
+              <div v-for="(language, index) in form.languages" :key="index" class="flex gap-4">
+                <select
+                  v-model="language.name"
+                  class="flex-1 px-4 py-3 rounded-xl border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                >
+                  <option value="">Sélectionnez une langue</option>
+                  <option v-for="lang in availableLanguages" :key="lang.code" :value="lang.code">
+                    {{ lang.name }}
+                  </option>
+                </select>
+                <select
+                  v-model="language.level"
+                  class="w-40 px-4 py-3 rounded-xl border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                >
+                  <option value="">Niveau</option>
+                  <option value="native">Langue maternelle</option>
+                  <option value="fluent">Courant</option>
+                  <option value="intermediate">Intermédiaire</option>
+                  <option value="basic">Basique</option>
+                </select>
+                <button 
+                  type="button"
+                  @click="removeLanguage(index)"
+                  class="p-3 text-gray-400 hover:text-red-500"
+                >
+                  <XMarkIcon class="w-5 h-5" />
+                </button>
+              </div>
+              <button 
+                type="button"
+                @click="addLanguage"
+                class="text-sm text-primary-600 hover:text-primary-700 font-medium"
+              >
+                + Ajouter une langue
+              </button>
+            </div>
+          </div>
+
+          <!-- Email & Password -->
+          <div class="space-y-4">
+            <div class="relative">
+              <input
+                v-model="form.email"
+                type="email"
+                required
+                class="peer w-full px-4 py-4 pt-6 rounded-xl border border-gray-200 focus:ring-primary-500 focus:border-primary-500 placeholder-transparent transition-all duration-200"
+                placeholder="Email"
+              />
+              <label class="absolute left-4 top-4 text-gray-500 text-sm transition-all duration-200 
+                -translate-y-3 scale-85 peer-placeholder-shown:translate-y-0 
+                peer-placeholder-shown:scale-100 peer-focus:-translate-y-3 
+                peer-focus:scale-85 pointer-events-none"
+              >
+                Adresse email
+              </label>
+            </div>
+
+            <div class="relative">
+              <input
+                v-model="form.password"
+                :type="showPassword ? 'text' : 'password'"
+                required
+                class="peer w-full px-4 py-4 pt-6 rounded-xl border border-gray-200 focus:ring-primary-500 focus:border-primary-500 placeholder-transparent transition-all duration-200"
+                placeholder="Password"
+              />
+              <label class="absolute left-4 top-4 text-gray-500 text-sm transition-all duration-200 
+                -translate-y-3 scale-85 peer-placeholder-shown:translate-y-0 
+                peer-placeholder-shown:scale-100 peer-focus:-translate-y-3 
+                peer-focus:scale-85 pointer-events-none"
+              >
+                Mot de passe
+              </label>
+              <button 
+                type="button"
+                @click="showPassword = !showPassword"
+                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              >
+                <EyeIcon v-if="showPassword" class="w-5 h-5" />
+                <EyeSlashIcon v-else class="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
           <button
             type="submit"
-            class="w-full bg-indigo-600 text-white h-12 rounded-xl font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
-            :class="{ 'opacity-50 cursor-not-allowed': loading }"
-            :disabled="loading"
+            class="w-full py-3 bg-primary-500 text-white font-medium rounded-xl hover:bg-primary-600 transition-colors"
           >
-            <span v-if="loading">Création du compte...</span>
-            <span v-else>Créer mon compte professionnel</span>
+            Créer mon compte
           </button>
         </form>
       </div>
-
-      <!-- Login Link -->
-      <p class="mt-8 text-center text-sm text-gray-600">
-        Déjà inscrit ?
-        <NuxtLink 
-          to="/auth/login" 
-          class="font-medium text-indigo-600 hover:text-indigo-700"
-        >
-          Se connecter
-        </NuxtLink>
-      </p>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
-import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue'
-import { EyeIcon, EyeSlashIcon, ChevronUpDownIcon } from '@heroicons/vue/24/outline'
+import { ref } from 'vue'
+import { 
+  EyeIcon, 
+  EyeSlashIcon,
+  DocumentIcon,
+  XMarkIcon
+} from '@heroicons/vue/24/outline'
+
+const showPassword = ref(false)
+
+const form = ref({
+  firstName: '',
+  lastName: '',
+  email: '',
+  password: '',
+  birthDate: '',
+  phonePrefix: '+33',
+  phone: '',
+  address: {
+    street: '',
+    complement: '',
+    postalCode: '',
+    city: '',
+    country: ''
+  },
+  cniFile: null,
+  languages: [{ name: '', level: '' }]
+})
+
+const availableLanguages = [
+  { code: 'fr', name: 'Français' },
+  { code: 'en', name: 'Anglais' },
+  { code: 'es', name: 'Espagnol' },
+  { code: 'de', name: 'Allemand' },
+  { code: 'it', name: 'Italien' },
+  { code: 'pt', name: 'Portugais' },
+  { code: 'ar', name: 'Arabe' },
+  { code: 'zh', name: 'Chinois' }
+]
+
+const addLanguage = () => {
+  form.value.languages.push({ name: '', level: '' })
+}
+
+const removeLanguage = (index) => {
+  form.value.languages.splice(index, 1)
+}
+
+const handleCNIUpload = (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    // Vérification de la taille (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Le fichier est trop volumineux. Maximum 10MB.')
+      event.target.value = ''
+      return
+    }
+    form.value.cniFile = file
+  }
+}
+
+// Validation du numéro de téléphone
+const validatePhone = (phone) => {
+  // Supprime les espaces et vérifie le format
+  const cleanPhone = phone.replace(/\s/g, '')
+  return /^[0-9]{9,10}$/.test(cleanPhone)
+}
+
+// Validation du code postal
+const validatePostalCode = (postalCode) => {
+  return /^[0-9]{5}$/.test(postalCode)
+}
+
+const handleSubmit = async () => {
+  try {
+    // Validation du téléphone
+    if (!validatePhone(form.value.phone)) {
+      alert('Veuillez entrer un numéro de téléphone valide')
+      return
+    }
+
+    // Validation du code postal
+    if (!validatePostalCode(form.value.address.postalCode)) {
+      alert('Veuillez entrer un code postal valide')
+      return
+    }
+
+    // Formatage du numéro de téléphone complet
+    const fullPhone = `${form.value.phonePrefix}${form.value.phone.replace(/\s/g, '')}`
+    
+    // Création de l'objet à envoyer
+    const formData = {
+      ...form.value,
+      phone: fullPhone
+    }
+
+    console.log('Form submitted:', formData)
+    // Logique d'inscription...
+    
+  } catch (error) {
+    console.error('Error:', error)
+  }
+}
 
 definePageMeta({
   layout: 'auth'
 })
-
-const client = useSupabaseClient()
-const loading = ref(false)
-const showPassword = ref(false)
-
-const services = [
-  { id: 'menage', name: 'Ménage', icon: '🧹' },
-  { id: 'jardinage', name: 'Jardinage', icon: '🌱' },
-  { id: 'bricolage', name: 'Bricolage', icon: '🔨' },
-  { id: 'garde', name: 'Garde d\'enfants', icon: '👶' }
-]
-
-const form = reactive({
-  firstName: '',
-  lastName: '',
-  email: '',
-  phone: '',
-  service: null,
-  password: '',
-  terms: false
-})
-
-const errors = reactive({
-  firstName: '',
-  lastName: '',
-  email: '',
-  phone: '',
-  password: ''
-})
-
-const handleSubmit = async () => {
-  // Reset errors
-  Object.keys(errors).forEach(key => errors[key] = '')
-
-  try {
-    loading.value = true
-    const { error } = await client.auth.signUp({
-      email: form.email,
-      password: form.password,
-      options: {
-        data: {
-          firstName: form.firstName,
-          lastName: form.lastName,
-          phone: form.phone,
-          serviceId: form.service?.id,
-          role: 'expert'
-        }
-      }
-    })
-
-    if (error) throw error
-
-    // Redirect to expert dashboard or confirmation page
-    navigateTo('/auth/confirmation')
-  } catch (error) {
-    console.error('Error:', error.message)
-    if (error.message.includes('email')) {
-      errors.email = 'Email déjà utilisé ou invalide'
-    }
-  } finally {
-    loading.value = false
-  }
-}
 </script> 
