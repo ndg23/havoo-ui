@@ -12,7 +12,7 @@
           <label class="block text-sm font-medium text-gray-700">Langue</label>
           <select
             v-model="preferences.language"
-            class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            class="mt-1 block w-full rounded-xl border-gray-300 -shadow-sm focus:border-blue-500 focus:ring-blue-500"
           >
             <option value="fr">Français</option>
             <option value="en">English</option>
@@ -24,7 +24,7 @@
           <label class="block text-sm font-medium text-gray-700">Fuseau horaire</label>
           <select
             v-model="preferences.timezone"
-            class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            class="mt-1 block w-full rounded-xl border-gray-300 -shadow-sm focus:border-blue-500 focus:ring-blue-500"
           >
             <option value="Europe/Paris">Paris (UTC+1)</option>
             <option value="Europe/London">London (UTC)</option>
@@ -72,7 +72,7 @@
           <label class="block text-sm font-medium text-gray-700">Devise préférée</label>
           <select
             v-model="preferences.currency"
-            class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            class="mt-1 block w-full rounded-xl border-gray-300 -shadow-sm focus:border-blue-500 focus:ring-blue-500"
           >
             <option value="EUR">EUR (€)</option>
             <option value="USD">USD ($)</option>
@@ -84,7 +84,7 @@
           <label class="block text-sm font-medium text-gray-700">Format de date</label>
           <select
             v-model="preferences.dateFormat"
-            class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            class="mt-1 block w-full rounded-xl border-gray-300 -shadow-sm focus:border-blue-500 focus:ring-blue-500"
           >
             <option value="DD/MM/YYYY">DD/MM/YYYY</option>
             <option value="MM/DD/YYYY">MM/DD/YYYY</option>
@@ -96,7 +96,7 @@
       <div class="pt-6 border-t border-gray-200">
         <button
           type="submit"
-          class="inline-flex justify-center px-6 py-3 border border-transparent rounded-xl shadow-sm 
+          class="inline-flex justify-center px-6 py-3 border border-transparent rounded-xl -shadow-sm 
                  text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 
                  focus:ring-offset-2 focus:ring-blue-500"
         >

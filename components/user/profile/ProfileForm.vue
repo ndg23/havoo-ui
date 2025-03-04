@@ -13,7 +13,7 @@
           <input
             v-model="formData.firstName"
             type="text"
-            class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            class="mt-1 block w-full rounded-xl border-gray-300 -shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
 
@@ -22,7 +22,7 @@
           <input
             v-model="formData.lastName"
             type="text"
-            class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            class="mt-1 block w-full rounded-xl border-gray-300 -shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
 
@@ -31,7 +31,7 @@
           <input
             v-model="formData.email"
             type="email"
-            class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            class="mt-1 block w-full rounded-xl border-gray-300 -shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
 
@@ -40,7 +40,7 @@
           <input
             v-model="formData.phone"
             type="tel"
-            class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            class="mt-1 block w-full rounded-xl border-gray-300 -shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
 
@@ -49,7 +49,7 @@
           <input
             v-model="formData.address"
             type="text"
-            class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            class="mt-1 block w-full rounded-xl border-gray-300 -shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
 
@@ -58,7 +58,7 @@
           <input
             v-model="formData.city"
             type="text"
-            class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            class="mt-1 block w-full rounded-xl border-gray-300 -shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
 
@@ -67,7 +67,7 @@
           <input
             v-model="formData.postalCode"
             type="text"
-            class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            class="mt-1 block w-full rounded-xl border-gray-300 -shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
 
@@ -76,7 +76,7 @@
           <textarea
             v-model="formData.bio"
             rows="4"
-            class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            class="mt-1 block w-full rounded-xl border-gray-300 -shadow-sm focus:border-blue-500 focus:ring-blue-500"
             placeholder="Parlez-nous un peu de vous..."
           />
           <p class="mt-2 text-sm text-gray-500">
@@ -116,7 +116,7 @@
       <div class="pt-6 border-t border-gray-200">
         <button
           type="submit"
-          class="inline-flex justify-center px-6 py-3 border border-transparent rounded-xl shadow-sm 
+          class="inline-flex justify-center px-6 py-3 border border-transparent rounded-xl -shadow-sm 
                  text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 
                  focus:ring-offset-2 focus:ring-blue-500"
         >

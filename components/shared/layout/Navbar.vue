@@ -57,7 +57,7 @@
             class="px-4 py-2.5 text-sm font-medium rounded-full transition-colors flex items-center gap-2.5"
             :class="[
               isCurrentRoute(item.path)
-                ? 'bg-orange-50 text-orange-600 shadow-sm'
+                ? 'bg-orange-50 text-orange-600 -shadow-sm'
                 : 'text-gray-600 hover:bg-gray-50'
             ]"
           >
@@ -78,7 +78,7 @@
           <NuxtLink
             to="/user/items/new"
             class="hidden md:flex items-center gap-2 px-6 py-2.5 bg-orange-500 text-white 
-                  rounded-full hover:bg-orange-600 transition-colors text-sm font-medium shadow-sm"
+                  rounded-full hover:bg-orange-600 transition-colors text-sm font-medium -shadow-sm"
           >
             <PlusIcon class="w-5 h-5" />
             <span>Partager un objet</span>
@@ -104,7 +104,7 @@
             <!-- Dropdown Notifications - Style Leboncoin -->
             <div
               v-if="isNotificationsOpen"
-              class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50"
+              class="absolute right-0 mt-2 w-80 bg-white rounded-xl -shadow-lg border border-gray-100 py-2 z-50"
             >
               <div class="px-4 py-2 border-b border-gray-100">
                 <div class="flex items-center justify-between">
@@ -177,7 +177,7 @@
 
             <!-- Dropdown Utilisateur - Style Leboncoin -->
             <MenuItems
-              class="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50"
+              class="absolute right-0 mt-2 w-72 bg-white rounded-xl -shadow-lg border border-gray-100 overflow-hidden z-50"
             >
               <div class="p-5 border-b border-gray-100 bg-orange-50">
                 <div class="flex items-center gap-3">

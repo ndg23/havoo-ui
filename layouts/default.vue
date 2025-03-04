@@ -31,7 +31,7 @@
                   <span class="text-sm font-medium">{{ user.email }}</span>
                 </button>
                 <!-- Dropdown -->
-                <div class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg py-1 border border-gray-100 hidden group-hover:block">
+                <div class="absolute right-0 mt-2 w-48 bg-white rounded-xl -shadow-lg py-1 border border-gray-100 hidden group-hover:block">
                   <NuxtLink 
                     v-for="item in userMenu" 
                     :key="item.name"
@@ -51,7 +51,7 @@
             </template>
             <template v-else>
               <NuxtLink 
-                to="/connexion"
+                to="/auth/login"
                 class="text-gray-600 hover:text-gray-900 font-medium hidden md:block"
               >
                 Connexion
@@ -147,7 +147,7 @@ const userMenu = [
 const handleLogout = async () => {
   try {
     await client.auth.signOut()
-    navigateTo('/connexion')
+    navigateTo('/auth/login')
   } catch (error) {
     console.error('Error logging out:', error)
   }

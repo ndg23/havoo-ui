@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+  <div class="bg-white rounded-xl -shadow-sm overflow-hidden">
     <!-- Image principale -->
     <div class="relative aspect-[4/3]">
       <img 

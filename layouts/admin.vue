@@ -66,7 +66,7 @@
               leave-from-class="transform scale-100 opacity-100"
               leave-to-class="transform scale-95 opacity-0"
             >
-              <MenuItems class="absolute left-0 bottom-full mb-2 w-full bg-white rounded-2xl shadow-lg border focus:outline-none">
+              <MenuItems class="absolute left-0 bottom-full mb-2 w-full bg-white rounded-2xl -shadow-lg border focus:outline-none">
                 <div class="py-1">
                   <MenuItem v-slot="{ active }">
                     <button
@@ -121,7 +121,7 @@
               leave-from="transform opacity-100 scale-100"
               leave-to="transform opacity-0 scale-95"
             >
-              <MenuItems class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 focus:outline-none overflow-hidden">
+              <MenuItems class="absolute right-0 mt-2 w-80 bg-white rounded-xl -shadow-lg border border-gray-200 focus:outline-none overflow-hidden">
                 <div class="p-4 border-b border-gray-100">
                   <div class="flex items-center justify-between">
                     <h3 class="text-sm font-medium text-gray-900">Notifications</h3>

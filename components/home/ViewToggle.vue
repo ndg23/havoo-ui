@@ -5,7 +5,7 @@
         :class="[
           'p-2 rounded-md transition-colors',
           modelValue === 'grid' 
-            ? 'bg-white text-blue-600 shadow-sm' 
+            ? 'bg-white text-blue-600 -shadow-sm' 
             : 'text-gray-600 hover:text-gray-900'
         ]"
       >
@@ -16,7 +16,7 @@
         :class="[
           'p-2 rounded-md transition-colors',
           modelValue === 'list' 
-            ? 'bg-white text-blue-600 shadow-sm' 
+            ? 'bg-white text-blue-600 -shadow-sm' 
             : 'text-gray-600 hover:text-gray-900'
         ]"
       >

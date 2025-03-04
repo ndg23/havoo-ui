@@ -3,11 +3,11 @@ export default defineNuxtRouteMiddleware((to) => {
 
   // Routes protégées admin
   if (to.path.startsWith('/admin') && (!user.value || user.value.role !== 'admin')) {
-    return navigateTo('/connexion')
+    return navigateTo('/auth/login')
   }
 
   // Routes protégées utilisateur
   if (to.path.startsWith('/compte') && !user.value) {
-    return navigateTo('/connexion')
+    return navigateTo('/auth/login')
   }
 }) 

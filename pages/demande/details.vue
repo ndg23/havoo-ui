@@ -13,7 +13,7 @@
       </div>
 
       <!-- Form Card -->
-      <div class="bg-white rounded-2xl shadow-xl p-8">
+      <div class="bg-white rounded-2xl -shadow-xl p-8">
         <h1 class="text-2xl font-bold text-gray-900 mb-2">Finalisez votre demande</h1>
         <p class="text-gray-500 mb-8">Remplissez ces informations pour recevoir des devis personnalisés</p>
 

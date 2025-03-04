@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white rounded-lg shadow p-6">
+  <div class="bg-white rounded-lg -shadow p-6">
     <div class="flex items-center">
       <div class="p-3 rounded-full" :class="bgColor">
         <component :is="icon" class="w-6 h-6 text-white" />

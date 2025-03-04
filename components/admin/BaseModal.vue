@@ -23,7 +23,7 @@
             leave-to="opacity-0 scale-95"
           >
             <DialogPanel :class="[
-              'w-full transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all',
+              'w-full transform overflow-hidden rounded-2xl bg-white p-6 -shadow-xl transition-all',
               $attrs.class || 'max-w-xl'
             ]">
               <div class="flex items-center justify-between mb-4">

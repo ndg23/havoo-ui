@@ -16,7 +16,7 @@
         <div
           v-for="notification in notifications"
           :key="notification.id"
-          class="max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 mb-4"
+          class="max-w-sm w-full bg-white -shadow-lg rounded-lg pointer-events-auto ring-1 mb-4"
           :class="[
             notification.type === 'success' ? 'ring-green-500' : 'ring-red-500'
           ]"

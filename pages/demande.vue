@@ -1,346 +1,291 @@
 <template>
-  <div class="min-h-screen bg-gray-100">
-    <div class="max-w-4xl mx-auto px-4 py-16">
+  <div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl mx-auto">
       <!-- Header -->
-      <div class="mb-8 text-center">
-        <h1 class="text-3xl font-bold text-gray-900">Publier une demande de service</h1>
-        <p class="mt-2 text-gray-600">Trouvez le professionnel idéal pour votre besoin</p>
+      <div class="text-center mb-12">
+        <h1 class="text-4xl font-bold text-gray-900 mb-4">
+          Décrivez votre besoin
+        </h1>
+        <p class="text-xl text-gray-600">
+          Trouvez l'expert idéal en quelques clics
+        </p>
       </div>
 
-      <!-- Main Form Card -->
-      <div class="bg-white rounded-2xl 
-       border border-gray-200">
-        <!-- Progress Steps -->
-        <div class="border-b border-gray-200">
-          <div class="max-w-3xl mx-auto px-6 py-4">
-            <div class="flex items-center justify-between">
-              <div 
-                v-for="(step, index) in steps" 
-                :key="step.id"
-                class="flex items-center"
-              >
-                <div class="flex items-center">
-                  <div 
-                    class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium"
-                    :class="currentStep >= index + 1 ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400'"
-                  >
-                    {{ index + 1 }}
-                  </div>
-                  <span 
-                    class="ml-3 text-sm font-medium hidden sm:block"
-                    :class="currentStep >= index + 1 ? 'text-gray-900' : 'text-gray-400'"
-                  >
-                    {{ step.title }}
-                  </span>
-                </div>
-                <div 
-                  v-if="index < steps.length - 1" 
-                  class="flex-1 h-px bg-gray-200 mx-4 hidden sm:block"
-                  :class="{'bg-blue-600': currentStep > index + 1}"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Form Content -->
-        <div class="p-6">
-          <!-- Service Selection -->
-          <div v-if="currentStep === 1" class="space-y-8">
-            <div class="grid sm:grid-cols-2 gap-4">
+      <!-- Form Card -->
+      <div class="bg-white rounded-3xl shadow-sm border border-gray-200 p-8">
+        <form @submit.prevent="handleSubmit" class="space-y-12">
+          <!-- Service Type Section -->
+          <section>
+            <h2 class="text-lg font-medium text-gray-900 mb-4">
+              1. Quel service recherchez-vous ?
+            </h2>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <button
-                v-for="service in services"
+                v-for="(service, index) in services"
                 :key="service.id"
-                @click="selectService(service)"
-                class="relative p-6 text-left transition-all  focus:outline-none group"
+                type="button"
+                @click="selectService(service.id)"
+                class="relative p-6 rounded-2xl border-2 transition-all duration-300 text-center group"
                 :class="[
-                  form.serviceId === service.id 
-                    ? 'bg-blue-50 border-blue-600' 
-                    : 'bg-white border-gray-200 hover:border-blue-600',
-                  'border-2 rounded-xl'
+                  form.serviceType === service.id 
+                    ? 'border-primary-500 bg-primary-50 scale-105' 
+                    : 'border-gray-200 hover:border-primary-300'
                 ]"
               >
-                <div class="flex items-center gap-4">
-                  <span class="text-3xl">{{ service.icon }}</span>
-                  <div>
-                    <span class="block font-semibold text-gray-900">{{ service.name }}</span>
-                    <span class="text-sm text-gray-500">À partir de 20€/h</span>
-                  </div>
+                <div 
+                  class="text-4xl mb-3 transform transition-transform duration-300"
+                  :class="form.serviceType === service.id ? 'scale-110' : ''"
+                >
+                  {{ service.icon }}
+                </div>
+                <div class="font-medium" :class="[
+                  form.serviceType === service.id 
+                    ? 'text-primary-900' 
+                    : 'text-gray-900'
+                ]">
+                  {{ service.name }}
+                </div>
+                <div class="text-sm mt-1" :class="[
+                  form.serviceType === service.id 
+                    ? 'text-primary-600' 
+                    : 'text-gray-500'
+                ]">
+                  {{ service.price }}
                 </div>
                 <div 
-                  class="absolute inset-0 border-2 border-blue-600 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"
-                  :class="{'opacity-100': form.serviceId === service.id}"
-                />
+                  class="absolute inset-0 border-2 border-primary-500 rounded-2xl opacity-0 transition-all duration-300"
+                  :class="{ 'opacity-100': form.serviceType === service.id }"
+                ></div>
               </button>
             </div>
-          </div>
+          </section>
 
-          <!-- Date Selection -->
-          <div v-if="currentStep === 2" class="space-y-8 max-w-2xl mx-auto">
-            <div class="space-y-6">
-              <label class="block">
-                <span class="text-base font-medium text-gray-900 block mb-2">
-                  Quand souhaitez-vous le service ?
-                </span>
-                <div class="relative">
-                  <input 
-                    type="date"
-                    v-model="form.desiredDate"
-                    class="w-full h-14 px-4 rounded-xl border-2 border-gray-200 focus:border-blue-600 focus:ring-0"
-                    :min="minDate"
-                  />
-                </div>
-              </label>
-
-              <label class="block">
-                <span class="text-base font-medium text-gray-900 block mb-2">
-                  Décrivez votre besoin en détail
-                </span>
-                <textarea
-                  v-model="form.description"
-                  rows="4"
-                  class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-600 focus:ring-0"
-                  placeholder="Ex: Je recherche une personne pour..."
-                ></textarea>
+          <!-- Description Section -->
+          <section>
+            <h2 class="text-lg font-medium text-gray-900 mb-4">
+              2. Décrivez votre besoin
+            </h2>
+            <div class="relative">
+              <textarea
+                v-model="form.description"
+                rows="4"
+                required
+                class="peer w-full px-4 py-4 pt-6 rounded-xl border border-gray-200 focus:ring-primary-500 focus:border-primary-500 resize-none placeholder-transparent transition-all duration-200"
+                placeholder="Description"
+              ></textarea>
+              <label class="absolute left-4 top-4 text-gray-500 text-sm transition-all duration-200 
+                -translate-y-3 scale-85 peer-placeholder-shown:translate-y-0 
+                peer-placeholder-shown:scale-100 peer-focus:-translate-y-3 
+                peer-focus:scale-85 pointer-events-none"
+              >
+                Décrivez votre besoin en détail
               </label>
             </div>
-          </div>
+          </section>
 
-          <!-- Contact Info -->
-          <div v-if="currentStep === 3" class="space-y-8 max-w-2xl mx-auto">
-            <div class="space-y-6">
-              <label class="block">
-                <span class="text-base font-medium text-gray-900 block mb-2">Adresse</span>
-                <input 
-                  v-model="form.address"
-                  type="text"
-                  class="w-full h-14 px-4 rounded-xl border-2 border-gray-200 focus:border-blue-600 focus:ring-0"
-                  placeholder="Numéro et nom de rue"
+          <!-- Date & Time Section -->
+          <section>
+            <h2 class="text-lg font-medium text-gray-900 mb-4">
+              3. Quand souhaitez-vous réaliser ce service ?
+            </h2>
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Date souhaitée</label>
+                <input
+                  v-model="form.date"
+                  type="date"
+                  required
+                  min="{{ new Date().toISOString().split('T')[0] }}"
+                  class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-primary-500 focus:border-primary-500"
                 />
-              </label>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Heure souhaitée</label>
+                <select
+                  v-model="form.time"
+                  required
+                  class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-primary-500 focus:border-primary-500"
+                >
+                  <option value="">Sélectionnez une heure</option>
+                  <option v-for="hour in availableHours" :key="hour" :value="hour">
+                    {{ hour }}
+                  </option>
+                </select>
+              </div>
+            </div>
+          </section>
 
-              <div class="grid grid-cols-2 gap-4">
-                <label class="block">
-                  <span class="text-base font-medium text-gray-900 block mb-2">Code postal</span>
-                  <input 
-                    v-model="form.zipCode"
-                    type="text"
-                    maxlength="5"
-                    class="w-full h-14 px-4 rounded-xl border-2 border-gray-200 focus:border-blue-600 focus:ring-0"
-                    placeholder="75001"
-                  />
+          <!-- Duration Section -->
+          <section>
+            <h2 class="text-lg font-medium text-gray-900 mb-4">
+              4. Durée estimée
+            </h2>
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div class="relative">
+                <select
+                  v-model="form.duration"
+                  required
+                  class="peer w-full px-4 py-4 pt-6 rounded-xl border border-gray-200 focus:ring-primary-500 focus:border-primary-500 placeholder-transparent transition-all duration-200"
+                >
+                  <option value="">Sélectionnez une durée</option>
+                  <option value="1">1 heure</option>
+                  <option value="2">2 heures</option>
+                  <option value="3">3 heures</option>
+                  <option value="4">4 heures</option>
+                  <option value="5">5 heures</option>
+                  <option value="full">Journée complète</option>
+                  <option value="unknown">Je ne sais pas</option>
+                </select>
+                <label class="absolute left-4 top-4 text-gray-500 text-sm transition-all duration-200 
+                  -translate-y-3 scale-85 peer-placeholder-shown:translate-y-0 
+                  peer-placeholder-shown:scale-100 peer-focus:-translate-y-3 
+                  peer-focus:scale-85 pointer-events-none"
+                >
+                  Durée estimée
                 </label>
-
-                <label class="block">
-                  <span class="text-base font-medium text-gray-900 block mb-2">Ville</span>
-                  <input 
-                    v-model="form.city"
-                    type="text"
-                    class="w-full h-14 px-4 rounded-xl border-2 border-gray-200 focus:border-blue-600 focus:ring-0"
-                    placeholder="Paris"
-                  />
+              </div>
+              <div class="relative">
+                <select
+                  v-model="form.frequency"
+                  class="peer w-full px-4 py-4 pt-6 rounded-xl border border-gray-200 focus:ring-primary-500 focus:border-primary-500 placeholder-transparent transition-all duration-200"
+                >
+                  <option value="">Sélectionnez une fréquence</option>
+                  <option value="once">Une seule fois</option>
+                  <option value="weekly">Hebdomadaire</option>
+                  <option value="biweekly">Bi-mensuel</option>
+                  <option value="monthly">Mensuel</option>
+                </select>
+                <label class="absolute left-4 top-4 text-gray-500 text-sm transition-all duration-200 
+                  -translate-y-3 scale-85 peer-placeholder-shown:translate-y-0 
+                  peer-placeholder-shown:scale-100 peer-focus:-translate-y-3 
+                  peer-focus:scale-85 pointer-events-none"
+                >
+                  Fréquence (optionnel)
                 </label>
               </div>
             </div>
-          </div>
-        </div>
+          </section>
 
-        <!-- Navigation -->
-        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b-2xl">
-          <div class="flex justify-between items-center">
-            <button
-              v-if="currentStep > 1"
-              @click="currentStep--"
-              class="text-gray-600 hover:text-gray-900 font-medium flex items-center"
-            >
-              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-              </svg>
-              Retour
-            </button>
+          <!-- Location Section -->
+          <section>
+            <h2 class="text-lg font-medium text-gray-900 mb-4">
+              5. Où se situe votre demande ?
+            </h2>
+            <div class="relative">
+              <input
+                v-model="form.location"
+                type="text"
+                required
+                class="peer w-full pl-12 pr-4 py-4 pt-6 rounded-xl border border-gray-200 focus:ring-primary-500 focus:border-primary-500 placeholder-transparent transition-all duration-200"
+                placeholder="Adresse"
+              />
+              <label class="absolute left-12 top-4 text-gray-500 text-sm transition-all duration-200 
+                -translate-y-3 scale-85 peer-placeholder-shown:translate-y-0 
+                peer-placeholder-shown:scale-100 peer-focus:-translate-y-3 
+                peer-focus:scale-85 pointer-events-none"
+              >
+                Adresse complète
+              </label>
+              <MapPinIcon class="w-6 h-6 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
+            </div>
+          </section>
 
-            <button
-              v-if="currentStep < steps.length"
-              @click="nextStep"
-              class="ml-auto bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 font-medium"
-              :class="{'opacity-50 cursor-not-allowed': loading}"
-              :disabled="loading"
-            >
-              Continuer
-            </button>
+          <!-- Budget Section -->
+          <section>
+            <h2 class="text-lg font-medium text-gray-900 mb-4">
+              6. Votre budget (optionnel)
+            </h2>
+            <div class="relative">
+              <input
+                v-model="form.budget"
+                type="number"
+                min="0"
+                class="peer w-full pl-16 pr-4 py-4 pt-6 rounded-xl border border-gray-200 focus:ring-primary-500 focus:border-primary-500 placeholder-transparent transition-all duration-200"
+                placeholder="Budget"
+              />
+              <label class="absolute left-16 top-4 text-gray-500 text-sm transition-all duration-200 
+                -translate-y-3 scale-85 peer-placeholder-shown:translate-y-0 
+                peer-placeholder-shown:scale-100 peer-focus:-translate-y-3 
+                peer-focus:scale-85 pointer-events-none"
+              >
+                Votre budget
+              </label>
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">
+                FCFA
+              </span>
+            </div>
+          </section>
 
-            <button
-              v-else
-              @click="submitForm"
-              class="ml-auto bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 font-medium flex items-center"
-              :class="{'opacity-50 cursor-not-allowed': loading}"
-              :disabled="loading"
-            >
-              <span v-if="loading">Publication en cours...</span>
-              <span v-else>Publier la demande</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Trust Badges -->
-      <div class="mt-8 grid grid-cols-3 gap-6">
-        <div v-for="badge in trustBadges" :key="badge.title" 
-          class="flex items-center gap-3"
-        >
-          <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path :d="badge.icon" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
-            </svg>
-          </div>
-          <p class="text-sm font-medium text-gray-600">{{ badge.title }}</p>
-        </div>
+          <!-- Submit Button -->
+          <button
+            type="submit"
+            class="w-full py-4 bg-primary-500 text-white text-lg font-medium rounded-xl hover:bg-primary-600 transition-colors shadow-lg shadow-primary-500/25 hover:shadow-xl hover:shadow-primary-500/30"
+          >
+            Trouver un expert
+          </button>
+        </form>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
+import { MapPinIcon } from '@heroicons/vue/24/outline'
 
-const client = useSupabaseClient()
-const loading = ref(false)
-
-const steps = [
-  {
-    id: 1,
-    title: 'Service',
-    description: 'Sélectionnez le type de service dont vous avez besoin'
-  },
-  {
-    id: 2,
-    title: 'Détails',
-    description: 'Indiquez la date et les détails de votre demande'
-  },
-  {
-    id: 3,
-    title: 'Contact',
-    description: 'Renseignez l\'adresse d\'intervention'
-  }
-]
-
-const trustBadges = [
-  { 
-    title: 'Experts vérifiés',
-    icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'
-  },
-  { 
-    title: 'Devis gratuit',
-    icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z'
-  },
-  { 
-    title: 'Service client 7j/7',
-    icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z'
-  }
-]
-
-const currentStep = ref(1)
 const form = ref({
-  serviceId: null,
-  desiredDate: '',
+  serviceType: '',
   description: '',
-  address: '',
-  zipCode: '',
-  city: ''
+  date: '',
+  time: '',
+  duration: '',
+  frequency: '',
+  location: '',
+  budget: ''
 })
 
-const services = ref([
-  { id: 'menage', name: 'Ménage', icon: '🧹' },
-  { id: 'jardinage', name: 'Jardinage', icon: '🌱' },
-  { id: 'bricolage', name: 'Bricolage', icon: '🔨' },
-  { id: 'garde', name: 'Garde d\'enfants', icon: '👶' }
-])
+const services = [
+  { id: 'menage', name: 'Ménage', icon: '🧹', price: 'Dès 500 FCFA' },
+  { id: 'jardinage', name: 'Jardinage', icon: '🌱', price: 'Dès 1000 FCFA' },
+  { id: 'bricolage', name: 'Bricolage', icon: '🔨', price: 'Dès 1500 FCFA' },
+  { id: 'garde', name: "Garde d'enfants", icon: '👶', price: 'Dès 800 FCFA' }
+]
 
-const minDate = computed(() => {
-  const today = new Date()
-  return today.toISOString().split('T')[0]
-})
+const availableHours = [
+  '08:00',
+  '09:00',
+  '10:00',
+  '11:00',
+  '12:00',
+  '13:00',
+  '14:00',
+  '15:00',
+  '16:00',
+  '17:00',
+  '18:00'
+]
 
-const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleDateString('fr-FR', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long'
-  })
-}
-
-const selectService = (service) => {
-  form.value.serviceId = service.id
-  nextStep()
-}
-
-const nextStep = () => {
-  if (validateCurrentStep()) {
-    currentStep.value++
-  }
-}
-
-const validateCurrentStep = () => {
-  switch (currentStep.value) {
-    case 1:
-      return form.value.serviceId
-    case 2:
-      return form.value.desiredDate
-    case 3:
-      return form.value.address && form.value.zipCode && form.value.city
-    default:
-      return true
-  }
-}
-
-const submitForm = async () => {
+const handleSubmit = async () => {
   try {
-    loading.value = true
-    const { error } = await client
-      .from('service_requests')
-      .insert([
-        {
-          service_id: form.value.serviceId,
-          description: form.value.description,
-          address: form.value.address,
-          zip_code: form.value.zipCode,
-          city: form.value.city,
-          desired_date: form.value.desiredDate
-        }
-      ])
-      .select()
-
-    if (error) {
-      throw error
-    }
-
-    await navigateTo('/demande/confirmation')
+    // Logique de soumission
+    console.log('Form submitted:', form.value)
   } catch (error) {
-    console.error('Error submitting form:', error)
-  } finally {
-    loading.value = false
+    console.error('Error:', error)
   }
 }
-</script>
 
-<style scoped>
-/* Style pour l'input date */
-input[type="date"]::-webkit-calendar-picker-indicator {
-  background: transparent;
-  bottom: 0;
-  color: transparent;
-  cursor: pointer;
-  height: auto;
-  left: 0;
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: auto;
+const selectService = (serviceId) => {
+  form.value.serviceType = serviceId
+  // Animation smooth scroll vers la description
+  setTimeout(() => {
+    document.querySelector('textarea').scrollIntoView({ 
+      behavior: 'smooth',
+      block: 'center'
+    })
+  }, 300)
 }
 
-/* Ajustement pour l'input date sur Firefox */
-input[type="date"] {
-  -webkit-appearance: none;
-  appearance: none;
-}
-</style> 
+definePageMeta({
+  layout: 'default'
+})
+</script> 
