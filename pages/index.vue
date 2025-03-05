@@ -102,20 +102,67 @@
     </section>
 
     <!-- CTA -->
-    <section class="py-24 bg-primary-500">
-      <div class="max-w-3xl mx-auto px-4 text-center">
-        <h2 class="text-3xl font-bold text-white mb-6">
-          Prêt à commencer ?
-        </h2>
-        <p class="text-xl text-white/90 mb-8">
-          Rejoignez des milliers de clients satisfaits
-        </p>
-        <NuxtLink 
-          to="/demande"
-          class="inline-block px-8 py-4 bg-white text-primary-600 rounded-xl font-medium hover:bg-gray-100 transition-colors"
-        >
-          Faire une demande
-        </NuxtLink>
+    <section class="py-24 bg-gray-50">
+      <div class="max-w-7xl mx-auto px-4">
+        <div class="grid lg:grid-cols-2 gap-12 items-center">
+          <!-- Texte -->
+          <div class="space-y-6">
+            <h2 class="text-4xl font-bold text-gray-900 tracking-tight">
+              La qualité au service 
+              <span class="block text-primary-600">de votre quotidien</span>
+            </h2>
+            <div class="space-y-4 text-lg text-gray-600">
+              <p class="flex items-start gap-3">
+                <Shield class="w-6 h-6 text-primary-600 shrink-0 mt-1" />
+                <span>Tous nos experts sont vérifiés et évalués par notre communauté</span>
+              </p>
+              <p class="flex items-start gap-3">
+                <BadgeCheck class="w-6 h-6 text-primary-600 shrink-0 mt-1" />
+                <span>Satisfaction garantie ou remboursé sous 24h</span>
+              </p>
+              <p class="flex items-start gap-3">
+                <Clock class="w-6 h-6 text-primary-600 shrink-0 mt-1" />
+                <span>Réponse rapide et intervention dans les 24-48h</span>
+              </p>
+            </div>
+            <div class="pt-6">
+              <div class="flex items-center gap-4">
+                <div class="flex -space-x-2">
+                  <img 
+                    v-for="i in 4" 
+                    :key="i"
+                    :src="`https://randomuser.me/api/portraits/${i % 2 ? 'women' : 'men'}/${i}.jpg`"
+                    class="w-10 h-10 rounded-full border-2 border-white"
+                    alt="User avatar"
+                  />
+                </div>
+                <div class="text-sm">
+                  <div class="font-medium text-gray-900">Plus de 10 000 clients satisfaits</div>
+                  <div class="text-gray-500">Rejoignez une communauté de confiance</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Image -->
+          <div class="relative lg:h-[600px]">
+            <img 
+              src="https://images.pexels.com/photos/3760263/pexels-photo-3760263.jpeg"
+              alt="Service professionnel"
+              class="w-full h-full object-cover rounded-2xl shadow-2xl"
+            />
+            <!-- Overlay gradient -->
+            <div class="absolute inset-0 rounded-2xl bg-gradient-to-tr from-primary-600/20 to-transparent"></div>
+            <!-- Badge flottant -->
+            <div class="absolute -top-6 -right-6 bg-white rounded-2xl shadow-xl p-4 flex items-center gap-3">
+              <Star class="w-8 h-8 text-yellow-400 fill-current" />
+              <div>
+                <div class="font-medium text-gray-900">Note moyenne</div>
+                <div class="text-2xl font-bold text-primary-600">4.9/5</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   </div>
@@ -161,7 +208,7 @@ const services = [
   {
     id: 'garde',
     name: "Garde d'enfants",
-    icon: '👶',
+    icon: '��',
     price: 'Dès 800 FCFA',
     description: 'Garde et accompagnement'
   }
