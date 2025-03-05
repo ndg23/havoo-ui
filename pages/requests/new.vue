@@ -30,7 +30,7 @@
                 :model-value="form.description"
                 @update:model-value="form.description = $event"
                 placeholder="Décrivez en détail ce dont vous avez besoin..."
-                class="w-full rounded-xl border-gray-200 focus:border-primary-500 focus:ring-primary-500"
+                rows="4"
               />
             </div>
             
@@ -38,17 +38,14 @@
               <label class="block text-sm font-medium text-gray-700 mb-2">
                 Localisation
               </label>
-              <div class="relative">
-                <MapPin class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <FloatInput 
-                  id="location"
-                  label="Localisation"
-                  :model-value="form.location"
-                  @update:model-value="form.location = $event"
-                  type="text"
-                  placeholder="Votre adresse"
-                />
-              </div>
+              <FloatInput
+                id="location"
+                label="Localisation"
+                :model-value="form.location"
+                @update:model-value="form.location = $event"
+                placeholder="Votre adresse"
+                :icon="MapPin"
+              />
             </div>
           </div>
         </TransitionHeight>
