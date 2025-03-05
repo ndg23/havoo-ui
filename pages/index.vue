@@ -122,7 +122,19 @@
 </template>
 
 <script setup>
-import { ClipboardIcon, User, CheckCircleIcon,  Search, FileText, ArrowRight, ChevronDown } from 'lucide-vue-next'
+import { 
+  ClipboardIcon, 
+  User, 
+  CheckCircleIcon, 
+  Search, 
+  FileText, 
+  ArrowRight, 
+  ChevronDown,
+  Shield,
+  BadgeCheck,
+  Clock,
+  Star
+} from 'lucide-vue-next'
 
 const services = [
   {
