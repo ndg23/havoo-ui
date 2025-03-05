@@ -6,13 +6,16 @@ CREATE TYPE service_status AS ENUM ('pending', 'accepted', 'in_progress', 'compl
 CREATE TYPE expert_status AS ENUM ('pending', 'active', 'inactive', 'suspended');
 CREATE TYPE payment_status AS ENUM ('pending', 'paid', 'failed', 'refunded');
 CREATE TYPE notification_type AS ENUM ('message', 'service_update', 'payment', 'system');
+CREATE TYPE request_status AS ENUM ('pending', 'accepted', 'in_progress', 'completed', 'cancelled');
+CREATE TYPE payment_method AS ENUM ('mobile_money', 'card', 'cash');
 
 -- Table des utilisateurs (étend auth.users de Supabase)
 CREATE TABLE public.profiles (
     id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
     role user_role DEFAULT 'client',
-    first_name VARCHAR(255),
-    last_name VARCHAR(255),
+    first_name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
     phone VARCHAR(20),
     avatar_url TEXT,
     address TEXT,
@@ -49,38 +52,37 @@ CREATE TABLE public.service_categories (
 
 -- Table des services
 CREATE TABLE public.services (
-    id SERIAL PRIMARY KEY,
-    category_id INTEGER REFERENCES public.service_categories(id),
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     icon TEXT,
-    base_price INTEGER, -- Prix en FCFA
+    base_price INTEGER NOT NULL, -- Prix en FCFA
+    category VARCHAR(255) NOT NULL,
+    is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Table des compétences des experts
 CREATE TABLE public.expert_services (
     expert_id UUID REFERENCES public.experts(id),
-    service_id INTEGER REFERENCES public.services(id),
-    hourly_rate INTEGER, -- Taux horaire spécifique au service
-    experience_description TEXT,
-    verified BOOLEAN DEFAULT false,
+    service_id UUID REFERENCES public.services(id),
+    price_per_hour INTEGER,
     PRIMARY KEY (expert_id, service_id)
 );
 
 -- Table des demandes de service
 CREATE TABLE public.service_requests (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     client_id UUID REFERENCES public.profiles(id),
-    service_id INTEGER REFERENCES public.services(id),
-    status service_status DEFAULT 'pending',
-    description TEXT NOT NULL,
+    service_id UUID REFERENCES public.services(id),
+    expert_id UUID REFERENCES public.experts(id),
+    status request_status DEFAULT 'pending',
+    description TEXT,
     date_needed DATE NOT NULL,
     time_needed TIME NOT NULL,
-    duration INTEGER, -- Durée en heures
-    frequency VARCHAR(50), -- once, weekly, biweekly, monthly
+    duration INTEGER NOT NULL, -- Durée en heures
     location TEXT NOT NULL,
-    budget INTEGER,
+    budget INTEGER NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -115,14 +117,16 @@ CREATE TABLE public.jobs (
 -- Table des paiements
 CREATE TABLE public.payments (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    job_id UUID REFERENCES public.jobs(id),
+    request_id UUID REFERENCES public.service_requests(id),
     client_id UUID REFERENCES public.profiles(id),
+    expert_id UUID REFERENCES public.experts(id),
     amount INTEGER NOT NULL,
+    platform_fee INTEGER NOT NULL,
     status payment_status DEFAULT 'pending',
-    payment_method VARCHAR(50),
+    payment_method payment_method,
     transaction_id VARCHAR(255),
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+    paid_at TIMESTAMPTZ
 );
 
 -- Table des messages
@@ -189,12 +193,14 @@ ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 
 -- Exemple de politique RLS pour les profils
-CREATE POLICY "Users can view their own profile"
+CREATE POLICY "Les profils sont visibles par tous les utilisateurs authentifiés"
     ON public.profiles
     FOR SELECT
-    USING (auth.uid() = id);
+    USING (auth.role() = 'authenticated');
 
-CREATE POLICY "Users can update their own profile"
+CREATE POLICY "Les utilisateurs peuvent modifier leur propre profil"
     ON public.profiles
     FOR UPDATE
-    USING (auth.uid() = id); 
+    USING (auth.uid() = id);
+
+-- ... autres policies selon les besoins 

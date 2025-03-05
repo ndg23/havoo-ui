@@ -5,92 +5,66 @@
       <div class="absolute inset-0 bg-grid-white/10"></div>
       
       <div class="relative max-w-7xl mx-auto px-4 py-24 sm:py-32">
-        <div class="grid lg:grid-cols-2 gap-12 items-center">
-          <!-- Texte -->
-          <div class="text-center lg:text-left space-y-6">
-            <h1 class="text-4xl sm:text-5xl font-bold text-white">
-              Trouvez l'expert idéal pour vos besoins
-            </h1>
-            <p class="text-xl text-white/90">
-              Des professionnels qualifiés pour tous vos services à domicile
-            </p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <NuxtLink 
-                to="/demande"
-                class="px-6 py-3 bg-white text-primary-600 rounded-xl font-medium hover:bg-gray-100 transition-colors"
-              >
-                Faire une demande
-              </NuxtLink>
+        <div class="text-center max-w-4xl mx-auto">
+          <!-- Titre principal -->
+          <h1 class="text-5xl sm:text-6xl font-bold text-white tracking-tight">
+            Services à domicile
+            <span class="block mt-2 bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80">
+              Simple. Rapide. Fiable.
+            </span>
+          </h1>
+
+          <!-- Sous-titre -->
+          <p class="mt-8 text-xl text-white/90 leading-relaxed">
+            Choisissez votre approche préférée pour trouver le service dont vous avez besoin
+          </p>
+
+          <!-- Options principales -->
+          <div class="mt-12 grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            <!-- Chercher un expert -->
+            <div class="group">
               <NuxtLink 
                 to="/experts"
-                class="px-6 py-3 bg-white/10 text-white rounded-xl font-medium hover:bg-white/20 transition-colors"
+                class="relative flex flex-col items-center p-8 bg-white/10 backdrop-blur-sm rounded-2xl hover:bg-white/15 transition-all duration-300"
               >
-                Voir les experts
+                <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <Search class="w-8 h-8 text-white" />
+                </div>
+                <h2 class="text-xl font-semibold text-white mb-2">Chercher un expert</h2>
+                <p class="text-white/80 text-sm">
+                  Parcourez notre sélection de professionnels qualifiés
+                </p>
+                <ArrowRight class="w-5 h-5 text-white mt-4 group-hover:translate-x-1 transition-transform" />
+              </NuxtLink>
+            </div>
+
+            <!-- Publier une demande -->
+            <div class="group">
+              <NuxtLink 
+                to="/requests"
+                class="relative flex flex-col items-center p-8 bg-white/10 backdrop-blur-sm rounded-2xl hover:bg-white/15 transition-all duration-300"
+              >
+                <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <FileText class="w-8 h-8 text-white" />
+                </div>
+                <h2 class="text-xl font-semibold text-white mb-2">Publier une demande</h2>
+                <p class="text-white/80 text-sm">
+                  Décrivez votre besoin et recevez des propositions
+                </p>
+                <ArrowRight class="w-5 h-5 text-white mt-4 group-hover:translate-x-1 transition-transform" />
               </NuxtLink>
             </div>
           </div>
 
-          <!-- Image/Illustration -->
-          <div class="relative lg:h-[500px] hidden lg:block">
-            <img 
-              src="https://images.pexels.com/photos/3768914/pexels-photo-3768914.jpeg"
-              alt="Services à domicile"
-              class="absolute inset-0 w-full h-full object-cover rounded-2xl -shadow-2xl"
-              onerror="this.onerror=null; this.src='https://images.pexels.com/photos/4239091/pexels-photo-4239091.jpeg'"
-            />
-            <!-- Overlay pour améliorer la lisibilité -->
-            <div class="absolute inset-0 bg-gradient-to-br from-primary-500/20 to-transparent rounded-2xl"></div>
+          <!-- Scroll indicator -->
+          <div class="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+            <ChevronDown class="w-6 h-6 text-white/60" />
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Services Section -->
-    <section class="py-24 bg-gray-50">
-      <div class="max-w-7xl mx-auto px-4">
-      
-        
-        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          <NuxtLink
-            v-for="service in services"
-            :key="service.id"
-            :to="`/demande?service=${service.id}`"
-            class="relative group overflow-hidden"
-          >
-            <!-- Card -->
-            <div class="bg-white rounded-2xl p-8 text-center border-2 border-transparent hover:border-primary-500 transition-all duration-300">
-              <!-- Icon avec cercle -->
-              <div class="relative inline-flex mb-6">
-                <div class="absolute inset-0 bg-primary-100 rounded-full transform transition-transform duration-300 group-hover:scale-110"></div>
-                <div class="relative w-16 h-16 flex items-center justify-center text-4xl">
-                  {{ service.icon }}
-                </div>
-              </div>
-
-              <!-- Texte -->
-              <h3 class="text-xl font-medium text-gray-900 mb-2">
-                {{ service.name }}
-              </h3>
-              <p class="text-gray-600 text-sm mb-4">
-                {{ service.description }}
-              </p>
-
-              <!-- Prix avec badge -->
-              <div class="inline-flex items-center px-3 py-1 rounded-full bg-primary-50 text-primary-600 text-sm font-medium">
-                {{ service.price }}
-              </div>
-
-              <!-- Flèche -->
-              <div class="mt-4 text-primary-500 transform translate-y-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-                <ArrowRightIcon class="w-5 h-5 mx-auto" />
-              </div>
-            </div>
-          </NuxtLink>
-        </div>
-
-      
-      </div>
-    </section>
+  
 
     <!-- Comment ça marche -->
     <section class="py-24">
@@ -110,7 +84,7 @@
 
           <div class="text-center">
             <div class="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <UserGroupIcon class="w-8 h-8 text-primary-600" />
+              <User class="w-8 h-8 text-primary-600" />
             </div>
             <h3 class="text-xl font-medium text-gray-900 mb-2">2. Choisissez votre expert</h3>
             <p class="text-gray-600">Sélectionnez le professionnel qui vous convient</p>
@@ -148,7 +122,7 @@
 </template>
 
 <script setup>
-import { ClipboardIcon, UserGroupIcon, CheckCircleIcon, ArrowRightIcon, ShieldCheckIcon, ClockIcon, CurrencyDollarIcon } from '@heroicons/vue/24/solid'
+import { ClipboardIcon, User, CheckCircleIcon,  Search, FileText, ArrowRight, ChevronDown } from 'lucide-vue-next'
 
 const services = [
   {

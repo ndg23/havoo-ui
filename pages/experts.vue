@@ -1,40 +1,19 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- Header fixe -->
-    <header class="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
+    <!-- Header fixe avec filtres avancés uniquement -->
+    <header class="fixed top-[64px] left-0 right-0 z-40 bg-white border-b border-gray-200">
       <div class="max-w-7xl mx-auto px-4 py-3">
-        <!-- Filtres principaux -->
-        <div class="flex items-center gap-4 mb-3">
+        <!-- Boutons d'action -->
+        <div class="flex items-center justify-between">
           <h1 class="text-xl font-bold text-gray-900">Experts</h1>
           
-          <div class="flex-1 flex gap-3 overflow-x-auto scrollbar-hide">
-            <button
-              @click="selectedService = null"
-              class="shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all"
-              :class="!selectedService ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
-            >
-              Pour vous
-            </button>
-            <button
-              v-for="service in services"
-              :key="service.id"
-              @click="selectService(service.id)"
-              class="shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2"
-              :class="selectedService === service.id ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
-            >
-              <span>{{ service.icon }}</span>
-              <span>{{ service.name }}</span>
-            </button>
-          </div>
-
-          <!-- Boutons d'action -->
           <div class="flex items-center gap-2">
             <button
               @click="showFilters = !showFilters"
               class="p-2.5 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 relative"
               title="Filtres avancés"
             >
-              <FunnelIcon class="w-5 h-5" />
+              <SlidersHorizontal class="w-5 h-5" />
               <span v-if="activeFiltersCount" 
                 class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary-500 text-white text-xs flex items-center justify-center">
                 {{ activeFiltersCount }}
@@ -45,15 +24,7 @@
               class="p-2.5 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200"
               title="Mélanger"
             >
-              <ArrowPathIcon class="w-5 h-5" />
-            </button>
-            <button
-              @click="toggleFavoritesOnly"
-              class="p-2.5 rounded-full transition-colors"
-              :class="showFavoritesOnly ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
-              title="Favoris uniquement"
-            >
-              <HeartIcon class="w-5 h-5" />
+              <Repeat class="w-5 h-5" />
             </button>
           </div>
         </div>
@@ -91,7 +62,7 @@
                 class="w-48"
               />
               <span class="flex items-center gap-1 text-sm text-gray-600">
-                <StarIcon class="w-4 h-4 text-yellow-400" />
+                <Star class="w-4 h-4 text-yellow-400" />
                 {{ filters.minRating }}
               </span>
             </div>
@@ -117,134 +88,133 @@
     </header>
 
     <!-- Layout principal -->
-    <div class="pt-[88px] pb-8">
-      <div class="max-w-7xl mx-auto px-4 flex gap-8">
-        <!-- Sidebar fixe gauche -->
-        <div class="w-80 sticky top-20 self-start hidden lg:block">
-          <div class="bg-white rounded-xl border border-gray-200 p-4">
-            <h2 class="font-medium text-gray-900 mb-4">Services populaires</h2>
-            <div class="space-y-2">
-              <button
-                v-for="service in services"
-                :key="service.id"
-                @click="selectService(service.id)"
-                class="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors"
-                :class="selectedService === service.id ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
-              >
-                <span class="text-2xl">{{ service.icon }}</span>
-                <div class="text-left">
-                  <div class="font-medium">{{ service.name }}</div>
-                  <div class="text-sm text-gray-500">{{ service.price }}</div>
-                </div>
-              </button>
-            </div>
+    <div class="pt-[120px] pb-20 lg:pb-8">
+      <div class="max-w-4xl mx-auto px-4">
+        <!-- Services en sticky -->
+        <div class="sticky top-[120px] bg-white z-30 -mx-4 px-4 py-3 border-b border-gray-100">
+          <div class="flex gap-2 overflow-x-auto scrollbar-hide">
+            <button
+              @click="selectedService = null"
+              class="flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-colors"
+              :class="!selectedService ? 'bg-primary-50 text-primary-600 font-medium' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+            >
+              <Sparkles class="w-4 h-4" />
+              <span>Pour vous</span>
+            </button>
+
+            <button
+              v-for="service in services"
+              :key="service.id"
+              @click="selectService(service.id)"
+              class="flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-colors"
+              :class="selectedService === service.id ? 'bg-primary-50 text-primary-600 font-medium' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+            >
+              <span>{{ service.icon }}</span>
+              <span>{{ service.name }}</span>
+            </button>
           </div>
         </div>
 
-        <!-- Feed central défilant -->
-        <div class="flex-1 max-w-2xl">
-          <!-- Skeleton loader -->
-          <div v-if="loading" class="space-y-6">
-            <div v-for="i in 3" :key="i" class="animate-pulse">
-              <!-- ... skeleton content ... -->
-            </div>
-          </div>
-
-          <!-- Liste des experts -->
-          <div v-else class="space-y-6">
-            <div 
-              v-for="expert in filteredExperts" 
-              :key="expert.id"
-              class="bg-white rounded-xl border border-gray-200 overflow-hidden"
-            >
-              <div class="relative">
-                <img 
-                  :src="expert.avatar" 
-                  class="w-full h-64 object-cover"
-                  alt=""
-                />
-                
-                <!-- Info overlay -->
-                <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
-                  <div class="flex items-start justify-between">
-                    <div>
-                      <h3 class="text-xl font-bold text-white">{{ expert.name }}</h3>
-                      <p class="text-white/90">{{ expert.services.map(s => getServiceName(s)).join(' • ') }}</p>
-                    </div>
-                    <div class="flex items-center gap-1 px-3 py-1.5 rounded-full bg-black/30 backdrop-blur-sm">
-                      <StarIcon class="w-4 h-4 text-yellow-400" />
-                      <span class="font-medium text-white">{{ expert.rating }}</span>
-                    </div>
-                  </div>
+        <!-- Feed des experts -->
+        <div class="mt-4 space-y-3">
+          <div 
+            v-for="expert in filteredExperts" 
+            :key="expert.id"
+            class="bg-white hover:bg-gray-50 transition-colors cursor-pointer"
+            @click="viewProfile(expert.id)"
+          >
+            <div class="flex gap-4 p-4 border border-gray-200 rounded-xl">
+              <!-- Image -->
+              <div class="relative shrink-0">
+                <div class="w-32 h-32 rounded-lg overflow-hidden bg-gray-100">
+                  <img 
+                    :src="expert.avatar" 
+                    :alt="expert.name"
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+                <div 
+                  v-if="expert.verified"
+                  class="absolute top-2 right-2 w-6 h-6 rounded-full bg-primary-500 flex items-center justify-center"
+                >
+                  <CheckCircle class="w-4 h-4 text-white" />
                 </div>
               </div>
 
-              <div class="p-6 space-y-4">
-                <p class="text-gray-600">{{ expert.description }}</p>
-                
-                <!-- Tags -->
-                <div class="flex flex-wrap gap-2">
-                  <span 
-                    v-for="tag in expert.tags"
-                    :key="tag"
-                    class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600"
+              <!-- Informations -->
+              <div class="flex-1 min-w-0">
+                <!-- En-tête -->
+                <div class="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 class="font-semibold text-gray-900 truncate">
+                      {{ expert.name }}
+                    </h3>
+                    <p class="text-sm text-gray-500 flex items-center gap-1 mt-0.5">
+                      <MapPin class="w-3.5 h-3.5" />
+                      {{ expert.city }}
+                    </p>
+                  </div>
+                  <button 
+                    @click.stop="toggleFavorite(expert.id)"
+                    class="p-2 rounded-full hover:bg-gray-100 transition-colors"
                   >
-                    {{ tag }}
+                    <Heart 
+                      class="w-5 h-5" 
+                      :class="favorites.has(expert.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'" 
+                    />
+                  </button>
+                </div>
+
+                <!-- Services -->
+                <div class="mt-2 flex flex-wrap gap-1">
+                  <span 
+                    v-for="serviceId in expert.services.slice(0, 2)" 
+                    :key="serviceId"
+                    class="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-50 rounded-md text-xs text-gray-600"
+                  >
+                    {{ services.find(s => s.id === serviceId)?.icon }}
+                    {{ services.find(s => s.id === serviceId)?.name }}
+                  </span>
+                  <span 
+                    v-if="expert.services.length > 2"
+                    class="inline-flex items-center px-2 py-0.5 bg-gray-50 rounded-md text-xs text-gray-500"
+                  >
+                    +{{ expert.services.length - 2 }}
                   </span>
                 </div>
 
-                <!-- Disponibilités -->
-                <div class="space-y-2">
-                  <h4 class="text-sm font-medium text-gray-900">Disponibilités</h4>
-                  <div class="flex flex-wrap gap-2">
-                    <span 
-                      v-for="day in expert.availability"
-                      :key="day"
-                      class="px-3 py-1 rounded-full text-xs bg-primary-50 text-primary-600"
-                    >
-                      {{ day }}
-                    </span>
-                  </div>
-                </div>
+                <!-- Description -->
+                <p class="mt-2 text-sm text-gray-600 line-clamp-2">
+                  {{ expert.description }}
+                </p>
 
-                <!-- Actions -->
-                <div class="flex gap-3 pt-2">
+                <!-- Footer -->
+                <div class="mt-3 flex items-center justify-between">
+                  <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-1">
+                      <Star class="w-4 h-4 text-yellow-400 fill-current" />
+                      <span class="text-sm font-medium text-gray-900">{{ expert.rating }}</span>
+                      <span class="text-xs text-gray-500">({{ expert.reviewsCount }})</span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                      <Calendar class="w-4 h-4 text-gray-400" />
+                      <div class="flex gap-1">
+                        <span 
+                          v-for="day in expert.availability" 
+                          :key="day"
+                          class="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full"
+                        >
+                          {{ day.slice(0, 3) }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                   <button
-                    @click="contactExpert(expert.id)"
-                    class="flex-1 py-3 rounded-xl bg-primary-500 text-white font-medium hover:bg-primary-600 transition-all"
+                    @click.stop="contactExpert(expert.id)"
+                    class="px-4 py-1.5 bg-primary-600 text-white text-sm rounded-lg font-medium hover:bg-primary-700 transition-colors"
                   >
                     Contacter
                   </button>
-                  <button
-                    @click="viewProfile(expert.id)"
-                    class="w-12 h-12 rounded-xl border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50"
-                  >
-                    <UserIcon class="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Sidebar fixe droite -->
-        <div class="w-80 sticky top-20 self-start hidden lg:block">
-          <div class="bg-white rounded-xl border border-gray-200 p-4">
-            <h2 class="font-medium text-gray-900 mb-4">Experts recommandés</h2>
-            <div class="space-y-4">
-              <div 
-                v-for="expert in experts.slice(0, 3)" 
-                :key="expert.id"
-                class="flex items-center gap-3"
-              >
-                <img 
-                  :src="expert.avatar" 
-                  class="w-12 h-12 rounded-full object-cover"
-                  alt=""
-                />
-                <div>
-                  <div class="font-medium text-gray-900">{{ expert.name }}</div>
-                  <div class="text-sm text-gray-500">{{ expert.services.map(s => getServiceName(s)).join(', ') }}</div>
                 </div>
               </div>
             </div>
@@ -252,25 +222,130 @@
         </div>
       </div>
     </div>
+
+    <!-- Bottom Navigation Mobile -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 lg:hidden">
+      <div class="flex items-center justify-around">
+        <button
+          @click="selectedService = null"
+          class="flex flex-col items-center py-3 px-5 text-gray-700"
+          :class="!selectedService && 'text-primary-600'"
+        >
+          <Sparkles class="w-6 h-6" />
+          <span class="text-xs mt-1">Pour vous</span>
+        </button>
+
+        <button
+          @click="showFilters = !showFilters"
+          class="flex flex-col items-center py-3 px-5 text-gray-700 relative"
+          :class="showFilters && 'text-primary-600'"
+        >
+          <SlidersHorizontal class="w-6 h-6" />
+          <span class="text-xs mt-1">Filtres</span>
+          <span 
+            v-if="activeFiltersCount" 
+            class="absolute -top-1 right-3 w-5 h-5 rounded-full bg-primary-500 text-white text-xs flex items-center justify-center"
+          >
+            {{ activeFiltersCount }}
+          </span>
+        </button>
+
+        <button
+          @click="showFavoritesOnly = !showFavoritesOnly"
+          class="flex flex-col items-center py-3 px-5"
+          :class="showFavoritesOnly ? 'text-primary-600' : 'text-gray-700'"
+        >
+          <Heart class="w-6 h-6" :class="showFavoritesOnly && 'fill-current'" />
+          <span class="text-xs mt-1">Favoris</span>
+        </button>
+
+        <button
+          @click="showServices = !showServices"
+          class="flex flex-col items-center py-3 px-5 text-gray-700"
+          :class="showServices && 'text-primary-600'"
+        >
+          <Grid class="w-6 h-6" />
+          <span class="text-xs mt-1">Services</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal Services (Mobile) -->
+    <TransitionRoot appear :show="showServices" as="template">
+      <Dialog as="div" @close="showServices = false" class="relative z-50">
+        <TransitionChild
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div class="fixed inset-0 bg-black/25" />
+        </TransitionChild>
+
+        <div class="fixed inset-0">
+          <div class="flex min-h-full items-end justify-center">
+            <TransitionChild
+              enter="duration-300 ease-out"
+              enter-from="opacity-0 translate-y-4"
+              enter-to="opacity-100 translate-y-0"
+              leave="duration-200 ease-in"
+              leave-from="opacity-100 translate-y-0"
+              leave-to="opacity-0 translate-y-4"
+            >
+              <DialogPanel class="w-full max-w-md transform overflow-hidden rounded-t-2xl bg-white p-6">
+                <h3 class="text-lg font-bold text-gray-900 mb-4">Services</h3>
+                <div class="grid grid-cols-2 gap-3">
+                  <button
+                    v-for="service in services"
+                    :key="service.id"
+                    @click="selectServiceMobile(service.id)"
+                    class="flex items-center gap-3 p-4 rounded-xl border-2 transition-all"
+                    :class="selectedService === service.id 
+                      ? 'border-primary-500 bg-primary-50 text-primary-600' 
+                      : 'border-gray-200 hover:border-gray-300'"
+                  >
+                    <span class="text-2xl">{{ service.icon }}</span>
+                    <span class="font-medium">{{ service.name }}</span>
+                  </button>
+                </div>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { 
-  StarIcon, 
-  UserIcon, 
-  ChevronUpIcon, 
-  ChevronDownIcon,
-  ArrowPathIcon,
-  FunnelIcon,
-  HeartIcon
-} from '@heroicons/vue/24/solid'
+  Star,
+  User,
+  ChevronUp,
+  ChevronDown,
+  Repeat,
+  SlidersHorizontal,
+  Heart,
+  Sparkles,
+  Sliders,
+  ChevronRight,
+  Languages,
+  Calendar,
+  MapPin,
+  MessageCircle,
+  Grid,
+  CheckCircle
+} from 'lucide-vue-next'
+import { Dialog, DialogPanel, TransitionRoot, TransitionChild } from '@headlessui/vue'
 
 const selectedService = ref(null)
 const currentIndex = ref(0)
 const loading = ref(true)
 const feedContainer = ref(null)
+const showServices = ref(false)
 
 const services = ref([
   { id: 'menage', name: 'Ménage', icon: '🧹', price: 'Dès 500 FCFA' },
@@ -290,7 +365,8 @@ const experts = ref([
     description: 'Experte en ménage et garde d\'enfants avec 5 ans d\'expérience. Disponible en semaine et week-end.',
     tags: ['Ponctuelle', 'Organisée', 'Douce avec les enfants'],
     availability: ['Lundi', 'Mercredi', 'Vendredi'],
-    languages: ['Français', 'Anglais']
+    languages: ['Français', 'Anglais'],
+    verified: true
   },
   {
     id: 2,
@@ -302,7 +378,8 @@ const experts = ref([
     description: 'Bricoleur professionnel, spécialisé dans la rénovation et l\'entretien des jardins.',
     tags: ['Professionnel', 'Outillé', 'Expérimenté'],
     availability: ['Mardi', 'Jeudi', 'Samedi'],
-    languages: ['Français']
+    languages: ['Français'],
+    verified: true
   },
   {
     id: 3,
@@ -314,7 +391,8 @@ const experts = ref([
     description: 'Aide ménagère professionnelle, attentionnée avec les enfants et les animaux.',
     tags: ['Méticuleuse', 'Fiable', 'Dynamique'],
     availability: ['Lundi', 'Mardi', 'Mercredi'],
-    languages: ['Français', 'Espagnol']
+    languages: ['Français', 'Espagnol'],
+    verified: true
   },
   {
     id: 4,
@@ -326,7 +404,8 @@ const experts = ref([
     description: 'Jardinier passionné, expert en aménagement paysager et petit bricolage.',
     tags: ['Créatif', 'Minutieux', 'Polyvalent'],
     availability: ['Mercredi', 'Jeudi', 'Vendredi'],
-    languages: ['Français', 'Arabe']
+    languages: ['Français', 'Arabe'],
+    verified: true
   },
   {
     id: 5,
@@ -338,7 +417,8 @@ const experts = ref([
     description: 'Ancienne institutrice, spécialisée dans la garde d\'enfants et l\'aide aux devoirs.',
     tags: ['Pédagogue', 'Patiente', 'Attentive'],
     availability: ['Lundi', 'Mardi', 'Mercredi'],
-    languages: ['Français', 'Anglais']
+    languages: ['Français', 'Anglais'],
+    verified: true
   },
   {
     id: 6,
@@ -350,7 +430,8 @@ const experts = ref([
     description: 'Artisan bricoleur, spécialisé dans la réparation et l\'installation.',
     tags: ['Précis', 'Rapide', 'Professionnel'],
     availability: ['Jeudi', 'Vendredi', 'Samedi'],
-    languages: ['Français']
+    languages: ['Français'],
+    verified: true
   },
   {
     id: 7,
@@ -362,7 +443,8 @@ const experts = ref([
     description: 'Aide à domicile expérimentée, disponible pour ménage et garde d\'enfants.',
     tags: ['Organisée', 'Flexible', 'Consciencieuse'],
     availability: ['Mardi', 'Jeudi', 'Samedi'],
-    languages: ['Français', 'Arabe']
+    languages: ['Français', 'Arabe'],
+    verified: true
   },
   {
     id: 8,
@@ -374,7 +456,8 @@ const experts = ref([
     description: 'Paysagiste de formation, passionné par l\'entretien des espaces verts.',
     tags: ['Expert', 'Passionné', 'Créatif'],
     availability: ['Lundi', 'Mercredi', 'Vendredi'],
-    languages: ['Français', 'Anglais']
+    languages: ['Français', 'Anglais'],
+    verified: true
   }
 ])
 
@@ -528,6 +611,15 @@ const toggleFavorite = (expertId) => {
   } else {
     favorites.value.add(expertId)
   }
+}
+
+const selectServiceMobile = (serviceId) => {
+  selectedService.value = serviceId
+  showServices.value = false
+}
+
+const formatAvailability = (days) => {
+  return days.map(day => day.slice(0, 3)).join(', ')
 }
 </script>
 
