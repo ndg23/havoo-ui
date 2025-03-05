@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-6xl mx-auto px-4 py-12">
+  <div class="max-w-3xl mx-auto px-4 py-12">
     <!-- En-tête -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
       <div>
@@ -94,7 +94,7 @@
       </div>
     </div>
     
-    <!-- Liste des experts style LeBonCoin -->
+    <!-- Liste des experts style CNI française -->
     <div class="space-y-4">
       <NuxtLink 
         v-for="expert in filteredExperts" 
@@ -103,94 +103,120 @@
         class="block"
       >
         <div class="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-          <div class="flex flex-col md:flex-row">
-            <!-- Partie gauche (photo) -->
-            <div class="md:w-1/4 relative">
-              <!-- Bannière bleue style CNI -->
-              <div class="h-12 bg-gradient-to-r from-blue-600 to-blue-700 flex items-center px-4">
-                <span class="text-white text-sm font-medium">Expert vérifié</span>
-              </div>
-              
+          <!-- Bannière bleue style CNI -->
+          <div class="h-10 bg-gradient-to-r from-blue-600 to-blue-700 flex items-center justify-between px-4">
+            <div class="flex items-center gap-2">
+              <span class="text-white text-sm font-medium">République Française</span>
+              <span class="text-blue-200">•</span>
+              <span class="text-white text-sm font-medium">Expert vérifié</span>
+            </div>
+            <div class="text-xs text-blue-100">ID: {{ expert.id }}</div>
+          </div>
+          
+          <div class="flex">
+            <!-- Partie gauche (photo) - ratio d'or: 38.2% -->
+            <div class="w-[38.2%] p-4 flex flex-col items-center justify-center border-r border-gray-100">
               <!-- Photo -->
-              <div class="aspect-square bg-gray-100 relative">
+              <div class="w-32 h-40 bg-gray-100 relative overflow-hidden border border-gray-200">
                 <img 
                   :src="expert.avatar" 
                   :alt="expert.name"
                   class="w-full h-full object-cover"
                 />
-                
-                <!-- Badge de vérification -->
-                <div class="absolute bottom-2 right-2 bg-green-100 rounded-full p-1">
-                  <CheckCircle class="w-5 h-5 text-green-600" />
+              </div>
+              
+              <!-- Badge de vérification -->
+              <div class="mt-3 flex items-center gap-1 bg-green-100 px-2 py-1 rounded-full">
+                <CheckCircle class="w-3 h-3 text-green-600" />
+                <span class="text-xs font-medium text-green-800">Identité vérifiée</span>
+              </div>
+              
+              <!-- Note -->
+              <div class="mt-2 flex items-center gap-1">
+                <div class="flex">
+                  <Star 
+                    v-for="i in 5" 
+                    :key="i"
+                    class="w-3 h-3" 
+                    :class="i <= Math.floor(expert.rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'"
+                  />
                 </div>
-                
-                <!-- Favoris -->
-                <button 
-                  class="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white transition-colors"
-                  :class="expert.isFavorite ? 'text-red-500' : 'text-gray-400'"
-                  @click.prevent="toggleFavorite(expert.id)"
-                >
-                  <Heart class="w-5 h-5" :class="expert.isFavorite ? 'fill-current' : ''" />
-                </button>
+                <span class="text-xs text-gray-700">({{ expert.reviewCount }})</span>
               </div>
             </div>
             
-            <!-- Partie droite (informations) -->
-            <div class="p-4 md:p-5 md:w-3/4 flex flex-col">
-              <div class="flex-1">
-                <!-- En-tête -->
-                <div class="flex justify-between items-start">
-                  <div>
-                    <h3 class="text-lg font-bold text-gray-900">{{ expert.name }}</h3>
-                    <p class="text-gray-600">{{ expert.title }}</p>
-                  </div>
-                  <div class="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-lg">
-                    <Star class="w-4 h-4 text-yellow-400 fill-current" />
-                    <span class="font-medium text-gray-900">{{ expert.rating }}</span>
-                    <span class="text-xs text-gray-500">({{ expert.reviewCount }})</span>
-                  </div>
-                </div>
-                
-                <!-- Localisation -->
-                <div class="mt-2 flex items-center gap-1.5 text-gray-500">
-                  <MapPin class="w-4 h-4" />
-                  <span class="text-sm">{{ expert.location }}</span>
-                </div>
-                
-                <!-- Services -->
-                <div class="mt-3">
-                  <div class="flex flex-wrap gap-1.5">
-                    <span 
-                      v-for="service in expert.services" 
-                      :key="service.id"
-                      class="px-2 py-1 bg-gray-100 rounded-full text-xs text-gray-700 flex items-center gap-1"
-                    >
-                      <span>{{ service.icon }}</span>
-                      <span>{{ service.name }}</span>
-                    </span>
-                  </div>
-                </div>
-                
-                <!-- Bio courte -->
-                <p class="mt-3 text-sm text-gray-600 line-clamp-2">
-                  {{ expert.bio }}
-                </p>
+            <!-- Partie droite (informations) - ratio d'or: 61.8% -->
+            <div class="w-[61.8%] p-4">
+              <!-- En-tête -->
+              <div class="border-b border-gray-100 pb-2">
+                <h3 class="text-base font-bold text-gray-900">{{ expert.name }}</h3>
+                <p class="text-sm text-gray-600">{{ expert.title }}</p>
               </div>
               
-              <!-- Pied de carte -->
-              <div class="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
-                <div class="text-xs text-gray-500">
-                  Membre depuis {{ expert.memberSince }}
+              <!-- Informations principales -->
+              <div class="mt-3 space-y-2">
+                <div class="flex items-start gap-2">
+                  <MapPin class="w-4 h-4 text-gray-400 mt-0.5" />
+                  <div>
+                    <p class="text-xs font-medium text-gray-700">Adresse</p>
+                    <p class="text-sm text-gray-900">{{ expert.location }}</p>
+                  </div>
                 </div>
-                <div class="flex gap-2">
-                  <button 
-                    @click.prevent="contactExpert(expert.id)"
-                    class="px-3 py-1.5 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 transition-colors"
-                  >
-                    Contacter
-                  </button>
+                
+                <div class="flex items-start gap-2">
+                  <Calendar class="w-4 h-4 text-gray-400 mt-0.5" />
+                  <div>
+                    <p class="text-xs font-medium text-gray-700">Membre depuis</p>
+                    <p class="text-sm text-gray-900">{{ expert.memberSince }}</p>
+                  </div>
+                </div>
+                
+                <div class="flex items-start gap-2">
+                  <Briefcase class="w-4 h-4 text-gray-400 mt-0.5" />
+                  <div>
+                    <p class="text-xs font-medium text-gray-700">Services</p>
+                    <div class="flex flex-wrap gap-1 mt-1">
+                      <span 
+                        v-for="service in expert.services" 
+                        :key="service.id"
+                        class="px-1.5 py-0.5 bg-gray-100 rounded-full text-[10px] text-gray-700 flex items-center gap-0.5"
+                      >
+                        <span>{{ service.icon }}</span>
+                        <span>{{ service.name }}</span>
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
+              
+              <!-- Actions -->
+              <div class="mt-4 flex gap-2">
+                <button 
+                  @click.prevent="toggleFavorite(expert.id)"
+                  class="px-3 py-1.5 border rounded-lg text-sm flex items-center gap-1 transition-colors"
+                  :class="expert.isFavorite ? 'bg-red-50 text-red-600 border-red-200' : 'border-gray-200 text-gray-600 hover:bg-gray-50'"
+                >
+                  <Heart class="w-4 h-4" :class="expert.isFavorite ? 'fill-current' : ''" />
+                  <span>{{ expert.isFavorite ? 'Favori' : 'Ajouter' }}</span>
+                </button>
+                <button 
+                  @click.prevent="contactExpert(expert.id)"
+                  class="px-3 py-1.5 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-1"
+                >
+                  <MessageSquare class="w-4 h-4" />
+                  <span>Contacter</span>
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Pied de carte -->
+          <div class="px-4 py-2 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
+            <div class="text-xs text-gray-500">
+              Signature électronique
+            </div>
+            <div class="text-xs text-gray-500">
+              Valide jusqu'au 31/12/2024
             </div>
           </div>
         </div>
@@ -200,24 +226,24 @@
     <!-- Pagination -->
     <div class="mt-8 flex justify-center">
       <div class="flex items-center gap-1">
-        <button class="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50">
-          <ChevronLeft class="w-5 h-5" />
+        <button class="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50">
+          <ChevronLeft class="w-4 h-4" />
         </button>
-        <button class="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center bg-primary-50 text-primary-600 border-primary-200 font-medium">
+        <button class="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center bg-primary-50 text-primary-600 border-primary-200 font-medium">
           1
         </button>
-        <button class="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-50">
+        <button class="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-50">
           2
         </button>
-        <button class="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-50">
+        <button class="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-50">
           3
         </button>
-        <span class="w-10 h-10 flex items-center justify-center text-gray-400">...</span>
-        <button class="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-50">
+        <span class="w-8 h-8 flex items-center justify-center text-gray-400">...</span>
+        <button class="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-50">
           8
         </button>
-        <button class="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50">
-          <ChevronRight class="w-5 h-5" />
+        <button class="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50">
+          <ChevronRight class="w-4 h-4" />
         </button>
       </div>
     </div>
@@ -228,7 +254,8 @@
 import { ref, computed } from 'vue'
 import { 
   Search, SlidersHorizontal, Heart, Star, MapPin, 
-  CheckCircle, ChevronLeft, ChevronRight
+  CheckCircle, ChevronLeft, ChevronRight, Calendar,
+  Briefcase, MessageSquare
 } from 'lucide-vue-next'
 
 // États

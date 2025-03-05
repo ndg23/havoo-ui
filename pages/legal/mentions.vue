@@ -1,58 +1,124 @@
 <template>
-  <div class="min-h-screen bg-gray-50 py-12">
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-      <!-- Header -->
-      <div class="text-center mb-12">
-        <h1 class="text-3xl font-bold text-gray-900">
+  <div class="min-h-screen bg-white">
+    <div class="max-w-3xl mx-auto px-6 py-16">
+      <!-- En-tête -->
+      <div class="mb-16">
+        <h1 class="text-2xl font-semibold text-gray-900 mb-3">
           Mentions Légales
         </h1>
-        <p class="mt-2 text-gray-600">
-          Informations légales et réglementaires
+        <p class="text-sm text-gray-500">
+          Dernière mise à jour : {{ new Date().toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' }) }}
         </p>
       </div>
 
-      <!-- Content -->
-      <div class="bg-white rounded-2xl -shadow-sm border border-gray-200 overflow-hidden">
-        <div class="p-8 space-y-12">
-          <section v-for="section in mentions" :key="section.title">
-            <h2 class="text-xl font-semibold text-gray-900 mb-6">
-              {{ section.title }}
-            </h2>
-            <dl class="space-y-4">
-              <div v-for="item in section.items" :key="item.label" 
-                class="flex flex-col sm:flex-row sm:gap-4"
-              >
-                <dt class="text-sm font-medium text-gray-500 sm:w-1/3">
-                  {{ item.label }}
-                </dt>
-                <dd class="text-sm text-gray-900 sm:w-2/3">
-                  {{ item.value }}
-                </dd>
-              </div>
-            </dl>
-          </section>
-        </div>
-      </div>
-
-      <!-- Contact Section -->
-      <div class="mt-12 text-center">
-        <h2 class="text-lg font-medium text-gray-900">
-          Une question ?
-        </h2>
-        <p class="mt-2 text-gray-600">
-          Notre équipe est à votre disposition
-        </p>
-        <NuxtLink 
-          to="/contact" 
-          class="mt-4 inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
+      <!-- Sections -->
+      <div class="space-y-12">
+        <section 
+          v-for="(section, index) in sections" 
+          :key="index"
+          class="scroll-mt-8"
         >
-          Nous contacter
-        </NuxtLink>
+          <h2 class="text-xl font-semibold text-gray-900 mb-6">
+            {{ section.title }}
+          </h2>
+          
+          <div class="space-y-6 text-[15px] leading-relaxed text-gray-600">
+            <div v-for="(info, key) in section.content" 
+                 :key="key"
+                 class="flex flex-col space-y-1"
+            >
+              <span class="text-gray-900">{{ key }}</span>
+              <span class="text-gray-600">{{ info }}</span>
+            </div>
+          </div>
+        </section>
       </div>
+
+      <!-- Footer -->
+      <footer class="mt-16 pt-8 border-t border-gray-100">
+        <p class="text-sm text-gray-500 text-center">
+          Copyright © {{ new Date().getFullYear() }} Havoo. Tous droits réservés.
+        </p>
+      </footer>
     </div>
   </div>
 </template>
 
-<script setup>
-const { mentions } = useLegal()
-</script> 
+<script setup lang="ts">
+definePageMeta({
+  layout: 'default'
+})
+
+const sections = [
+  {
+    title: "Informations Légales",
+    content: {
+      "Raison sociale": "Havoo SAS",
+      "Capital social": "1 000 000 FCFA",
+      "RCCM": "SN DKR 2024 B 12345",
+      "NINEA": "123456789",
+      "Siège social": "Dakar, Sénégal",
+      "Adresse": "123 Avenue de l'Indépendance, Dakar"
+    }
+  },
+  {
+    title: "Représentant Légal",
+    content: {
+      "Directeur de la publication": "John Doe",
+      "Fonction": "Président Directeur Général",
+      "Contact": "direction@Havoo.com"
+    }
+  },
+  {
+    title: "Hébergement",
+    content: {
+      "Hébergeur": "Amazon Web Services (AWS)",
+      "Société": "Amazon Web Services, Inc.",
+      "Adresse": "410 Terry Avenue North, Seattle, WA 98109-5210, USA",
+      "Contact": "https://aws.amazon.com/contact-us/"
+    }
+  },
+  {
+    title: "Protection des Données",
+    content: {
+      "Délégué à la Protection des Données": "Jane Smith",
+      "Email": "dpo@Havoo.com",
+      "Déclaration CDP": "N° 2024-001234/CDP",
+      "Autorité de contrôle": "Commission de Protection des Données Personnelles (CDP)"
+    }
+  },
+  {
+    title: "Contacts",
+    content: {
+      "Service Client": "support@Havoo.com",
+      "Service Commercial": "commercial@Havoo.com",
+      "Service Technique": "tech@Havoo.com",
+      "Téléphone": "+221 XX XXX XX XX",
+      "Horaires": "Lundi au Vendredi, 9h-18h (GMT)"
+    }
+  },
+  {
+    title: "Propriété Intellectuelle",
+    content: {
+      "Marque déposée": "Havoo® est une marque déposée",
+      "Numéro d'enregistrement": "MA-2024-001234",
+      "Droits d'auteur": "Tous les contenus de ce site sont protégés par le droit d'auteur",
+      "Licence": "Tous droits réservés Havoo SAS"
+    }
+  }
+]
+</script>
+
+<style scoped>
+html {
+  scroll-behavior: smooth;
+  font-size: 17px;
+  line-height: 1.47059;
+  font-weight: 400;
+  letter-spacing: -0.022em;
+  font-family: "Times New Roman", Times, serif;
+  background-color: rgb(255, 255, 255);
+  color: rgb(29, 29, 31);
+  font-style: normal;
+}
+</style> 

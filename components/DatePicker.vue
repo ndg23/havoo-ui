@@ -138,7 +138,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+// import { ref, computed } from 'vue'
 import { Calendar, Check, X, ChevronLeft, ChevronRight, Clock, Zap } from 'lucide-vue-next'
 
 const props = defineProps<{

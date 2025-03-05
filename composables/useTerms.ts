@@ -1,69 +1,84 @@
 export const useTerms = () => {
   const sections = [
     {
-      title: 'Conditions Générales d\'Utilisation',
-      content: [
-        {
-          subtitle: '1. Acceptation des conditions',
-          text: 'En accédant et en utilisant l\'application Havoo Services, vous acceptez d\'être lié par ces conditions. Si vous n\'acceptez pas ces conditions, veuillez ne pas utiliser nos services.'
-        },
-        {
-          subtitle: '2. Modifications des conditions',
-          text: 'Nous nous réservons le droit de modifier ces conditions à tout moment. Les modifications prennent effet dès leur publication. Votre utilisation continue des services après toute modification constitue votre acceptation des conditions modifiées.'
-        }
-      ]
+      id: 'introduction',
+      title: 'Introduction',
+      content: {
+        text: 'Havoo est une plateforme innovante qui connecte les experts et les particuliers en Afrique. Ces conditions régissent votre utilisation de nos services.',
+        subsections: [
+          {
+            title: 'Acceptation des conditions',
+            text: 'En utilisant Havoo, vous acceptez d être lié par ces conditions. Si vous n\'acceptez pas ces conditions, vous ne devez pas utiliser la plateforme.'
+          },
+          {
+            title: 'Modifications',
+            text: 'Nous nous réservons le droit de modifier ces conditions à tout moment. Les modifications prennent effet dès leur publication.'
+          }
+        ]
+      }
     },
     {
-      title: 'Utilisation des Services',
-      content: [
-        {
-          subtitle: '3. Éligibilité',
-          text: 'Vous devez avoir au moins 18 ans et être légalement capable de contracter pour utiliser nos services. Si vous agissez pour le compte d\'une entreprise, vous déclarez avoir l\'autorité pour engager cette entité.'
-        },
-        {
-          subtitle: '4. Compte utilisateur',
-          text: 'Vous êtes responsable de maintenir la confidentialité de vos identifiants et de toutes les activités qui se produisent sous votre compte. Vous devez nous informer immédiatement de toute utilisation non autorisée.'
-        }
-      ]
+      id: 'eligibilite',
+      title: 'Éligibilité',
+      content: {
+        text: 'Pour utiliser Havoo, vous devez remplir certaines conditions d\'éligibilité.',
+        list: [
+          'Être âgé d\'au moins 18 ans',
+          'Avoir la capacité juridique de contracter',
+          'Résider dans un pays où Havoo opère',
+          'Fournir des informations exactes et à jour'
+        ]
+      }
     },
     {
-      title: 'Services et Paiements',
-      content: [
-        {
-          subtitle: '5. Description des services',
-          text: 'Havoo Services est une plateforme de mise en relation entre particuliers et professionnels. Nous ne fournissons pas directement les services mais facilitons leur réservation.'
-        },
-        {
-          subtitle: '6. Tarification et paiements',
-          text: 'Les tarifs sont fixés par les prestataires. Nous appliquons des frais de service clairement indiqués. Les paiements sont sécurisés et traités par nos partenaires de confiance.'
-        }
-      ]
+      id: 'services',
+      title: 'Services',
+      content: {
+        subsections: [
+          {
+            title: 'Description des services',
+            text: 'Havoo permet la mise en relation entre experts qualifiés et clients pour divers services.',
+            list: [
+              'Services à domicile',
+              'Services professionnels',
+              'Conseil et expertise',
+              'Formation et éducation'
+            ]
+          },
+          {
+            title: 'Qualité des services',
+            text: 'Nous nous efforçons de maintenir une haute qualité de service à travers notre plateforme.',
+            list: [
+              'Vérification des experts',
+              'Système d\'évaluation',
+              'Support client 24/7',
+              'Garantie satisfaction'
+            ]
+          }
+        ]
+      }
     },
     {
-      title: 'Responsabilités',
-      content: [
-        {
-          subtitle: '7. Obligations des utilisateurs',
-          text: 'Vous vous engagez à fournir des informations exactes, à respecter les lois en vigueur et à ne pas utiliser nos services à des fins illégales ou non autorisées.'
-        },
-        {
-          subtitle: '8. Limitation de responsabilité',
-          text: 'Nous ne sommes pas responsables des actions des prestataires ou des utilisateurs. Notre responsabilité est limitée au fonctionnement de la plateforme.'
-        }
-      ]
-    },
-    {
-      title: 'Protection des données',
-      content: [
-        {
-          subtitle: '9. Collecte des données',
-          text: 'Nous collectons et traitons vos données conformément à notre politique de confidentialité et au RGPD. Vos données sont sécurisées et ne sont jamais vendues à des tiers.'
-        },
-        {
-          subtitle: '10. Cookies et traceurs',
-          text: 'Nous utilisons des cookies et autres technologies similaires pour améliorer votre expérience. Vous pouvez gérer vos préférences dans les paramètres.'
-        }
-      ]
+      id: 'paiements',
+      title: 'Paiements',
+      content: {
+        text: 'Les transactions financières sur Havoo sont sécurisées et transparentes.',
+        subsections: [
+          {
+            title: 'Méthodes de paiement',
+            list: [
+              'Mobile Money',
+              'Cartes bancaires',
+              'Transferts bancaires',
+              'Paiements en espèces (selon conditions)'
+            ]
+          },
+          {
+            title: 'Commission',
+            text: 'Havoo prélève une commission de 10% sur chaque transaction réussie.'
+          }
+        ]
+      }
     }
   ]
 

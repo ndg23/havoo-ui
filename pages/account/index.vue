@@ -136,7 +136,7 @@
       </div>
     </div>
     
-    <!-- Informations personnelles -->
+        <!-- Informations personnelles -->
     <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-8">
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-lg font-medium text-gray-900">Informations personnelles</h2>
@@ -150,34 +150,34 @@
       </div>
       
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-4">
+            <div class="flex items-center gap-3">
+              <Mail class="w-5 h-5 text-gray-400" />
+              <div>
+                <p class="text-sm text-gray-500">Email</p>
+                <p class="text-gray-900">thomas.kouadio@example.com</p>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+              <Phone class="w-5 h-5 text-gray-400" />
+              <div>
+                <p class="text-sm text-gray-500">Téléphone</p>
+                <p class="text-gray-900">+229 97 12 34 56</p>
+            </div>
+              </div>
+            </div>
+            
         <div class="space-y-4">
-          <div class="flex items-center gap-3">
-            <Mail class="w-5 h-5 text-gray-400" />
-            <div>
-              <p class="text-sm text-gray-500">Email</p>
-              <p class="text-gray-900">thomas.kouadio@example.com</p>
+            <div class="flex items-center gap-3">
+              <MapPin class="w-5 h-5 text-gray-400" />
+              <div>
+                <p class="text-sm text-gray-500">Adresse</p>
+                <p class="text-gray-900">Cotonou, Bénin</p>
+              </div>
             </div>
-          </div>
           
-          <div class="flex items-center gap-3">
-            <Phone class="w-5 h-5 text-gray-400" />
-            <div>
-              <p class="text-sm text-gray-500">Téléphone</p>
-              <p class="text-gray-900">+229 97 12 34 56</p>
-            </div>
-          </div>
-        </div>
-        
-        <div class="space-y-4">
-          <div class="flex items-center gap-3">
-            <MapPin class="w-5 h-5 text-gray-400" />
-            <div>
-              <p class="text-sm text-gray-500">Adresse</p>
-              <p class="text-gray-900">Cotonou, Bénin</p>
-            </div>
-          </div>
-          
-          <div class="flex items-center gap-3">
+              <div class="flex items-center gap-3">
             <Calendar class="w-5 h-5 text-gray-400" />
             <div>
               <p class="text-sm text-gray-500">Date de naissance</p>
@@ -185,8 +185,8 @@
             </div>
           </div>
         </div>
-      </div>
-    </div>
+          </div>
+        </div>
     
     <!-- Activité récente -->
     <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
@@ -210,13 +210,13 @@
             <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
               <component :is="getActivityIcon(activity.type)" class="w-5 h-5 text-gray-500" />
             </div>
-            <div class="flex-1">
+                    <div class="flex-1">
               <p class="text-gray-900">{{ activity.description }}</p>
               <p class="text-sm text-gray-500 mt-0.5">{{ activity.date }}</p>
-            </div>
-          </div>
-        </div>
-        
+                  </div>
+                </div>
+              </div>
+              
         <div v-else class="py-8 text-center">
           <div class="w-16 h-16 mx-auto rounded-full bg-gray-100 flex items-center justify-center">
             <History class="w-8 h-8 text-gray-400" />
