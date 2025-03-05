@@ -1,0 +1,46 @@
+<template>
+  <NuxtLink to="/" class="flex-shrink-0 group">
+    <div class="flex items-center gap-2">
+      <!-- Logo Icon -->
+      <div class="relative">
+        <div class="w-8 h-8 bg-primary-500 rounded-xl rotate-45 transform transition-transform group-hover:rotate-90 duration-300"></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <span class="text-lg font-oswald-bold text-white -rotate-45">H</span>
+        </div>
+      </div>
+      
+      <!-- Text with Modern Colors -->
+      <div v-if="!iconOnly" class="flex flex-col">
+        <div class="flex items-baseline">
+          <span class="text-2xl font-oswald-bold bg-gradient-to-r from-primary-600 to-primary-500 bg-clip-text text-transparent">
+            Havoo
+          </span>
+          <span class="text-lg font-oswald-light text-gray-600 ml-1.5">
+            Services
+          </span>
+        </div>
+        <span class="text-[11px] text-gray-500 ml-0.5">
+          Trouvez votre expert en quelques clics
+        </span>
+      </div>
+    </div>
+  </NuxtLink>
+</template>
+
+<script setup lang="ts">
+defineProps<{
+  iconOnly?: boolean
+}>()
+</script>
+
+<style scoped>
+.font-oswald-light {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 200;
+}
+
+.font-oswald-bold {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+}
+</style> 

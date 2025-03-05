@@ -14,10 +14,7 @@
         <div class="grid md:grid-cols-3 gap-8">
           <!-- Logo et description -->
           <div>
-            <h3 class="text-xl font-bold text-primary-600">ServicePro</h3>
-            <p class="mt-2 text-sm text-gray-600">
-              La plateforme de référence pour vos services à domicile au Bénin
-            </p>
+          <Logo />
           </div>
 
           <!-- Liens rapides -->
@@ -71,6 +68,7 @@
 </template>
 
 <script setup>
+import Logo from '~/components/Logo.vue';
 // Pas besoin de logique particulière ici
 </script> 
 <style scoped>

@@ -6,8 +6,24 @@ export default defineNuxtConfig({
     '@nuxt/ui',
     '@nuxtjs/tailwindcss',
     '@nuxtjs/color-mode',
+    'nuxt-vue3-google-signin',
     '@nuxtjs/supabase'
-  ],  tailwindcss: {
+  ], 
+  googleSignIn: {
+    clientId: process.env.GOOGLE_CLIENT_ID,
+    scope: 'email profile',
+    prompt: 'consent',
+    access_type: 'offline',
+    redirect_uri: 'http://localhost:3200/auth/callback'
+  },
+  facebookSignIn: {
+    clientId: process.env.FACEBOOK_CLIENT_ID,
+    scope: 'email profile',
+    prompt: 'consent',
+    access_type: 'offline',
+    redirect_uri: 'http://localhost:3200/auth/callback'
+  },
+  tailwindcss: {
     cssPath: ["~/assets/css/tailwind.css", { injectPosition: 0 }],
     configPath: 'tailwind.config.js',
 
