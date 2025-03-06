@@ -1,500 +1,390 @@
 <template>
-  <div class="max-w-5xl mx-auto px-4 py-12">
-    <!-- En-tête -->
-    <div class="flex items-center justify-between mb-8">
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900">Mes demandes</h1>
-        <p class="text-gray-600 mt-1">Gérez vos demandes de services</p>
-      </div>
-      <NuxtLink 
-        to="/account" 
-        class="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1"
-      >
-        <ArrowLeft class="w-4 h-4" />
-        <span>Retour au profil</span>
-      </NuxtLink>
-    </div>
-    
-    <!-- Filtres et actions -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-8">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <!-- Filtres -->
-        <div class="flex items-center gap-3">
+  <div class="min-h-screen bg-white">
+    <!-- En-tête minimaliste -->
+    <div class="border-b border-gray-200">
+      <div class="max-w-4xl mx-auto px-5 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
           <button 
-            @click="activeFilter = 'all'"
-            class="px-4 py-2 rounded-xl text-sm font-medium transition-colors"
-            :class="activeFilter === 'all' ? 'bg-primary-50 text-primary-700' : 'text-gray-700 hover:bg-gray-50'"
+            @click="router.back()" 
+            class="p-1 -ml-1 text-black"
           >
-            Toutes ({{ demands.length }})
+            <ChevronLeft class="h-6 w-6" />
           </button>
-          <button 
-            @click="activeFilter = 'active'"
-            class="px-4 py-2 rounded-xl text-sm font-medium transition-colors"
-            :class="activeFilter === 'active' ? 'bg-primary-50 text-primary-700' : 'text-gray-700 hover:bg-gray-50'"
-          >
-            Actives ({{ activeDemandsCount }})
-          </button>
-          <button 
-            @click="activeFilter = 'completed'"
-            class="px-4 py-2 rounded-xl text-sm font-medium transition-colors"
-            :class="activeFilter === 'completed' ? 'bg-primary-50 text-primary-700' : 'text-gray-700 hover:bg-gray-50'"
-          >
-            Terminées ({{ completedDemandsCount }})
-          </button>
+          <h1 class="text-xl font-bold text-black">Mes demandes</h1>
         </div>
-        
-        <!-- Nouvelle demande -->
         <NuxtLink 
           to="/requests/new"
-          class="flex items-center justify-center gap-2 px-4 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors"
+          class="px-5 py-2.5 bg-black text-white text-sm font-medium rounded-full hover:bg-gray-800 transition-colors"
         >
-          <Plus class="w-4 h-4" />
-          <span class="text-sm font-medium">Nouvelle demande</span>
+          Nouvelle demande
         </NuxtLink>
       </div>
     </div>
     
-    <!-- Liste des demandes -->
-    <div v-if="filteredDemands.length > 0" class="space-y-6">
-      <div 
-        v-for="demand in filteredDemands" 
-        :key="demand.id"
-        class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden"
-      >
-        <!-- En-tête de la demande -->
-        <div class="p-6 border-b border-gray-100">
-          <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
-            <!-- Informations principales -->
-            <div class="flex-1">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center text-xl">
-                  {{ getServiceIcon(demand.service) }}
+    <div class="max-w-4xl mx-auto px-5 py-8">
+      <!-- État de chargement -->
+      <div v-if="loading" class="flex justify-center py-20">
+        <Loader2 class="h-8 w-8 text-gray-400 animate-spin" />
                 </div>
-                <div>
-                  <h2 class="text-lg font-medium text-gray-900">{{ demand.title }}</h2>
-                  <div class="flex items-center gap-4 mt-1">
-                    <span class="text-sm text-gray-500 flex items-center gap-1">
-                      <Calendar class="w-4 h-4" />
-                      {{ formatDate(demand.date) }}
-                    </span>
-                    <span class="text-sm text-gray-500 flex items-center gap-1">
-                      <MapPin class="w-4 h-4" />
-                      {{ demand.location }}
-                    </span>
+      
+      <!-- Aucune demande -->
+      <div v-else-if="requests.length === 0" class="py-16 text-center">
+        <div class="rounded-full bg-gray-100 h-20 w-20 flex items-center justify-center mx-auto mb-6">
+          <FileSearch class="h-10 w-10 text-gray-400" />
                   </div>
-                </div>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2">Aucune demande</h3>
+        <p class="text-gray-500 max-w-md mx-auto mb-8">
+          Vous n'avez pas encore publié de demande de service. Créez-en une nouvelle pour trouver l'expert idéal.
+        </p>
+        <NuxtLink 
+          to="/requests/new" 
+          class="inline-flex items-center px-6 py-3 bg-black text-white font-medium rounded-full hover:bg-gray-800 transition-colors"
+        >
+          <Plus class="h-5 w-5 mr-2" />
+          Publier une demande
+        </NuxtLink>
               </div>
               
-              <p class="mt-3 text-gray-700">{{ demand.description }}</p>
+      <!-- Liste des demandes -->
+      <div v-else class="space-y-6">
+        <!-- Filtre par statut -->
+        <div class="flex overflow-x-auto py-2 -mx-5 px-5 no-scrollbar">
+          <button 
+            v-for="status in statusFilters" 
+            :key="status.value"
+            @click="currentFilter = status.value"
+            :class="[
+              'px-5 py-2 text-sm font-medium rounded-full whitespace-nowrap mr-2',
+              currentFilter === status.value
+                ? 'bg-black text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            ]"
+          >
+            {{ status.label }}
+          </button>
             </div>
             
-            <!-- Statut et actions -->
-            <div class="flex flex-col items-end gap-4">
-              <span class="px-3 py-1 text-sm font-medium rounded-full"
-                :class="getStatusClass(demand.status)"
+        <!-- Carte pour chaque demande -->
+        <div v-for="request in filteredRequests" :key="request.id" class="border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+          <!-- En-tête de la carte avec statut -->
+          <div class="border-b border-gray-100 px-5 py-4 flex justify-between items-center">
+            <div class="flex items-center">
+              <div 
+                :class="[
+                  'h-2.5 w-2.5 rounded-full mr-2',
+                  request.status === 'active' ? 'bg-green-500' :
+                  request.status === 'pending' ? 'bg-yellow-500' :
+                  request.status === 'completed' ? 'bg-blue-500' :
+                  'bg-gray-400'
+                ]"
+              ></div>
+              <span 
+                class="text-sm font-medium"
+                :class="[
+                  request.status === 'active' ? 'text-green-600' :
+                  request.status === 'pending' ? 'text-yellow-600' :
+                  request.status === 'completed' ? 'text-blue-600' :
+                  'text-gray-600'
+                ]"
               >
-                {{ getStatusLabel(demand.status) }}
+                {{ statusLabels[request.status] || 'Inconnu' }}
               </span>
-              
-              <div class="flex gap-2">
-                <button 
-                  v-if="demand.status !== 'completed'"
-                  @click="showDeleteConfirmation(demand.id)"
-                  class="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
-                  title="Supprimer"
-                >
-                  <Trash2 class="w-5 h-5" />
-                </button>
-                <NuxtLink 
-                  :to="`/requests/${demand.id}`"
-                  class="p-2 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded-full transition-colors"
-                  title="Voir les détails"
-                >
-                  <Eye class="w-5 h-5" />
-                </NuxtLink>
-                <button 
-                  v-if="demand.status === 'active'"
-                  @click="toggleProposals(demand.id)"
-                  class="p-2 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded-full transition-colors"
-                  :class="{ 'bg-primary-50 text-primary-600': expandedDemand === demand.id }"
-                  title="Voir les propositions"
-                >
-                  <ChevronDown v-if="expandedDemand !== demand.id" class="w-5 h-5" />
-                  <ChevronUp v-else class="w-5 h-5" />
-                </button>
-              </div>
             </div>
-          </div>
+            <span class="text-xs text-gray-500">
+              {{ formatDate(request.created_at) }}
+            </span>
         </div>
         
-        <!-- Section des propositions (expandable) -->
-        <div v-if="expandedDemand === demand.id" class="bg-gray-50 p-6">
-          <h3 class="text-base font-medium text-gray-900 mb-4">
-            {{ demand.proposals.length > 0 ? 'Propositions reçues' : 'Aucune proposition reçue' }}
+          <!-- Corps de la carte -->
+          <div class="px-5 py-4">
+            <h3 class="font-semibold text-lg text-gray-900 mb-2 line-clamp-1">
+              {{ request.title }}
           </h3>
           
-          <div v-if="demand.proposals.length > 0" class="space-y-4">
-            <div 
-              v-for="proposal in demand.proposals" 
-              :key="proposal.id"
-              class="bg-white rounded-xl border border-gray-200 p-4 hover:border-primary-200 transition-colors"
-            >
-              <!-- En-tête de la proposition -->
-              <div class="flex items-start justify-between">
-                <div class="flex items-center gap-3">
-                  <div class="w-12 h-12 rounded-full overflow-hidden">
-                    <img 
-                      :src="proposal.expert.avatar" 
-                      :alt="proposal.expert.name"
-                      class="w-full h-full object-cover"
-                    />
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
+              <div class="space-y-2">
+                <div class="flex items-center text-sm text-gray-600" v-if="serviceInfo[request.service_id]">
+                  <Tag class="h-4 w-4 mr-1.5 flex-shrink-0" />
+                  <span>{{ serviceInfo[request.service_id].name }}</span>
                   </div>
-                  <div>
-                    <h4 class="font-medium text-gray-900">{{ proposal.expert.name }}</h4>
-                    <div class="flex items-center gap-1 mt-0.5">
-                      <Star class="w-4 h-4 text-yellow-400 fill-current" />
-                      <span class="text-sm text-gray-600">4.8 (24 avis)</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <div class="font-medium text-gray-900">{{ formatPrice(proposal.price) }}</div>
-                  <div class="text-sm text-gray-500">Prix proposé</div>
-                </div>
-              </div>
-              
-              <!-- Message de l'expert -->
-              <div class="mt-3 p-3 bg-gray-50 rounded-lg text-gray-700 text-sm">
-                {{ proposal.message }}
-              </div>
-              
-              <!-- Actions -->
-              <div class="mt-4 flex justify-between items-center">
-                <button 
-                  class="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center gap-1"
-                  @click="viewExpertProfile(proposal.expert.id)"
-                >
-                  <User class="w-4 h-4" />
-                  <span>Voir le profil</span>
-                </button>
                 
-                <div class="flex gap-2">
-                  <button 
-                    class="px-3 py-1.5 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 text-sm font-medium"
-                    @click="contactExpert(proposal.expert.id)"
-                  >
-                    <span>Contacter</span>
-                  </button>
-                  <button 
-                    class="px-3 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium"
-                    @click="acceptProposal(proposal.id)"
-                  >
-                    <span>Accepter</span>
-                  </button>
+                <div class="flex items-center text-sm text-gray-600">
+                  <MapPin class="h-4 w-4 mr-1.5 flex-shrink-0" />
+                  <span class="line-clamp-1">{{ request.location }}</span>
+                </div>
+                
+                <div class="flex items-center text-sm text-gray-600">
+                  <Calendar class="h-4 w-4 mr-1.5 flex-shrink-0" />
+                  <span>{{ formatDate(request.date) }} à {{ formatTime(request.time) }}</span>
+                </div>
+              </div>
+              
+              <div class="flex items-center justify-end">
+                <div class="text-right">
+                  <p class="text-xs text-gray-500">Budget</p>
+                  <p class="text-xl font-semibold text-gray-900">{{ request.budget }} €</p>
                 </div>
               </div>
             </div>
           </div>
           
-          <!-- État vide pour les propositions -->
-          <div v-else class="text-center py-6">
-            <div class="w-16 h-16 mx-auto rounded-full bg-gray-100 flex items-center justify-center">
-              <Users class="w-8 h-8 text-gray-400" />
+          <!-- Actions -->
+          <div class="bg-gray-50 px-5 py-3 flex justify-between items-center border-t border-gray-100">
+            <div class="flex items-center gap-2">
+              <div class="flex -space-x-2">
+                <div v-for="i in (request.proposals_count || 0)" :key="i" class="h-8 w-8 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-xs text-gray-500">
+                  <User class="h-4 w-4" />
+                </div>
+                <div v-if="request.proposals_count > 3" class="h-8 w-8 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center text-xs text-gray-600 font-medium">
+                  +{{ request.proposals_count - 3 }}
+                </div>
+              </div>
+              <span class="text-sm text-gray-600" v-if="request.proposals_count">
+                {{ request.proposals_count }} proposition{{ request.proposals_count > 1 ? 's' : '' }}
+              </span>
+              <span class="text-sm text-gray-500" v-else>
+                Aucune proposition
+              </span>
             </div>
-            <p class="mt-4 text-gray-600">Aucune proposition pour le moment</p>
-            <p class="mt-2 text-sm text-gray-500">Les experts intéressés vous enverront leurs propositions ici</p>
+            
+            <div class="flex items-center gap-2">
+              <NuxtLink :to="`/requests/${request.id}`" 
+                class="p-2 rounded-full text-gray-700 hover:bg-gray-200 transition-colors"
+                title="Voir les détails"
+              >
+                <Eye class="h-5 w-5" />
+              </NuxtLink>
+              
+              <NuxtLink :to="`/requests/${request.id}/edit`" 
+                v-if="request.status === 'active'"
+                class="p-2 rounded-full text-gray-700 hover:bg-gray-200 transition-colors"
+                title="Modifier"
+              >
+                <Edit2 class="h-5 w-5" />
+              </NuxtLink>
+              
+              <button
+                v-if="request.status === 'active'"
+                @click="confirmDelete(request.id)"
+                class="p-2 rounded-full text-gray-700 hover:bg-gray-200 transition-colors"
+                title="Supprimer"
+              >
+                <Trash2 class="h-5 w-5" />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-    
-    <!-- État vide -->
-    <div v-else class="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 text-center">
-      <div class="w-20 h-20 mx-auto rounded-full bg-gray-100 flex items-center justify-center">
-        <ClipboardList class="w-10 h-10 text-gray-400" />
-      </div>
-      <h3 class="mt-6 text-lg font-medium text-gray-900">Aucune demande trouvée</h3>
-      <p class="mt-2 text-gray-600">
-        Vous n'avez pas encore publié de demande de service
-      </p>
-      <div class="mt-6">
-        <NuxtLink 
-          to="/requests/new"
-          class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors"
-        >
-          <Plus class="w-4 h-4" />
-          <span class="text-sm font-medium">Publier une demande</span>
-        </NuxtLink>
       </div>
     </div>
     
     <!-- Modal de confirmation de suppression -->
-    <Dialog :open="showDeleteModal" @close="showDeleteModal = false" class="relative z-50">
-      <div class="fixed inset-0 bg-black/30" aria-hidden="true" />
-      
-      <div class="fixed inset-0 flex items-center justify-center p-4">
-        <DialogPanel class="w-full max-w-md bg-white rounded-2xl p-6">
-          <DialogTitle class="text-xl font-bold text-gray-900">
-            Supprimer cette demande ?
-          </DialogTitle>
+    <div v-if="showDeleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4 py-6">
+      <div class="bg-white rounded-xl p-6 w-full max-w-md shadow-xl" @click.stop>
+        <h3 class="text-xl font-bold text-gray-900 mb-4">Supprimer cette demande ?</h3>
+        <p class="text-gray-600 mb-6">
+          Cette action est irréversible. La demande et toutes les propositions associées seront définitivement supprimées.
+        </p>
+        <div class="flex gap-3">
+          <button
+            @click="deleteRequest"
+            :disabled="isDeleting"
+            class="flex-1 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 
+              disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+          >
+            <Loader2 v-if="isDeleting" class="animate-spin -ml-1 mr-2 h-5 w-5" />
+            {{ isDeleting ? 'Suppression...' : 'Supprimer' }}
+          </button>
           
-          <p class="mt-4 text-gray-600">
-            Êtes-vous sûr de vouloir supprimer cette demande ? Cette action est irréversible.
-          </p>
-          
-          <div class="mt-6 flex gap-3">
             <button
               @click="showDeleteModal = false"
-              class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+            class="py-3 px-6 border border-gray-300 text-gray-700 font-medium rounded-lg 
+              hover:bg-gray-50 transition-colors"
             >
               Annuler
             </button>
-            <button
-              @click="deleteDemand"
-              class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-            >
-              Supprimer
-            </button>
           </div>
-        </DialogPanel>
       </div>
-    </Dialog>
-    
-    <!-- Modal de confirmation d'acceptation -->
-    <Dialog :open="showAcceptModal" @close="showAcceptModal = false" class="relative z-50">
-      <div class="fixed inset-0 bg-black/30" aria-hidden="true" />
-      
-      <div class="fixed inset-0 flex items-center justify-center p-4">
-        <DialogPanel class="w-full max-w-md bg-white rounded-2xl p-6">
-          <DialogTitle class="text-xl font-bold text-gray-900">
-            Accepter cette proposition
-          </DialogTitle>
-          
-          <p class="mt-4 text-gray-600">
-            En acceptant cette proposition, vous allez créer un contrat avec cet expert. Les autres propositions seront automatiquement refusées.
-          </p>
-          
-          <div class="mt-6 flex gap-3">
-            <button
-              @click="showAcceptModal = false"
-              class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-            >
-              Annuler
-            </button>
-            <button
-              @click="confirmAcceptProposal"
-              class="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-            >
-              Confirmer
-            </button>
-          </div>
-        </DialogPanel>
       </div>
-    </Dialog>
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, computed } from 'vue'
-import { Dialog, DialogPanel, DialogTitle } from '@headlessui/vue'
+<script setup>
+import { ref, computed, onMounted } from 'vue'
 import { 
-  ArrowLeft, Calendar, MapPin, Eye, MessageSquare, 
-  Trash2, Plus, ClipboardList, ChevronDown, ChevronUp,
-  User, Users, Star
+  ChevronLeft, Loader2, FileSearch, Plus, Tag, MapPin, Calendar, 
+  User, Eye, Edit2, Trash2
 } from 'lucide-vue-next'
 
-// État des filtres
-const activeFilter = ref('all') // 'all', 'active', 'completed'
+const router = useRouter()
+const client = useSupabaseClient()
 
-// État d'expansion des demandes
-const expandedDemand = ref<number | null>(null)
-
-// État des modals
+// États
+const loading = ref(true)
+const requests = ref([])
+const serviceInfo = ref({}) // Pour stocker les infos des services
+const currentFilter = ref('all')
 const showDeleteModal = ref(false)
-const showAcceptModal = ref(false)
-const demandToDelete = ref<number | null>(null)
-const proposalToAccept = ref<number | null>(null)
+const requestToDelete = ref(null)
+const isDeleting = ref(false)
 
-// Données simulées (à remplacer par une API)
-const demands = ref([
-  {
-    id: 1,
-    title: 'Ménage hebdomadaire',
-    service: 'menage',
-    description: 'Recherche personne pour ménage hebdomadaire dans un appartement de 3 pièces.',
-    date: '2024-02-20',
-    location: 'Cotonou, Bénin',
-    status: 'active',
-    proposals: [
-      {
-        id: 1,
-        expert: {
-          id: 1,
-          name: 'Aminata Diallo',
-          avatar: 'https://randomuser.me/api/portraits/women/65.jpg'
-        },
-        price: 15000,
-        message: 'Je suis disponible pour ce service. J\'ai 3 ans d\'expérience dans le ménage professionnel et je peux commencer dès la semaine prochaine.'
-      },
-      {
-        id: 2,
-        expert: {
-          id: 2,
-          name: 'Kofi Mensah',
-          avatar: 'https://randomuser.me/api/portraits/men/42.jpg'
-        },
-        price: 18000,
-        message: 'J\'ai 5 ans d\'expérience dans le ménage professionnel. Je propose un service complet incluant le nettoyage des vitres et le repassage.'
-      }
-    ]
-  },
-  {
-    id: 2,
-    title: 'Réparation plomberie',
-    service: 'bricolage',
-    description: 'Besoin d\'un plombier pour réparer un robinet qui fuit dans la salle de bain.',
-    date: '2024-02-15',
-    location: 'Cotonou, Bénin',
-    status: 'completed',
-    proposals: [
-      {
-        id: 3,
-        expert: {
-          id: 3,
-          name: 'Ibrahim Touré',
-          avatar: 'https://randomuser.me/api/portraits/men/32.jpg'
-        },
-        price: 8500,
-        message: 'Je peux intervenir rapidement. J\'ai tous les outils nécessaires pour ce type de réparation.'
-      }
-    ]
-  },
-  {
-    id: 3,
-    title: 'Tonte de pelouse',
-    service: 'jardinage',
-    description: 'Recherche jardinier pour tondre une pelouse de 200m².',
-    date: '2024-02-25',
-    location: 'Cotonou, Bénin',
-    status: 'active',
-    proposals: []
+// Filtres de statut
+const statusFilters = [
+  { label: 'Toutes', value: 'all' },
+  { label: 'Actives', value: 'active' },
+  { label: 'En attente', value: 'pending' },
+  { label: 'Terminées', value: 'completed' },
+  { label: 'Annulées', value: 'cancelled' }
+]
+
+// Labels des statuts pour l'affichage
+const statusLabels = {
+  active: 'Active',
+  pending: 'En attente',
+  completed: 'Terminée',
+  cancelled: 'Annulée'
+}
+
+// Demandes filtrées par statut
+const filteredRequests = computed(() => {
+  if (currentFilter.value === 'all') {
+    return requests.value
   }
-])
-
-// Computed
-const filteredDemands = computed(() => {
-  if (activeFilter.value === 'all') return demands.value
-  if (activeFilter.value === 'active') return demands.value.filter(d => d.status === 'active')
-  if (activeFilter.value === 'completed') return demands.value.filter(d => d.status === 'completed')
-  return demands.value
+  return requests.value.filter(request => request.status === currentFilter.value)
 })
 
-const activeDemandsCount = computed(() => 
-  demands.value.filter(d => d.status === 'active').length
-)
-
-const completedDemandsCount = computed(() => 
-  demands.value.filter(d => d.status === 'completed').length
-)
-
-// Méthodes
-const formatDate = (dateString: string) => {
-  const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', year: 'numeric' }
-  return new Date(dateString).toLocaleDateString('fr-FR', options)
+// Formater la date
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return date.toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  })
 }
 
-const formatPrice = (price: number) => {
-  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(price)
+// Formater l'heure
+const formatTime = (timeString) => {
+  if (!timeString) return ''
+  // Convertir format HH:MM:SS en HH:MM
+  return timeString.substring(0, 5)
 }
 
-const getStatusClass = (status: string) => {
-  const classes = {
-    'active': 'bg-green-100 text-green-800',
-    'pending': 'bg-yellow-100 text-yellow-800',
-    'completed': 'bg-gray-100 text-gray-800'
+// Récupérer les demandes de l'utilisateur
+const fetchRequests = async () => {
+  try {
+    loading.value = true
+    
+    // Récupérer l'utilisateur authentifié
+    const { data: { user }, error: authError } = await client.auth.getUser()
+    if (authError) throw authError
+    if (!user) {
+      router.push('/auth/login')
+      return
+    }
+    
+    // Récupérer les demandes de l'utilisateur
+    const { data, error } = await client
+      .from('requests')
+      .select(`
+        *,
+        proposals:proposals(count)
+      `)
+      .eq('client_id', user.id)
+      .order('created_at', { ascending: false })
+    
+    if (error) throw error
+    
+    // Transformer les données pour obtenir le nombre de propositions
+    requests.value = data.map(request => ({
+      ...request,
+      proposals_count: request.proposals[0]?.count || 0
+    }))
+    
+    // Récupérer les infos des services
+    await fetchServiceInfo()
+  } catch (error) {
+    console.error('Erreur lors de la récupération des demandes:', error)
+  } finally {
+    loading.value = false
   }
-  return classes[status as keyof typeof classes] || ''
 }
 
-const getStatusLabel = (status: string) => {
-  const labels = {
-    'active': 'Active',
-    'pending': 'En attente',
-    'completed': 'Terminée'
+// Récupérer les infos des services
+const fetchServiceInfo = async () => {
+  try {
+    // Récupérer les IDs uniques des services
+    const serviceIds = [...new Set(requests.value.map(r => r.service_id))]
+    
+    if (serviceIds.length === 0) return
+    
+    // Récupérer les détails des services
+    const { data, error } = await client
+      .from('services')
+      .select('id, name, category_id')
+      .in('id', serviceIds)
+    
+    if (error) throw error
+    
+    // Convertir en objet indexé par ID pour un accès facile
+    const serviceInfoObj = {}
+    data.forEach(service => {
+      serviceInfoObj[service.id] = service
+    })
+    
+    serviceInfo.value = serviceInfoObj
+  } catch (error) {
+    console.error('Erreur lors de la récupération des services:', error)
   }
-  return labels[status as keyof typeof labels] || status
 }
 
-const getServiceIcon = (serviceId: string) => {
-  const icons: Record<string, string> = {
-    'menage': '🧹',
-    'jardinage': '🌱',
-    'bricolage': '🔨',
-    'garde': '👶'
-  }
-  return icons[serviceId] || '📋'
-}
-
-const toggleProposals = (id: number) => {
-  if (expandedDemand.value === id) {
-    expandedDemand.value = null
-  } else {
-    expandedDemand.value = id
-  }
-}
-
-const showDeleteConfirmation = (id: number) => {
-  demandToDelete.value = id
+// Confirmer la suppression
+const confirmDelete = (requestId) => {
+  requestToDelete.value = requestId
   showDeleteModal.value = true
 }
 
-const deleteDemand = () => {
-  if (demandToDelete.value) {
-    // Supprimer la demande
-    demands.value = demands.value.filter(d => d.id !== demandToDelete.value)
+// Supprimer une demande
+const deleteRequest = async () => {
+  try {
+    isDeleting.value = true
+    
+    const { error } = await client
+      .from('requests')
+      .delete()
+      .eq('id', requestToDelete.value)
+    
+    if (error) throw error
+    
+    // Mettre à jour la liste des demandes
+    requests.value = requests.value.filter(r => r.id !== requestToDelete.value)
     
     // Fermer la modal
     showDeleteModal.value = false
-    demandToDelete.value = null
+  } catch (error) {
+    console.error('Erreur lors de la suppression:', error)
+    // TODO: Afficher un message d'erreur
+  } finally {
+    isDeleting.value = false
   }
 }
 
-const viewExpertProfile = (expertId: number) => {
-  // Rediriger vers le profil de l'expert
-  navigateTo(`/experts/${expertId}`)
-}
+// Charger les données lors du montage du composant
+onMounted(fetchRequests)
 
-const contactExpert = (expertId: number) => {
-  // Rediriger vers la messagerie
-  navigateTo(`/messages?expert=${expertId}`)
-}
+definePageMeta({
+  layout: 'default',
+  auth: true
+})
+</script>
 
-const acceptProposal = (proposalId: number) => {
-  proposalToAccept.value = proposalId
-  showAcceptModal.value = true
+<style scoped>
+/* Masquer la barre de défilement tout en permettant le défilement */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
-
-const confirmAcceptProposal = () => {
-  if (proposalToAccept.value) {
-    // Trouver la demande correspondante
-    const demand = demands.value.find(d => 
-      d.proposals.some(p => p.id === proposalToAccept.value)
-    )
-    
-    if (demand) {
-      // Mettre à jour le statut de la demande
-      demand.status = 'completed'
-      
-      // Simuler la création d'un contrat
-      console.log(`Contrat créé pour la proposition ${proposalToAccept.value}`)
-      
-      // Fermer la modal
-      showAcceptModal.value = false
-      proposalToAccept.value = null
-      
-      // Fermer l'expansion
-      expandedDemand.value = null
-    }
-  }
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
-</script> 
+</style> 

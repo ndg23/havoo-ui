@@ -139,7 +139,7 @@
 
 <script setup lang="ts">
 // import { ref, computed } from 'vue'
-import { Calendar, Check, X, ChevronLeft, ChevronRight, Clock, Zap } from 'lucide-vue-next'
+import { Calendar, Check, X, ChevronLeft, ChevronRight, Clock, Zap, CalendarDays } from 'lucide-vue-next'
 
 const props = defineProps<{
   modelValue: string[]

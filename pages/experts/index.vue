@@ -1,434 +1,357 @@
 <template>
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <!-- En-tête -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-900">Nos experts</h1>
-        <p class="mt-2 text-gray-600">Découvrez nos professionnels qualifiés prêts à vous aider</p>
-      </div>
-      
-      <!-- Filtres -->
-      <div class="flex items-center gap-3">
-        <div class="relative">
-          <input 
-            type="text" 
-            placeholder="Rechercher un expert..." 
-            class="pl-10 pr-4 py-2.5 w-64 rounded-xl border border-gray-200 focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
-          />
-          <Search class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-        </div>
-        
-        <button 
-          @click="showFilters = !showFilters"
-          class="p-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50"
+  <div class="min-h-screen bg-white">
+    <!-- En-tête minimaliste -->
+    <div class="border-b border-gray-200">
+      <div class="max-w-4xl mx-auto px-5 py-4 flex items-center justify-between">
+        <h1 class="text-xl font-bold text-black">Experts disponibles</h1>
+        <NuxtLink 
+          to="/" 
+          class="px-5 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-full hover:bg-primary-700 transition-colors flex items-center"
         >
-          <SlidersHorizontal class="w-5 h-5" />
-        </button>
+          <Search class="h-4 w-4 mr-1" />
+          Rechercher un service
+        </NuxtLink>
       </div>
     </div>
     
-    <!-- Filtres avancés (collapsible) -->
-    <div v-if="showFilters" class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-8">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- Catégories de services -->
-        <div>
-          <h3 class="font-medium text-gray-900 mb-3">Catégories</h3>
-          <div class="space-y-2">
-            <label v-for="category in categories" :key="category.id" class="flex items-center gap-2">
+    <!-- Filtres et recherche -->
+    <div class="border-b border-gray-100">
+      <div class="max-w-4xl mx-auto px-5 py-3">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+          <!-- Recherche -->
+          <div class="relative flex-1">
+            <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <input 
-                type="checkbox" 
-                :value="category.id" 
-                v-model="selectedCategories"
-                class="rounded text-primary-600 focus:ring-primary-500"
-              />
-              <span class="text-gray-700">{{ category.name }}</span>
-            </label>
-          </div>
+              v-model="search"
+              type="text"
+              placeholder="Rechercher un expert par nom, compétence..."
+              class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-full focus:outline-none focus:border-black transition-colors text-sm"
+            />
         </div>
         
-        <!-- Localisation -->
-        <div>
-          <h3 class="font-medium text-gray-900 mb-3">Localisation</h3>
-          <select 
-            v-model="selectedLocation" 
-            class="w-full rounded-lg border-gray-300 focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
-          >
-            <option value="">Toutes les localisations</option>
-            <option v-for="location in locations" :key="location" :value="location">
-              {{ location }}
-            </option>
-          </select>
-        </div>
-        
-        <!-- Note minimale -->
-        <div>
-          <h3 class="font-medium text-gray-900 mb-3">Note minimale</h3>
-          <div class="flex items-center gap-2">
+          <!-- Filtres -->
+          <div class="flex overflow-x-auto no-scrollbar gap-2">
             <button 
-              v-for="rating in 5" 
-              :key="rating"
-              @click="minRating = rating"
-              class="flex items-center justify-center w-10 h-10 rounded-lg border"
-              :class="rating <= minRating ? 'bg-primary-50 border-primary-200 text-primary-700' : 'border-gray-200 text-gray-400'"
+              v-for="category in categories" 
+              :key="category.id"
+              @click="toggleCategoryFilter(category.id)"
+              :class="[
+                'px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap transition-colors',
+                selectedCategories.includes(category.id)
+                  ? 'bg-primary-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              ]"
             >
-              {{ rating }}
-            </button>
-            <button 
-              @click="minRating = 0"
-              class="ml-2 text-sm text-gray-500 hover:text-gray-700"
-            >
-              Réinitialiser
+              {{ category.name }}
             </button>
           </div>
         </div>
-      </div>
-      
-      <!-- Actions -->
-      <div class="flex justify-end mt-6">
-        <button 
-          @click="applyFilters"
-          class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-        >
-          Appliquer les filtres
-        </button>
       </div>
     </div>
     
-    <!-- Liste des experts style CNI française -->
-    <div class="space-y-4">
-      <NuxtLink 
+    <!-- Contenu principal -->
+    <div class="max-w-4xl mx-auto px-5 py-8">
+      <!-- État de chargement -->
+      <div v-if="loading" class="flex justify-center py-12">
+        <Loader2 class="h-8 w-8 text-gray-400 animate-spin" />
+      </div>
+      
+      <!-- Liste des experts -->
+      <div v-else-if="filteredExperts.length > 0" class="space-y-6">
+        <div 
         v-for="expert in filteredExperts" 
         :key="expert.id"
-        :to="`/experts/${expert.id}`"
-        class="block"
-      >
-        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-          <!-- Bannière bleue style CNI -->
-          <div class="h-10 bg-gradient-to-r from-blue-600 to-blue-700 flex items-center justify-between px-4">
-            <div class="flex items-center gap-2">
-              <span class="text-white text-sm font-medium">République Française</span>
-              <span class="text-blue-200">•</span>
-              <span class="text-white text-sm font-medium">Expert vérifié</span>
-            </div>
-            <div class="text-xs text-blue-100">ID: {{ expert.id }}</div>
-          </div>
-          
-          <div class="flex">
-            <!-- Partie gauche (photo) - ratio d'or: 38.2% -->
-            <div class="w-[38.2%] p-4 flex flex-col items-center justify-center border-r border-gray-100">
-              <!-- Photo -->
-              <div class="w-32 h-40 bg-gray-100 relative overflow-hidden border border-gray-200">
+          class="border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow"
+        >
+          <div class="p-5">
+            <!-- En-tête avec photo de profil -->
+            <div class="flex items-start gap-4 mb-4">
+              <div class="h-16 w-16 rounded-full bg-gray-100 overflow-hidden flex-shrink-0">
                 <img 
-                  :src="expert.avatar" 
-                  :alt="expert.name"
+                  v-if="expert.profile_image_url" 
+                  :src="expert.profile_image_url" 
+                  alt="Photo de profil" 
                   class="w-full h-full object-cover"
                 />
-              </div>
-              
-              <!-- Badge de vérification -->
-              <div class="mt-3 flex items-center gap-1 bg-green-100 px-2 py-1 rounded-full">
-                <CheckCircle class="w-3 h-3 text-green-600" />
-                <span class="text-xs font-medium text-green-800">Identité vérifiée</span>
-              </div>
-              
-              <!-- Note -->
-              <div class="mt-2 flex items-center gap-1">
-                <div class="flex">
-                  <Star 
-                    v-for="i in 5" 
-                    :key="i"
-                    class="w-3 h-3" 
-                    :class="i <= Math.floor(expert.rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'"
-                  />
+                <div v-else class="w-full h-full flex items-center justify-center bg-gray-200">
+                  <User class="h-8 w-8 text-gray-400" />
                 </div>
-                <span class="text-xs text-gray-700">({{ expert.reviewCount }})</span>
-              </div>
-            </div>
-            
-            <!-- Partie droite (informations) - ratio d'or: 61.8% -->
-            <div class="w-[61.8%] p-4">
-              <!-- En-tête -->
-              <div class="border-b border-gray-100 pb-2">
-                <h3 class="text-base font-bold text-gray-900">{{ expert.name }}</h3>
-                <p class="text-sm text-gray-600">{{ expert.title }}</p>
               </div>
               
-              <!-- Informations principales -->
-              <div class="mt-3 space-y-2">
-                <div class="flex items-start gap-2">
-                  <MapPin class="w-4 h-4 text-gray-400 mt-0.5" />
+              <div class="flex-1">
+                <div class="flex justify-between items-start">
                   <div>
-                    <p class="text-xs font-medium text-gray-700">Adresse</p>
-                    <p class="text-sm text-gray-900">{{ expert.location }}</p>
+                    <h3 class="font-semibold text-lg text-gray-900">{{ expert.first_name }} {{ expert.last_name }}</h3>
+                    <div class="flex items-center gap-1 mt-1">
+                      <Star class="h-4 w-4 text-yellow-400 fill-yellow-400" />
+                      <span class="text-sm font-medium">{{ expert.rating || '4.8' }}</span>
+                      <span class="text-sm text-gray-500">({{ expert.reviews_count || '12' }} avis)</span>
                   </div>
                 </div>
                 
-                <div class="flex items-start gap-2">
-                  <Calendar class="w-4 h-4 text-gray-400 mt-0.5" />
-                  <div>
-                    <p class="text-xs font-medium text-gray-700">Membre depuis</p>
-                    <p class="text-sm text-gray-900">{{ expert.memberSince }}</p>
-                  </div>
-                </div>
-                
-                <div class="flex items-start gap-2">
-                  <Briefcase class="w-4 h-4 text-gray-400 mt-0.5" />
-                  <div>
-                    <p class="text-xs font-medium text-gray-700">Services</p>
-                    <div class="flex flex-wrap gap-1 mt-1">
-                      <span 
-                        v-for="service in expert.services" 
-                        :key="service.id"
-                        class="px-1.5 py-0.5 bg-gray-100 rounded-full text-[10px] text-gray-700 flex items-center gap-0.5"
-                      >
-                        <span>{{ service.icon }}</span>
-                        <span>{{ service.name }}</span>
-                      </span>
+                  <div class="text-sm text-gray-500">
+                    <div class="flex items-center">
+                      <MapPin class="h-3.5 w-3.5 mr-1 text-gray-400" />
+                      {{ expert.city || 'Paris' }}
+                    </div>
                     </div>
                   </div>
                 </div>
               </div>
               
-              <!-- Actions -->
-              <div class="mt-4 flex gap-2">
-                <button 
-                  @click.prevent="toggleFavorite(expert.id)"
-                  class="px-3 py-1.5 border rounded-lg text-sm flex items-center gap-1 transition-colors"
-                  :class="expert.isFavorite ? 'bg-red-50 text-red-600 border-red-200' : 'border-gray-200 text-gray-600 hover:bg-gray-50'"
+            <!-- Spécialités -->
+            <div class="mb-4">
+              <div class="flex flex-wrap gap-2">
+                <span 
+                  v-for="(specialty, index) in getExpertiseAreas(expert)" 
+                  :key="index"
+                  class="px-2.5 py-1 text-xs bg-gray-100 text-gray-800 rounded-full"
                 >
-                  <Heart class="w-4 h-4" :class="expert.isFavorite ? 'fill-current' : ''" />
-                  <span>{{ expert.isFavorite ? 'Favori' : 'Ajouter' }}</span>
-                </button>
-                <button 
-                  @click.prevent="contactExpert(expert.id)"
-                  class="px-3 py-1.5 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-1"
-                >
-                  <MessageSquare class="w-4 h-4" />
-                  <span>Contacter</span>
-                </button>
+                  {{ specialty }}
+                </span>
               </div>
             </div>
+            
+            <!-- Bio -->
+            <p class="text-gray-700 text-sm line-clamp-2 mb-4">
+              {{ expert.bio || 'Expert disponible pour vous aider avec vos besoins de services.' }}
+            </p>
+            
+            <!-- Tarifs et actions -->
+            <div class="flex justify-between items-center pt-2">
+              <div class="text-sm font-medium text-gray-900">
+                À partir de {{ expert.hourly_rate || '25' }}€/heure
           </div>
           
-          <!-- Pied de carte -->
-          <div class="px-4 py-2 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
-            <div class="text-xs text-gray-500">
-              Signature électronique
-            </div>
-            <div class="text-xs text-gray-500">
-              Valide jusqu'au 31/12/2024
+              <NuxtLink 
+                :to="`/experts/${expert.id}`" 
+                class="px-4 py-2 text-sm font-medium bg-primary-600 text-white rounded-full hover:bg-primary-700 transition-colors"
+              >
+                Voir profil
+              </NuxtLink>
             </div>
           </div>
         </div>
-      </NuxtLink>
+        
+        <!-- Pagination simplifiée -->
+        <div v-if="totalPages > 1" class="flex justify-center mt-8">
+          <div class="flex items-center gap-2">
+            <button 
+              @click="currentPage = Math.max(1, currentPage - 1)"
+              :disabled="currentPage === 1"
+              class="p-2 rounded-full border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
+            >
+              <ChevronLeft class="h-5 w-5" />
+            </button>
+            
+            <div class="px-4 py-2 text-sm font-medium">
+              Page {{ currentPage }} sur {{ totalPages }}
+            </div>
+            
+            <button 
+              @click="currentPage = Math.min(totalPages, currentPage + 1)"
+              :disabled="currentPage === totalPages"
+              class="p-2 rounded-full border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
+            >
+              <ChevronRight class="h-5 w-5" />
+            </button>
+          </div>
+        </div>
     </div>
     
-    <!-- Pagination -->
-    <div class="mt-8 flex justify-center">
-      <div class="flex items-center gap-1">
-        <button class="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50">
-          <ChevronLeft class="w-4 h-4" />
-        </button>
-        <button class="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center bg-primary-50 text-primary-600 border-primary-200 font-medium">
-          1
-        </button>
-        <button class="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-50">
-          2
-        </button>
-        <button class="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-50">
-          3
-        </button>
-        <span class="w-8 h-8 flex items-center justify-center text-gray-400">...</span>
-        <button class="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-50">
-          8
-        </button>
-        <button class="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50">
-          <ChevronRight class="w-4 h-4" />
+      <!-- État vide -->
+      <div v-else class="py-16 text-center">
+        <div class="rounded-full bg-gray-100 h-20 w-20 flex items-center justify-center mx-auto mb-6">
+          <Users class="h-10 w-10 text-gray-400" />
+        </div>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2">
+          {{ search || selectedCategories.length > 0 ? 'Aucun expert trouvé' : 'Aucun expert disponible' }}
+        </h3>
+        <p class="text-gray-500 max-w-md mx-auto mb-8">
+          {{ search || selectedCategories.length > 0 
+            ? 'Essayez de modifier vos critères de recherche pour trouver des experts disponibles.' 
+            : 'Aucun expert n\'est disponible pour le moment. Revenez plus tard.' }}
+        </p>
+        <button 
+          v-if="search || selectedCategories.length > 0"
+          @click="resetFilters" 
+          class="inline-flex items-center px-6 py-3 bg-primary-600 text-white font-medium rounded-full hover:bg-primary-700 transition-colors"
+        >
+          <RefreshCw class="h-5 w-5 mr-2" />
+          Réinitialiser les filtres
         </button>
       </div>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, computed } from 'vue'
+<script setup>
+import { ref, computed, onMounted, watch } from 'vue'
 import { 
-  Search, SlidersHorizontal, Heart, Star, MapPin, 
-  CheckCircle, ChevronLeft, ChevronRight, Calendar,
-  Briefcase, MessageSquare
+  Search, Loader2, MapPin, Star, User, Users, 
+  ChevronLeft, ChevronRight, RefreshCw 
 } from 'lucide-vue-next'
 
+const client = useSupabaseClient()
+
 // États
-const showFilters = ref(false)
-const selectedCategories = ref<string[]>([])
-const selectedLocation = ref('')
-const minRating = ref(0)
+const loading = ref(true)
+const experts = ref([])
+const categories = ref([])
+const search = ref('')
+const selectedCategories = ref([])
+const currentPage = ref(1)
+const itemsPerPage = 10
 
-// Catégories
-const categories = ref([
-  { id: 'menage', name: 'Ménage' },
-  { id: 'jardinage', name: 'Jardinage' },
-  { id: 'bricolage', name: 'Bricolage' },
-  { id: 'garde', name: 'Garde d\'enfants' },
-  { id: 'cours', name: 'Cours particuliers' },
-  { id: 'informatique', name: 'Informatique' }
-])
-
-// Localisations
-const locations = ref([
-  'Cotonou, Bénin',
-  'Abidjan, Côte d\'Ivoire',
-  'Lomé, Togo',
-  'Dakar, Sénégal',
-  'Ouagadougou, Burkina Faso'
-])
-
-const experts = ref([
-  {
-    id: 1,
-    name: 'Aminata Diallo',
-    title: 'Spécialiste en ménage',
-    avatar: 'https://randomuser.me/api/portraits/women/65.jpg',
-    memberSince: 'Janvier 2023',
-    rating: 4.8,
-    reviewCount: 24,
-    services: [
-      { id: 'menage', name: 'Ménage', icon: '🧹' },
-      { id: 'repassage', name: 'Repassage', icon: '👕' }
-    ],
-    bio: 'Professionnelle du ménage avec 5 ans d\'expérience. Je propose des services de nettoyage complets pour particuliers et entreprises.',
-    location: 'Cotonou, Bénin',
-    isFavorite: false
-  },
-  {
-    id: 2,
-    name: 'Kofi Mensah',
-    title: 'Jardinier paysagiste',
-    avatar: 'https://randomuser.me/api/portraits/men/42.jpg',
-    memberSince: 'Mars 2022',
-    rating: 4.6,
-    reviewCount: 18,
-    services: [
-      { id: 'jardinage', name: 'Jardinage', icon: '🌱' },
-      { id: 'paysagisme', name: 'Paysagisme', icon: '🌳' }
-    ],
-    bio: 'Jardinier passionné, je m\'occupe de l\'entretien et de l\'aménagement de vos espaces verts. Diplômé en horticulture.',
-    location: 'Cotonou, Bénin',
-    isFavorite: true
-  },
-  {
-    id: 3,
-    name: 'Ibrahim Touré',
-    title: 'Bricoleur multi-services',
-    avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-    memberSince: 'Janvier 2022',
-    rating: 4.9,
-    reviewCount: 37,
-    services: [
-      { id: 'bricolage', name: 'Bricolage', icon: '🔨' },
-      { id: 'plomberie', name: 'Plomberie', icon: '🚿' },
-      { id: 'electricite', name: 'Électricité', icon: '💡' }
-    ],
-    bio: 'Technicien polyvalent avec plus de 10 ans d\'expérience. Je réalise tous types de travaux de bricolage, plomberie et électricité.',
-    location: 'Abidjan, Côte d\'Ivoire',
-    isFavorite: false
-  },
-  {
-    id: 4,
-    name: 'Fatou Ndiaye',
-    title: 'Nounou expérimentée',
-    avatar: 'https://randomuser.me/api/portraits/women/28.jpg',
-    memberSince: 'Juin 2023',
-    rating: 4.7,
-    reviewCount: 15,
-    services: [
-      { id: 'garde', name: 'Garde d\'enfants', icon: '👶' },
-      { id: 'aide_devoirs', name: 'Aide aux devoirs', icon: '📚' }
-    ],
-    bio: 'Nounou attentionnée et patiente, je m\'occupe de vos enfants avec bienveillance. Diplômée en petite enfance.',
-    location: 'Dakar, Sénégal',
-    isFavorite: false
-  },
-  {
-    id: 5,
-    name: 'Moussa Ouedraogo',
-    title: 'Professeur particulier',
-    avatar: 'https://randomuser.me/api/portraits/men/55.jpg',
-    memberSince: 'Septembre 2022',
-    rating: 4.5,
-    reviewCount: 12,
-    services: [
-      { id: 'cours', name: 'Cours particuliers', icon: '📚' },
-      { id: 'maths', name: 'Mathématiques', icon: '🔢' },
-      { id: 'physique', name: 'Physique', icon: '⚛️' }
-    ],
-    bio: 'Enseignant certifié en mathématiques et physique. J\'aide les élèves à progresser et à préparer leurs examens.',
-    location: 'Ouagadougou, Burkina Faso',
-    isFavorite: false
-  },
-  {
-    id: 6,
-    name: 'Ama Koffi',
-    title: 'Technicienne informatique',
-    avatar: 'https://randomuser.me/api/portraits/women/45.jpg',
-    memberSince: 'Avril 2022',
-    rating: 4.9,
-    reviewCount: 28,
-    services: [
-      { id: 'informatique', name: 'Dépannage informatique', icon: '💻' },
-      { id: 'formation', name: 'Formation', icon: '🎓' }
-    ],
-    bio: 'Ingénieure en informatique, je propose des services de dépannage, installation et formation sur tous types d\'appareils.',
-    location: 'Lomé, Togo',
-    isFavorite: false
-  }
-])
-
-// Computed
+// Filtrage des experts
 const filteredExperts = computed(() => {
-  let result = [...experts.value]
+  let filtered = [...experts.value]
   
-  // Filtrer par catégorie
+  // Filtrer par recherche
+  if (search.value) {
+    const searchLower = search.value.toLowerCase()
+    filtered = filtered.filter(expert => 
+      `${expert.first_name} ${expert.last_name}`.toLowerCase().includes(searchLower) ||
+      (expert.bio && expert.bio.toLowerCase().includes(searchLower)) ||
+      (expert.specialties && expert.specialties.some(s => s.toLowerCase().includes(searchLower)))
+    )
+  }
+  
+  // Filtrer par catégories sélectionnées
   if (selectedCategories.value.length > 0) {
-    result = result.filter(expert => 
-      expert.services.some(service => 
-        selectedCategories.value.includes(service.id)
+    filtered = filtered.filter(expert => 
+      expert.expertise_areas && expert.expertise_areas.some(area => 
+        selectedCategories.value.includes(area.category_id)
       )
     )
   }
   
-  // Filtrer par localisation
-  if (selectedLocation.value) {
-    result = result.filter(expert => 
-      expert.location === selectedLocation.value
-    )
-  }
-  
-  // Filtrer par note minimale
-  if (minRating.value > 0) {
-    result = result.filter(expert => 
-      expert.rating >= minRating.value
-    )
-  }
-  
-  return result
+  // Pagination simple
+  const startIndex = (currentPage.value - 1) * itemsPerPage
+  return filtered.slice(startIndex, startIndex + itemsPerPage)
 })
 
-// Méthodes
-const applyFilters = () => {
-  showFilters.value = false
-  // Les filtres sont déjà appliqués via le computed
+// Nombre total de pages
+const totalPages = computed(() => {
+  let filtered = [...experts.value]
+  
+  if (search.value) {
+    const searchLower = search.value.toLowerCase()
+    filtered = filtered.filter(expert => 
+      `${expert.first_name} ${expert.last_name}`.toLowerCase().includes(searchLower) ||
+      (expert.bio && expert.bio.toLowerCase().includes(searchLower)) ||
+      (expert.specialties && expert.specialties.some(s => s.toLowerCase().includes(searchLower)))
+    )
+  }
+  
+  if (selectedCategories.value.length > 0) {
+    filtered = filtered.filter(expert => 
+      expert.expertise_areas && expert.expertise_areas.some(area => 
+        selectedCategories.value.includes(area.category_id)
+      )
+    )
+  }
+  
+  return Math.ceil(filtered.length / itemsPerPage)
+})
+
+// Réinitialiser les filtres
+const resetFilters = () => {
+  search.value = ''
+  selectedCategories.value = []
+  currentPage.value = 1
 }
 
-const toggleFavorite = (id: number) => {
-  const expert = experts.value.find(e => e.id === id)
-  if (expert) {
-    expert.isFavorite = !expert.isFavorite
+// Obtenir les domaines d'expertise d'un expert
+const getExpertiseAreas = (expert) => {
+  if (!expert.expertise_areas) return []
+  
+  return expert.expertise_areas.map(area => {
+    const category = categories.value.find(c => c.id === area.category_id)
+    return area.service_name || (category ? category.name : 'Service')
+  })
+}
+
+// Basculer la sélection d'une catégorie
+const toggleCategoryFilter = (categoryId) => {
+  const index = selectedCategories.value.indexOf(categoryId)
+  if (index === -1) {
+    selectedCategories.value.push(categoryId)
+  } else {
+    selectedCategories.value.splice(index, 1)
   }
 }
 
-const contactExpert = (id: number) => {
-  // Rediriger vers la messagerie
-  navigateTo(`/messages?expert=${id}`)
+// Réinitialiser la pagination quand les filtres changent
+watch([search, selectedCategories], () => {
+  currentPage.value = 1
+})
+
+// Charger les données
+const fetchData = async () => {
+  try {
+    loading.value = true
+    
+    // Récupérer les catégories
+    const { data: categoriesData, error: categoriesError } = await client
+      .from('service_categories')
+      .select('id, name')
+    
+    if (categoriesError) throw categoriesError
+    categories.value = categoriesData || []
+    
+    // Récupérer les experts (utilisateurs avec le rôle expert)
+    const { data: expertsData, error: expertsError } = await client
+      .from('profiles')
+      .select(`
+        *,
+        expertise_areas:expert_services(category_id, service_id, service_name)
+      `)
+      .eq('role', 'expert')
+    
+    if (expertsError) throw expertsError
+    
+    // Transformer les données des experts
+    experts.value = expertsData.map(expert => ({
+      ...expert,
+      // Si les services ne sont pas encore renseignés, on ajoute quelques spécialités factices
+      specialties: ['Ménage', 'Jardinage', 'Bricolage']
+    }))
+  } catch (error) {
+    console.error('Erreur lors du chargement des données:', error)
+  } finally {
+    loading.value = false
+  }
 }
+
+// Charger les données lors du montage du composant
+onMounted(fetchData)
+
+definePageMeta({
+  layout: 'default'
+})
 </script> 
+
+<style scoped>
+/* Masquer la barre de défilement tout en permettant le défilement */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Animation de la ligne clamp */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Animation des étoiles */
+.fill-yellow-400 {
+  fill: #facc15;
+}
+</style> 

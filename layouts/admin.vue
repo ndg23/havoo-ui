@@ -1,130 +1,139 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <!-- Sidebar -->
-    <aside class="fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200 z-30">
-      <!-- Logo -->
-      <div class="p-4 border-b border-gray-200">
-        <Logo />
-      </div>
-
-      <!-- Navigation -->
-      <nav class="p-4 space-y-1">
-        <NuxtLink
-          v-for="item in navigation"
-          :key="item.name"
-          :to="item.to"
-          class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-          :class="route.path === item.to ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'"
-        >
-          <component :is="item.icon" class="w-5 h-5" />
-          {{ item.name }}
+  <div class="min-h-screen flex flex-col md:flex-row">
+    <!-- Sidebar de navigation (fixe sur desktop, menu du bas sur mobile) -->
+    <div class="w-full md:w-64 flex-shrink-0 bg-gray-50 border-r border-gray-200 md:min-h-screen">
+      <!-- Logo et titre -->
+      <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between md:justify-start">
+        <NuxtLink to="/admin" class="flex items-center">
+          <div class="h-8 w-8 bg-primary-600 rounded-md flex items-center justify-center mr-3">
+            <ShieldCheck class="h-5 w-5 text-white" />
+          </div>
+          <span class="font-bold text-lg">Havoo Admin</span>
         </NuxtLink>
-      </nav>
-    </aside>
-
-    <!-- Main content -->
-    <main class="pl-64">
-      <!-- Top bar -->
-      <header class="sticky top-0 z-20 bg-white border-b border-gray-200">
-        <div class="flex items-center justify-between px-8 py-4">
-          <!-- Page title -->
-          <h1 class="text-2xl font-bold text-gray-900">
-            {{ currentPage }}
-          </h1>
-
-          <!-- User menu -->
-          <div class="relative">
-            <button 
-              @click="isMenuOpen = !isMenuOpen"
-              class="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50"
+        
+        <!-- Bouton menu mobile -->
+        <button 
+          @click="mobileMenuOpen = !mobileMenuOpen"
+          class="p-2 text-gray-500 md:hidden"
+        >
+          <Menu v-if="!mobileMenuOpen" class="h-6 w-6" />
+          <X v-else class="h-6 w-6" />
+        </button>
+      </div>
+      
+      <!-- Navigation -->
+      <div 
+        class="md:block"
+        :class="{ 'hidden': !mobileMenuOpen, 'block': mobileMenuOpen }"
+      >
+        <div class="px-2 py-4">
+          <div class="space-y-1">
+            <NuxtLink 
+              v-for="item in menuItems" 
+              :key="item.path"
+              :to="item.path"
+              class="flex items-center px-3 py-3 rounded-lg transition-colors text-sm font-medium"
+              :class="$route.path.startsWith(item.path) ? 'bg-primary-50 text-primary-700' : 'text-gray-700 hover:bg-gray-100'"
             >
-              <img 
-                :src="`https://ui-avatars.com/api/?name=${user?.email}`" 
-                class="w-8 h-8 rounded-full"
-              />
-              <span class="text-sm font-medium text-gray-700">{{ user?.email }}</span>
-              <ChevronDownIcon class="w-4 h-4 text-gray-400" :class="{ 'rotate-180': isMenuOpen }" />
-            </button>
-
-            <!-- Dropdown -->
-            <div 
-              v-if="isMenuOpen"
-              class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 border border-gray-200"
-            >
-              <button 
-                @click="handleLogout"
-                class="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-              >
-                <ArrowRightOnRectangleIcon class="w-4 h-4" />
-                Déconnexion
-              </button>
-            </div>
+              <component :is="item.icon" class="h-5 w-5 mr-3" />
+              {{ item.name }}
+            </NuxtLink>
           </div>
         </div>
-      </header>
-
-      <!-- Page content -->
-      <div class="p-8">
+        
+        <div class="px-4 py-4 mt-4 border-t border-gray-200">
+          <div class="flex items-center mb-4">
+            <div class="h-8 w-8 rounded-full bg-gray-200 flex-shrink-0 mr-3">
+              <img 
+                v-if="user?.user_metadata?.avatar_url"
+                :src="user.user_metadata.avatar_url"
+                class="h-full w-full object-cover rounded-full"
+                alt="Avatar"
+              />
+              <div v-else class="h-full w-full flex items-center justify-center">
+                <User class="h-4 w-4 text-gray-500" />
+              </div>
+            </div>
+            <div>
+              <div class="font-medium text-sm">
+                {{ user?.user_metadata?.full_name || user?.email || 'Admin' }}
+              </div>
+              <div class="text-xs text-gray-500">Administrateur</div>
+            </div>
+          </div>
+          
+          <button 
+            @click="logout"
+            class="flex items-center w-full py-2 px-3 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <LogOut class="h-5 w-5 mr-3 text-gray-500" />
+            Déconnexion
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Contenu principal -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <!-- En-tête du contenu -->
+      <div class="border-b border-gray-200 bg-white">
+        <div class="px-5 py-4">
+          <h1 class="text-xl font-bold text-gray-900">
+            {{ pageTitle }}
+          </h1>
+        </div>
+      </div>
+      
+      <!-- Contenu de la page -->
+      <div class="flex-1 overflow-auto p-5">
         <slot />
       </div>
-    </main>
+    </div>
   </div>
 </template>
 
 <script setup>
+import { 
+  ShieldCheck, Menu, X, Home, Users, FileText, 
+  Tag, Settings, LogOut, User, BarChart
+} from 'lucide-vue-next'
 import { ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
-import {
-  ChartBarIcon,
-  UsersIcon,
-  WrenchScrewdriverIcon,
-  ClipboardDocumentListIcon,
-  BriefcaseIcon,
-  CurrencyDollarIcon,
-  Cog6ToothIcon,
-  ChevronDownIcon,
-  ArrowRightOnRectangleIcon
-} from '@heroicons/vue/24/outline'
 
+const mobileMenuOpen = ref(false)
+const router = useRouter()
 const route = useRoute()
 const user = useSupabaseUser()
 const client = useSupabaseClient()
-const isMenuOpen = ref(false)
 
-const navigation = [
-  { name: 'Tableau de bord', to: '/admin', icon: ChartBarIcon },
-  { name: 'Utilisateurs', to: '/admin/users', icon: UsersIcon },
-  { name: 'Experts', to: '/admin/experts', icon: WrenchScrewdriverIcon },
-  { name: 'Services', to: '/admin/services', icon: ClipboardDocumentListIcon },
-  { name: 'Demandes', to: '/admin/requests', icon: BriefcaseIcon },
-  { name: 'Paiements', to: '/admin/payments', icon: CurrencyDollarIcon },
-  { name: 'Paramètres', to: '/admin/settings', icon: Cog6ToothIcon }
+// Éléments du menu
+const menuItems = [
+  { name: 'Tableau de bord', path: '/admin', icon: BarChart },
+  { name: 'Utilisateurs', path: '/admin/users', icon: Users },
+  { name: 'Demandes', path: '/admin/requests', icon: FileText },
+  { name: 'Catégories & Services', path: '/admin/categories', icon: Tag },
+  { name: 'Paramètres', path: '/admin/settings', icon: Settings },
 ]
 
-const currentPage = computed(() => {
-  const current = navigation.find(item => item.to === route.path)
-  return current ? current.name : ''
+// Titre de la page en fonction de la route
+const pageTitle = computed(() => {
+  const currentRoute = route.path
+  
+  if (currentRoute === '/admin') return 'Tableau de bord'
+  if (currentRoute.startsWith('/admin/users')) return 'Gestion des utilisateurs'
+  if (currentRoute.startsWith('/admin/requests')) return 'Gestion des demandes'
+  if (currentRoute.startsWith('/admin/categories')) return 'Catégories & Services'
+  if (currentRoute.startsWith('/admin/settings')) return 'Paramètres'
+  
+  return 'Administration'
 })
 
-const handleLogout = async () => {
+// Déconnexion
+const logout = async () => {
   try {
     await client.auth.signOut()
-    navigateTo('/auth/login')
+    router.push('/auth/login')
   } catch (error) {
-    console.error('Error logging out:', error)
+    console.error('Erreur lors de la déconnexion', error)
   }
 }
-
-// Protection de la route admin
-const { data: profile } = await useAsyncData('profile', async () => {
-  const { data: { user } } = await client.auth.getUser()
-  if (!user) return null
-
-  const { data } = await client.from('profiles').select('*').eq('id', user.id).single()
-  return data
-})
-
-// if (!profile.value || profile.value.role !== 'admin') {
-//   navigateTo('/')
-// }
 </script> 
