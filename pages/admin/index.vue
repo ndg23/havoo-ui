@@ -265,6 +265,5 @@ onMounted(fetchDashboardData)
 // Définir le layout admin
 definePageMeta({
   layout: 'admin',
-  middleware: ['admin-auth']
 })
 </script> 

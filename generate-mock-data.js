@@ -6,74 +6,86 @@ import dotenv from 'dotenv';
 // Charger les variables d'environnement
 dotenv.config();
 
-// Configuration Supabase
-const supabaseUrl = process.env.SUPABASE_URL || 'VOTRE_URL_SUPABASE';
-const supabaseKey = process.env.SUPABASE_KEY || 'VOTRE_CLE_SERVICE_SUPABASE';
+    // Configuration Supabase
+    const supabaseUrl = process.env.SUPABASE_URL ;
+const supabaseKey = process.env.SUPABASE_KEY ;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Fonction pour générer des catégories de services
 async function generateCategories() {
   const categories = [
-    { id: '1', name: 'Ménage', icon: 'Home' },
-    { id: '2', name: 'Jardinage', icon: 'Leaf' },
-    { id: '3', name: 'Bricolage', icon: 'Tool' },
-    { id: '4', name: 'Garde d\'enfants', icon: 'Baby' },
-    { id: '5', name: 'Cours particuliers', icon: 'BookOpen' },
-    { id: '6', name: 'Informatique', icon: 'Laptop' }
+    { id: faker.string.uuid(), name: 'Ménage', icon: 'Home' },
+    { id: faker.string.uuid(), name: 'Jardinage', icon: 'Leaf' },
+    { id: faker.string.uuid(), name: 'Bricolage', icon: 'Tool' },
+    { id: faker.string.uuid(), name: 'Garde d\'enfants', icon: 'Baby' },
+    { id: faker.string.uuid(), name: 'Cours particuliers', icon: 'BookOpen' },
+    { id: faker.string.uuid(), name: 'Informatique', icon: 'Laptop' }
   ];
   
   console.log('Insertion des catégories...');
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('service_categories')
-    .upsert(categories, { onConflict: 'id' });
+    .insert(categories)
+    .select();
   
   if (error) throw error;
-  return categories;
+  return data || [];
 }
 
 // Fonction pour générer des services
 async function generateServices(categories) {
-  const services = [
-    // Ménage
-    { id: '101', category_id: '1', name: 'Ménage complet' },
-    { id: '102', category_id: '1', name: 'Nettoyage de vitres' },
-    { id: '103', category_id: '1', name: 'Repassage' },
-    { id: '104', category_id: '1', name: 'Nettoyage en profondeur' },
+  const services = [];
+  
+  // Créer des services pour chaque catégorie
+  for (const category of categories) {
+    // Services pour Ménage
+    if (category.name === 'Ménage') {
+      services.push(
+        { id: faker.string.uuid(), category_id: category.id, name: 'Ménage complet' },
+        { id: faker.string.uuid(), category_id: category.id, name: 'Nettoyage de vitres' },
+        { id: faker.string.uuid(), category_id: category.id, name: 'Repassage' },
+        { id: faker.string.uuid(), category_id: category.id, name: 'Nettoyage en profondeur' }
+      );
+    }
     
-    // Jardinage
-    { id: '201', category_id: '2', name: 'Tonte de pelouse' },
-    { id: '202', category_id: '2', name: 'Taille de haies' },
-    { id: '203', category_id: '2', name: 'Désherbage' },
-    { id: '204', category_id: '2', name: 'Plantation' },
+    // Services pour Jardinage
+    else if (category.name === 'Jardinage') {
+      services.push(
+        { id: faker.string.uuid(), category_id: category.id, name: 'Tonte de pelouse' },
+        { id: faker.string.uuid(), category_id: category.id, name: 'Taille de haies' },
+        { id: faker.string.uuid(), category_id: category.id, name: 'Désherbage' },
+        { id: faker.string.uuid(), category_id: category.id, name: 'Plantation' }
+      );
+    }
     
-    // Bricolage
-    { id: '301', category_id: '3', name: 'Petites réparations' },
-    { id: '302', category_id: '3', name: 'Montage de meubles' },
-    { id: '303', category_id: '3', name: 'Peinture' },
-    { id: '304', category_id: '3', name: 'Plomberie basique' },
+    // Services pour Bricolage
+    else if (category.name === 'Bricolage') {
+      services.push(
+        { id: faker.string.uuid(), category_id: category.id, name: 'Petites réparations' },
+        { id: faker.string.uuid(), category_id: category.id, name: 'Montage de meubles' },
+        { id: faker.string.uuid(), category_id: category.id, name: 'Peinture' },
+        { id: faker.string.uuid(), category_id: category.id, name: 'Plomberie basique' }
+      );
+    }
     
-    // Garde d'enfants
-    { id: '401', category_id: '4', name: 'Garde régulière' },
-    { id: '402', category_id: '4', name: 'Garde ponctuelle' },
-    { id: '403', category_id: '4', name: 'Sortie d\'école' },
-    
-    // Cours particuliers
-    { id: '501', category_id: '5', name: 'Mathématiques' },
-    { id: '502', category_id: '5', name: 'Français' },
-    { id: '503', category_id: '5', name: 'Anglais' },
-    { id: '504', category_id: '5', name: 'Physique-Chimie' },
-    
-    // Informatique
-    { id: '601', category_id: '6', name: 'Dépannage informatique' },
-    { id: '602', category_id: '6', name: 'Installation logiciel' },
-    { id: '603', category_id: '6', name: 'Récupération de données' },
-    { id: '604', category_id: '6', name: 'Création de site web' }
-  ];
+    // Services pour d'autres catégories
+    else {
+      // Ajouter 2-4 services par défaut pour les autres catégories
+      const numServices = faker.number.int({ min: 2, max: 4 });
+      for (let i = 0; i < numServices; i++) {
+        services.push({
+          id: faker.string.uuid(),
+          category_id: category.id,
+          name: `${category.name} - ${faker.commerce.productName()}`
+        });
+      }
+    }
+  }
   
   console.log('Insertion des services...');
   const { error } = await supabase
     .from('services')
-    .upsert(services, { onConflict: 'id' });
+    .insert(services);
   
   if (error) throw error;
   return services;
@@ -92,37 +104,41 @@ async function generateUsers(count = 10) {
     const email = faker.internet.email({ firstName, lastName }).toLowerCase();
     const password = 'Password123'; // Mot de passe simple pour les tests
     
-    // Créer l'utilisateur dans auth
-    const { data: userData, error: userError } = await supabase.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true
-    });
-    
-    if (userError) {
-      console.error(`Erreur lors de la création de l'utilisateur ${email}:`, userError);
-      continue;
+    try {
+      // Créer l'utilisateur dans auth
+      const { data: userData, error: userError } = await supabase.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true
+      });
+      
+      if (userError) {
+        console.error(`Erreur lors de la création de l'utilisateur ${email}:`, userError);
+        continue;
+      }
+      
+      const userId = userData.user.id;
+      users.push(userData.user);
+      
+      // Créer le profil
+      const profile = {
+        id: userId,
+        first_name: firstName,
+        last_name: lastName,
+        email: email,
+        phone: faker.phone.number('+33 6 ## ## ## ##'),
+        address: faker.location.streetAddress(),
+        city: faker.location.city(),
+        postal_code: faker.location.zipCode(),
+        bio: faker.lorem.paragraph(),
+        created_at: new Date().toISOString(),
+        role: faker.helpers.arrayElement(['user', 'expert']), // Certains utilisateurs sont experts
+      };
+      
+      profiles.push(profile);
+    } catch (err) {
+      console.error(`Erreur pour l'utilisateur ${email}:`, err);
     }
-    
-    const userId = userData.user.id;
-    users.push(userData.user);
-    
-    // Créer le profil
-    const profile = {
-      id: userId,
-      first_name: firstName,
-      last_name: lastName,
-      email: email,
-      phone: faker.phone.number('+33 6 ## ## ## ##'),
-      address: faker.location.streetAddress(),
-      city: faker.location.city(),
-      postal_code: faker.location.zipCode(),
-      bio: faker.lorem.paragraph(),
-      created_at: new Date().toISOString(),
-      role: faker.helpers.arrayElement(['user', 'expert']), // Certains utilisateurs sont experts
-    };
-    
-    profiles.push(profile);
   }
   
   // Insérer les profils
@@ -138,11 +154,11 @@ async function generateUsers(count = 10) {
 }
 
 // Fonction pour générer des demandes de service
-async function generateRequests(users, services, count = 30) {
+async function generateRequests(users, services, count = 20) {
   const requests = [];
   const statuses = ['active', 'pending', 'completed', 'cancelled'];
   
-  console.log(`Génération de ${count} demandes de service...`);
+  console.log(`Génération de ${count} demandes...`);
   
   for (let i = 0; i < count; i++) {
     // Sélectionner un service aléatoire
@@ -185,59 +201,11 @@ async function generateRequests(users, services, count = 30) {
   // Insérer les demandes
   const { error } = await supabase
     .from('requests')
-    .upsert(requests, { onConflict: 'id' });
+    .insert(requests);
   
   if (error) throw error;
   
   return requests;
-}
-
-// Fonction pour générer des propositions sur les demandes
-async function generateProposals(users, requests, count = 15) {
-  const proposals = [];
-  
-  console.log(`Génération de ${count} propositions...`);
-  
-  // Sélectionner des demandes aléatoires
-  const selectedRequests = faker.helpers.arrayElements(requests, Math.min(count, requests.length));
-  
-  for (const request of selectedRequests) {
-    // Nombre de propositions pour cette demande (1 à 3)
-    const proposalCount = faker.number.int({ min: 1, max: 3 });
-    
-    // Utilisateurs différents du client
-    const availableUsers = users.filter(user => user.id !== request.client_id);
-    
-    if (availableUsers.length === 0) continue;
-    
-    // Générer les propositions
-    const requestProposers = faker.helpers.arrayElements(availableUsers, Math.min(proposalCount, availableUsers.length));
-    
-    for (const user of requestProposers) {
-      const proposal = {
-        id: faker.string.uuid(),
-        request_id: request.id,
-        provider_id: user.id,
-        message: faker.lorem.paragraph(),
-        price: faker.number.int({ min: request.budget * 0.8, max: request.budget * 1.2 }),
-        status: faker.helpers.arrayElement(['pending', 'accepted', 'rejected']),
-        created_at: faker.date.recent({ days: 10 }).toISOString()
-      };
-      
-      proposals.push(proposal);
-    }
-  }
-  
-  // Insérer les propositions
-  if (proposals.length > 0) {
-    const { error } = await supabase
-      .from('proposals')
-      .upsert(proposals, { onConflict: 'id' });
-    
-    if (error) throw error;
-  }
-  
-  return proposals;
 }
 
 // Fonction principale
@@ -246,17 +214,18 @@ async function generateAllData() {
     console.log('Début de la génération des données...');
     
     const categories = await generateCategories();
+    console.log(`${categories.length} catégories créées`);
+    
     const services = await generateServices(categories);
+    console.log(`${services.length} services créés`);
+    
     const users = await generateUsers(10);
+    console.log(`${users.length} utilisateurs créés`);
+    
     const requests = await generateRequests(users, services, 30);
-    const proposals = await generateProposals(users, requests, 15);
+    console.log(`${requests.length} demandes créées`);
     
     console.log('Génération des données terminée avec succès !');
-    console.log(`- ${categories.length} catégories`);
-    console.log(`- ${services.length} services`);
-    console.log(`- ${users.length} utilisateurs`);
-    console.log(`- ${requests.length} demandes`);
-    console.log(`- ${proposals.length} propositions`);
     
   } catch (error) {
     console.error('Erreur lors de la génération des données:', error);
