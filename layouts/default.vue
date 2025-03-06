@@ -69,6 +69,8 @@
 
 <script setup>
 import Logo from '~/components/Logo.vue';
+// import { Footer } from 'lucide-vue-next'
+import Navbar from '~/components/Navbar.vue'
 // Pas besoin de logique particulière ici
 </script> 
 <style scoped>

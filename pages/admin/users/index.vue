@@ -1,582 +1,834 @@
 <template>
-  <div>
-    <!-- En-tête de page avec stats -->
-    <PageHeader 
-      title="Gestion des utilisateurs" 
-      subtitle="Gérez les comptes utilisateurs, experts et administrateurs"
-    >
-      <!-- Statistiques -->
-      <template #stats>
-        <StatCard 
-          title="Total utilisateurs" 
-          :value="users.length" 
-          :icon="Users" 
-          color="blue" 
-        />
-        
-        <StatCard 
-          title="Clients" 
-          :value="users.filter(u => u.role === 'user').length" 
-          :icon="User" 
-          color="green" 
-        />
-        
-        <StatCard 
-          title="Experts" 
-          :value="users.filter(u => u.role === 'expert').length" 
-          :icon="Wrench" 
-          color="indigo" 
-        />
-        
-        <StatCard 
-          title="Administrateurs" 
-          :value="users.filter(u => u.role === 'admin').length" 
-          :icon="Shield" 
-          color="purple" 
-        />
-      </template>
-      
-      <!-- Filtres de recherche -->
-      <template #filters>
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <!-- Recherche -->
-        <div class="relative flex-1 max-w-md">
-          <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <input
-            v-model="search"
-            type="text"
-            placeholder="Rechercher un utilisateur..."
-              class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors text-sm"
-          />
+    <div class="p-6 max-w-7xl mx-auto">
+      <!-- Header with actions -->
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+        <div>
+          <h1 class="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Utilisateurs</h1>
+          <p class="mt-1 text-gray-500 dark:text-gray-400">
+            Gérez l'ensemble des utilisateurs de la plateforme
+          </p>
         </div>
         
-        <!-- Filtres et actions -->
-        <div class="flex items-center gap-3">
-          <!-- Filtre rôle -->
-          <div class="relative">
-            <select
-              v-model="roleFilter"
-                class="appearance-none pl-4 pr-8 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors text-sm bg-white"
-            >
-              <option value="">Tous les rôles</option>
-              <option value="user">Utilisateurs</option>
-              <option value="expert">Experts</option>
-              <option value="admin">Administrateurs</option>
-            </select>
-            <ChevronDown class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
-          </div>
+        <div class="flex gap-3">
+          <button 
+            @click="openExportModal"
+            class="flex items-center px-4 py-2.5 border border-gray-300 dark:border-gray-700 rounded-full text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+          >
+            <Download class="mr-2 h-4 w-4" />
+            Exporter
+          </button>
           
-          <!-- Bouton ajouter -->
           <button 
             @click="openUserModal"
-              class="px-4 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center whitespace-nowrap"
+            class="flex items-center px-4 py-2.5 bg-blue-500 text-white rounded-full text-sm font-medium hover:bg-blue-600 transition-colors"
           >
-            <Plus class="h-4 w-4 mr-1.5" />
-            Ajouter
+            <UserPlus class="mr-2 h-4 w-4" />
+            Nouvel utilisateur
           </button>
         </div>
       </div>
-      </template>
-    </PageHeader>
-    
-    <!-- Tableau des utilisateurs -->
-    <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-      <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead class="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Utilisateur
-              </th>
-              <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Email
-              </th>
-              <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Rôle
-              </th>
-              <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Inscrit le
-              </th>
-              <th class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-200">
-            <!-- Chargement -->
-            <tr v-if="loading">
-              <td colspan="5" class="px-6 py-8">
-                <div class="flex justify-center">
-                  <Loader2 class="h-8 w-8 text-gray-400 animate-spin" />
-                </div>
-              </td>
-            </tr>
+      
+      <!-- Stats cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm">
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total utilisateurs</p>
+              <div class="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{{ users.length }}</div>
+              <div class="mt-2 text-xs text-green-500 flex items-center">
+                <TrendingUp class="h-3 w-3 mr-1" />
+                <span>+12% ce mois</span>
+              </div>
+            </div>
+            <div class="p-2.5 rounded-full bg-blue-50 dark:bg-blue-900/30">
+              <Users class="h-5 w-5 text-blue-500" />
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm">
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Experts vérifiés</p>
+              <div class="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
+                {{ users.filter(u => u.role === 'expert' && u.is_verified).length }}
+              </div>
+              <div class="mt-2 text-xs text-green-500 flex items-center">
+                <TrendingUp class="h-3 w-3 mr-1" />
+                <span>+8% ce mois</span>
+              </div>
+            </div>
+            <div class="p-2.5 rounded-full bg-green-50 dark:bg-green-900/30">
+              <BadgeCheck class="h-5 w-5 text-green-500" />
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm">
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Nouveaux utilisateurs</p>
+              <div class="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
+                {{ getNewUsersCount() }}
+              </div>
+              <div class="mt-2 text-xs text-green-500 flex items-center">
+                <TrendingUp class="h-3 w-3 mr-1" />
+                <span>Derniers 30 jours</span>
+              </div>
+            </div>
+            <div class="p-2.5 rounded-full bg-purple-50 dark:bg-purple-900/30">
+              <UserPlus class="h-5 w-5 text-purple-500" />
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm">
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Connexions aujourd'hui</p>
+              <div class="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
+                {{ getTodayLoginCount() }}
+              </div>
+              <div class="mt-2 text-xs text-amber-500 flex items-center">
+                <Activity class="h-3 w-3 mr-1" />
+                <span>Activité du jour</span>
+              </div>
+            </div>
+            <div class="p-2.5 rounded-full bg-amber-50 dark:bg-amber-900/30">
+              <LogIn class="h-5 w-5 text-amber-500" />
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Search and filters -->
+      <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 mb-6 border border-gray-100 dark:border-gray-700 shadow-sm">
+        <div class="flex flex-col sm:flex-row gap-4 items-center justify-between">
+          <div class="w-full max-w-md relative">
+            <Search class="absolute left-3.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              v-model="search"
+              type="text"
+              placeholder="Rechercher par nom, email..."
+              class="pl-10 pr-4 py-3 w-full border-0 bg-gray-50 dark:bg-gray-900 rounded-full text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all"
+            />
+          </div>
+          
+          <div class="flex flex-wrap gap-3 w-full sm:w-auto">
+            <!-- Role filter -->
+            <div class="relative min-w-[160px]">
+              <select
+                v-model="roleFilter"
+                class="appearance-none pl-4 pr-10 py-3 w-full border-0 bg-gray-50 dark:bg-gray-900 rounded-full text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all"
+              >
+                <option value="">Tous les rôles</option>
+                <option value="user">Utilisateurs</option>
+                <option value="expert">Experts</option>
+                <option value="admin">Administrateurs</option>
+              </select>
+              <ChevronDown class="absolute right-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+            </div>
             
-            <!-- Aucun résultat -->
-            <tr v-else-if="filteredUsers.length === 0">
-              <td colspan="5" class="px-6 py-8 text-center">
-                <UserX class="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                <p class="text-gray-500 font-medium">
-                  {{ search || roleFilter ? 'Aucun utilisateur ne correspond à votre recherche' : 'Aucun utilisateur inscrit' }}
-                </p>
-                <button 
-                  v-if="!search && !roleFilter"
-                  @click="openUserModal"
-                  class="mt-4 px-4 py-2 bg-black text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
-                >
-                  Ajouter un utilisateur
-                </button>
-              </td>
-            </tr>
+            <!-- Status filter -->
+            <div class="relative min-w-[160px]">
+              <select
+                v-model="statusFilter"
+                class="appearance-none pl-4 pr-10 py-3 w-full border-0 bg-gray-50 dark:bg-gray-900 rounded-full text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all"
+              >
+                <option value="">Tous les statuts</option>
+                <option value="active">Actifs</option>
+                <option value="inactive">Inactifs</option>
+                <option value="blocked">Bloqués</option>
+              </select>
+              <ChevronDown class="absolute right-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+            </div>
             
-            <!-- Données des utilisateurs -->
-            <tr 
-              v-else
-              v-for="user in filteredUsers" 
-              :key="user.id"
-              class="hover:bg-gray-50 transition-colors"
+            <!-- Date filter button -->
+            <button 
+              @click="showDateFilter = !showDateFilter"
+              class="flex items-center px-4 py-3 border-0 bg-gray-50 dark:bg-gray-900 rounded-full text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:ring-2 focus:ring-blue-500"
             >
-              <!-- Informations utilisateur -->
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex items-center">
-                  <div class="h-10 w-10 rounded-full bg-gray-100 flex-shrink-0 overflow-hidden">
-                    <img 
-                      v-if="user.avatar_url"
-                      :src="user.avatar_url"
-                      class="h-full w-full object-cover"
-                      alt="Avatar"
-                    />
-                    <div v-else class="h-full w-full flex items-center justify-center">
-                      <User class="h-5 w-5 text-gray-400" />
+              <Calendar class="mr-2 h-4 w-4" />
+              <span>Date</span>
+              <ChevronDown class="ml-2 h-3 w-3" :class="showDateFilter ? 'rotate-180' : ''" />
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Table des utilisateurs -->
+      <Table
+        :items="paginatedUsers"
+        :columns="columns"
+        :loading="loading"
+        :selectable="true"
+        v-model:selectedItems="selectedUsers"
+        :row-actions="rowActions"
+        :bulk-actions="bulkActions"
+        :pagination="true"
+        v-model:currentPage="currentPage"
+        :perPage="perPage"
+        :totalItems="filteredUsers.length"
+        entity-label="utilisateur"
+        empty-message="Aucun utilisateur trouvé"
+        empty-description="Essayez de modifier vos filtres ou ajoutez de nouveaux utilisateurs."
+        :empty-icon="UsersX"
+        @action="handleTableAction"
+        @sort="handleSort"
+      >
+        <!-- Templates pour les cellules personnalisées -->
+        <template #cell-avatar="{ item }">
+          <div class="flex items-center">
+            <div class="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden flex-shrink-0">
+              <img 
+                v-if="item.avatar_url" 
+                :src="item.avatar_url" 
+                        alt="Avatar"
+                        class="h-full w-full object-cover"
+                @error="handleImageError"
+                      />
+              <User v-else class="h-full w-full p-2 text-gray-400" />
+                    </div>
+            <div class="ml-3">
+              <div class="text-sm font-medium text-gray-900 dark:text-white">
+                {{ item.first_name }} {{ item.last_name }}
+                    </div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">
+                {{ item.email }}
+                  </div>
                     </div>
                   </div>
-                  <div class="ml-3">
-                    <div class="font-medium text-gray-900">
-                      {{ user.first_name }} {{ user.last_name }}
-                    </div>
-                    <div class="text-xs text-gray-500">ID: {{ truncateId(user.id) }}</div>
-                  </div>
-                </div>
-              </td>
+        </template>
               
-              <!-- Email -->
-              <td class="px-6 py-4 whitespace-nowrap text-gray-700">
-                {{ user.email }}
-              </td>
-              
-              <!-- Rôle -->
-              <td class="px-6 py-4 whitespace-nowrap">
+        <template #cell-role="{ item }">
+          <div class="flex items-center space-x-1">
                 <span 
-                  class="px-2.5 py-1 text-xs font-medium rounded-full"
-                  :class="getRoleClass(user.role)"
+              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+              :class="getRoleBadgeClass(item.role)"
                 >
-                  {{ getRoleText(user.role) }}
+              {{ getRoleLabel(item.role) }}
                 </span>
-              </td>
+            <BadgeCheck 
+              v-if="item.is_verified" 
+              class="h-4 w-4 text-blue-500" 
+              fill="currentColor"
+            />
+              </div>
+        </template>
               
-              <!-- Date d'inscription -->
-              <td class="px-6 py-4 whitespace-nowrap text-gray-700">
-                {{ formatDate(user.created_at) }}
-              </td>
-              
-              <!-- Actions -->
-              <td class="px-6 py-4 whitespace-nowrap text-right">
-                <div class="flex items-center justify-end space-x-3">
+        <template #cell-status="{ item }">
+                <span 
+            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+            :class="getStatusBadgeClass(item.status)"
+          >
+            {{ getStatusLabel(item.status) }}
+                </span>
+        </template>
+        
+        <template #cell-created_at="{ value }">
+          <span class="text-sm text-gray-500 dark:text-gray-400">
+            {{ formatDate(value) }}
+          </span>
+        </template>
+        
+        <!-- Actions personnalisées à droite de chaque ligne -->
+        <template #rowActions="{ item }">
                   <button 
-                    @click="viewUser(user)"
-                    class="text-gray-500 hover:text-gray-700 transition-colors"
-                    title="Voir le profil"
-                  >
-                    <Eye class="h-5 w-5" />
+            @click="viewUser(item)"
+            class="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"
+            title="Voir"
+          >
+            <Eye class="h-4 w-4" />
                   </button>
                   <button 
-                    @click="editUser(user)"
-                    class="text-gray-500 hover:text-blue-600 transition-colors"
+            @click="editUser(item)"
+            class="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"
                     title="Modifier"
                   >
-                    <Edit class="h-5 w-5" />
+            <Edit class="h-4 w-4" />
                   </button>
-                  <button 
-                    @click="confirmDelete(user)"
-                    class="text-gray-500 hover:text-red-600 transition-colors"
-                    title="Supprimer"
-                  >
-                    <Trash2 class="h-5 w-5" />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+        </template>
+      </Table>
       
-      <!-- Pagination -->
-      <div v-if="!loading && totalPages > 1" class="px-6 py-4 bg-white border-t border-gray-200 flex items-center justify-between">
-        <div class="hidden sm:block">
-          <p class="text-sm text-gray-500">
-            Affichage de <span class="font-medium">{{ filteredUsers.length }}</span> utilisateurs sur <span class="font-medium">{{ users.length }}</span>
-          </p>
+      <!-- Modals -->
+      <UserModal 
+        v-if="showUserModal"
+        :show="showUserModal"
+        :mode="editMode ? 'edit' : 'add'"
+        :user="userToEdit"
+        @close="showUserModal = false"
+        @save="saveUser"
+      />
+      
+      <!-- Delete confirmation modal -->
+      <ConfirmModal
+        :show="showDeleteModal"
+        title="Supprimer l'utilisateur"
+        @close="showDeleteModal = false"
+        @confirm="deleteUser"
+      >
+        <template #icon>
+          <AlertCircle class="h-5 w-5 text-red-500 mr-2" />
+        </template>
+        
+        <p class="text-gray-700 dark:text-gray-300">
+          Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible et supprimera toutes les données associées.
+        </p>
+        
+        <div v-if="userToDelete" class="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div class="flex items-center">
+            <div class="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden mr-3">
+              <img 
+                v-if="userToDelete.avatar_url" 
+                :src="userToDelete.avatar_url" 
+                alt="Avatar"
+                class="h-full w-full object-cover"
+              />
+              <UserCircle v-else class="h-full w-full text-gray-400" />
+            </div>
+            <div>
+              <div class="font-medium text-gray-900 dark:text-white">
+                {{ userToDelete.first_name }} {{ userToDelete.last_name }}
+              </div>
+              <div class="text-sm text-gray-500 dark:text-gray-400">{{ userToDelete.email }}</div>
+            </div>
+          </div>
         </div>
-        <div class="flex-1 flex justify-center sm:justify-end">
-          <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-            <button
-              @click="currentPage--"
-              :disabled="currentPage === 1"
-              class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <button 
+              @click="showDeleteModal = false"
+              class="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
             >
-              <span class="sr-only">Précédent</span>
-              <ChevronLeft class="h-5 w-5" />
+              Annuler
             </button>
-            <button
-              v-for="page in totalPages"
-              :key="page"
-              @click="currentPage = page"
-              :class="[
-                'relative inline-flex items-center px-4 py-2 border text-sm font-medium',
-                currentPage === page
-                  ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                  : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-              ]"
+            <button 
+              @click="deleteUser"
+              class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              :class="{ 'opacity-75 cursor-not-allowed': deleting }"
+              :disabled="deleting"
             >
-              {{ page }}
+              <span v-if="deleting" class="flex items-center">
+                <span class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></span>
+                Suppression...
+              </span>
+              <span v-else>Supprimer</span>
             </button>
-            <button
-              @click="currentPage++"
-              :disabled="currentPage === totalPages"
-              class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <span class="sr-only">Suivant</span>
-              <ChevronRight class="h-5 w-5" />
-            </button>
-          </nav>
+          </div>
+        </template>
+      </ConfirmModal>
+      
+      <!-- Modal de vérification avant activation -->
+      <ConfirmModal
+        :show="showVerifyBeforeActivateModal"
+        title="Vérification requise"
+        @close="showVerifyBeforeActivateModal = false"
+        @confirm="verifyAndActivate"
+      >
+        <template #icon>
+          <BadgeCheck class="h-5 w-5 text-blue-500 mr-2" />
+        </template>
+        
+        <p class="text-gray-700 dark:text-gray-300">
+          Cet utilisateur est un expert qui doit être vérifié avant d'être activé. Souhaitez-vous vérifier et activer cet expert ?
+        </p>
+        
+        <div v-if="userToActivate" class="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div class="flex items-center">
+            <div class="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden mr-3">
+              <img 
+                v-if="userToActivate.avatar_url" 
+                :src="userToActivate.avatar_url" 
+                alt="Avatar"
+                class="h-full w-full object-cover"
+              />
+              <UserCircle v-else class="h-full w-full text-gray-400" />
+            </div>
+            <div>
+              <div class="font-medium text-gray-900 dark:text-white">
+                {{ userToActivate.first_name }} {{ userToActivate.last_name }}
+              </div>
+              <div class="text-sm text-gray-500 dark:text-gray-400">{{ userToActivate.email }}</div>
+            </div>
+          </div>
         </div>
-      </div>
+        
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <button 
+              @click="showVerifyBeforeActivateModal = false"
+              class="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+            >
+              Annuler
+            </button>
+            <button 
+              @click="verifyAndActivate"
+              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Vérifier et Activer
+            </button>
+          </div>
+        </template>
+      </ConfirmModal>
     </div>
+  </template>
+  
+  <script setup>
+  import { ref, computed, watch, onMounted, nextTick } from 'vue'
+  import { useRouter } from 'vue-router'
+  import {
+    UserCircle, Search, ChevronLeft, ChevronRight, Edit, Trash2, MoreHorizontal,
+    Users, User, Shield, Wrench, ArrowUp, Minus, Download, UserPlus, Calendar, TrendingUp,
+    Eye, BadgeCheck, Activity, LogIn, CheckCircle, Ban, UserX, AlertCircle, ChevronUp, ChevronDown,
+    ChevronUpDown, MoreVertical, Loader2, SearchX, UsersX
+  } from 'lucide-vue-next'
+  import UserModal from '@/components/admin/UserModal.vue'
+  import ConfirmModal from '@/components/admin/ConfirmModal.vue'
+  import Table from '@/components/ui/Table.vue'
+  
+  // États
+  const router = useRouter()
+  const client = useSupabaseClient()
+  const users = ref([])
+  const loading = ref(true)
+  const search = ref('')
+  const roleFilter = ref('')
+  const statusFilter = ref('')
+  const currentPage = ref(1)
+  const itemsPerPage = ref(10)
+  const showUserModal = ref(false)
+  const showDeleteModal = ref(false)
+  const editMode = ref(false)
+  const userToEdit = ref(null)
+  const userToDelete = ref(null)
+  const saving = ref(false)
+  const deleting = ref(false)
+  const showDateFilter = ref(false)
+  const showActionsFor = ref(null)
+  const selectedUsers = ref([])
+  const selectAll = ref(false)
+  const showVerifyBeforeActivateModal = ref(false)
+  const userToActivate = ref(null)
+  
+  // Définition des colonnes pour la table
+  const columns = [
+    {
+      key: 'avatar',
+      label: 'Utilisateur',
+      sortable: false
+    },
+    {
+      key: 'role',
+      label: 'Rôle',
+      sortable: true
+    },
+    {
+      key: 'status',
+      label: 'Statut',
+      sortable: true
+    },
+    {
+      key: 'created_at',
+      label: 'Inscription',
+      sortable: true
+    }
+  ]
+  
+  // Actions pour les lignes
+  const rowActions = [
+    {
+      key: 'verify',
+      label: 'Vérifier',
+      icon: BadgeCheck,
+      handler: verifyUser,
+      show: (user) => user.role === 'expert' && !user.is_verified
+    },
+    {
+      key: 'block',
+      label: 'Bloquer',
+      icon: Ban,
+      handler: blockUser,
+      show: (user) => user.status !== 'blocked'
+    },
+    {
+      key: 'activate',
+      label: 'Activer',
+      icon: CheckCircle,
+      handler: activateUser,
+      show: (user) => user.status !== 'active'
+    },
+    {
+      key: 'delete',
+      label: 'Supprimer',
+      icon: Trash2,
+      danger: true,
+      handler: confirmDelete
+    }
+  ]
+  
+  // Actions groupées
+  const bulkActions = [
+    {
+      label: 'Vérifier',
+      icon: BadgeCheck,
+      handler: bulkVerify
+    },
+    {
+      label: 'Activer',
+      icon: CheckCircle,
+      handler: bulkActivate
+    },
+    {
+      label: 'Supprimer',
+      icon: Trash2,
+      danger: true,
+      handler: confirmBulkDelete
+    }
+  ]
+  
+  // Filtrage des utilisateurs
+  const filteredUsers = computed(() => {
+    let result = [...users.value]
     
-    <!-- Modal Utilisateur -->
-    <Teleport to="body">
-      <div v-if="showUserModal" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-          <!-- Fond du modal -->
-          <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" @click="showUserModal = false"></div>
-          
-          <!-- Centrage du modal -->
-          <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-          
-          <!-- Contenu du modal -->
-          <div class="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-              <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                  {{ editMode ? 'Modifier l\'utilisateur' : 'Ajouter un utilisateur' }}
-                </h3>
-                <button @click="showUserModal = false" class="text-gray-400 hover:text-gray-500">
-                  <X class="h-5 w-5" />
-                </button>
-              </div>
-              
-              <form @submit.prevent="saveUser" class="space-y-4">
-                <div class="grid grid-cols-2 gap-4">
-                  <div>
-                    <label for="first_name" class="block text-sm font-medium text-gray-700">Prénom</label>
-                    <input
-                      id="first_name"
-                      v-model="userForm.first_name"
-                      type="text"
-                      class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label for="last_name" class="block text-sm font-medium text-gray-700">Nom</label>
-                    <input
-                      id="last_name"
-                      v-model="userForm.last_name"
-                      type="text"
-                      class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-                  <input
-                    id="email"
-                    v-model="userForm.email"
-                    type="email"
-                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                    required
-                  />
-                </div>
-                
-                <div v-if="!editMode">
-                  <label for="password" class="block text-sm font-medium text-gray-700">Mot de passe</label>
-                  <input
-                    id="password"
-                    v-model="userForm.password"
-                    type="password"
-                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label for="role" class="block text-sm font-medium text-gray-700">Rôle</label>
-                  <select
-                    id="role"
-                    v-model="userForm.role"
-                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                  >
-                    <option value="user">Utilisateur</option>
-                    <option value="expert">Expert</option>
-                    <option value="admin">Administrateur</option>
-                  </select>
-                </div>
-                
-                <div class="flex justify-end space-x-3 mt-5">
-                  <button
-                    type="button"
-                    @click="showUserModal = false"
-                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none"
-                  >
-                    Annuler
-                  </button>
-                  <button
-                    type="submit"
-                    class="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md shadow-sm hover:bg-primary-700 focus:outline-none relative"
-                    :disabled="saving"
-                  >
-                    <span v-if="!saving">{{ editMode ? 'Mettre à jour' : 'Ajouter' }}</span>
-                    <Loader2 v-else class="h-5 w-5 animate-spin mx-auto" />
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Modal de confirmation de suppression -->
-      <div v-if="showDeleteModal" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-          <!-- Fond du modal -->
-          <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" @click="showDeleteModal = false"></div>
-          
-          <!-- Centrage du modal -->
-          <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-          
-          <!-- Contenu du modal -->
-          <div class="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-              <div class="sm:flex sm:items-start">
-                <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                  <AlertTriangle class="h-6 w-6 text-red-600" />
-                </div>
-                <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                  <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                    Supprimer l'utilisateur
-                  </h3>
-                  <div class="mt-2">
-                    <p class="text-sm text-gray-500">
-                      Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible et supprimera définitivement l'utilisateur et toutes ses données associées.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-              <button 
-                type="button" 
-                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm relative"
-                @click="deleteUser"
-                :disabled="deleting"
-              >
-                <span v-if="!deleting">Supprimer</span>
-                <Loader2 v-else class="h-5 w-5 animate-spin mx-auto" />
-              </button>
-              <button 
-                type="button" 
-                class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                @click="showDeleteModal = false"
-              >
-                Annuler
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Teleport>
-  </div>
-</template>
-
-<script setup>
-import { 
-  Search, ChevronDown, Plus, User, Loader2, Users, 
-  ChevronLeft, ChevronRight, Edit, Eye, Trash2, X, AlertTriangle, Wrench, Shield, PageHeader, StatCard
-} from 'lucide-vue-next'
-import { ref, computed, watch } from 'vue'
-
-const client = useSupabaseClient()
-const loading = ref(true)
-const users = ref([])
-const search = ref('')
-const roleFilter = ref('')
-const currentPage = ref(1)
-const itemsPerPage = 10
-const showUserModal = ref(false)
-const showDeleteModal = ref(false)
-const editMode = ref(false)
-const userToDelete = ref(null)
-const saving = ref(false)
-const deleting = ref(false)
-
-// Formulaire utilisateur
-const userForm = ref({
-  id: '',
-  first_name: '',
-  last_name: '',
-  email: '',
-  password: '',
-  role: 'user'
-})
-
-// Filtrage des utilisateurs
-const filteredUsers = computed(() => {
-  let filtered = [...users.value]
-  
-  // Filtrer par recherche
-  if (search.value) {
-    const searchLower = search.value.toLowerCase()
-    filtered = filtered.filter(user => 
-      `${user.first_name} ${user.last_name}`.toLowerCase().includes(searchLower) ||
-      user.email.toLowerCase().includes(searchLower)
-    )
-  }
-  
-  // Filtrer par rôle
-  if (roleFilter.value) {
-    filtered = filtered.filter(user => user.role === roleFilter.value)
-  }
+    // Filtre par recherche
+    if (search.value) {
+      const query = search.value.toLowerCase()
+      result = result.filter(user => 
+        (user.first_name?.toLowerCase().includes(query) || 
+         user.last_name?.toLowerCase().includes(query) || 
+         user.email?.toLowerCase().includes(query))
+      )
+    }
+    
+    // Filtre par rôle
+    if (roleFilter.value) {
+      result = result.filter(user => user.role === roleFilter.value)
+    }
+    
+    // Filtre par statut
+    if (statusFilter.value) {
+      result = result.filter(user => user.status === statusFilter.value)
+    }
+    
+    return result
+  })
   
   // Pagination
-  const startIndex = (currentPage.value - 1) * itemsPerPage
-  return filtered.slice(startIndex, startIndex + itemsPerPage)
-})
-
-// Nombre total de pages
-const totalPages = computed(() => {
-  let filtered = [...users.value]
+  const totalPages = computed(() => 
+    Math.max(1, Math.ceil(filteredUsers.value.length / itemsPerPage.value))
+  )
   
-  if (search.value) {
-    const searchLower = search.value.toLowerCase()
-    filtered = filtered.filter(user => 
-      `${user.first_name} ${user.last_name}`.toLowerCase().includes(searchLower) ||
-      user.email.toLowerCase().includes(searchLower)
-    )
-  }
+  const startIndex = computed(() => 
+    (currentPage.value - 1) * itemsPerPage.value
+  )
   
-  if (roleFilter.value) {
-    filtered = filtered.filter(user => user.role === roleFilter.value)
-  }
+  const endIndex = computed(() => 
+    startIndex.value + itemsPerPage.value
+  )
   
-  return Math.max(1, Math.ceil(filtered.length / itemsPerPage))
-})
-
-// Formatage de date
-const formatDate = (dateString) => {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  return date.toLocaleDateString('fr-FR', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric'
+  const paginatedUsers = computed(() => 
+    filteredUsers.value.slice(startIndex.value, endIndex.value)
+  )
+  
+  const displayedPages = computed(() => {
+    const pages = []
+    const maxVisible = 5
+    
+    if (totalPages.value <= maxVisible) {
+      for (let i = 1; i <= totalPages.value; i++) {
+        pages.push(i)
+      }
+    } else {
+      pages.push(1)
+      
+      const leftSide = Math.max(2, currentPage.value - 1)
+      const rightSide = Math.min(totalPages.value - 1, currentPage.value + 1)
+      
+      if (leftSide > 2) pages.push('...')
+      
+      for (let i = leftSide; i <= rightSide; i++) {
+        pages.push(i)
+      }
+      
+      if (rightSide < totalPages.value - 1) pages.push('...')
+      
+      pages.push(totalPages.value)
+    }
+    
+    return pages
   })
-}
-
-// Tronquer l'ID
-const truncateId = (id) => {
-  if (!id) return ''
-  return id.length > 8 ? `${id.substring(0, 8)}...` : id
-}
-
-// Ajoutez ces fonctions pour gérer les rôles
-const getRoleText = (role) => {
-  switch(role) {
-    case 'admin': return 'Administrateur';
-    case 'expert': return 'Expert';
-    case 'user': return 'Utilisateur';
-    default: return role || 'Non défini';
+  
+  // Navigation dans la pagination
+  const nextPage = () => {
+    if (currentPage.value < totalPages.value) {
+      currentPage.value++
+    }
   }
-}
-
-const getRoleClass = (role) => {
-  switch(role) {
-    case 'admin': return 'bg-purple-100 text-purple-800';
-    case 'expert': return 'bg-blue-100 text-blue-800';
-    case 'user': return 'bg-gray-100 text-gray-800';
-    default: return 'bg-gray-100 text-gray-800';
+  
+  const prevPage = () => {
+    if (currentPage.value > 1) {
+      currentPage.value--
+    }
   }
-}
-
-// Charger les utilisateurs
-const fetchUsers = async () => {
-  try {
-    loading.value = true
+  
+  const goToPage = (page) => {
+    currentPage.value = page
+  }
+  
+  // Formatage des dates
+  const formatDate = (dateString) => {
+    if (!dateString) return '-'
+    const date = new Date(dateString)
+    return date.toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    })
+  }
+  
+  // Fonctions utilitaires pour les badges
+  const getRoleBadgeClass = (role) => {
+    switch(role) {
+      case 'admin': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
+      case 'expert': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
+    }
+  }
+  
+  const getStatusBadgeClass = (status) => {
+    switch(status) {
+      case 'active': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+      case 'blocked': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+      case 'inactive': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
+    }
+  }
+  
+  const getRoleLabel = (role) => {
+    switch(role) {
+      case 'admin': return 'Admin'
+      case 'expert': return 'Expert'
+      default: return 'Utilisateur'
+    }
+  }
+  
+  const getStatusLabel = (status) => {
+    switch(status) {
+      case 'active': return 'Actif'
+      case 'blocked': return 'Bloqué'
+      case 'inactive': return 'Inactif'
+      default: return 'Inconnu'
+    }
+  }
+  
+  // Statistics functions
+  const getNewUsersCount = () => {
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
     
-    const { data, error } = await client
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false })
+    return users.value.filter(user => {
+      const createdAt = new Date(user.created_at)
+      return createdAt >= thirtyDaysAgo
+    }).length
+  }
+  
+  const getTodayLoginCount = () => {
+    // This would normally come from analytics data
+    return Math.floor(Math.random() * 30) + 5
+  }
+  
+  // Selection functions
+  const toggleUserSelection = (user) => {
+    const index = selectedUsers.value.findIndex(u => u.id === user.id)
+    if (index >= 0) {
+      selectedUsers.value.splice(index, 1)
+      selectAll.value = false
+    } else {
+      selectedUsers.value.push(user)
+      selectAll.value = selectedUsers.value.length === paginatedUsers.value.length
+    }
+  }
+  
+  const isSelected = (user) => {
+    return selectedUsers.value.some(u => u.id === user.id)
+  }
+  
+  const toggleSelectAll = () => {
+    selectAll.value = !selectAll.value
     
-    if (error) throw error
+    if (selectAll.value) {
+      selectedUsers.value = [...paginatedUsers.value]
+    } else {
+      selectedUsers.value = []
+    }
+  }
+  
+  // Bulk actions
+  const bulkVerify = () => {
+    // Logic to verify multiple users
+    alert(`Vérification de ${selectedUsers.value.length} utilisateurs`)
+  }
+  
+  const bulkActivate = () => {
+    // Logic to activate multiple users
+    alert(`Activation de ${selectedUsers.value.length} utilisateurs`)
+  }
+  
+  const confirmBulkDelete = () => {
+    // Logic to show confirmation for bulk delete
+    alert(`Confirmation de suppression de ${selectedUsers.value.length} utilisateurs`)
+  }
+  
+  // More actions dropdown
+  const toggleMoreActions = (user) => {
+    if (showActionsFor.value === user.id) {
+      showActionsFor.value = null
+    } else {
+      showActionsFor.value = user.id
+    }
+  }
+  
+  // Close dropdown when clicking outside
+  const handleOutsideClick = (event) => {
+    if (showActionsFor.value !== null) {
+      showActionsFor.value = null
+    }
+  }
+  
+  // Filter management
+  const clearFilters = () => {
+    search.value = ''
+    roleFilter.value = ''
+    statusFilter.value = ''
+  }
+  
+  // Modals
+  const openUserModal = () => {
+    editMode.value = false
+    userToEdit.value = null
+    showUserModal.value = true
+  }
+  
+  const editUser = (user) => {
+    editMode.value = true
+    userToEdit.value = { ...user }
+    showUserModal.value = true
+  }
+  
+  const viewUser = (user) => {
+    router.push(`/admin/users/${user.id}`)
+  }
+  
+  const confirmDelete = (user) => {
+    userToDelete.value = user
+    showDeleteModal.value = true
+    showActionsFor.value = null
+  }
+  
+  const blockUser = (user) => {
+    // Logic to block user
+    alert(`Bloquer l'utilisateur ${user.first_name}`)
+    showActionsFor.value = null
+  }
+  
+  const activateUser = (user) => {
+    // Si c'est un expert non vérifié, afficher le modal de confirmation
+    if (user.role === 'expert' && !user.is_verified) {
+      userToActivate.value = user;
+      showVerifyBeforeActivateModal.value = true;
+    } else {
+      // Sinon, activer directement
+      performActivation(user);
+    }
     
-    users.value = data || []
-  } catch (error) {
-    console.error('Erreur lors du chargement des utilisateurs:', error)
-  } finally {
-    loading.value = false
+    showActionsFor.value = null;
   }
-}
-
-// Ouvrir le modal d'ajout d'utilisateur
-const openUserModal = () => {
-  editMode.value = false
-  userForm.value = {
-    id: '',
-    first_name: '',
-    last_name: '',
-    email: '',
-    password: '',
-    role: 'user'
+  
+  // Nouvelle fonction pour effectuer l'activation
+  const performActivation = async (user) => {
+    try {
+      const { error } = await client
+        .from('profiles')
+        .update({ 
+          status: 'active',
+          updated_at: new Date().toISOString() 
+        })
+        .eq('id', user.id);
+        
+      if (error) throw error;
+      
+      // Rafraîchir la liste des utilisateurs
+      await fetchUsers();
+      
+    } catch (error) {
+      console.error('Erreur lors de l\'activation de l\'utilisateur:', error);
+      alert('Erreur lors de l\'activation: ' + error.message);
+    }
   }
-  showUserModal.value = true
-}
-
-// Ouvrir le modal de modification d'utilisateur
-const editUser = (user) => {
-  editMode.value = true
-  userForm.value = {
-    id: user.id,
-    first_name: user.first_name,
-    last_name: user.last_name,
-    email: user.email,
-    role: user.role || 'user'
+  
+  // Nouvelle fonction pour vérifier et activer
+  const verifyAndActivate = async () => {
+    if (!userToActivate.value) return;
+    
+    try {
+      // Vérifier l'expert
+      await verifyUser(userToActivate.value);
+      
+      // Puis l'activer
+      await performActivation(userToActivate.value);
+      
+      // Fermer le modal
+      showVerifyBeforeActivateModal.value = false;
+      userToActivate.value = null;
+      
+    } catch (error) {
+      console.error('Erreur lors de la vérification et activation:', error);
+      alert('Erreur: ' + error.message);
+    }
   }
-  showUserModal.value = true
-}
-
-// Voir les détails d'un utilisateur
-const viewUser = (user) => {
-  // Rediriger vers la page de détails de l'utilisateur
-  navigateTo(`/admin/users/${user.id}`)
-}
-
-// Confirmer la suppression d'un utilisateur
-const confirmDelete = (user) => {
-  userToDelete.value = user
-  showDeleteModal.value = true
-}
+  
+  const verifyUser = async (user) => {
+    try {
+      const { error } = await client
+        .from('profiles')
+        .update({ is_verified: true, verification_status: 'verified', verified_at: new Date().toISOString() })
+        .eq('id', user.id)
+        
+      if (error) throw error
+      
+      // Refresh user list
+      await fetchUsers()
+    } catch (error) {
+      console.error('Error verifying user:', error)
+    }
+  }
+  
+  const openExportModal = () => {
+    // Logic to open export modal
+    alert('Exporter les utilisateurs')
+  }
+  
+  // Data operations
+  const fetchUsers = async () => {
+    try {
+      loading.value = true
+      
+      // Fetch users from API
+      const { data, error } = await client
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false })
+      
+      if (error) throw error
+      
+      users.value = data || []
+    } catch (error) {
+      console.error('Erreur lors du chargement des utilisateurs:', error)
+    } finally {
+      loading.value = false
+    }
+  }
 
 // Enregistrer un utilisateur (créer ou mettre à jour)
 const saveUser = async () => {
@@ -588,21 +840,21 @@ const saveUser = async () => {
       const { error: profileError } = await client
         .from('profiles')
         .update({
-          first_name: userForm.value.first_name,
-          last_name: userForm.value.last_name,
-          email: userForm.value.email,
-          role: userForm.value.role,
+            first_name: userToEdit.value.first_name,
+            last_name: userToEdit.value.last_name,
+            email: userToEdit.value.email,
+            role: userToEdit.value.role,
           updated_at: new Date().toISOString()
         })
-        .eq('id', userForm.value.id)
+          .eq('id', userToEdit.value.id)
       
       if (profileError) throw profileError
       
     } else {
       // Création d'un nouvel utilisateur
       const { data: authData, error: authError } = await client.auth.admin.createUser({
-        email: userForm.value.email,
-        password: userForm.value.password,
+          email: userToEdit.value.email,
+          password: userToEdit.value.password,
         email_confirm: true
       })
       
@@ -613,10 +865,10 @@ const saveUser = async () => {
         .from('profiles')
         .upsert({
           id: authData.user.id,
-          first_name: userForm.value.first_name,
-          last_name: userForm.value.last_name,
-          email: userForm.value.email,
-          role: userForm.value.role,
+            first_name: userToEdit.value.first_name,
+            last_name: userToEdit.value.last_name,
+            email: userToEdit.value.email,
+            role: userToEdit.value.role,
           created_at: new Date().toISOString()
         })
       

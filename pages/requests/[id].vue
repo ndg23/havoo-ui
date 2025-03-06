@@ -115,6 +115,13 @@
             </div>
           </div>
           
+          <!-- Section résolution (visible uniquement pour le propriétaire) -->
+          <RequestResolution
+            v-if="isOwner && request.status === 'accepted'"
+            :request="request"
+            @resolved="onRequestResolved"
+          />
+          
           <!-- Actions -->
           <div class="mt-8 flex justify-end gap-3">
             <button 
@@ -147,6 +154,7 @@
     TagIcon
   } from '@heroicons/vue/24/outline'
   import { supabase } from '~/lib/supabase'
+  import RequestResolution from '~/components/requests/RequestResolution.vue'
   
   const props = defineProps({
     request: {
@@ -259,6 +267,17 @@ const cancelRequest = async () => {
     emit('refresh')
   } catch (error) {
     console.error('Erreur lors de l\'annulation de la demande:', error)
+  }
+}
+
+// Gérer la résolution
+const onRequestResolved = ({ rating, comment }) => {
+  // Mettre à jour l'interface
+  props.request = {
+    ...props.request,
+    resolved_at: new Date().toISOString(),
+    rating,
+    review: comment
   }
 }
 </script>

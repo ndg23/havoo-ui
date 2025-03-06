@@ -285,7 +285,7 @@ const fetchExpertData = async () => {
     {
       id: 1,
         author_name: 'Sophie Martin',
-        rating: 5,
+      rating: 5,
         comment: 'Excellent service, rapide et professionnel. Je recommande vivement !',
         created_at: '2023-09-15'
     },

@@ -51,18 +51,18 @@
       <!-- Photo de profil et bouton d'édition -->
       <div class="absolute left-0 right-0 -bottom-16 px-5">
         <div class="max-w-4xl mx-auto flex justify-between">
-          <div class="relative">
+        <div class="relative">
             <div class="h-32 w-32 rounded-full border-4 border-white overflow-hidden bg-gray-100 shadow-lg">
-              <img 
+            <img 
                 v-if="profile.profile_image_url" 
                 :src="profile.profile_image_url" 
-                alt="Photo de profil"
-                class="w-full h-full object-cover"
-              />
+              alt="Photo de profil"
+              class="w-full h-full object-cover"
+            />
               <div v-else class="w-full h-full flex items-center justify-center bg-gray-200">
                 <User class="h-14 w-14 text-gray-400" />
-              </div>
-              
+        </div>
+        
               <!-- Upload button (edit mode) -->
               <label 
                 v-if="isEditing" 
@@ -77,8 +77,8 @@
                 />
               </label>
             </div>
-          </div>
-          
+        </div>
+        
           <button 
             v-if="!isEditing" 
             @click="isEditing = true"
@@ -101,7 +101,7 @@
       <!-- Contenu du profil -->
       <div v-else class="space-y-10">
         <!-- Informations personnelles -->
-        <div>
+              <div>
           <div v-if="!isEditing" class="space-y-2">
             <h1 class="text-3xl font-bold text-black">
               {{ profile.first_name }} {{ profile.last_name }}
@@ -158,7 +158,7 @@
               </div>
             </div>
             
-            <div>
+              <div>
               <label for="bio" class="block text-sm font-medium text-gray-700 mb-1">
                 Biographie
               </label>
@@ -184,13 +184,13 @@
             <div>
               <p class="text-sm font-medium text-gray-600">Téléphone</p>
               <p class="text-lg">{{ profile.phone || '—' }}</p>
-            </div>
+              </div>
             <div>
               <p class="text-sm font-medium text-gray-600">Adresse email</p>
               <p class="text-lg">{{ profile.email }}</p>
             </div>
-          </div>
-          
+            </div>
+            
           <div v-else class="space-y-4">
             <div>
               <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">
@@ -230,19 +230,19 @@
             <div>
               <p class="text-sm font-medium text-gray-600">Adresse</p>
               <p class="text-lg">{{ profile.address || '—' }}</p>
-            </div>
+              </div>
             <div>
               <p class="text-sm font-medium text-gray-600">Ville</p>
               <p class="text-lg">{{ profile.city || '—' }}</p>
-            </div>
+              </div>
             <div>
               <p class="text-sm font-medium text-gray-600">Pays</p>
               <p class="text-lg">{{ profile.country || '—' }}</p>
-            </div>
+      </div>
           </div>
           
           <div v-else class="space-y-4">
-            <div>
+                    <div>
               <label for="address" class="block text-sm font-medium text-gray-700 mb-1">
                 Adresse
               </label>
@@ -559,7 +559,7 @@ definePageMeta({
   layout: 'default',
   auth: true
 })
-</script>
+</script> 
 
 <style scoped>
 /* Masquer la barre de défilement tout en permettant le défilement */
