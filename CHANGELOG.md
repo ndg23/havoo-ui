@@ -2,21 +2,21 @@
 
 ## [0.1.0] - 2025-03-04
 ### Ajouté
-### Modifié
+-  ### Modifié
 ### Corrigé
 ### Supprimé
 
 
 ## [0.0.2] - 2025-03-04
 ### Ajouté
-### Modifié
+-  ### Modifié
 ### Corrigé
 ### Supprimé
 
 
 ## [0.0.1] - 2025-03-04
 ### Ajouté
-### Modifié
+-  ### Modifié
 ### Corrigé
 ### Supprimé
 
@@ -25,7 +25,7 @@ Toutes les modifications notables de ce projet seront documentées dans ce fichi
 
 ## [Unreleased]
 ### Ajouté
--  Add user  management,upgrade color to green , upgrade ddesign form demands-  add login page### Modifié
+-  -  Add user  management,upgrade color to green , upgrade ddesign form demands-  add login page### Modifié
 ### Corrigé
 ### Supprimé
 
