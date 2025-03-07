@@ -413,6 +413,415 @@ BEFORE UPDATE ON public.contracts
 FOR EACH ROW
 EXECUTE FUNCTION update_modified_column();
 
+
+
+
+
+-- ===============================
+-- FONCTIONS SUPPLÉMENTAIRES
+-- ===============================
+
+-- Fonction pour rechercher des experts par compétence et localisation
+CREATE OR REPLACE FUNCTION search_experts_by_skill_location(
+    skill_name VARCHAR,
+    city_name VARCHAR,
+    max_distance INTEGER DEFAULT 50
+)
+RETURNS TABLE (
+    expert_id UUID,
+    first_name VARCHAR,
+    last_name VARCHAR,
+    city VARCHAR,
+    average_rating DECIMAL(3,2),
+    hourly_rate DECIMAL(10,2),
+    distance INTEGER
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        e.id AS expert_id,
+        p.first_name,
+        p.last_name,
+        p.city,
+        e.average_rating,
+        e.hourly_rate,
+        0 AS distance -- Remplacer par un calcul de distance réel si les coordonnées sont disponibles
+    FROM 
+        public.experts e
+        JOIN public.profiles p ON e.id = p.id
+        JOIN public.profile_skills ps ON p.id = ps.profile_id
+        JOIN public.skills s ON ps.skill_id = s.id
+    WHERE 
+        (skill_name IS NULL OR LOWER(s.name) LIKE LOWER('%' || skill_name || '%'))
+        AND (city_name IS NULL OR LOWER(p.city) = LOWER(city_name))
+        AND e.availability_status = 'available'
+    ORDER BY 
+        e.average_rating DESC NULLS LAST,
+        e.hourly_rate ASC;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Fonction pour obtenir la disponibilité d'un expert sur une période
+CREATE OR REPLACE FUNCTION get_expert_availability(
+    p_expert_id UUID,
+    p_start_date DATE,
+    p_end_date DATE
+)
+RETURNS TABLE (
+    date_available DATE,
+    available_morning BOOLEAN,
+    available_afternoon BOOLEAN,
+    available_evening BOOLEAN
+) AS $$
+BEGIN
+    -- Créer une série de dates entre début et fin
+    RETURN QUERY
+    WITH date_range AS (
+        SELECT generate_series(p_start_date, p_end_date, '1 day'::interval)::date AS day
+    ),
+    expert_contracts AS (
+        SELECT 
+            c.start_date,
+            c.end_date
+        FROM 
+            public.contracts c
+        WHERE 
+            c.expert_id = p_expert_id
+            AND c.status IN ('pending', 'active')
+            AND (
+                (c.start_date BETWEEN p_start_date AND p_end_date)
+                OR (c.end_date BETWEEN p_start_date AND p_end_date)
+                OR (p_start_date BETWEEN c.start_date AND c.end_date)
+            )
+    )
+    SELECT 
+        dr.day AS date_available,
+        NOT EXISTS (
+            SELECT 1 FROM expert_contracts ec 
+            WHERE ec.start_date <= dr.day AND ec.end_date >= dr.day
+            -- Ajouter ici des contraintes spécifiques pour les créneaux du matin
+        ) AS available_morning,
+        NOT EXISTS (
+            SELECT 1 FROM expert_contracts ec 
+            WHERE ec.start_date <= dr.day AND ec.end_date >= dr.day
+            -- Ajouter ici des contraintes spécifiques pour les créneaux de l'après-midi
+        ) AS available_afternoon,
+        NOT EXISTS (
+            SELECT 1 FROM expert_contracts ec 
+            WHERE ec.start_date <= dr.day AND ec.end_date >= dr.day
+            -- Ajouter ici des contraintes spécifiques pour les créneaux du soir
+        ) AS available_evening
+    FROM 
+        date_range dr
+    ORDER BY 
+        dr.day;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Fonction pour créer une notification
+CREATE OR REPLACE FUNCTION create_notification(
+    p_user_id UUID,
+    p_type VARCHAR,
+    p_title VARCHAR,
+    p_message TEXT,
+    p_related_id UUID DEFAULT NULL
+)
+RETURNS UUID AS $$
+DECLARE
+    v_notification_id UUID;
+BEGIN
+    INSERT INTO public.notifications (user_id, type, title, message, related_id)
+    VALUES (p_user_id, p_type, p_title, p_message, p_related_id)
+    RETURNING id INTO v_notification_id;
+    
+    RETURN v_notification_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Fonction pour créer automatiquement une notification lors de l'acceptation d'une proposition
+CREATE OR REPLACE FUNCTION notify_proposal_accepted()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.status = 'accepted' AND OLD.status = 'pending' THEN
+        -- Notification à l'expert
+        PERFORM create_notification(
+            NEW.expert_id,
+            'proposal_accepted',
+            'Proposition acceptée',
+            'Votre proposition a été acceptée pour une demande de service.',
+            NEW.id
+        );
+        
+        -- Notification au client
+        PERFORM create_notification(
+            (SELECT client_id FROM public.requests WHERE id = NEW.request_id),
+            'proposal_accepted',
+            'Proposition acceptée',
+            'Vous avez accepté une proposition pour votre demande de service.',
+            NEW.id
+        );
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger pour les notifications de proposition acceptée
+CREATE TRIGGER notify_after_proposal_accepted
+AFTER UPDATE ON public.proposals
+FOR EACH ROW
+EXECUTE FUNCTION notify_proposal_accepted();
+
+-- Fonction pour calculer les statistiques d'un expert
+CREATE OR REPLACE FUNCTION get_expert_statistics(p_expert_id UUID)
+RETURNS TABLE (
+    total_contracts INTEGER,
+    completed_contracts INTEGER,
+    avg_rating DECIMAL(3,2),
+    total_reviews INTEGER,
+    total_earnings DECIMAL(10,2),
+    completion_rate DECIMAL(5,2),
+    avg_response_time INTERVAL
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        (SELECT COUNT(*) FROM public.contracts WHERE expert_id = p_expert_id) AS total_contracts,
+        (SELECT COUNT(*) FROM public.contracts WHERE expert_id = p_expert_id AND status = 'completed') AS completed_contracts,
+        (SELECT average_rating FROM public.experts WHERE id = p_expert_id) AS avg_rating,
+        (SELECT review_count FROM public.experts WHERE id = p_expert_id) AS total_reviews,
+        (SELECT COALESCE(SUM(total_amount), 0) FROM public.contracts WHERE expert_id = p_expert_id AND status = 'completed') AS total_earnings,
+        CASE
+            WHEN (SELECT COUNT(*) FROM public.contracts WHERE expert_id = p_expert_id) > 0
+            THEN (SELECT COUNT(*) FROM public.contracts WHERE expert_id = p_expert_id AND status = 'completed')::DECIMAL / 
+                 (SELECT COUNT(*) FROM public.contracts WHERE expert_id = p_expert_id)::DECIMAL * 100
+            ELSE 0
+        END AS completion_rate,
+        (SELECT AVG(p.created_at - r.created_at) 
+         FROM public.proposals p 
+         JOIN public.requests r ON p.request_id = r.id 
+         WHERE p.expert_id = p_expert_id) AS avg_response_time;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Fonction pour mettre à jour le statut d'un contrat
+CREATE OR REPLACE FUNCTION update_contract_status(
+    p_contract_id UUID,
+    p_new_status VARCHAR,
+    p_user_id UUID
+)
+RETURNS BOOLEAN AS $$
+DECLARE
+    v_contract_record public.contracts%ROWTYPE;
+    v_allowed BOOLEAN := FALSE;
+BEGIN
+    -- Récupérer les informations du contrat
+    SELECT * INTO v_contract_record
+    FROM public.contracts
+    WHERE id = p_contract_id;
+    
+    IF NOT FOUND THEN
+        RETURN FALSE;
+    END IF;
+    
+    -- Vérifier que l'utilisateur a le droit de modifier ce contrat
+    IF p_user_id = v_contract_record.client_id OR p_user_id = v_contract_record.expert_id THEN
+        v_allowed := TRUE;
+    END IF;
+    
+    IF NOT v_allowed THEN
+        RETURN FALSE;
+    END IF;
+    
+    -- Vérifier les transitions d'état valides
+    CASE v_contract_record.status
+        WHEN 'pending' THEN
+            IF p_new_status IN ('active', 'cancelled') THEN
+                v_allowed := TRUE;
+            END IF;
+        WHEN 'active' THEN
+            IF p_new_status IN ('completed', 'cancelled') THEN
+                v_allowed := TRUE;
+            END IF;
+        ELSE
+            v_allowed := FALSE;
+    END CASE;
+    
+    IF NOT v_allowed THEN
+        RETURN FALSE;
+    END IF;
+    
+    -- Mettre à jour le statut du contrat
+    UPDATE public.contracts
+    SET status = p_new_status, updated_at = NOW()
+    WHERE id = p_contract_id;
+    
+    -- Si le contrat est terminé, mettre à jour la demande
+    IF p_new_status = 'completed' THEN
+        UPDATE public.requests
+        SET status = 'completed', updated_at = NOW()
+        WHERE id = v_contract_record.request_id;
+        
+        -- Créer des notifications
+        PERFORM create_notification(
+            v_contract_record.client_id,
+            'contract_completed',
+            'Contrat terminé',
+            'Votre contrat a été marqué comme terminé.',
+            p_contract_id
+        );
+        
+        PERFORM create_notification(
+            v_contract_record.expert_id,
+            'contract_completed',
+            'Contrat terminé',
+            'Votre contrat a été marqué comme terminé.',
+            p_contract_id
+        );
+    END IF;
+    
+    RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Fonction pour calculer le délai moyen de réponse aux demandes
+CREATE OR REPLACE FUNCTION calculate_average_response_time()
+RETURNS TABLE (
+    category_id UUID,
+    category_name VARCHAR,
+    avg_response_time INTERVAL
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        sc.id AS category_id,
+        sc.name AS category_name,
+        AVG(p.created_at - r.created_at) AS avg_response_time
+    FROM
+        public.proposals p
+        JOIN public.requests r ON p.request_id = r.id
+        JOIN public.services s ON r.service_id = s.id
+        JOIN public.service_categories sc ON s.category_id = sc.id
+    GROUP BY
+        sc.id, sc.name
+    ORDER BY
+        avg_response_time;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Fonction qui génère une clé d'invitation aléatoire pour les experts
+CREATE OR REPLACE FUNCTION generate_invitation_code()
+RETURNS TEXT AS $$
+DECLARE
+    chars TEXT := 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    result TEXT := '';
+    i INTEGER;
+BEGIN
+    FOR i IN 1..8 LOOP
+        result := result || substr(chars, floor(random() * length(chars) + 1)::integer, 1);
+    END LOOP;
+    RETURN result;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Table pour stocker les invitations d'experts
+CREATE TABLE IF NOT EXISTS public.expert_invitations (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    email VARCHAR(255) NOT NULL UNIQUE,
+    invitation_code TEXT NOT NULL,
+    is_used BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    expires_at TIMESTAMP WITH TIME ZONE DEFAULT (NOW() + INTERVAL '7 days')
+);
+
+-- Fonction pour créer une invitation d'expert
+CREATE OR REPLACE FUNCTION create_expert_invitation(p_email VARCHAR)
+RETURNS TEXT AS $$
+DECLARE
+    v_code TEXT;
+BEGIN
+    v_code := generate_invitation_code();
+    
+    INSERT INTO public.expert_invitations (email, invitation_code)
+    VALUES (p_email, v_code)
+    ON CONFLICT (email) 
+    DO UPDATE SET 
+        invitation_code = v_code,
+        is_used = FALSE,
+        expires_at = (NOW() + INTERVAL '7 days');
+    
+    RETURN v_code;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Fonction pour vérifier et valider une invitation d'expert
+CREATE OR REPLACE FUNCTION validate_expert_invitation(
+    p_email VARCHAR,
+    p_code TEXT
+)
+RETURNS BOOLEAN AS $$
+DECLARE
+    v_valid BOOLEAN := FALSE;
+BEGIN
+    SELECT EXISTS (
+        SELECT 1 
+        FROM public.expert_invitations 
+        WHERE email = p_email 
+          AND invitation_code = p_code 
+          AND NOT is_used 
+          AND expires_at > NOW()
+    ) INTO v_valid;
+    
+    IF v_valid THEN
+        UPDATE public.expert_invitations
+        SET is_used = TRUE
+        WHERE email = p_email AND invitation_code = p_code;
+    END IF;
+    
+    RETURN v_valid;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Fonction pour récupérer les revenus d'un expert par période
+CREATE OR REPLACE FUNCTION get_expert_earnings(
+    p_expert_id UUID,
+    p_start_date DATE DEFAULT NULL,
+    p_end_date DATE DEFAULT NULL
+)
+RETURNS TABLE (
+    period TEXT,
+    earnings DECIMAL(10,2)
+) AS $$
+BEGIN
+    -- Si aucune date n'est spécifiée, utiliser les 12 derniers mois
+    p_start_date := COALESCE(p_start_date, date_trunc('month', current_date - interval '11 months')::date);
+    p_end_date := COALESCE(p_end_date, current_date);
+    
+    RETURN QUERY
+    WITH months AS (
+        SELECT generate_series(
+            date_trunc('month', p_start_date)::date,
+            date_trunc('month', p_end_date)::date,
+            '1 month'::interval
+        )::date as month_start
+    )
+    SELECT
+        to_char(m.month_start, 'Mon YYYY') AS period,
+        COALESCE(SUM(c.total_amount), 0) AS earnings
+    FROM
+        months m
+        LEFT JOIN public.contracts c ON 
+            c.expert_id = p_expert_id AND
+            c.status = 'completed' AND
+            date_trunc('month', c.end_date) = m.month_start
+    GROUP BY
+        m.month_start
+    ORDER BY
+        m.month_start;
+END;
+$$ LANGUAGE plpgsql;
+
+
 -- ===============================
 -- POLITIQUES RLS (Row Level Security)
 -- ===============================

@@ -263,8 +263,7 @@ const fetchExpertData = async () => {
     const { data: expertData, error: expertError } = await client
       .from('profiles')
       .select(`
-        *,
-        expertise_areas:expert_services(category_id, service_id, service_name)
+        *
       `)
       .eq('id', route.params.id)
       .eq('role', 'expert')

@@ -38,19 +38,19 @@
 
         <template v-if="!user">
           <NuxtLink 
-            to="/auth/login"
+            to="/auth/login" 
             class="px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium transition-colors"
           >
             Connexion
           </NuxtLink>
           <NuxtLink 
-            to="/auth/register"
+            to="/auth/register" 
             class="px-4 py-2 bg-primary-600 text-white rounded-full hover:bg-primary-700 transition-all shadow-sm hover:shadow btn-gafam"
           >
             Inscription
           </NuxtLink>
         </template>
-        
+
         <!-- Menu utilisateur -->
         <Menu v-else as="div" class="relative">
           <MenuButton class="flex items-center gap-2 p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
@@ -66,7 +66,7 @@
             </div>
             <LucideIcon :icon="ChevronDown" size="16" class="text-gray-500 dark:text-gray-400" />
           </MenuButton>
-
+          
           <transition
             enter-active-class="transition duration-200 ease-out"
             enter-from-class="opacity-0 scale-95"
@@ -99,7 +99,7 @@
                 </MenuItem>
                 
                 <div class="border-t border-gray-100 dark:border-gray-700 my-1"></div>
-                
+              
                 <MenuItem v-slot="{ active }">
                   <button
                     @click="handleLogout"
@@ -116,10 +116,10 @@
             </MenuItems>
           </transition>
         </Menu>
-        
+
         <!-- Menu mobile -->
         <button 
-          @click="mobileMenuOpen = !mobileMenuOpen" 
+          @click="mobileMenuOpen = !mobileMenuOpen"
           class="md:hidden p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
         >
           <LucideIcon v-if="mobileMenuOpen" :icon="X" size="20" />
@@ -127,7 +127,7 @@
         </button>
       </div>
     </div>
-    
+
     <!-- Menu mobile -->
     <transition
       enter-active-class="transition duration-300 ease-out"

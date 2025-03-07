@@ -1,453 +1,334 @@
 <template>
-  <div class="space-y-6">
-    <!-- En-tête de page avec stats -->
-    <PageHeader 
-      title="Gestion des catégories" 
-      subtitle="Organisez les services par catégories"
-    >
-      <!-- Statistiques -->
-      <template #stats>
-        <StatCard 
-          title="Total catégories" 
-          :value="categories.length" 
-          :icon="Tag" 
-          color="amber" 
-        />
-        
-        <StatCard 
-          title="Services associés" 
-          :value="servicesCount" 
-          :icon="Package" 
-          color="emerald" 
-        />
-        
-        <StatCard 
-          title="Catégories actives" 
-          :value="categories.filter(c => c.active !== false).length" 
-          :icon="CheckCircle" 
-          color="green" 
-        />
-        
-        <StatCard 
-          title="Demandes associées" 
-          :value="requestsCount" 
-          :icon="FileText" 
-          color="blue" 
-        />
-      </template>
+  <div class="p-6 max-w-7xl mx-auto">
+    <!-- En-tête avec titre et actions -->
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Catégories de services</h1>
       
-      <!-- Actions -->
-      <template #actions>
+      <div class="flex space-x-3">
         <button 
-          @click="openCategoryModal"
-          class="px-4 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center whitespace-nowrap"
+          @click="exportCategories"
+          class="px-3 py-2 flex items-center text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
         >
-          <Plus class="h-4 w-4 mr-1.5" />
-          Ajouter une catégorie
+          <Download class="h-4 w-4 mr-2" />
+          Exporter
         </button>
-      </template>
-    </PageHeader>
-    
-    <!-- Contenu - Catégories -->
-    <div class="space-y-6">
-      <div v-if="loading" class="flex justify-center py-12">
-        <Loader2 class="h-8 w-8 text-gray-400 animate-spin" />
-      </div>
-      
-      <div v-else-if="categories.length === 0" class="bg-white border border-gray-200 rounded-xl p-12 text-center">
-        <Tag class="h-10 w-10 mx-auto text-gray-300 mb-3" />
-        <p class="text-gray-500">Aucune catégorie n'a été créée</p>
+        
         <button 
           @click="openCategoryModal()"
-          class="mt-4 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
+          class="px-3 py-2 flex items-center text-sm font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-700"
         >
+          <Plus class="h-4 w-4 mr-2" />
           Ajouter une catégorie
         </button>
       </div>
-      
-      <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        <div 
-          v-for="category in categories" 
-          :key="category.id"
-          class="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow"
-        >
-          <div class="p-5">
-            <div class="flex items-center justify-between mb-4">
-              <div class="flex items-center">
-                <div class="h-10 w-10 rounded-full bg-primary-50 flex items-center justify-center text-primary-600">
-                  <component :is="getCategoryIcon(category.icon)" class="h-6 w-6" />
-                </div>
-                <h3 class="ml-3 font-semibold text-gray-900">{{ category.name }}</h3>
               </div>
               
-              <div class="flex items-center">
-                <button 
-                  @click="editCategory(category)"
-                  class="text-gray-500 hover:text-primary-600 transition-colors p-1"
-                >
-                  <Edit class="h-5 w-5" />
-                </button>
-                <button 
-                  @click="confirmDeleteCategory(category)"
-                  class="text-gray-500 hover:text-red-600 transition-colors p-1"
-                >
-                  <Trash2 class="h-5 w-5" />
-                </button>
-              </div>
+    <!-- Filtres et recherche -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm mb-6 overflow-hidden">
+      <div class="p-5 border-b dark:border-gray-700">
+        <h2 class="text-lg font-medium text-gray-900 dark:text-white">Filtres</h2>
             </div>
             
-            <p v-if="category.description" class="text-sm text-gray-500 line-clamp-2">
-              {{ category.description }}
-            </p>
-            
-            <div class="mt-4 pt-4 border-t border-gray-100">
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-gray-500">
-                  {{ getCategoryServicesCount(category.id) }} services
-                </span>
-                <NuxtLink 
-                  :to="`/admin/services?category=${category.id}`"
-                  class="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center"
-                >
-                  Voir les services
-                  <ChevronRight class="h-4 w-4 ml-1" />
-                </NuxtLink>
-              </div>
+      <div class="p-5">
+        <!-- Recherche -->
+        <div>
+          <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Recherche</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search class="h-4 w-4 text-gray-400" />
             </div>
+            <input
+              id="search"
+              v-model="search"
+              type="text"
+              placeholder="Nom de catégorie..."
+              class="block w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            />
           </div>
         </div>
       </div>
     </div>
     
-    <!-- Modal d'ajout/modification de catégorie -->
-    <Teleport to="body">
-      <div 
-        v-if="showCategoryModal" 
-        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4"
-        @click.self="showCategoryModal = false"
-      >
-        <div class="bg-white rounded-xl p-6 w-full max-w-md">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-semibold text-gray-900">
-              {{ editMode ? 'Modifier la catégorie' : 'Ajouter une catégorie' }}
-            </h3>
-            <button @click="showCategoryModal = false" class="text-gray-500 hover:text-gray-700">
-              <X class="h-5 w-5" />
-            </button>
-          </div>
-          
-          <form @submit.prevent="saveCategory" class="space-y-4">
-            <div>
-              <label for="categoryName" class="block text-sm font-medium text-gray-700 mb-1">Nom</label>
-              <input
-                id="categoryName"
-                v-model="categoryForm.name"
-                type="text"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-transparent"
-                required
-              />
-            </div>
-            
-            <div>
-              <label for="categoryIcon" class="block text-sm font-medium text-gray-700 mb-1">Icône</label>
-              <select
-                id="categoryIcon"
-                v-model="categoryForm.icon"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-transparent"
-              >
-                <option v-for="icon in availableIcons" :key="icon.value" :value="icon.value">
-                  {{ icon.label }}
-                </option>
-              </select>
-            </div>
-            
-            <div>
-              <label for="categoryDescription" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-              <textarea
-                id="categoryDescription"
-                v-model="categoryForm.description"
-                rows="3"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-transparent"
-              ></textarea>
-            </div>
-            
-            <div class="flex justify-end pt-2">
-              <button
-                type="button"
-                @click="showCategoryModal = false"
-                class="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-500 mr-2"
-              >
-                Annuler
-              </button>
-              <button
-                type="submit"
-                class="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center"
-                :disabled="saving"
-              >
-                <Loader2 v-if="saving" class="h-4 w-4 mr-1.5 animate-spin" />
-                <Save v-else class="h-4 w-4 mr-1.5" />
-                {{ editMode ? 'Mettre à jour' : 'Ajouter' }}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </Teleport>
+    <!-- État de chargement -->
+    <div v-if="loading" class="flex justify-center py-20">
+      <Loader2 class="h-10 w-10 text-primary-500 animate-spin" />
+    </div>
     
-    <!-- Modal de confirmation de suppression -->
-    <Teleport to="body">
-      <div 
-        v-if="showDeleteModal" 
-        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4"
-        @click.self="showDeleteModal = false"
-      >
-        <div class="bg-white rounded-xl p-6 w-full max-w-md">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-semibold text-gray-900">Confirmer la suppression</h3>
-            <button @click="showDeleteModal = false" class="text-gray-500 hover:text-gray-700">
-              <X class="h-5 w-5" />
+    <!-- Table des catégories -->
+    <div v-else-if="filteredCategories.length > 0" class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead class="bg-gray-50 dark:bg-gray-700">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Icône
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Nom
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Services
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Date de création
+              </th>
+              <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            <tr v-for="category in paginatedCategories" :key="category.id" class="hover:bg-gray-50 dark:hover:bg-gray-700">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-2xl">{{ category.icon }}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="font-medium text-gray-900 dark:text-white">{{ category.name }}</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">{{ category.description || 'Pas de description' }}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900 dark:text-white">{{ category.services_count || 0 }} services</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                {{ formatDate(category.created_at) }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-center text-sm">
+                <div class="flex justify-center space-x-2">
+                  <button 
+                    @click="editCategory(category)"
+                    class="p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg"
+                    title="Modifier"
+                  >
+                    <Edit class="h-4 w-4" />
+                  </button>
+                  <button 
+                    @click="openDeleteModal(category)"
+                    class="p-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                    title="Supprimer"
+                  >
+                    <Trash class="h-4 w-4" />
             </button>
           </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+            </div>
+            
+      <!-- Pagination -->
+      <div class="px-6 py-4 bg-white dark:bg-gray-800 border-t dark:border-gray-700 flex items-center justify-between">
+        <div class="text-sm text-gray-700 dark:text-gray-300">
+          Affichage de <span class="font-medium">{{ paginationStart }}</span> à <span class="font-medium">{{ paginationEnd }}</span> sur <span class="font-medium">{{ filteredCategories.length }}</span> catégories
+            </div>
+            
+        <div class="flex space-x-1">
+              <button
+            @click="currentPage = 1" 
+            :disabled="currentPage === 1"
+            class="px-3 py-1 rounded border border-gray-300 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ChevronsLeft class="h-4 w-4" />
+              </button>
+              <button
+            @click="currentPage--" 
+            :disabled="currentPage === 1"
+            class="px-3 py-1 rounded border border-gray-300 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ChevronLeft class="h-4 w-4" />
+              </button>
           
-          <p class="text-gray-600 mb-4">
-            Êtes-vous sûr de vouloir supprimer la catégorie 
-            <span class="font-semibold">{{ categoryToDelete?.name }}</span> ?
-            <br><br>
-            Cette action supprimera également tous les services associés à cette catégorie.
-          </p>
-          
-          <div class="flex justify-end pt-2">
-            <button
-              type="button"
-              @click="showDeleteModal = false"
-              class="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-500 mr-2"
+          <div 
+            v-for="page in displayedPages" 
+            :key="page"
+            class="hidden sm:block"
+          >
+            <button 
+              v-if="page !== '...'"
+              @click="currentPage = page"
+              :class="[
+                'h-8 w-8 text-sm font-medium rounded',
+                currentPage === page 
+                  ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              ]"
             >
-              Annuler
+              {{ page }}
+            </button>
+            <span 
+              v-else 
+              class="h-8 w-8 flex items-center justify-center text-gray-500"
+            >...</span>
+          </div>
+          
+            <button
+            @click="currentPage++" 
+            :disabled="currentPage === totalPages"
+            class="px-3 py-1 rounded border border-gray-300 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ChevronRight class="h-4 w-4" />
             </button>
             <button
-              type="button"
-              @click="deleteCategory"
-              class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors flex items-center"
-              :disabled="deleting"
-            >
-              <Loader2 v-if="deleting" class="h-4 w-4 mr-1.5 animate-spin" />
-              <Trash2 v-else class="h-4 w-4 mr-1.5" />
-              Supprimer
+            @click="currentPage = totalPages" 
+            :disabled="currentPage === totalPages"
+            class="px-3 py-1 rounded border border-gray-300 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ChevronsRight class="h-4 w-4" />
             </button>
           </div>
         </div>
       </div>
-    </Teleport>
+    
+    <!-- Pas de résultats -->
+    <div v-else class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-12 text-center">
+      <Package class="h-16 w-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+      <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Aucune catégorie trouvée</h3>
+      <p class="text-gray-500 dark:text-gray-400 mb-6">
+        {{ search ? 'Essayez d\'autres termes de recherche' : 'Commencez par ajouter une nouvelle catégorie' }}
+      </p>
+      <button 
+        @click="openCategoryModal()"
+        class="px-4 py-2 flex items-center justify-center mx-auto bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+      >
+        <Plus class="h-4 w-4 mr-2" />
+        Ajouter une catégorie
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useSupabaseClient } from '#imports'
 import { 
-  Plus, Loader2, Tag, Edit, Trash2, Save, X,
-  ChevronRight, Home, Leaf, Tool, Baby, BookOpen, Laptop, Package, CheckCircle, FileText
+  Search, Download, Plus, Edit, Trash, Loader2,
+  ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
+  Package
 } from 'lucide-vue-next'
-import { PageHeader, StatCard } from '~/components/admin'
 
 const client = useSupabaseClient()
-
-// États
-const loading = ref(true)
 const categories = ref([])
-const services = ref([])
-const showCategoryModal = ref(false)
-const showDeleteModal = ref(false)
-const editMode = ref(false)
+const loading = ref(true)
+const search = ref('')
+const currentPage = ref(1)
+const itemsPerPage = 10
 const categoryToDelete = ref(null)
-const saving = ref(false)
-const deleting = ref(false)
+const showDeleteModal = ref(false)
+const categoryToEdit = ref(null)
+const showCategoryModal = ref(false)
 
-// Formulaire catégorie
-const categoryForm = ref({
-  id: '',
-  name: '',
-  icon: 'Home',
-  description: ''
+// Filtrer les catégories par recherche
+const filteredCategories = computed(() => {
+  if (!search.value) return categories.value
+  
+  const searchLower = search.value.toLowerCase()
+  return categories.value.filter(category => 
+    category.name.toLowerCase().includes(searchLower) ||
+    (category.description && category.description.toLowerCase().includes(searchLower))
+  )
 })
 
-// Liste des icônes disponibles
-const availableIcons = [
-  { value: 'Home', label: 'Maison' },
-  { value: 'Leaf', label: 'Feuille' },
-  { value: 'Tool', label: 'Outil' },
-  { value: 'Baby', label: 'Enfant' },
-  { value: 'BookOpen', label: 'Livre' },
-  { value: 'Laptop', label: 'Ordinateur' },
-  { value: 'Package', label: 'Colis' },
-  { value: 'Briefcase', label: 'Mallette' },
-  { value: 'Heart', label: 'Cœur' },
-  { value: 'Music', label: 'Musique' },
-  { value: 'Camera', label: 'Appareil photo' },
-  { value: 'Car', label: 'Voiture' }
-]
+// Pagination
+const totalPages = computed(() => Math.ceil(filteredCategories.value.length / itemsPerPage))
+const paginatedCategories = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  const end = start + itemsPerPage
+  return filteredCategories.value.slice(start, end)
+})
 
-// Récupérer les données
-const fetchData = async () => {
-  try {
-    loading.value = true
-    
-    // Récupérer les catégories
-    const { data: categoriesData, error: categoriesError } = await client
-      .from('service_categories')
-      .select('*')
-      .order('name')
-    
-    if (categoriesError) throw categoriesError
-    categories.value = categoriesData || []
-    
-    // Récupérer les services pour compter ceux associés à chaque catégorie
-    const { data: servicesData, error: servicesError } = await client
-      .from('services')
-      .select('*')
-    
-    if (servicesError) throw servicesError
-    services.value = servicesData || []
-    
-  } catch (error) {
-    console.error('Erreur lors du chargement des données:', error)
-  } finally {
-    loading.value = false
-  }
-}
+const paginationStart = computed(() => {
+  if (filteredCategories.value.length === 0) return 0
+  return (currentPage.value - 1) * itemsPerPage + 1
+})
 
-// Obtenir l'icône d'une catégorie
-const getCategoryIcon = (iconName) => {
-  const iconMap = {
-    'Home': Home,
-    'Leaf': Leaf,
-    'Tool': Tool,
-    'Baby': Baby,
-    'BookOpen': BookOpen,
-    'Laptop': Laptop,
-    'Package': Package
-    // Ajouter d'autres icônes selon besoin
+const paginationEnd = computed(() => {
+  const end = currentPage.value * itemsPerPage
+  return end > filteredCategories.value.length ? filteredCategories.value.length : end
+})
+
+// Pages à afficher dans la pagination
+const displayedPages = computed(() => {
+  if (totalPages.value <= 7) {
+    return Array.from({ length: totalPages.value }, (_, i) => i + 1)
   }
   
-  return iconMap[iconName] || Home
+  if (currentPage.value <= 4) {
+    return [1, 2, 3, 4, 5, '...', totalPages.value]
+  }
+  
+  if (currentPage.value >= totalPages.value - 3) {
+    return [1, '...', totalPages.value - 4, totalPages.value - 3, totalPages.value - 2, totalPages.value - 1, totalPages.value]
+  }
+  
+  return [1, '...', currentPage.value - 1, currentPage.value, currentPage.value + 1, '...', totalPages.value]
+})
+
+// Formater la date
+const formatDate = (dateString) => {
+  if (!dateString) return '—'
+  const date = new Date(dateString)
+  return date.toLocaleDateString('fr-FR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
 }
 
-// Compter les services associés à une catégorie
-const getCategoryServicesCount = (categoryId) => {
-  return services.value.filter(service => service.category_id === categoryId).length
-}
-
-// Ouvrir le modal d'ajout de catégorie
-const openCategoryModal = () => {
-  editMode.value = false
-  categoryForm.value = {
-    id: '',
+// Ouvrir le modal d'ajout/édition
+const openCategoryModal = (category = null) => {
+  categoryToEdit.value = category ? { ...category } : {
     name: '',
-    icon: 'Home',
+    icon: '📦',
     description: ''
   }
   showCategoryModal.value = true
 }
 
-// Modifier une catégorie
+// Éditer une catégorie
 const editCategory = (category) => {
-  editMode.value = true
-  categoryForm.value = {
-    id: category.id,
-    name: category.name,
-    icon: category.icon || 'Home',
-    description: category.description || ''
-  }
-  showCategoryModal.value = true
+  openCategoryModal(category)
 }
 
-// Confirmer la suppression d'une catégorie
-const confirmDeleteCategory = (category) => {
+// Ouvrir le modal de suppression
+const openDeleteModal = (category) => {
   categoryToDelete.value = category
   showDeleteModal.value = true
 }
 
-// Enregistrer une catégorie (créer ou mettre à jour)
-const saveCategory = async () => {
-  try {
-    saving.value = true
-    
-    if (editMode.value) {
-      // Mise à jour de la catégorie existante
-      const { error } = await client
-        .from('service_categories')
-        .update({
-          name: categoryForm.value.name,
-          icon: categoryForm.value.icon,
-          description: categoryForm.value.description
-        })
-        .eq('id', categoryForm.value.id)
-      
-      if (error) throw error
-    } else {
-      // Création d'une nouvelle catégorie
-      const { error } = await client
-        .from('service_categories')
-        .insert({
-          name: categoryForm.value.name,
-          icon: categoryForm.value.icon,
-          description: categoryForm.value.description
-        })
-      
-      if (error) throw error
-    }
-    
-    // Recharger les données et fermer le modal
-    await fetchData()
-    showCategoryModal.value = false
-  } catch (error) {
-    console.error('Erreur lors de l\'enregistrement de la catégorie:', error)
-    alert('Erreur lors de l\'enregistrement de la catégorie: ' + error.message)
-  } finally {
-    saving.value = false
-  }
+// Exporter les catégories
+const exportCategories = () => {
+  // Logique d'exportation
+  console.log('Exporter les catégories')
 }
 
-// Supprimer une catégorie
-const deleteCategory = async () => {
-  if (!categoryToDelete.value) return
-  
+// Chargement des données
+const fetchCategories = async () => {
   try {
-    deleting.value = true
+    loading.value = true
     
-    // Supprimer les services associés à cette catégorie
-    const { error: servicesError } = await client
-      .from('services')
-      .delete()
-      .eq('category_id', categoryToDelete.value.id)
-    
-    if (servicesError) throw servicesError
-    
-    // Supprimer la catégorie
-    const { error } = await client
+    // Récupérer les catégories depuis la base de données
+    const { data, error } = await client
       .from('service_categories')
-      .delete()
-      .eq('id', categoryToDelete.value.id)
+      .select('*')
+      .order('name')
     
     if (error) throw error
-    
-    // Recharger les données et fermer le modal
-    await fetchData()
-    showDeleteModal.value = false
-    categoryToDelete.value = null
+    categories.value = data || []
   } catch (error) {
-    console.error('Erreur lors de la suppression de la catégorie:', error)
-    alert('Erreur lors de la suppression de la catégorie: ' + error.message)
+    console.error('Erreur lors du chargement des catégories:', error)
   } finally {
-    deleting.value = false
+    loading.value = false
   }
 }
 
-// Charger les données au montage du composant
-onMounted(fetchData)
+// Réinitialiser la pagination quand les filtres changent
+watch(search, () => {
+  currentPage.value = 1
+})
 
-// Définir le layout admin
+// Charger les catégories au montage du composant
+onMounted(fetchCategories)
+
 definePageMeta({
-  layout: 'admin',
-  middleware: ['admin-auth']
+  layout: 'admin'
 })
 </script> 

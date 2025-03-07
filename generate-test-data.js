@@ -1,5 +1,7 @@
-const { createClient } = require('@supabase/supabase-js')
-const faker = require('faker')
+import { createClient } from '@supabase/supabase-js'
+import faker from 'faker'
+import dotenv from 'dotenv';
+dotenv.config();
 
 // Configuration Supabase
 const supabaseUrl = process.env.SUPABASE_URL

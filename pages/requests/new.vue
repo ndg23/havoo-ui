@@ -49,29 +49,28 @@
                 </p>
               </div>
               
-              <!-- Catégories style Uber - grandes tuiles cliquables -->
-              <div class="grid grid-cols-2 gap-4">
-                <button
-                  v-for="category in serviceCategories"
-                  :key="category.id"
-                  @click="selectCategory(category.id)"
-                  class="aspect-square relative overflow-hidden group"
-                >
-                  <div 
-                    :class="[
-                      'absolute inset-0 rounded-xl flex flex-col items-center justify-center p-4 transition-all duration-200',
-                      form.category_id === category.id 
-                        ? 'bg-black text-white' 
-                        : 'bg-gray-100 text-black group-hover:bg-gray-200'
-                    ]"
+              <!-- Catégories avec défilement -->
+              <div class="max-h-[60vh] overflow-y-auto pr-2 -mr-2">
+                <div class="grid grid-cols-2 gap-4">
+                  <button
+                    v-for="category in serviceCategories"
+                    :key="category.id"
+                    @click="selectCategory(category.id)"
+                    class="aspect-square relative overflow-hidden group"
                   >
-                    <component 
-                      :is="category.icon" 
-                      class="h-8 w-8 mb-3"
-                    />
-                    <span class="font-medium text-center">{{ category.name }}</span>
-                  </div>
-                </button>
+                    <div 
+                      :class="[
+                        'absolute inset-0 text-black rounded-xl flex flex-col items-center justify-center p-4 transition-all duration-200',
+                        form.category_id === category.id 
+                          ? 'bg-black text-white' 
+                          : 'bg-gray-100 text-black group-hover:bg-gray-200'
+                      ]"
+                    >
+                      <span class="text-3xl mb-3">{{ category.icon }}</span>
+                      <span class="font-medium text-center">{{ category.name }}</span>
+                    </div>
+                  </button>
+                </div>
               </div>
             </div>
             
@@ -380,6 +379,11 @@
         </div>
       </div>
     </div>
+
+    <!-- Ajouter près du début du template -->
+    <!-- <div class="bg-gray-100 p-4 my-4 rounded-lg">
+      <pre class="text-xs overflow-x-auto">{{ JSON.stringify(serviceCategories, null, 2) }}</pre>
+    </div> -->
   </div>
 </template>
 
@@ -568,21 +572,9 @@ onMounted(async () => {
     
     if (categoriesError) throw categoriesError
     
-    // Icônes correspondant aux catégories
-    const iconMap = {
-      'Ménage': 'Home',
-      'Jardinage': 'Leaf',
-      'Bricolage': 'Tool',
-      'Garde d\'enfants': 'Baby',
-      'Cours particuliers': 'BookOpen',
-      'Informatique': 'Laptop'
-    }
-    
-    // Associer les icônes Lucide aux catégories
-    serviceCategories.value = categoriesData.map(cat => ({
-      ...cat,
-      icon: iconMap[cat.name] || 'Package'
-    }))
+    // Utiliser directement les icônes de la base de données (emojis)
+    serviceCategories.value = categoriesData;
+    console.log("Catégories chargées:", serviceCategories.value);
     
     // Chargement des services
     const { data: servicesData, error: servicesError } = await client
@@ -595,6 +587,22 @@ onMounted(async () => {
     console.error('Erreur chargement données:', error)
   }
 })
+
+// Limiter le nombre de catégories affichées (pour éviter les problèmes de performance)
+const limitedCategories = computed(() => {
+  // On affiche seulement les 6 premières catégories uniques
+  const uniqueCategories = [];
+  const seenNames = new Set();
+  
+  for (const cat of serviceCategories.value) {
+    if (!seenNames.has(cat.name)) {
+      seenNames.add(cat.name);
+      uniqueCategories.push(cat);
+    }
+  }
+  
+  return uniqueCategories;
+});
 
 definePageMeta({
   layout: 'default',

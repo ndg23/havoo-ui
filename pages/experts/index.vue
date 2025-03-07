@@ -1,45 +1,42 @@
 <template>
-  <div class="min-h-screen bg-white">
-    <!-- En-tête minimaliste -->
-    <div class="border-b border-gray-200">
-      <div class="max-w-4xl mx-auto px-5 py-4 flex items-center justify-between">
-        <h1 class="text-xl font-bold text-black">Experts disponibles</h1>
-        <NuxtLink 
-          to="/" 
-          class="px-5 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-full hover:bg-primary-700 transition-colors flex items-center"
-        >
-          <Search class="h-4 w-4 mr-1" />
-          Rechercher un service
-        </NuxtLink>
-      </div>
-    </div>
-    
-    <!-- Filtres et recherche -->
-    <div class="border-b border-gray-100">
-      <div class="max-w-4xl mx-auto px-5 py-3">
-        <div class="flex flex-col sm:flex-row sm:items-center gap-4">
-          <!-- Recherche -->
-          <div class="relative flex-1">
-            <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <input 
+  <div class="min-h-screen bg-gray-50">
+    <!-- En-tête amélioré -->
+    <div class="bg-white border-b border-gray-100 sticky top-0 z-10 shadow-sm">
+      <div class="max-w-5xl mx-auto px-5 py-4">
+        <div class="flex flex-col space-y-4">
+          <!-- Titre et bouton de demande -->
+          <div class="flex items-center justify-between">
+            <h1 class="text-2xl font-bold text-gray-800">Experts disponibles</h1>
+            <NuxtLink 
+              to="/requests/new" 
+              class="px-6 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white text-sm font-medium rounded-full shadow-sm hover:shadow-md transition-all duration-200 transform hover:-translate-y-0.5"
+            >
+              Publier une demande
+            </NuxtLink>
+          </div>
+          
+          <!-- Barre de recherche améliorée -->
+          <div class="relative">
+            <Search class="absolute left-4 top-1/2 transform -translate-y-1/2 text-primary-400 h-5 w-5" />
+            <input 
               v-model="search"
               type="text"
-              placeholder="Rechercher un expert par nom, compétence..."
-              class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-full focus:outline-none focus:border-black transition-colors text-sm"
+              placeholder="Que recherchez-vous ? (ex: plombier, ménage...)"
+              class="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-full bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 transition-all shadow-sm"
             />
-        </div>
-        
-          <!-- Filtres -->
-          <div class="flex overflow-x-auto no-scrollbar gap-2">
+          </div>
+          
+          <!-- Filtres horizontaux améliorés -->
+          <div class="flex overflow-x-auto no-scrollbar gap-2 py-1">
             <button 
               v-for="category in categories" 
               :key="category.id"
               @click="toggleCategoryFilter(category.id)"
               :class="[
-                'px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap transition-colors',
+                'px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap transition-all duration-200',
                 selectedCategories.includes(category.id)
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-sm'
+                  : 'bg-white text-gray-700 border border-gray-200 hover:border-primary-300 hover:bg-gray-50'
               ]"
             >
               {{ category.name }}
@@ -49,136 +46,199 @@
       </div>
     </div>
     
-    <!-- Contenu principal -->
-    <div class="max-w-4xl mx-auto px-5 py-8">
+    <!-- Contenu principal amélioré -->
+    <div class="max-w-5xl mx-auto px-5 py-6">
       <!-- État de chargement -->
-      <div v-if="loading" class="flex justify-center py-12">
-        <Loader2 class="h-8 w-8 text-gray-400 animate-spin" />
+      <div v-if="loading" class="flex justify-center py-16">
+        <div class="flex flex-col items-center">
+          <Loader2 class="h-10 w-10 text-primary-500 animate-spin mb-4" />
+          <span class="text-gray-500">Recherche des experts...</span>
+        </div>
       </div>
       
-      <!-- Liste des experts -->
-      <div v-else-if="filteredExperts.length > 0" class="space-y-6">
+      <!-- Nombre de résultats -->
+      <div v-else-if="filteredExperts.length > 0" class="mb-4 flex justify-between items-center">
+        <p class="text-sm text-gray-500 font-medium">
+          {{ filteredExperts.length }} résultat{{ filteredExperts.length > 1 ? 's' : '' }}
+        </p>
+        
+        <!-- Tri -->
+        <div class="relative">
+          <select 
+            v-model="sortOption"
+            class="appearance-none bg-white border border-gray-200 rounded-full px-4 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 transition-all cursor-pointer"
+          >
+            <option value="rating">Mieux notés</option>
+            <option value="price_low">Prix croissant</option>
+            <option value="price_high">Prix décroissant</option>
+            <option value="recent">Plus récents</option>
+          </select>
+          <ChevronDown class="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+        </div>
+      </div>
+      
+      <!-- Liste des experts (version améliorée) -->
+      <div v-if="!loading && filteredExperts.length > 0" class="space-y-4">
         <div 
-        v-for="expert in filteredExperts" 
-        :key="expert.id"
-          class="border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow"
+          v-for="expert in filteredExperts" 
+          :key="expert.id"
+          class="bg-white border border-gray-200 rounded-xl overflow-hidden transition-all duration-200 hover:shadow-md hover:border-primary-200 transform hover:-translate-y-1"
         >
-          <div class="p-5">
-            <!-- En-tête avec photo de profil -->
-            <div class="flex items-start gap-4 mb-4">
-              <div class="h-16 w-16 rounded-full bg-gray-100 overflow-hidden flex-shrink-0">
-                <img 
-                  v-if="expert.profile_image_url" 
-                  :src="expert.profile_image_url" 
-                  alt="Photo de profil" 
-                  class="w-full h-full object-cover"
-                />
-                <div v-else class="w-full h-full flex items-center justify-center bg-gray-200">
-                  <User class="h-8 w-8 text-gray-400" />
+          <NuxtLink :to="`/experts/${expert.id}`" class="block">
+            <div class="flex flex-col md:flex-row">
+              <!-- Image à gauche (ou en haut sur mobile) -->
+              <div class="md:w-1/4 p-4">
+                <div class="aspect-square bg-gray-100 overflow-hidden rounded-xl relative shadow-sm">
+                  <img 
+                    v-if="expert.profile_image_url" 
+                    :src="expert.profile_image_url" 
+                    alt="Photo de profil" 
+                    class="w-full h-full object-cover"
+                  />
+                  <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                    <User class="h-12 w-12 text-gray-400" />
+                  </div>
+                  
+                  <!-- Badge vérifié amélioré -->
+                  <div v-if="expert.is_verified" class="absolute top-2 left-2 bg-white px-2.5 py-1 rounded-full flex items-center shadow-sm">
+                    <CheckCircle class="h-3.5 w-3.5 text-green-500 mr-1" />
+                    <span class="text-xs font-semibold text-gray-700">Vérifié</span>
+                  </div>
                 </div>
               </div>
               
-              <div class="flex-1">
+              <!-- Infos à droite (ou en bas sur mobile) -->
+              <div class="flex-1 p-4 flex flex-col">
                 <div class="flex justify-between items-start">
+                  <!-- Titre et infos principales -->
                   <div>
-                    <h3 class="font-semibold text-lg text-gray-900">{{ expert.first_name }} {{ expert.last_name }}</h3>
-                    <div class="flex items-center gap-1 mt-1">
-                      <Star class="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                      <span class="text-sm font-medium">{{ expert.rating || '4.8' }}</span>
-                      <span class="text-sm text-gray-500">({{ expert.reviews_count || '12' }} avis)</span>
+                    <div class="font-semibold text-lg text-gray-900">{{ expert.first_name }} {{ expert.last_name }}</div>
+                    <div class="text-primary-600 font-medium mt-0.5">
+                      {{ expert.title || getExpertiseAreas(expert)[0] || "Expert service" }}
+                    </div>
+                    
+                    <!-- Localisation -->
+                    <div class="text-sm text-gray-500 mt-2 flex items-center">
+                      <MapPin class="h-3.5 w-3.5 mr-1.5" />
+                      {{ expert.city || 'Paris' }}
+                    </div>
+                  </div>
+                  
+                  <!-- Prix amélioré -->
+                  <div class="bg-primary-50 px-3 py-1.5 rounded-full text-base font-bold text-primary-700">
+                    {{ expert.hourly_rate || '25' }}€<span class="text-sm font-normal">/h</span>
                   </div>
                 </div>
                 
-                  <div class="text-sm text-gray-500">
-                    <div class="flex items-center">
-                      <MapPin class="h-3.5 w-3.5 mr-1 text-gray-400" />
-                      {{ expert.city || 'Paris' }}
-                    </div>
-                    </div>
+                <!-- Note améliorée -->
+                <div class="flex items-center mt-3">
+                  <div class="flex">
+                    <Star v-for="i in 5" :key="i" 
+                      :class="[
+                        'h-4 w-4 mr-0.5', 
+                        i <= Math.round(expert.rating || 4.8) 
+                          ? 'text-yellow-400 fill-yellow-400' 
+                          : 'text-gray-300'
+                      ]" 
+                    />
                   </div>
+                  <span class="ml-2 text-sm text-gray-600">
+                    <span class="font-medium">{{ expert.rating || '4.8' }}</span>
+                    <span class="text-gray-400">/5</span>
+                    <span class="ml-1 text-gray-500">({{ expert.reviews_count || '12' }})</span>
+                  </span>
+                </div>
+                
+                <!-- Spécialités améliorées -->
+                <div class="mt-4 flex flex-wrap gap-1.5">
+                  <span 
+                    v-for="(specialty, index) in getExpertiseAreas(expert).slice(0, 3)" 
+                    :key="index"
+                    class="px-3 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full"
+                  >
+                    {{ specialty }}
+                  </span>
+                  <span 
+                    v-if="getExpertiseAreas(expert).length > 3" 
+                    class="px-3 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full"
+                  >
+                    +{{ getExpertiseAreas(expert).length - 3 }}
+                  </span>
+                </div>
+                
+                <!-- Dernière ligne avec disponibilité et CTA -->
+                <div class="flex justify-between items-center mt-auto pt-4">
+                  <div class="flex items-center text-sm text-green-600 font-medium">
+                    <div class="h-2 w-2 rounded-full bg-green-500 mr-2"></div>
+                    Disponible maintenant
+                  </div>
+                  
+                  <span class="px-4 py-1.5 bg-primary-100 text-primary-700 text-sm font-medium rounded-full hover:bg-primary-200 transition-colors">
+                    Voir profil
+                  </span>
                 </div>
               </div>
-              
-            <!-- Spécialités -->
-            <div class="mb-4">
-              <div class="flex flex-wrap gap-2">
-                <span 
-                  v-for="(specialty, index) in getExpertiseAreas(expert)" 
-                  :key="index"
-                  class="px-2.5 py-1 text-xs bg-gray-100 text-gray-800 rounded-full"
-                >
-                  {{ specialty }}
-                </span>
-              </div>
             </div>
-            
-            <!-- Bio -->
-            <p class="text-gray-700 text-sm line-clamp-2 mb-4">
-              {{ expert.bio || 'Expert disponible pour vous aider avec vos besoins de services.' }}
-            </p>
-            
-            <!-- Tarifs et actions -->
-            <div class="flex justify-between items-center pt-2">
-              <div class="text-sm font-medium text-gray-900">
-                À partir de {{ expert.hourly_rate || '25' }}€/heure
-          </div>
-          
-              <NuxtLink 
-                :to="`/experts/${expert.id}`" 
-                class="px-4 py-2 text-sm font-medium bg-primary-600 text-white rounded-full hover:bg-primary-700 transition-colors"
-              >
-                Voir profil
-              </NuxtLink>
-            </div>
-          </div>
+          </NuxtLink>
         </div>
         
-        <!-- Pagination simplifiée -->
+        <!-- Pagination améliorée -->
         <div v-if="totalPages > 1" class="flex justify-center mt-8">
-          <div class="flex items-center gap-2">
+          <div class="inline-flex items-center rounded-full bg-white shadow-sm border border-gray-100 overflow-hidden">
             <button 
               @click="currentPage = Math.max(1, currentPage - 1)"
               :disabled="currentPage === 1"
-              class="p-2 rounded-full border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
+              class="p-3 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
             >
-              <ChevronLeft class="h-5 w-5" />
+              <ChevronLeft class="h-5 w-5 text-gray-600" />
             </button>
             
-            <div class="px-4 py-2 text-sm font-medium">
-              Page {{ currentPage }} sur {{ totalPages }}
+            <div v-for="page in paginationArray" :key="page" class="border-l border-r border-gray-100">
+              <button 
+                v-if="page !== '...'"
+                @click="currentPage = page"
+                :class="[
+                  'h-10 w-10 text-sm font-medium',
+                  currentPage === page 
+                    ? 'bg-primary-500 text-white' 
+                    : 'hover:bg-gray-50 text-gray-600'
+                ]"
+              >
+                {{ page }}
+              </button>
+              <span v-else class="h-10 w-10 flex items-center justify-center text-gray-400">...</span>
             </div>
             
             <button 
               @click="currentPage = Math.min(totalPages, currentPage + 1)"
               :disabled="currentPage === totalPages"
-              class="p-2 rounded-full border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
+              class="p-3 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
             >
-              <ChevronRight class="h-5 w-5" />
+              <ChevronRight class="h-5 w-5 text-gray-600" />
             </button>
           </div>
         </div>
-    </div>
-    
-      <!-- État vide -->
-      <div v-else class="py-16 text-center">
-        <div class="rounded-full bg-gray-100 h-20 w-20 flex items-center justify-center mx-auto mb-6">
-          <Users class="h-10 w-10 text-gray-400" />
+      </div>
+      
+      <!-- État vide amélioré -->
+      <div v-else-if="!loading && filteredExperts.length === 0" class="bg-white border border-gray-200 rounded-xl p-10 text-center shadow-sm">
+        <div class="bg-gray-50 h-20 w-20 rounded-full flex items-center justify-center mx-auto mb-6">
+          <FileSearch class="h-10 w-10 text-gray-400" />
         </div>
-        <h3 class="text-xl font-semibold text-gray-900 mb-2">
+        <h3 class="text-xl font-semibold text-gray-900 mb-3">
           {{ search || selectedCategories.length > 0 ? 'Aucun expert trouvé' : 'Aucun expert disponible' }}
         </h3>
-        <p class="text-gray-500 max-w-md mx-auto mb-8">
+        <p class="text-gray-500 max-w-md mx-auto mb-6">
           {{ search || selectedCategories.length > 0 
-            ? 'Essayez de modifier vos critères de recherche pour trouver des experts disponibles.' 
-            : 'Aucun expert n\'est disponible pour le moment. Revenez plus tard.' }}
+            ? 'Essayez avec d\'autres critères de recherche ou moins de filtres.' 
+            : 'Aucun expert n\'est disponible dans cette catégorie pour le moment.' }}
         </p>
         <button 
           v-if="search || selectedCategories.length > 0"
           @click="resetFilters" 
-          class="inline-flex items-center px-6 py-3 bg-primary-600 text-white font-medium rounded-full hover:bg-primary-700 transition-colors"
+          class="px-6 py-2.5 bg-primary-500 text-white font-medium rounded-full hover:bg-primary-600 transition-colors shadow-sm"
         >
-          <RefreshCw class="h-5 w-5 mr-2" />
-          Réinitialiser les filtres
+          Effacer les filtres
         </button>
       </div>
     </div>
@@ -188,8 +248,8 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { 
-  Search, Loader2, MapPin, Star, User, Users, 
-  ChevronLeft, ChevronRight, RefreshCw 
+  Search, Loader2, MapPin, Star, User, ChevronLeft, 
+  ChevronRight, FileSearch, CheckCircle, ChevronDown
 } from 'lucide-vue-next'
 
 const client = useSupabaseClient()
@@ -201,6 +261,7 @@ const categories = ref([])
 const search = ref('')
 const selectedCategories = ref([])
 const currentPage = ref(1)
+const sortOption = ref('rating')
 const itemsPerPage = 10
 
 // Filtrage des experts
@@ -224,6 +285,22 @@ const filteredExperts = computed(() => {
         selectedCategories.value.includes(area.category_id)
       )
     )
+  }
+  
+  // Tri
+  switch (sortOption.value) {
+    case 'rating':
+      filtered.sort((a, b) => (b.rating || 4.5) - (a.rating || 4.5))
+      break
+    case 'price_low':
+      filtered.sort((a, b) => (a.hourly_rate || 25) - (b.hourly_rate || 25))
+      break
+    case 'price_high':
+      filtered.sort((a, b) => (b.hourly_rate || 25) - (a.hourly_rate || 25))
+      break
+    case 'recent':
+      filtered.sort((a, b) => new Date(b.created_at || Date.now()) - new Date(a.created_at || Date.now()))
+      break
   }
   
   // Pagination simple
@@ -255,16 +332,37 @@ const totalPages = computed(() => {
   return Math.ceil(filtered.length / itemsPerPage)
 })
 
+// Génération du tableau de pagination amélioré
+const paginationArray = computed(() => {
+  const totalPages = Math.ceil(experts.value.length / itemsPerPage)
+  const current = currentPage.value
+  
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1)
+  }
+  
+  if (current <= 3) {
+    return [1, 2, 3, 4, 5, '...', totalPages]
+  }
+  
+  if (current >= totalPages - 2) {
+    return [1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages]
+  }
+  
+  return [1, '...', current - 1, current, current + 1, '...', totalPages]
+})
+
 // Réinitialiser les filtres
 const resetFilters = () => {
   search.value = ''
   selectedCategories.value = []
   currentPage.value = 1
+  sortOption.value = 'rating'
 }
 
 // Obtenir les domaines d'expertise d'un expert
 const getExpertiseAreas = (expert) => {
-  if (!expert.expertise_areas) return []
+  if (!expert.expertise_areas) return expert.specialties || ['Service général']
   
   return expert.expertise_areas.map(area => {
     const category = categories.value.find(c => c.id === area.category_id)
@@ -283,7 +381,7 @@ const toggleCategoryFilter = (categoryId) => {
 }
 
 // Réinitialiser la pagination quand les filtres changent
-watch([search, selectedCategories], () => {
+watch([search, selectedCategories, sortOption], () => {
   currentPage.value = 1
 })
 
@@ -303,9 +401,7 @@ const fetchData = async () => {
     // Récupérer les experts (utilisateurs avec le rôle expert)
     const { data: expertsData, error: expertsError } = await client
       .from('profiles')
-      .select(`
-        *
-      `)
+      .select(`*`)
       .eq('role', 'expert')
     
     if (expertsError) throw expertsError
@@ -313,8 +409,12 @@ const fetchData = async () => {
     // Transformer les données des experts
     experts.value = expertsData.map(expert => ({
       ...expert,
-      // Si les services ne sont pas encore renseignés, on ajoute quelques spécialités factices
-      specialties: ['Ménage', 'Jardinage', 'Bricolage']
+      // Générer des données fictives pour les démos
+      is_verified: Math.random() > 0.5, 
+      hourly_rate: Math.floor(Math.random() * 30) + 20,
+      rating: (Math.random() * 1.5 + 3.5).toFixed(1),
+      reviews_count: Math.floor(Math.random() * 50) + 5,
+      specialties: ['Ménage', 'Jardinage', 'Bricolage', 'Peinture', 'Plomberie', 'Électricité', 'Rénovation', 'Montage de meubles'].sort(() => .5 - Math.random()).slice(0, Math.floor(Math.random() * 3) + 2)
     }))
   } catch (error) {
     console.error('Erreur lors du chargement des données:', error)
@@ -329,7 +429,7 @@ onMounted(fetchData)
 definePageMeta({
   layout: 'default'
 })
-</script> 
+</script>
 
 <style scoped>
 /* Masquer la barre de défilement tout en permettant le défilement */
@@ -341,12 +441,9 @@ definePageMeta({
   scrollbar-width: none;
 }
 
-/* Animation de la ligne clamp */
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+/* Animation des éléments */
+.transform {
+  will-change: transform;
 }
 
 /* Animation des étoiles */

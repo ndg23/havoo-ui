@@ -12,7 +12,7 @@
         <div class="text-center mb-16">
           <h1 class="text-5xl sm:text-6xl font-bold text-gray-900 tracking-tight">
             À propos de nous
-          </h1>
+        </h1>
           <p class="mt-6 text-xl text-gray-600 max-w-3xl mx-auto">
             Notre mission est de simplifier votre quotidien en vous connectant avec les meilleurs experts professionnels.
           </p>
@@ -233,13 +233,13 @@
           Que vous soyez à la recherche d'un expert ou souhaitiez proposer vos services, notre plateforme est faite pour vous.
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <NuxtLink 
+          <NuxtLink
             to="/experts" 
             class="px-8 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-colors"
           >
             Trouver un expert
           </NuxtLink>
-          <NuxtLink 
+          <NuxtLink
             to="/register-expert" 
             class="px-8 py-3 bg-primary-600 text-white font-medium rounded-xl hover:bg-primary-700 transition-colors"
           >

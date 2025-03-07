@@ -194,7 +194,7 @@ async function generateUsers(count = 10, skills) {
           rating: faker.number.float({ min: 3.5, max: 5, precision: 0.1 }),
           reviews_count: faker.number.int({ min: 0, max: 50 }),
           verified: faker.datatype.boolean(0.7),
-          availability: generateAvailabilityPattern(),
+          // availability: generateAvailabilityPattern(),
           created_at: profile.created_at,
           updated_at: profile.updated_at
         };
@@ -204,12 +204,12 @@ async function generateUsers(count = 10, skills) {
       
       // Créer des préférences de notification pour l'utilisateur
       userSettings.push({
-        profile_id: userId,
+        id: faker.string.uuid(),
+        // profile_id: userId,
         email_notifications: faker.datatype.boolean(0.8),
         push_notifications: faker.datatype.boolean(0.6),
         language: faker.helpers.arrayElement(['fr', 'en']),
         theme: faker.helpers.arrayElement(['light', 'dark', 'system']),
-        created_at: new Date().toISOString(),
         updated_at: profile.updated_at
       });
       
@@ -314,7 +314,7 @@ async function generateRequests(users, services, categoryIds, count = 20) {
       id: faker.string.uuid(),
       client_id: clientId,
       service_id: service.id,
-      category_id: service.category_id, // Ajout du champ category_id
+      // category_id: service.category_id, // Ajout du champ category_id
       title: faker.helpers.arrayElement([
         `Besoin de ${service.name}`,
         `Recherche personne pour ${service.name}`,
@@ -328,7 +328,7 @@ async function generateRequests(users, services, categoryIds, count = 20) {
       duration: faker.helpers.arrayElement([30, 60, 90, 120, 180]),
       budget: faker.number.float({ min: 20, max: 100, precision: 0.01 }),
       status: faker.helpers.arrayElement(statuses),
-      is_flexible_date: faker.datatype.boolean(0.3),
+      // is_flexible_date: faker.datatype.boolean(0.3),
       created_at: faker.date.recent({ days: 30 }).toISOString()
     };
     
