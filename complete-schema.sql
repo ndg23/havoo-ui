@@ -68,6 +68,7 @@ DROP TABLE IF EXISTS public.skills CASCADE;
 DROP TABLE IF EXISTS public.profiles CASCADE;
 DROP TABLE IF EXISTS public.activities CASCADE;
 DROP TABLE IF EXISTS public.favorites CASCADE;
+DROP TABLE IF EXISTS public.app_settings CASCADE;
 
 -- ===============================
 -- PARTIE 2: ACTIVATION DES EXTENSIONS
@@ -319,6 +320,17 @@ CREATE TABLE IF NOT EXISTS public.messages (
     content TEXT NOT NULL,
     read BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Table des paramètres d'application
+CREATE TABLE IF NOT EXISTS public.app_settings (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    key VARCHAR(255) NOT NULL UNIQUE,
+    value JSONB NOT NULL,
+    description TEXT,
+    is_public BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- ===============================
@@ -586,6 +598,12 @@ BEFORE UPDATE ON public.expert_certifications
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
 
+-- Trigger pour updated_at sur app_settings
+CREATE TRIGGER update_app_settings_updated_at
+BEFORE UPDATE ON public.app_settings
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
+
 -- ===============================
 -- PARTIE 7: INDEXATION
 -- ===============================
@@ -626,15 +644,45 @@ ALTER TABLE public.conversation_participants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.favorites ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.app_settings ENABLE ROW LEVEL SECURITY;
+
+-- ==============================================
+-- Politique pour les profils
+-- ==============================================
+
+CREATE POLICY "Users can create their own profile"
+ON public.profiles
+FOR INSERT
+TO authenticated
+WITH CHECK (auth.uid() = id);
+
+-- Permettre à un utilisateur de lire son propre profil
+CREATE POLICY "Users can read their own profile"
+ON public.profiles
+FOR SELECT
+TO authenticated
+USING (auth.uid() = id);
+
+-- Permettre à un utilisateur de mettre à jour son propre profil
+CREATE POLICY "Users can update their own profile"
+ON public.profiles
+FOR UPDATE
+TO authenticated
+USING (auth.uid() = id);
 
 -- Politique pour les profils
 CREATE POLICY "Les profils sont visibles par tous les utilisateurs authentifiés"
 ON public.profiles FOR SELECT
 USING (auth.role() = 'authenticated');
 
--- Les autres politiques RLS...
--- (Pour éviter un fichier trop long, j'ai conservé seulement un exemple,
--- mais vous devriez garder toutes vos politiques RLS originales ici)
+-- Politique pour les paramètres publics
+CREATE POLICY "Les paramètres publics sont lisibles par tous"
+ON public.app_settings FOR SELECT
+USING (is_public = true);
+
+CREATE POLICY "Les administrateurs peuvent gérer tous les paramètres"
+ON public.app_settings
+USING (auth.jwt() ->> 'role' = 'service_role' OR auth.jwt() ->> 'role' = 'admin');
 
 -- ===============================
 -- PARTIE 9: DONNÉES INITIALES
@@ -675,4 +723,17 @@ FROM (VALUES
 ) AS data(name, icon)
 WHERE NOT EXISTS (
     SELECT 1 FROM public.skills WHERE name = data.name
-); 
+);
+
+-- Insertion des paramètres d'application
+INSERT INTO public.app_settings (key, value, description, is_public)
+VALUES
+('site_name', '"Sénégal Services"', 'Nom du site', true),
+('contact_email', '"contact@senegal-services.com"', 'Email de contact', true),
+('maintenance_mode', 'false', 'Mode maintenance du site', true),
+('currency', '"XOF"', 'Devise par défaut', true),
+('platform_fee_percent', '5', 'Pourcentage de commission de la plateforme', false),
+('default_request_duration_days', '30', 'Durée par défaut pour les demandes (jours)', true),
+('featured_categories', '["1", "2", "3"]', 'IDs des catégories mises en avant', true),
+('max_proposal_count', '5', 'Nombre maximum de propositions par expert par jour', false)
+ON CONFLICT (key) DO NOTHING; 

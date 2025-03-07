@@ -76,7 +76,7 @@ CREATE TABLE public.profiles (
     phone VARCHAR(50),
     address TEXT,
     city VARCHAR(100),
-    country VARCHAR(100) DEFAULT 'France',
+    country VARCHAR(100) DEFAULT 'Sénégal',
     zip_code VARCHAR(20),
     birthdate DATE,
     gender VARCHAR(20),
@@ -315,6 +315,17 @@ CREATE TABLE public.favorites (
     expert_id UUID NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(profile_id, expert_id)
+);
+
+-- Table des paramètres d'application
+CREATE TABLE public.app_settings (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    key VARCHAR(255) NOT NULL UNIQUE,
+    value JSONB NOT NULL,
+    description TEXT,
+    is_public BOOLEAN DEFAULT false,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- ===========================================
@@ -654,6 +665,7 @@ ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.favorites ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.app_settings ENABLE ROW LEVEL SECURITY;
 
 -- Exemples de politiques RLS basiques (à adapter selon vos besoins)
 CREATE POLICY "Lecture publique des profils"
@@ -671,6 +683,36 @@ USING (true);
 CREATE POLICY "Lecture publique des catégories"
 ON public.service_categories FOR SELECT
 USING (true);
+
+-- Permettre à un utilisateur authentifié de créer son propre profil
+CREATE POLICY "Users can create their own profile"
+ON public.profiles
+FOR INSERT
+TO authenticated
+WITH CHECK (auth.uid() = id);
+
+-- Permettre à un utilisateur de lire son propre profil
+CREATE POLICY "Users can read their own profile"
+ON public.profiles
+FOR SELECT
+TO authenticated
+USING (auth.uid() = id);
+
+-- Permettre à un utilisateur de mettre à jour son propre profil
+CREATE POLICY "Users can update their own profile"
+ON public.profiles
+FOR UPDATE
+TO authenticated
+USING (auth.uid() = id);
+
+-- Créer des politiques pour les app_settings
+CREATE POLICY "Les paramètres publics sont lisibles par tous"
+ON public.app_settings FOR SELECT
+USING (is_public = true);
+
+CREATE POLICY "Les administrateurs peuvent gérer tous les paramètres"
+ON public.app_settings
+USING (auth.jwt() ->> 'role' = 'service_role' OR auth.jwt() ->> 'role' = 'admin');
 
 -- ===========================================
 -- PHASE 5: DONNÉES INITIALES
@@ -711,4 +753,17 @@ FROM (VALUES
 ) AS data(name, icon)
 WHERE NOT EXISTS (
     SELECT 1 FROM public.skills WHERE name = data.name
-); 
+);
+
+-- Insertion des paramètres d'application
+INSERT INTO public.app_settings (key, value, description, is_public)
+VALUES
+('site_name', '"Sénégal Services"', 'Nom du site', true),
+('contact_email', '"contact@senegal-services.com"', 'Email de contact', true),
+('maintenance_mode', 'false', 'Mode maintenance du site', true),
+('currency', '"XOF"', 'Devise par défaut', true),
+('platform_fee_percent', '5', 'Pourcentage de commission de la plateforme', false),
+('default_request_duration_days', '30', 'Durée par défaut pour les demandes (jours)', true),
+('featured_categories', '["1", "2", "3"]', 'IDs des catégories mises en avant', true),
+('max_proposal_count', '5', 'Nombre maximum de propositions par expert par jour', false)
+ON CONFLICT (key) DO NOTHING; 

@@ -1,275 +1,255 @@
 <template>
-  <div class="h-screen flex bg-neutral-50 dark:bg-gray-950 text-gray-900 dark:text-white overflow-hidden font-sans">
-    <!-- Sidebar GAFAM-style - plus bold et impactant -->
+  <div class="h-screen flex bg-white dark:bg-gray-950 text-gray-900 dark:text-white overflow-hidden font-sans">
+    <!-- Sidebar style Twitter 2024 -->
     <aside 
-      class="transition-all duration-300 ease-in-out flex flex-col z-30"
+      class="transition-all duration-300 ease-in-out flex flex-col z-30 border-r border-gray-100 dark:border-gray-800/60"
       :class="{ 
-        'w-[280px]': !sidebarCollapsed, 
-        'w-[80px]': sidebarCollapsed,
-        'shadow-lg': !isMobile
+        'w-[260px]': !sidebarCollapsed, 
+        'w-[68px]': sidebarCollapsed,
       }"
     >
-      <!-- Logo area - plus distinctive -->
-      <div class="h-[76px] flex items-center justify-center bg-white dark:bg-gray-900 border-b border-neutral-100 dark:border-gray-800">
-        <NuxtLink to="/admin" class="flex items-center space-x-3">
-          <div class="flex-shrink-0 flex items-center justify-center h-11 w-11 rounded-xl bg-gradient-to-br from-primary-600 to-primary-500 shadow-md shadow-primary-600/20">
-            <Component :is="LogoIcon" class="h-6 w-6 text-white" />
-            </div>
-          <span v-if="!sidebarCollapsed" class="text-xl font-bold text-primary-600 tracking-tight">
-            Admin<span class="text-gray-800 dark:text-white">Pro</span>
-          </span>
+      <!-- Logo area -->
+      <div class="h-[72px] flex items-center px-3">
+        <NuxtLink to="/admin" class="flex items-center">
+          <div class="flex-shrink-0 p-1.5">
+            <Logo :icon-only="sidebarCollapsed" :small="false" />
+          </div>
         </NuxtLink>
-        </div>
-        
-      <!-- Navigation links - design plus impactant -->
-      <div class="flex-1 bg-white dark:bg-gray-900 overflow-y-auto scrollbar-none">
-        <div class="py-7 px-5">
-          <div v-for="section in simplifiedNav" :key="section.title" class="mb-8">
+      </div>
+      
+      <!-- Navigation links - Twitter 2024 style -->
+      <div class="flex-1 overflow-y-auto scrollbar-none pt-2">
+        <div v-for="section in simplifiedNav" :key="section.title" class="mb-6">
+          <h3 
+            v-if="!sidebarCollapsed && section.title" 
+            class="px-5 text-xs uppercase font-semibold text-gray-500 dark:text-gray-400 tracking-wider mb-2"
+          >
+            {{ section.title }}
+          </h3>
+          
+          <div v-if="sidebarCollapsed && section.title" class="h-4"></div>
+          
+          <NuxtLink 
+            v-for="item in section.items"
+            :key="item.to"
+            :to="item.to"
+            class="flex items-center py-2.5 px-3 mx-2 rounded-full text-[15px] transition-all"
+            :class="[
+              isActive(item.to)
+                ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white font-medium'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60'
+            ]"
+            :title="sidebarCollapsed ? item.label : ''"
+          >
             <div 
-              v-if="!sidebarCollapsed && section.title" 
-              class="px-4 text-[13px] uppercase font-semibold text-neutral-400 dark:text-neutral-500 tracking-widest py-2 mb-3"
-            >
-              {{ section.title }}
-              </div>
-            
-            <div v-if="sidebarCollapsed && section.title" class="h-8"></div>
-            
-            <NuxtLink 
-              v-for="item in section.items"
-              :key="item.to"
-              :to="item.to"
-              class="flex items-center py-[14px] px-4 my-[6px] rounded-xl text-[15px] font-medium transition-all duration-200"
+              class="flex items-center justify-center h-[22px] w-[22px] mr-4"
               :class="[
                 isActive(item.to)
-                  ? 'bg-primary-50 dark:bg-primary-950 text-primary-600 dark:text-primary-400 shadow-sm'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-neutral-50 dark:hover:bg-gray-800/60'
+                  ? 'text-gray-900 dark:text-white'
+                  : 'text-gray-600 dark:text-gray-400'
               ]"
-              :title="sidebarCollapsed ? item.label : ''"
             >
-              <div 
-                class="flex items-center justify-center h-10 w-10 rounded-xl mr-3"
-                :class="[
-                  isActive(item.to)
-                    ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
-                    : 'text-neutral-500 dark:text-neutral-400'
-                ]"
-              >
-                <component :is="item.icon" class="h-[21px] w-[21px]" />
-              </div>
-              <span v-if="!sidebarCollapsed" class="truncate">{{ item.label }}</span>
-            </NuxtLink>
-          </div>
-          </div>
-          </div>
-      
-      <!-- User profile - plus élégant -->
-      <div class="bg-white dark:bg-gray-900 border-t border-neutral-100 dark:border-gray-800 p-5">
-        <div 
-          class="flex items-center space-x-3 rounded-xl p-3 hover:bg-neutral-50 dark:hover:bg-gray-800/60 transition-colors cursor-pointer"
-          @click="logout"
-        >
-          <div class="relative h-10 w-10 rounded-xl bg-neutral-100 dark:bg-gray-800 overflow-hidden flex-shrink-0 shadow-inner">
-              <img 
-                v-if="user?.avatar_url" 
-                :src="user.avatar_url" 
-                alt="Avatar"
-              class="h-full w-full object-cover"
-              />
-            <User v-else class="h-5 w-5 text-neutral-400 m-2.5" />
+              <component :is="item.icon" class="h-[22px] w-[22px]" />
             </div>
+            <span v-if="!sidebarCollapsed" class="truncate">{{ item.label }}</span>
+          </NuxtLink>
+        </div>
+      </div>
+      
+      <!-- Bottom actions -->
+      <div class="py-4 px-2">
+        <!-- Toggle sidebar button -->
+        <button 
+          @click="toggleSidebar"
+          class="flex items-center justify-center h-10 w-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
+        >
+          <PanelLeftClose v-if="!sidebarCollapsed" class="h-5 w-5" />
+          <PanelLeftOpen v-else class="h-5 w-5" />
+        </button>
+      </div>
+      
+      <!-- User profile -->
+      <div class="border-t border-gray-100 dark:border-gray-800/60 p-3">
+        <div 
+          class="flex items-center gap-3 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/60 transition-colors cursor-pointer"
+          @click="showUserMenu = !showUserMenu"
+        >
+          <div class="relative h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-800 overflow-hidden flex-shrink-0">
+            <img 
+              v-if="user?.avatar_url" 
+              :src="user.avatar_url" 
+              alt="Avatar"
+              class="h-full w-full object-cover"
+            />
+            <User v-else class="h-5 w-5 text-gray-400 m-2.5" />
+          </div>
           
           <div v-if="!sidebarCollapsed" class="flex-1 min-w-0">
-            <div class="font-medium text-gray-900 dark:text-white">{{ user?.first_name || 'Admin' }}</div>
-            <div class="text-xs text-neutral-500 dark:text-neutral-400">Déconnexion</div>
+            <div class="font-medium text-gray-900 dark:text-white truncate">
+              {{ user?.full_name || user?.email?.split('@')[0] || 'Admin' }}
             </div>
+            <div class="text-xs text-gray-500 dark:text-gray-400 truncate">
+              {{ user?.email || 'admin@example.com' }}
+            </div>
+          </div>
+          
+          <ChevronDown v-if="!sidebarCollapsed" class="h-4 w-4 text-gray-400" />
+        </div>
+        
+        <!-- User menu dropdown -->
+        <div 
+          v-if="showUserMenu && !sidebarCollapsed" 
+          class="absolute bottom-20 left-4 w-[240px] bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 overflow-hidden z-50"
+        >
+          <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+            <div class="font-medium text-gray-900 dark:text-white">
+              {{ user?.full_name || user?.email?.split('@')[0] || 'Admin' }}
+            </div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">
+              {{ user?.email || 'admin@example.com' }}
+            </div>
+          </div>
+          <div class="py-2">
+            <button 
+              @click="toggleDarkMode"
+              class="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60"
+            >
+              <Sun v-if="isDarkMode" class="h-4 w-4 mr-3" />
+              <Moon v-else class="h-4 w-4 mr-3" />
+              {{ isDarkMode ? 'Mode clair' : 'Mode sombre' }}
+            </button>
+            <button 
+              @click="logout"
+              class="flex items-center w-full px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-gray-800/60"
+            >
+              <LogOut class="h-4 w-4 mr-3" />
+              Déconnexion
+            </button>
+          </div>
         </div>
       </div>
     </aside>
     
-    <!-- Overlay for mobile -->
+    <!-- Overlay for mobile sidebar -->
     <div 
       v-if="isMobile && !sidebarCollapsed" 
-      class="fixed inset-0 bg-black/50 backdrop-blur-sm z-20"
-      @click="sidebarCollapsed = true"
+      class="fixed inset-0 bg-black/30 backdrop-blur-sm z-20"
+      @click="closeSidebar"
     ></div>
-    
-    <!-- Main content area - design plus raffiné -->
+
+    <!-- Main content -->
     <div class="flex-1 flex flex-col overflow-hidden">
-      <!-- Top header - plus léger et élégant -->
-      <header class="h-[76px] flex items-center justify-between bg-white dark:bg-gray-900 border-b border-neutral-100 dark:border-gray-800 z-10 px-6">
-          <div class="flex items-center">
-          <!-- Mobile menu button - plus élégant -->
-            <button 
-            v-if="isMobile" 
-            @click="sidebarCollapsed = false"
-            class="h-10 w-10 flex items-center justify-center rounded-xl text-neutral-500 hover:bg-neutral-50 dark:hover:bg-gray-800"
-            >
-            <Menu class="h-5 w-5" />
-            </button>
-          
-          <!-- Page title - typographie améliorée -->
-          <h1 class="text-xl font-semibold text-gray-900 dark:text-white ml-2">
-            {{ pageTitle || 'Dashboard' }}
-          </h1>
-            </div>
-            
-        <!-- Right side actions - design plus cohérent -->
-        <div class="flex items-center space-x-2">
-          <!-- Toggle sidebar -->
-          <button 
-            @click="toggleSidebar" 
-            class="hidden md:flex h-10 w-10 items-center justify-center rounded-xl text-neutral-500 hover:bg-neutral-50 dark:hover:bg-gray-800"
-          >
-            <PanelLeftClose v-if="!sidebarCollapsed" class="h-5 w-5" />
-            <PanelLeftOpen v-else class="h-5 w-5" />
-            </button>
-            
-          <!-- Dark mode toggle - design amélioré -->
-            <button 
-              @click="toggleDarkMode" 
-            class="h-10 w-10 flex items-center justify-center rounded-xl text-neutral-500 hover:bg-neutral-50 dark:hover:bg-gray-800"
-            >
-            <Sun v-if="isDarkMode" class="h-[21px] w-[21px]" />
-            <Moon v-else class="h-[21px] w-[21px]" />
-            </button>
-          </div>
-        </header>
+      <!-- Top header -->
+      <header class="h-[72px] border-b border-gray-100 dark:border-gray-800/60 flex items-center justify-between px-6 bg-white dark:bg-gray-900">
+        <!-- Mobile menu button -->
+        <button 
+          v-if="isMobile" 
+          @click="openSidebar"
+          class="h-10 w-10 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
+        >
+          <Menu class="h-5 w-5" />
+        </button>
         
-      <!-- Main content - padding optimisé -->
-      <main class="flex-1 overflow-y-auto bg-neutral-50 dark:bg-gray-950 p-8">
-            <slot />
-        </main>
+        <!-- Page title -->
+        <h1 class="text-xl font-semibold text-gray-900 dark:text-white">
+          {{ pageTitle }}
+        </h1>
+        
+        <!-- Header actions -->
+        <div class="flex items-center gap-2">
+          <!-- Dark mode toggle -->
+          <button 
+            @click="toggleDarkMode"
+            class="h-10 w-10 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
+          >
+            <Sun v-if="isDarkMode" class="h-5 w-5" />
+            <Moon v-else class="h-5 w-5" />
+          </button>
+          
+          <!-- Notifications -->
+          <button class="h-10 w-10 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 relative">
+            <Bell class="h-5 w-5" />
+            <span class="absolute top-1.5 right-1.5 h-2 w-2 bg-primary-500 rounded-full"></span>
+          </button>
+        </div>
+      </header>
+      
+      <!-- Page content -->
+      <main class="flex-1 overflow-auto bg-neutral-50 dark:bg-gray-950">
+        <slot />
+      </main>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useSupabaseClient, useSupabaseUser } from '#imports'
-import { 
-  Menu, PanelLeftClose, PanelLeftOpen, Sun, Moon, User,
-  LayoutDashboard, Users, Package, Tag, FileText, Settings, FileCheck,
-  LayoutGrid
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+// import { useSupabaseClient, useSupabaseUser } from '#imports'
+import {
+  LayoutDashboard, Users, ShoppingCart, MessageSquare, Settings,
+  FileText, BarChart3, Package, Shield, LogOut, Sun, Moon,
+  PanelLeftClose, PanelLeftOpen, Menu, Bell, User, 
+  ChevronDown, MoreHorizontal, Home, List
 } from 'lucide-vue-next'
+import Logo from '~/components/Logo.vue'
 
-const route = useRoute()
+// State
 const router = useRouter()
+const route = useRoute()
 const client = useSupabaseClient()
 const user = useSupabaseUser()
-
-// App state
-const sidebarCollapsed = ref(false)
 const isDarkMode = ref(false)
+const sidebarCollapsed = ref(false)
 const isMobile = ref(false)
+const showUserMenu = ref(false)
 
-// Logo icon component
-const LogoIcon = LayoutGrid
+// Page title based on current route
+const pageTitle = computed(() => {
+  const path = route.path
+  if (path === '/admin' || path === '/admin/dashboard') return 'Tableau de bord'
+  if (path.includes('/admin/users')) return 'Utilisateurs'
+  if (path.includes('/admin/requests')) return 'Demandes'
+  if (path.includes('/admin/messages')) return 'Messages'
+  if (path.includes('/admin/services')) return 'Services'
+  if (path.includes('/admin/categories')) return 'Catégories'
+  if (path.includes('/admin/settings')) return 'Paramètres'
+  return 'Administration'
+})
 
-// Simplified navigation items
-const simplifiedNav = ref([
+// Simplified navigation structure
+const simplifiedNav = [
   {
-    title: 'Core',
+    title: 'Principal',
     items: [
-      { 
-        label: 'Dashboard', 
-        to: '/admin',
-        icon: LayoutDashboard
-      },
-      { 
-        label: 'Utilisateurs', 
-        to: '/admin/users',
-        icon: Users
-      }
-    ]
-  },
-  {
-    title: 'Catalogue',
-    items: [
-      { 
-        label: 'Services', 
-        to: '/admin/services',
-        icon: Package
-      },
-      { 
-        label: 'Catégories', 
-        to: '/admin/categories',
-        icon: Tag
-      }
+      { label: 'Tableau de bord', to: '/admin/dashboard', icon: LayoutDashboard },
+      { label: 'Utilisateurs', to: '/admin/users', icon: Users },
+      { label: 'Demandes', to: '/admin/requests', icon: FileText },
+      { label: 'Messages', to: '/admin/messages', icon: MessageSquare },
     ]
   },
   {
     title: 'Gestion',
     items: [
-      { 
-        label: 'Demandes', 
-        to: '/admin/requests',
-        icon: FileText
-      },
-      { 
-        label: 'Vérifications', 
-        to: '/admin/verifications',
-        icon: FileCheck
-      },
-      { 
-        label: 'Paramètres', 
-        to: '/admin/settings',
-        icon: Settings
-      }
+      { label: 'Services', to: '/admin/services', icon: Package },
+      { label: 'Catégories', to: '/admin/categories', icon: List },
+      { label: 'Vérifications', to: '/admin/verifications', icon: Shield },
+      { label: 'Statistiques', to: '/admin/analytics', icon: BarChart3 },
+    ]
+  },
+  {
+    title: 'Configuration',
+    items: [
+      { label: 'Paramètres', to: '/admin/settings', icon: Settings },
     ]
   }
-])
+]
 
-// Computed page title
-const pageTitle = computed(() => {
-  const path = route.path
-  
-  // Match direct paths for more precise page titles
-  if (path === '/admin') return 'Dashboard'
-  if (path === '/admin/users') return 'Utilisateurs'
-  if (path === '/admin/services') return 'Services'
-  if (path === '/admin/categories') return 'Catégories'
-  if (path === '/admin/requests') return 'Demandes'
-  if (path === '/admin/verifications') return 'Vérifications'
-  if (path === '/admin/settings') return 'Paramètres'
-  
-  // Dynamic path handling
-  if (path.startsWith('/admin/users/')) {
-    return 'Détail utilisateur'
-  }
-  
-  return getLastPathSegment(path)
-})
-
-// Check if route is active
+// Check if a link is active
 const isActive = (path) => {
-  if (path === '/admin' && route.path === '/admin') {
-    return true
-  }
-  return route.path.startsWith(path) && path !== '/admin'
-}
-
-// Get human-readable page title from URL
-const getLastPathSegment = (path) => {
-  const segment = path.split('/').filter(Boolean).pop()
-  if (!segment) return ''
-  
-  // Capitalize and beautify
-  const humanized = segment.replace(/-/g, ' ')
-  return humanized.charAt(0).toUpperCase() + humanized.slice(1)
-}
-
-// Toggle dark mode
-const toggleDarkMode = () => {
-  isDarkMode.value = !isDarkMode.value
-  
-  if (isDarkMode.value) {
-    document.documentElement.classList.add('dark')
-    localStorage.setItem('darkMode', 'true')
-  } else {
-    document.documentElement.classList.remove('dark')
-    localStorage.setItem('darkMode', 'false')
-  }
+  if (path === '/admin' && route.path === '/admin') return true
+  if (path === '/admin/dashboard' && route.path === '/admin') return true
+  return route.path.startsWith(path)
 }
 
 // Toggle sidebar
@@ -277,11 +257,35 @@ const toggleSidebar = () => {
   sidebarCollapsed.value = !sidebarCollapsed.value
 }
 
-// Logout handler
+// Open sidebar (mobile)
+const openSidebar = () => {
+  sidebarCollapsed.value = false
+}
+
+// Close sidebar (mobile)
+const closeSidebar = () => {
+  if (isMobile.value) {
+    sidebarCollapsed.value = true
+  }
+}
+
+// Toggle dark mode
+const toggleDarkMode = () => {
+  isDarkMode.value = !isDarkMode.value
+  localStorage.setItem('darkMode', isDarkMode.value)
+  
+  if (isDarkMode.value) {
+    document.documentElement.classList.add('dark')
+  } else {
+    document.documentElement.classList.remove('dark')
+  }
+}
+
+// Logout
 const logout = async () => {
   try {
     await client.auth.signOut()
-    router.push('/login')
+    router.push('/auth/login')
   } catch (error) {
     console.error('Error logging out:', error)
   }
@@ -292,6 +296,13 @@ const checkScreenSize = () => {
   isMobile.value = window.innerWidth < 768
   if (isMobile.value && !sidebarCollapsed.value) {
     sidebarCollapsed.value = true
+  }
+}
+
+// Click outside to close user menu
+const closeUserMenu = (event) => {
+  if (showUserMenu.value && !event.target.closest('.user-menu')) {
+    showUserMenu.value = false
   }
 }
 
@@ -315,16 +326,29 @@ onMounted(() => {
   // Check screen size
   checkScreenSize()
   window.addEventListener('resize', checkScreenSize)
+  document.addEventListener('click', closeUserMenu)
 })
 
 // Clean up
 onBeforeUnmount(() => {
   window.removeEventListener('resize', checkScreenSize)
+  document.removeEventListener('click', closeUserMenu)
 })
 
 // Save sidebar state
 watch(sidebarCollapsed, (value) => {
   localStorage.setItem('sidebarCollapsed', value)
+})
+
+// Close user menu when clicking elsewhere
+watch(showUserMenu, (value) => {
+  if (value) {
+    nextTick(() => {
+      document.addEventListener('click', closeUserMenu)
+    })
+  } else {
+    document.removeEventListener('click', closeUserMenu)
+  }
 })
 </script>
 

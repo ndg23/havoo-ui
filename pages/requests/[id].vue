@@ -153,7 +153,7 @@
     ClockIcon,
     TagIcon
   } from '@heroicons/vue/24/outline'
-  import { supabase } from '~/lib/supabase'
+  // import { supabase } from '~/lib/supabase'
   import RequestResolution from '~/components/requests/RequestResolution.vue'
   
   const props = defineProps({
@@ -165,14 +165,14 @@
   
   const emit = defineEmits(['close', 'assign'])
   const proposals = ref([])
-  
+  const client = useSupabaseClient()
   onMounted(async () => {
     await fetchProposals()
   })
   
   const fetchProposals = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await client
         .from('proposals')
         .select(`
           id,

@@ -64,7 +64,7 @@ const isRegisterPage = computed(() =>
 )
 
 const footerLinks = [
-  { name: 'Confidentialité', to: '/legal/privacy' },
+  { name: 'Confidentialité', to: '/legal/legal/privacy' },
   { name: 'Conditions', to: '/legal/terms' },
   { name: 'Mentions légales', to: '/legal/mentions' }
 ]

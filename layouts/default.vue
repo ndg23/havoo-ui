@@ -41,7 +41,7 @@
             <h4 class="font-medium text-gray-900 mb-3">Légal</h4>
             <div class="space-y-2">
               <NuxtLink 
-                to="/privacy"
+                to="/legal/privacy"
                 class="block text-sm text-gray-600 hover:text-gray-900"
               >
                 Confidentialité

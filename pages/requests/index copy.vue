@@ -360,7 +360,7 @@
                 conditions d'utilisation
               </NuxtLink>
               et la
-              <NuxtLink to="/privacy" class="text-primary-600 hover:text-primary-700">
+              <NuxtLink to="/legal/privacy" class="text-primary-600 hover:text-primary-700">
                 politique de confidentialité
               </NuxtLink>
             </label>

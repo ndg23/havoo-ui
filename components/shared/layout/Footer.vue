@@ -104,7 +104,7 @@ const footerSections = [
 ]
 
 const legalLinks = [
-  { name: 'Confidentialité', path: '/privacy' },
+  { name: 'Confidentialité', path: '/legal/privacy' },
   { name: 'Conditions d\'utilisation', path: '/terms' },
   { name: 'Mentions légales', path: '/legal' }
 ]

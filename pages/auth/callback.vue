@@ -56,26 +56,12 @@ onMounted(async () => {
             throw insertError
           }
 
-          // Créer les paramètres utilisateur
-          const { error: settingsError } = await client
-            .from('user_settings')
-            .insert({
-              id: user.id,
-              email_notifications: true,
-              push_notifications: true,
-              language: 'fr',
-              theme: 'light'
-            })
+        
 
-          if (settingsError) {
-            console.error('Erreur création settings:', settingsError)
-            throw settingsError
-          }
-
-          router.push('/compte')
+          router.push('/account/edit-profile')
         } else {
           // Le profil existe déjà
-          router.push(profile.is_expert ? '/expert/dashboard' : '/compte')
+          router.push(profile.is_expert ? '/expert/dashboard' : '/account/edit-profile')
         }
       } catch (dbError) {
         console.error('Erreur DB:', dbError)

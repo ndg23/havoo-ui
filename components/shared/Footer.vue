@@ -56,7 +56,7 @@
               </NuxtLink>
             </li>
             <li>
-              <NuxtLink to="/privacy" class="text-sm text-gray-600 hover:text-gray-900">
+              <NuxtLink to="/legal/privacy" class="text-sm text-gray-600 hover:text-gray-900">
                 Politique de confidentialité
               </NuxtLink>
             </li>

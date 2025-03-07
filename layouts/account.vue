@@ -1,273 +1,427 @@
 <template>
-    <div class="min-h-screen bg-white">
-      <!-- Navigation du compte - style Uber -->
-      <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 md:relative md:border-t-0 md:border-b md:mb-8">
-        <div class="max-w-4xl mx-auto px-2 md:px-5">
-          <div class="flex justify-between items-center overflow-x-auto no-scrollbar">
-            <NuxtLink 
-              v-for="item in navItems" 
-              :key="item.path"
-              :to="item.path"
-              class="flex flex-col items-center py-3 px-3 min-w-[72px] md:min-w-0 md:flex-row md:py-4"
-              :class="$route.path === item.path ? 'text-black' : 'text-gray-400 hover:text-gray-600'"
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <!-- Header minimaliste style Apple/Google 2023 -->
+    <header 
+      class="fixed top-0 left-0 w-full z-50 transition-all duration-300"
+      :class="{ 'bg-white/95 dark:bg-gray-900/98 shadow-sm backdrop-blur-md': isScrolled, 'bg-transparent': !isScrolled }"
+    >
+      <div class="max-w-6xl mx-auto px-4 lg:px-6 h-16 flex items-center justify-between">
+        <!-- Logo avec animation subtile -->
+        <NuxtLink to="/" class="flex-shrink-0">
+          <Logo :small="true" class="transition-transform duration-300 hover:scale-105" />
+        </NuxtLink>
+        
+        <!-- Actions - Design ultra minimaliste -->
+        <div class="flex items-center gap-2 sm:gap-4">
+          <!-- Bouton demande/proposition selon le rôle -->
+          <NuxtLink 
+            :to="isExpert ? '/requests' : '/requests/new'"
+            class="hidden sm:flex items-center gap-2 py-1.5 px-3 bg-primary-600 hover:bg-primary-700 text-white rounded-full text-sm font-medium transition-colors"
+          >
+            <component :is="isExpert ? 'Search' : 'Plus'" class="h-3.5 w-3.5" />
+            <span>{{ isExpert ? 'Voir les demandes' : 'Nouvelle demande' }}</span>
+          </NuxtLink>
+          
+          <!-- Toggle mode sombre subtil -->
+          <button 
+            @click="toggleDarkMode"
+            class="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/60 transition-colors"
+            aria-label="Changer de thème"
+          >
+            <Sun v-if="isDarkMode" class="h-5 w-5" />
+            <Moon v-else class="h-5 w-5" />
+          </button>
+          
+          <!-- Avatar avec notification intégrée -->
+          <div class="relative" ref="profileDropdown">
+            <button 
+              @click="toggleProfileDropdown"
+              class="relative flex items-center h-9 w-9 rounded-full border border-gray-200 dark:border-gray-700 overflow-hidden transition-all hover:ring-2 hover:ring-primary-100 dark:hover:ring-primary-900/40"
+              aria-label="Menu du profil"
             >
-              <component :is="item.icon" class="h-6 w-6 mb-1 md:mr-2 md:mb-0" />
-              <span class="text-xs md:text-sm font-medium">{{ item.name }}</span>
-            </NuxtLink>
+              <img 
+                v-if="userData?.avatar_url" 
+                :src="userData.avatar_url" 
+                alt="Photo de profil"
+                class="h-full w-full object-cover"
+              />
+              <div v-else class="h-full w-full flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+                <User class="h-4.5 w-4.5 text-gray-500 dark:text-gray-400" />
+              </div>
+              
+              <!-- Indicateur de notification -->
+              <div
+                v-if="hasNotifications"
+                class="absolute top-0 right-0 h-2.5 w-2.5 bg-primary-500 rounded-full border border-white dark:border-gray-900 transform translate-x-0.5 -translate-y-0.5"
+              ></div>
+            </button>
+            
+            <!-- Dropdown moderne et aéré style iOS/Android -->
+            <div 
+              v-if="isProfileOpen" 
+              class="absolute right-0 mt-2 w-64 rounded-xl bg-white dark:bg-gray-800 shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden transform origin-top-right transition-all z-50"
+            >
+              <div class="p-4 border-b border-gray-100 dark:border-gray-700">
+                <div class="flex items-center gap-3">
+                  <div class="h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
+                    <img 
+                      v-if="userData?.avatar_url" 
+                      :src="userData.avatar_url" 
+                      alt="Photo de profil"
+                      class="h-full w-full object-cover"
+                    />
+                    <div v-else class="h-full w-full flex items-center justify-center">
+                      <User class="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                    </div>
+                  </div>
+                  <div>
+                    <div class="font-medium text-gray-900 dark:text-white">{{ userData?.first_name }} {{ userData?.last_name }}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ userData?.email }}</div>
+                  </div>
+                </div>
+                
+                <!-- Rôle utilisateur -->
+                <div v-if="userData?.is_expert" class="mt-3 flex items-center">
+                  <span class="text-xs font-medium text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 px-2 py-0.5 rounded">Expert</span>
+                  <StarIcon v-if="userData?.rating" class="h-3 w-3 text-yellow-400 ml-2" />
+                  <span v-if="userData?.rating" class="text-xs text-gray-500 dark:text-gray-400 ml-1">{{ userData.rating }}</span>
+                </div>
+              </div>
+              
+              <!-- Options principales -->
+              <div class="p-1">
+                <NuxtLink 
+                  to="/account"
+                  class="flex items-center mx-1 px-3 py-2 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  @click="isProfileOpen = false"
+                >
+                  <User class="h-4 w-4 mr-3 text-gray-500 dark:text-gray-400" />
+                  Mon profil
+                </NuxtLink>
+                
+                <NuxtLink 
+                  v-if="userData?.is_expert"
+                  to="/account/skills"
+                  class="flex items-center mx-1 px-3 py-2 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  @click="isProfileOpen = false"
+                >
+                  <Briefcase class="h-4 w-4 mr-3 text-gray-500 dark:text-gray-400" />
+                  Mes compétences
+                </NuxtLink>
+                
+                <NuxtLink 
+                  to="/account/verification"
+                  class="flex items-center mx-1 px-3 py-2 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  @click="isProfileOpen = false"
+                >
+                  <Shield class="h-4 w-4 mr-3 text-gray-500 dark:text-gray-400" />
+                  Vérification
+                </NuxtLink>
+                
+                <NuxtLink 
+                  to="/account/settings"
+                  class="flex items-center mx-1 px-3 py-2 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  @click="isProfileOpen = false"
+                >
+                  <Settings class="h-4 w-4 mr-3 text-gray-500 dark:text-gray-400" />
+                  Paramètres
+                </NuxtLink>
+              </div>
+              
+              <!-- Déconnexion -->
+              <div class="p-1 border-t border-gray-100 dark:border-gray-700">
+                <button 
+                  @click="logout"
+                  class="flex w-full items-center mx-1 px-3 py-2 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <LogOut class="h-4 w-4 mr-3 text-gray-500 dark:text-gray-400" />
+                  Déconnexion
+                </button>
+              </div>
+            </div>
           </div>
         </div>
+      </div>
+    </header>
+
+    <!-- Zone principale avec espacement optimal -->
+    <div class="pt-16">
+      <!-- Affichage profil ultra-minimal style Google/Apple -->
+      <section class="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
+        <div class="max-w-6xl mx-auto px-4 lg:px-6 py-6">
+          <!-- Onglets navigation intégrés - Style mobile-first -->
+          <div class="overflow-x-auto hide-scrollbar mb-6">
+            <nav class="flex space-x-2 md:space-x-4 min-w-max">
+              <NuxtLink
+                v-for="tab in filteredTabs"
+                :key="tab.id"
+                :to="tab.to"
+                class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium transition-colors"
+                :class="[
+                  isActiveTab(tab.to)
+                    ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
+                ]"
+              >
+                <component :is="tab.icon" class="h-4 w-4 mr-1.5" />
+                {{ tab.label }}
+              </NuxtLink>
+            </nav>
+          </div>
+        </div>
+      </section>
+      
+      <!-- Section de contenu aérée -->
+      <main class="max-w-6xl mx-auto px-4 lg:px-6 py-6">
+        <slot />
+      </main>
     </div>
-    <div class="mt-16 max-w-7xl mx-auto px-4">
-      <slot />
-    </div>
-     
-    </div>
-  </template>
-  
-  <script setup>
-  import { ref, computed, reactive, onMounted } from 'vue'
-  import { 
-    User, Edit, Loader2, Mail, Phone, MapPin, Calendar, 
-    Camera, Upload, LogOut, Home, Settings, FileText, 
-    ShoppingBag, CalendarDays, AtSign, CreditCard
-  } from 'lucide-vue-next'
-  
-  const router = useRouter()
-  const client = useSupabaseClient()
-  
-  // États
-  const loading = ref(true)
-  const isEditing = ref(false)
-  const isSaving = ref(false)
-  const profile = ref({})
-  const editedProfile = reactive({})
-  
-  // Menu de navigation
-  const navItems = [
-    { name: 'Profil', path: '/account', icon: User },
-    { name: 'Demandes', path: '/account/my-demands', icon: FileText },
-    { name: 'Services', path: '/account/my-services', icon: ShoppingBag },
-    { name: 'Paiements', path: '/account/payments', icon: CreditCard },
-    { name: 'Paramètres', path: '/account/settings', icon: Settings },
-  ]
-  
-  // Formater la date
-  const formatDate = (dateString) => {
-    if (!dateString) return ''
-    const date = new Date(dateString)
-    return date.toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { useSupabaseClient, useSupabaseUser } from '#imports'
+import {
+  User, Sun, Moon, Bell, Settings, LogOut, Shield, Star as StarIcon, Plus, 
+  Search, Briefcase, ChevronDown
+} from 'lucide-vue-next'
+
+// Composables
+const supabase = useSupabaseClient()
+const currentUser = useSupabaseUser()
+const router = useRouter()
+const route = useRoute()
+
+// État
+const isDarkMode = ref(false)
+const isScrolled = ref(false)
+const isProfileOpen = ref(false)
+const profileDropdown = ref(null)
+const userData = ref(null)
+const hasNotifications = ref(false)
+
+// Statistiques
+const stats = ref({
+  requests: 0,
+  proposals: 0,
+  contracts: 0,
+  newRequestsPercent: 5,
+  newProposalsPercent: 8,
+  newContractsPercent: 3
+})
+
+// Tabs de navigation
+const tabs = [
+  { id: 'dashboard', label: 'Tableau de bord', to: '/account', icon: 'LayoutDashboard', roles: ['all'] },
+  { id: 'requests', label: 'Mes demandes', to: '/account/requests', icon: 'FileText', roles: ['all'] },
+  { id: 'proposals', label: 'Mes propositions', to: '/account/my-proposals', icon: 'FileCheck', roles: ['expert'] },
+  { id: 'skills', label: 'Compétences', to: '/account/skills', icon: 'Star', roles: ['expert'] },
+  { id: 'messages', label: 'Messages', to: '/account/messages', icon: 'MessageSquare', roles: ['all'] },
+  { id: 'verification', label: 'Vérification', to: '/account/verification', icon: 'Shield', roles: ['all'] },
+]
+
+// Computed
+const isExpert = computed(() => {
+  return userData.value?.is_expert || false
+})
+
+const filteredTabs = computed(() => {
+  return tabs.filter(tab => 
+    tab.roles.includes('all') || 
+    (isExpert.value && tab.roles.includes('expert'))
+  )
+})
+
+// Méthodes
+const isActiveTab = (path) => {
+  return route.path === path
+}
+
+const handleScroll = () => {
+  isScrolled.value = window.scrollY > 10
+}
+
+const toggleProfileDropdown = () => {
+  isProfileOpen.value = !isProfileOpen.value
+}
+
+const handleClickOutside = (event) => {
+  if (profileDropdown.value && !profileDropdown.value.contains(event.target)) {
+    isProfileOpen.value = false
   }
+}
+
+// Récupérer les données utilisateur
+const fetchUserData = async () => {
+  if (!currentUser.value) return
   
-  // Récupérer les données du profil
-  const fetchProfile = async () => {
-    try {
-      loading.value = true
-      
-      // Récupérer l'utilisateur authentifié
-      const { data: { user }, error: authError } = await client.auth.getUser()
-      if (authError) throw authError
-      if (!user) {
-        // Rediriger vers la page de connexion si non authentifié
-        router.push('/auth/login')
-        return
-      }
-      
-      // Récupérer les données du profil
-      const { data, error } = await client
-        .from('profiles')
+  try {
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', currentUser.value.id)
+      .single()
+    
+    if (error) throw error
+    
+    userData.value = profile
+    
+    // Si c'est un expert, récupérer les données supplémentaires
+    if (profile.is_expert) {
+      const { data: expertData, error: expertError } = await supabase
+        .from('experts')
         .select('*')
-        .eq('id', user.id)
+        .eq('id', currentUser.value.id)
         .single()
       
-      if (error) throw error
-      
-      profile.value = data || {}
-      
-      // Initialiser le formulaire d'édition
-      Object.keys(profile.value).forEach(key => {
-        editedProfile[key] = profile.value[key]
-      })
-    } catch (error) {
-      console.error('Erreur lors de la récupération du profil:', error)
-    } finally {
-      loading.value = false
-    }
-  }
-  
-  // Sauvegarder les modifications du profil
-  const saveProfile = async () => {
-    try {
-      // Validation des champs obligatoires
-      if (!editedProfile.first_name?.trim() || !editedProfile.last_name?.trim()) {
-        alert('Le prénom et le nom sont obligatoires')
-        return
+      if (!expertError && expertData) {
+        userData.value = { ...profile, ...expertData }
       }
-      
-      isSaving.value = true
-      
-      const { data: { user } } = await client.auth.getUser()
-      if (!user) throw new Error('Non authentifié')
-      
-      const { error } = await client
-        .from('profiles')
-        .update({
-          first_name: editedProfile.first_name,
-          last_name: editedProfile.last_name,
-          phone: editedProfile.phone,
-          address: editedProfile.address,
-          city: editedProfile.city,
-          country: editedProfile.country,
-          birthdate: editedProfile.birthdate,
-          bio: editedProfile.bio,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', user.id)
-      
-      if (error) throw error
-      
-      // Mettre à jour l'état local
-      Object.keys(editedProfile).forEach(key => {
-        profile.value[key] = editedProfile[key]
-      })
-      
-      // Quitter le mode édition
-      isEditing.value = false
-    } catch (error) {
-      console.error('Erreur lors de la mise à jour du profil:', error)
-      alert('Une erreur est survenue lors de la mise à jour du profil')
-    } finally {
-      isSaving.value = false
     }
+    
+    await fetchUserStats()
+    await checkNotifications()
+  } catch (error) {
+    console.error('Erreur lors de la récupération des données utilisateur:', error)
   }
-  
-  // Annuler les modifications
-  const cancelEdit = () => {
-    // Réinitialiser les valeurs du formulaire
-    Object.keys(profile.value).forEach(key => {
-      editedProfile[key] = profile.value[key]
-    })
-    isEditing.value = false
-  }
-  
-  // Télécharger une nouvelle image de profil
-  const uploadProfileImage = async (event) => {
-    try {
-      const file = event.target.files[0]
-      if (!file) return
-      
-      const { data: { user } } = await client.auth.getUser()
-      if (!user) throw new Error('Non authentifié')
-      
-      // Générer un nom de fichier unique
-      const fileExt = file.name.split('.').pop()
-      const fileName = `profile-${user.id}-${Date.now()}.${fileExt}`
-      const filePath = `profile-images/${fileName}`
-      
-      // Télécharger le fichier
-      const { error: uploadError } = await client.storage
-        .from('avatars')
-        .upload(filePath, file)
-      
-      if (uploadError) throw uploadError
-      
-      // Obtenir l'URL publique
-      const { data } = client.storage
-        .from('avatars')
-        .getPublicUrl(filePath)
-      
-      const publicUrl = data.publicUrl
-      
-      // Mettre à jour le profil avec la nouvelle URL
-      const { error: updateError } = await client
-        .from('profiles')
-        .update({ profile_image_url: publicUrl })
-        .eq('id', user.id)
-      
-      if (updateError) throw updateError
-      
-      // Mettre à jour l'état local
-      profile.value.profile_image_url = publicUrl
-      editedProfile.profile_image_url = publicUrl
-    } catch (error) {
-      console.error('Erreur lors du téléchargement de l\'image:', error)
-      alert('Une erreur est survenue lors du téléchargement de l\'image')
+}
+
+// Récupérer les statistiques de l'utilisateur
+const fetchUserStats = async () => {
+  try {
+    // Statistiques communes
+    const { data: contracts, error: contractsError } = await supabase
+      .from('contracts')
+      .select('id')
+      .or(`client_id.eq.${currentUser.value.id},expert_id.eq.${currentUser.value.id}`)
+    
+    if (!contractsError) {
+      stats.value.contracts = contracts.length
     }
-  }
-  
-  // Télécharger une nouvelle image de bannière
-  const uploadBannerImage = async (event) => {
-    try {
-      const file = event.target.files[0]
-      if (!file) return
-      
-      const { data: { user } } = await client.auth.getUser()
-      if (!user) throw new Error('Non authentifié')
-      
-      // Générer un nom de fichier unique
-      const fileExt = file.name.split('.').pop()
-      const fileName = `banner-${user.id}-${Date.now()}.${fileExt}`
-      const filePath = `banner-images/${fileName}`
-      
-      // Télécharger le fichier
-      const { error: uploadError } = await client.storage
-        .from('avatars')
-        .upload(filePath, file)
-      
-      if (uploadError) throw uploadError
-      
-      // Obtenir l'URL publique
-      const { data } = client.storage
-        .from('avatars')
-        .getPublicUrl(filePath)
-      
-      const publicUrl = data.publicUrl
-      
-      // Mettre à jour le profil avec la nouvelle URL
-      const { error: updateError } = await client
-        .from('profiles')
-        .update({ banner_image_url: publicUrl })
-        .eq('id', user.id)
-      
-      if (updateError) throw updateError
-      
-      // Mettre à jour l'état local
-      profile.value.banner_image_url = publicUrl
-      editedProfile.banner_image_url = publicUrl
-    } catch (error) {
-      console.error('Erreur lors du téléchargement de la bannière:', error)
-      alert('Une erreur est survenue lors du téléchargement de la bannière')
+    
+    // Récupérer les demandes
+    const { data: requests, error: requestsError } = await supabase
+      .from('requests')
+      .select('id')
+      .eq('client_id', currentUser.value.id)
+    
+    if (!requestsError) {
+      stats.value.requests = requests.length
     }
-  }
-  
-  // Déconnexion
-  const logout = async () => {
-    try {
-      const { error } = await client.auth.signOut()
-      if (error) throw error
+    
+    // Statistiques spécifiques à l'expert
+    if (isExpert.value) {
+      const { data: proposals, error: proposalsError } = await supabase
+        .from('proposals')
+        .select('id')
+        .eq('expert_id', currentUser.value.id)
       
-      // Rediriger vers la page d'accueil
-      router.push('/')
-    } catch (error) {
-      console.error('Erreur lors de la déconnexion:', error)
+      if (!proposalsError) {
+        stats.value.proposals = proposals.length
+      }
     }
+  } catch (error) {
+    console.error('Erreur lors de la récupération des statistiques:', error)
+  }
+}
+
+// Vérifier les notifications
+const checkNotifications = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('id')
+      .eq('user_id', currentUser.value.id)
+      .eq('read', false)
+      .limit(1)
+    
+    if (error) throw error
+    
+    hasNotifications.value = data.length > 0
+  } catch (error) {
+    console.error('Erreur lors de la vérification des notifications:', error)
+  }
+}
+
+// Basculer le mode sombre
+const toggleDarkMode = () => {
+  isDarkMode.value = !isDarkMode.value
+  
+  if (isDarkMode.value) {
+    document.documentElement.classList.add('dark')
+    localStorage.setItem('darkMode', 'true')
+  } else {
+    document.documentElement.classList.remove('dark')
+    localStorage.setItem('darkMode', 'false')
+  }
+}
+
+// Déconnexion
+const logout = async () => {
+  try {
+    const { error } = await supabase.auth.signOut()
+    if (error) throw error
+    router.push('/login')
+  } catch (error) {
+    console.error('Erreur lors de la déconnexion:', error)
+  }
+}
+
+// Lifecycle hooks
+onMounted(() => {
+  // Charger le thème des préférences
+  const savedTheme = localStorage.getItem('darkMode')
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+  
+  isDarkMode.value = savedTheme === 'true' || (!savedTheme && prefersDark)
+  
+  if (isDarkMode.value) {
+    document.documentElement.classList.add('dark')
   }
   
-  // Charger les données lors du montage du composant
-  onMounted(fetchProfile)
- 
-  </script> 
+  window.addEventListener('scroll', handleScroll)
+  document.addEventListener('click', handleClickOutside)
   
-  <style scoped>
-  /* Masquer la barre de défilement tout en permettant le défilement */
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
+  handleScroll()
+  fetchUserData()
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', handleScroll)
+  document.removeEventListener('click', handleClickOutside)
+})
+
+// Observer le changement d'utilisateur
+watch(currentUser, (newUser) => {
+  if (newUser) {
+    fetchUserData()
+  } else {
+    router.push('/login')
   }
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  </style> 
+})
+</script>
+
+<style scoped>
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Animations optimisées */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(var(--primary-color), 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(var(--primary-color), 0); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--primary-color), 0); }
+}
+</style> 

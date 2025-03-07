@@ -9,7 +9,13 @@
         Bienvenue ! Connectez-vous pour continuer.
       </p>
     </div>
-
+    <ErrorAlert 
+      :message="error" 
+      @dismiss="error = null"
+      type="error"
+      v-if="error"
+      class="mt-6"
+    />
     <!-- Social Buttons -->
     <div class="space-y-4 mb-8">
       <button
@@ -109,11 +115,7 @@
     </form>
 
     <!-- Error Alert -->
-    <ErrorAlert 
-      :message="error" 
-      @dismiss="error = null"
-      class="mt-6"
-    />
+ 
   </div>
 </template>
 
@@ -160,7 +162,7 @@ const handleEmailLogin = async () => {
       .eq('id', user.id)
       .single()
 
-    router.push(profile?.role === 'admin' ? '/admin' : '/dashboard')
+    router.push(profile?.role === 'admin' ? '/admin' : '/account/edit-profile')
   } catch (e) {
     error.value = e.message
   } finally {

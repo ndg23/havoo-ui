@@ -42,7 +42,7 @@
                 Autres documents
               </p>
               <NuxtLink 
-                to="/legal/privacy"
+                to="/legal/legal/privacy"
                 class="block px-3 py-2 text-sm rounded-md text-gray-600 hover:bg-gray-50"
               >
                 Politique de confidentialité

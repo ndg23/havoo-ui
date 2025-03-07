@@ -1,43 +1,21 @@
 <template>
-  <!-- <NuxtLink 
-    to="/" 
-    class="inline-flex items-center space-x-2 text-xl font-bold text-gray-900 hover:opacity-80 transition-opacity"
-  >
-    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white">
-      K
+  <div class="logo-container" :class="{ 'logo-small': small }">
+    <div class="logo-icon">
+      <div class="logo-shape-1"></div>
+      <div class="logo-shape-2"></div>
     </div>
-    <span>KILOU</span>
-  </NuxtLink> -->
-  <NuxtLink to="/" class="flex-shrink-0 group">
-    <div class="flex items-center gap-2">
-      <!-- Logo Icon -->
-      <div class="relative">
-        <div class="w-8 h-8 bg-primary-500 rounded-xl rotate-45 transform transition-transform group-hover:rotate-90 duration-300"></div>
-        <div class="absolute inset-0 flex items-center justify-center">
-          <span class="text-lg font-bold text-white -rotate-45">H</span>
-        </div>
-      </div>
-      
-      <!-- Text with Modern Colors -->
-      <div v-if="!iconOnly" class="flex flex-col">
-        <div class="flex items-baseline">
-          <span class="text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-500 bg-clip-text text-transparent">
-            Havoo
-          </span>
-          <span class="text-lg font-medium text-gray-600 ml-1.5">
-            Services
-          </span>
-        </div>
-        <span class="text-[11px] text-gray-500 ml-0.5">
-          Trouvez votre expert en quelques clics
-        </span>
-      </div>
+    <div v-if="!iconOnly" class="logo-text">
+      <span class="logo-text-main">Havoo</span>
     </div>
-  </NuxtLink>
+  </div>
 </template>
 
 <script setup>
 defineProps({
+  small: {
+    type: Boolean,
+    default: false
+  },
   iconOnly: {
     type: Boolean,
     default: false
@@ -46,13 +24,77 @@ defineProps({
 </script>
 
 <style scoped>
-/* Animation subtile au hover */
-.group:hover {
-  opacity: 0.9;
-  transition: opacity 0.2s ease-in-out;
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.bg-clip-text {
-  -webkit-background-clip: text;
+.logo-small {
+  transform: scale(0.85);
+  transform-origin: left center;
 }
-</style> 
+
+.logo-icon {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-500));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(var(--color-primary-600-rgb), 0.25);
+}
+
+.logo-shape-1 {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background-color: green;
+  border-radius: 50%;
+  top: 4px;
+  left: 4px;
+}
+
+.logo-shape-2 {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  bottom: 4px;
+  right: 4px;
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+.logo-text {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+
+.logo-text-main {
+  color: var(--color-gray-800);
+}
+
+.dark .logo-text-main {
+  color: white;
+}
+
+.logo-text-accent {
+  color: var(--color-primary-600);
+}
+
+/* Définir des variables CSS pour les couleurs */
+:root {
+  --color-primary-500: #4f46e5;
+  --color-primary-600: #4338ca;
+  --color-primary-600-rgb: 67, 56, 202;
+  --color-gray-800: #1f2937;
+}
+
+.dark {
+  --color-gray-800: #f9fafb;
+}
+</style>
