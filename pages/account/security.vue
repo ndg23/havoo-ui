@@ -490,4 +490,9 @@
     if (device.includes('MacBook') || device.includes('Windows')) return Laptop
     return Monitor
   }
+
+  // Vous pouvez ajouter ce bloc en haut de chaque fichier
+  definePageMeta({
+    layout: 'account'
+  })
 </script>

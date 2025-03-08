@@ -50,7 +50,7 @@
           <div>
             <MenuItem v-slot="{ active }">
               <NuxtLink 
-                to="/account/profile" 
+                to="/account" 
                 :class="[
                   active ? 'bg-gray-50 dark:bg-gray-700/50' : '',
                   'flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-200'

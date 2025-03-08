@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Good Jobs - Trouvez un expert</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    
+    body {
+      background-color: #f8f8f8;
+      color: #333;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 15px;
+    }
+    
+    header {
+      position: sticky;
+      top: 0;
+      background-color: white;
+      padding: 15px 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      z-index: 100;
+      margin-bottom: 15px;
+    }
+    
+    .search-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 0 15px;
+    }
+    
+    .header-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    
+    .search-bar {
+      display: flex;
+      align-items: center;
+      background-color: #f3f4f6;
+      border-radius: 30px;
+      padding: 12px 20px;
+    }
+    
+    .search-bar input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 0 10px;
+      font-size: 16px;
+      outline: none;
+    }
+    
+    .filter-options {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 5px;
+    }
+    
+    .filter-option {
+      background-color: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 6px 15px;
+      font-size: 14px;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    
+    .filter-option.active {
+      background-color: #000;
+      color: white;
+      border-color: #000;
+    }
+    
+    .expert-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .expert-card {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      overflow: hidden;
+    }
+    
+    .expert-card-content {
+      padding: 15px;
+    }
+    
+    .expert-info {
+      display: flex;
+      gap: 15px;
+    }
+    
+    .expert-avatar {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    
+    .expert-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .expert-details {
+      flex: 1;
+    }
+    
+    .expert-name {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 2px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .verified-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #ebf8ff;
+      color: #3182ce;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      font-size: 12px;
+      margin-left: 5px;
+    }
+    
+    .expert-rating {
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+    
+    .expert-stars {
+      color: #ffd700;
+      margin-right: 5px;
+    }
+    
+    .expert-reviews {
+      color: #718096;
+      font-size: 14px;
+    }
+    
+    .expert-location {
+      display: flex;
+      align-items: center;
+      color: #718096;
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+    
+    .expert-price {
+      font-weight: 600;
+      margin-top: 2px;
+    }
+    
+    .expert-skills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    
+    .skill-tag {
+      background-color: #f7fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: 13px;
+    }
+    
+    .availability {
+      background-color: #f9f9f9;
+      padding: 10px 15px;
+      border-top: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .availability-status {
+      display: flex;
+      align-items: center;
+    }
+    
+    .availability-dot {
+      width: 8px;
+      height: 8px;
+      background-color: #38a169;
+      border-radius: 50%;
+      margin-right: 5px;
+    }
+    
+    .availability-text {
+      font-size: 14px;
+      color: #4a5568;
+    }
+    
+    .book-btn {
+      background-color: #000;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 6px 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 25px 0 15px;
+    }
+    
+    .category-buttons {
+      display: flex;
+      gap: 15px;
+      overflow-x: auto;
+      margin-bottom: 25px;
+      padding: 5px 0;
+    }
+    
+    .category-button {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    
+    .category-icon {
+      width: 60px;
+      height: 60px;
+      background-color: #f7fafc;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+    
+    .category-name {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .location-bar {
+      display: flex;
+      align-items: center;
+      background-color: #f3f4f6;
+      border-radius: 30px;
+      padding: 10px 15px;
+      margin-bottom: 15px;
+    }
+    
+    .location-bar svg {
+      margin-right: 10px;
+    }
+    
+    .location-text {
+      flex: 1;
+    }
+    
+    .floating-filters {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #000;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .load-more {
+      background-color: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+      font-weight: 600;
+      color: #3182ce;
+      margin-bottom: 30px;
+    }
+    
+    @media (max-width: 600px) {
+      .expert-avatar {
+        width: 60px;
+        height: 60px;
+      }
+      
+      .header-title {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="search-container">
+      <h1 class="header-title">Experts près de chez vous</h1>
+      
+      <div class="search-bar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#718096" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" placeholder="Rechercher un service...">
+      </div>
+      
+      <div class="location-bar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#718096" stroke-width="2">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+          <circle cx="12" cy="10" r="3"></circle>
+        </svg>
+        <div class="location-text">Paris, France</div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#718096" stroke-width="2">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </div>
+      
+      <div class="filter-options">
+        <div class="filter-option active">Tous</div>
+        <div class="filter-option">Jardinage</div>
+        <div class="filter-option">Bricolage</div>
+        <div class="filter-option">Plomberie</div>
+        <div class="filter-option">Électricité</div>
+        <div class="filter-option">Ménage</div>
+        <div class="filter-option">Peinture</div>
+      </div>
+    </div>
+  </header>
+  
+  <div class="container">
+    <div class="section-title">Catégories populaires</div>
+    
+    <div class="category-buttons">
+      <div class="category-button">
+        <div class="category-icon">🌿</div>
+        <div class="category-name">Jardinage</div>
+      </div>
+      <div class="category-button">
+        <div class="category-icon">🔨</div>
+        <div class="category-name">Bricolage</div>
+      </div>
+      <div class="category-button">
+        <div class="category-icon">🚿</div>
+        <div class="category-name">Plomberie</div>
+      </div>
+      <div class="category-button">
+        <div class="category-icon">💡</div>
+        <div class="category-name">Électricité</div>
+      </div>
+      <div class="category-button">
+        <div class="category-icon">🧹</div>
+        <div class="category-name">Ménage</div>
+      </div>
+    </div>
+    
+    <div class="section-title">14 experts disponibles</div>
+    
+    <div class="expert-list">
+      <!-- Expert 1 -->
+      <div class="expert-card">
+        <div class="expert-card-content">
+          <div class="expert-info">
+            <div class="expert-avatar">
+              <img src="/api/placeholder/70/70" alt="Expert">
+            </div>
+            <div class="expert-details">
+              <div class="expert-name">
+                Thomas Dubois
+                <span class="verified-badge">✓</span>
+              </div>
+              <div class="expert-rating">
+                <div class="expert-stars">★★★★★</div>
+                <div class="expert-reviews">(32 avis)</div>
+              </div>
+              <div class="expert-location">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                Paris, France
+              </div>
+              <div class="expert-price">À partir de 30€/h</div>
+            </div>
+          </div>
+          
+          <div class="expert-skills">
+            <div class="skill-tag">🌱 Jardinage</div>
+            <div class="skill-tag">🔨 Bricolage</div>
+            <div class="skill-tag">✂️ Taille de haies</div>
+          </div>
+        </div>
+        
+        <div class="availability">
+          <div class="availability-status">
+            <div class="availability-dot"></div>
+            <div class="availability-text">Disponible aujourd'hui</div>
+          </div>
+          <button class="book-btn">Réserver</button>
+        </div>
+      </div>
+      
+      <!-- Expert 2 -->
+      <div class="expert-card">
+        <div class="expert-card-content">
+          <div class="expert-info">
+            <div class="expert-avatar">
+              <img src="/api/placeholder/70/70" alt="Expert">
+            </div>
+            <div class="expert-details">
+              <div class="expert-name">
+                Sophie Martin
+                <span class="verified-badge">✓</span>
+              </div>
+              <div class="expert-rating">
+                <div class="expert-stars">★★★★☆</div>
+                <div class="expert-reviews">(18 avis)</div>
+              </div>
+              <div class="expert-location">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                Paris, France
+              </div>
+              <div class="expert-price">À partir de 28€/h</div>
+            </div>
+          </div>
+          
+          <div class="expert-skills">
+            <div class="skill-tag">🧹 Ménage</div>
+            <div class="skill-tag">👕 Repassage</div>
+            <div class="skill-tag">🧼 Nettoyage</div>
+          </div>
+        </div>
+        
+        <div class="availability">
+          <div class="availability-status">
+            <div class="availability-dot"></div>
+            <div class="availability-text">Disponible demain</div>
+          </div>
+          <button class="book-btn">Réserver</button>
+        </div>
+      </div>
+      
+      <!-- Expert 3 -->
+      <div class="expert-card">
+        <div class="expert-card-content">
+          <div class="expert-info">
+            <div class="expert-avatar">
+              <img src="/api/placeholder/70/70" alt="Expert">
+            </div>
+            <div class="expert-details">
+              <div class="expert-name">
+                Jean Leroy
+                <span class="verified-badge">✓</span>
+              </div>
+              <div class="expert-rating">
+                <div class="expert-stars">★★★★★</div>
+                <div class="expert-reviews">(45 avis)</div>
+              </div>
+              <div class="expert-location">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                Paris, France
+              </div>
+              <div class="expert-price">À partir de 45€/h</div>
+            </div>
+          </div>
+          
+          <div class="expert-skills">
+            <div class="skill-tag">💡 Électricité</div>
+            <div class="skill-tag">🔌 Installation</div>
+            <div class="skill-tag">🔧 Dépannage</div>
+          </div>
+        </div>
+        
+        <div class="availability">
+          <div class="availability-status">
+            <div class="availability-dot"></div>
+            <div class="availability-text">Disponible aujourd'hui</div>
+          </div>
+          <button class="book-btn">Réserver</button>
+        </div>
+      </div>
+      
+      <!-- Expert 4 -->
+      <div class="expert-card">
+        <div class="expert-card-content">
+          <div class="expert-info">
+            <div class="expert-avatar">
+              <img src="/api/placeholder/70/70" alt="Expert">
+            </div>
+            <div class="expert-details">
+              <div class="expert-name">
+                Marie Petit
+                <span class="verified-badge">✓</span>
+              </div>
+              <div class="expert-rating">
+                <div class="expert-stars">★★★★☆</div>
+                <div class="expert-reviews">(27 avis)</div>
+              </div>
+              <div class="expert-location">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                Paris, France
+              </div>
+              <div class="expert-price">À partir de 35€/h</div>
+            </div>
+          </div>
+          
+          <div class="expert-skills">
+            <div class="skill-tag">🎨 Peinture</div>
+            <div class="skill-tag">🏠 Décoration</div>
+            <div class="skill-tag">🔨 Bricolage</div>
+          </div>
+        </div>
+        
+        <div class="availability">
+          <div class="availability-status">
+            <div class="availability-dot" style="background-color: #e53e3e;"></div>
+            <div class="availability-text">Disponible le 12/03</div>
+          </div>
+          <button class="book-btn">Réserver</button>
+        </div>
+      </div>
+      
+      <!-- Expert 5 -->
+      <div class="expert-card">
+        <div class="expert-card-content">
+          <div class="expert-info">
+            <div class="expert-avatar">
+              <img src="/api/placeholder/70/70" alt="Expert">
+            </div>
+            <div class="expert-details">
+              <div class="expert-name">
+                Antoine Bernard
+                <span class="verified-badge">✓</span>
+              </div>
+              <div class="expert-rating">
+                <div class="expert-stars">★★★★★</div>
+                <div class="expert-reviews">(53 avis)</div>
+              </div>
+              <div class="expert-location">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                Paris, France
+              </div>
+              <div class="expert-price">À partir de 40€/h</div>
+            </div>
+          </div>
+          
+          <div class="expert-skills">
+            <div class="skill-tag">🚿 Plomberie</div>
+            <div class="skill-tag">🛁 Salle de bain</div>
+            <div class="skill-tag">🚿 Installation</div>
+          </div>
+        </div>
+        
+        <div class="availability">
+          <div class="availability-status">
+            <div class="availability-dot"></div>
+            <div class="availability-text">Disponible aujourd'hui</div>
+          </div>
+          <button class="book-btn">Réserver</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="load-more">
+      Voir plus d'experts
+    </div>
+  </div>
+  
+  <div class="floating-filters">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+    </svg>
+    Filtres
+  </div>
+</body>
+</html>

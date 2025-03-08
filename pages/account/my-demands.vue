@@ -223,4 +223,9 @@ const getCategoryColorClass = (categoryId) => {
 
 // Initialisation
 onMounted(fetchMyDemands)
+
+// Vous pouvez ajouter ce bloc en haut de chaque fichier
+definePageMeta({
+  layout: 'account'
+})
 </script> 

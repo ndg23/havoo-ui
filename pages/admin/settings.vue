@@ -701,94 +701,6 @@
     }, duration)
   }
   
-
-
-  
-//   const filteredSettings = computed(() => {
-//     let result = [...settings.value]
-    
-//     // Filtre par recherche
-//     if (search.value) {
-//       const searchLower = search.value.toLowerCase()
-//       result = result.filter(setting => 
-//         setting.key.toLowerCase().includes(searchLower) || 
-//         (setting.description && setting.description.toLowerCase().includes(searchLower))
-//       )
-//     }
-    
-//     // Filtre par visibilité
-//     if (visibilityFilter.value === 'public') {
-//       result = result.filter(setting => setting.is_public)
-//     } else if (visibilityFilter.value === 'private') {
-//       result = result.filter(setting => !setting.is_public)
-//     }
-    
-//     return result
-//   })
-  
-  const formatValue = (value) => {
-    if (typeof value === 'object') {
-      return JSON.stringify(value)
-    }
-    return value
-  }
-  
-//   const validateJsonValue = (value) => {
-//     try {
-//       JSON.parse(value)
-//       valueError.value = ''
-//       return true
-//     } catch (e) {
-//       valueError.value = 'Format JSON invalide'
-//       return false
-//     }
-//   }
-  
-//   const editSetting = (setting) => {
-//     formData.value = {
-//       id: setting.id,
-//       key: setting.key,
-//       value: typeof setting.value === 'object' ? JSON.stringify(setting.value, null, 2) : setting.value,
-//       description: setting.description || '',
-//       is_public: setting.is_public
-//     }
-//     showEditSettingModal.value = true
-//   }
-  
-//   const confirmDelete = (setting) => {
-//     deleteTargetId.value = setting.id
-//     deleteTargetKey.value = setting.key
-//     showDeleteModal.value = true
-//   }
-  
-//   const resetForm = () => {
-//     formData.value = {
-//       key: '',
-//       value: '',
-//       description: '',
-//       is_public: false
-//     }
-//     valueError.value = ''
-//   }
-  
-//   const closeModal = () => {
-//     showAddSettingModal.value = false
-//     showEditSettingModal.value = false
-//     resetForm()
-//   }
-  
-//   const showStatusMessage = (type, message, duration = 5000) => {
-//     statusMessage.value = {
-//       show: true,
-//       type,
-//       message
-//     }
-    
-//     setTimeout(() => {
-//       statusMessage.value.show = false
-//     }, duration)
-//   }
-  
   const saveSetting = async () => {
     // Validation
     if (!formData.value.key) {
@@ -869,3 +781,19 @@
     fetchSettings()
   })
   </script>
+
+<style scoped>
+/* Cherchez la ligne 425 qui contient une valeur CSS invalide */
+/* Remplacez cette ligne par ce code corrigé */
+
+/* Si c'est un problème avec une animation ou transition, essayez ceci: */
+transition: all 0.3s ease; /* Assurez-vous que chaque propriété CSS a une valeur valide */
+
+/* Si c'est un problème avec un background gradient, vérifiez sa syntaxe: */
+background: linear-gradient(to right, #4f46e5, #6366f1); /* Syntaxe correcte de gradient */
+
+/* Pour les sélecteurs CSS, assurez-vous qu'ils sont bien formés */
+.some-class:not([hidden]) {
+  display: block;
+}
+</style>

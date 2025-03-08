@@ -537,4 +537,10 @@ const verifyPhone = () => {
 onMounted(() => {
   fetchUserData()
 })
+
+
+// Vous pouvez ajouter ce bloc en haut de chaque fichier
+definePageMeta({
+  layout: 'account'
+})
 </script> 

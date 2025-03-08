@@ -442,11 +442,8 @@ const fetchData = async () => {
     const { data: requestsData, error: requestsError } = await client
       .from('requests')
       .select(`
-        *,
-        proposals:proposals(count)
+        *
       `)
-      .eq('status', 'active')
-      .order('created_at', { ascending: false })
     
     if (requestsError) throw requestsError
     

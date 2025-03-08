@@ -1,742 +1,1011 @@
 <template>
-    <div class="p-6 max-w-7xl mx-auto">
-      <!-- Header with actions -->
-      <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Utilisateurs</h1>
-        
-        <div class="flex space-x-3">
-          <button 
-            @click="exportUsers"
-            class="px-3 py-2 flex items-center text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
-          >
-            <Download class="h-4 w-4 mr-2" />
-            Exporter
-          </button>
-          
-          <button 
-            @click="openUserModal()"
-            class="px-3 py-2 flex items-center text-sm font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-700"
-          >
-            <UserPlus class="h-4 w-4 mr-2" />
-            Ajouter un utilisateur
-          </button>
-        </div>
+  <div class="max-w-7xl mx-auto px-4 py-8">
+    <!-- En-tête de la page -->
+    <div class="flex justify-between items-center mb-8">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Gestion des utilisateurs</h1>
+        <p class="text-gray-600 dark:text-gray-400 mt-1">Vérification des comptes experts et modération des utilisateurs</p>
       </div>
-      
-      <!-- Filtres et recherche -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm mb-6 overflow-hidden">
-        <div class="p-5 border-b dark:border-gray-700">
-          <h2 class="text-lg font-medium text-gray-900 dark:text-white">Filtres</h2>
-        </div>
-        
-        <div class="p-5 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <!-- Recherche -->
-            <div>
-            <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Recherche</label>
-            <div class="relative">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search class="h-4 w-4 text-gray-400" />
-              </div>
-              <input
-                id="search"
-                v-model="search"
-                type="text"
-                placeholder="Nom, email..."
-                class="block w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              />
-          </div>
-        </div>
-        
-          <!-- Filtre par rôle -->
-            <div>
-            <label for="role-filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rôle</label>
-            <select
-              id="role-filter"
-              v-model="roleFilter"
-              class="block w-full py-2 pl-3 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            >
-              <option value="">Tous les rôles</option>
-              <option value="admin">Administrateur</option>
-              <option value="expert">Expert</option>
-              <option value="client">Client</option>
-            </select>
-        </div>
-        
-          <!-- Filtre par statut -->
-            <div>
-            <label for="status-filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Statut</label>
-            <select
-              id="status-filter"
-              v-model="statusFilter"
-              class="block w-full py-2 pl-3 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            >
-              <option value="">Tous les statuts</option>
-              <option value="active">Actif</option>
-              <option value="pending">En attente</option>
-              <option value="blocked">Bloqué</option>
-            </select>
-          </div>
-        </div>
-      </div>
-      
-      <!-- État de chargement -->
-      <div v-if="loading" class="flex justify-center py-20">
-        <Loader2 class="h-10 w-10 text-primary-500 animate-spin" />
-      </div>
-      
-      <!-- Table des utilisateurs -->
-      <div v-else-if="filteredUsers.length > 0" class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
-        <!-- Table header -->
-        <div class="flex items-center justify-between p-4 border-b dark:border-gray-700">
-          <div class="flex items-center">
+    </div>
+    
+    <!-- Alerte de statut -->
+    <!-- <ErrorAlert 
+      v-if="statusMessage.show"
+      :type="statusMessage.type"
+      :message="statusMessage.message"
+      dismissible
+      @dismiss="statusMessage.show = false"
+      class="mb-6"
+    /> -->
+    
+    <!-- Filtres et recherche -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 mb-8 shadow-sm">
+      <div class="flex flex-wrap gap-4 items-end">
+        <div class="flex-1 min-w-[250px]">
+          <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Rechercher</label>
+          <div class="relative">
             <input
-              type="checkbox"
-              :checked="selectAll"
-              @change="toggleSelectAll"
-              class="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+              v-model="search"
+              type="text"
+              id="search"
+              placeholder="Nom, email, ville..."
+              class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-full shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white pl-10"
             />
-            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">
-              {{ selectedUsers.length === 0 
-                ? 'Sélectionnez des utilisateurs' 
-                : `${selectedUsers.length} utilisateur${selectedUsers.length > 1 ? 's' : ''} sélectionné${selectedUsers.length > 1 ? 's' : ''}` 
-              }}
+            <Search class="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+          </div>
+        </div>
+        
+        <div class="w-44">
+          <label for="role" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Rôle</label>
+          <select
+            v-model="roleFilter"
+            id="role"
+            class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-full shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white appearance-none bg-no-repeat"
+          >
+            <option value="all">Tous les rôles</option>
+            <option value="client">Clients</option>
+            <option value="expert">Experts</option>
+            <option value="admin">Administrateurs</option>
+          </select>
+        </div>
+        
+        <div class="w-48">
+          <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Statut</label>
+          <select
+            v-model="statusFilter"
+            id="status"
+            class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-full shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white appearance-none bg-no-repeat"
+          >
+            <option value="all">Tous les statuts</option>
+            <option value="active">Actifs</option>
+            <option value="pending">En attente de vérification</option>
+            <option value="blocked">Bloqués</option>
+            <option value="unverified">Non vérifiés</option>
+          </select>
+        </div>
+        
+        <div class="w-52">
+          <label for="sort" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Trier par</label>
+          <select
+            v-model="sortOption"
+            id="sort"
+            class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-full shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white appearance-none bg-no-repeat"
+          >
+            <option value="recent">Plus récents</option>
+            <option value="oldest">Plus anciens</option>
+            <option value="name">Nom (A-Z)</option>
+            <option value="name_desc">Nom (Z-A)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Section de chargement -->
+    <div v-if="isLoading" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-16 animate-pulse shadow-sm">
+      <div class="flex flex-col items-center justify-center">
+        <div class="h-10 w-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+        <p class="mt-4 text-gray-600 dark:text-gray-400 font-medium">Chargement des utilisateurs...</p>
+      </div>
+    </div>
+    
+    <!-- Message si aucun résultat -->
+    <div v-else-if="filteredUsers.length === 0" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-16 text-center shadow-sm">
+      <div class="flex flex-col items-center justify-center">
+        <UserX class="h-12 w-12 text-gray-400 mb-3" />
+        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-1">Aucun utilisateur trouvé</h3>
+        <p class="text-gray-600 dark:text-gray-400">
+          {{ search ? `Aucun résultat pour "${search}"` : 'Aucun utilisateur disponible avec ces filtres' }}
+        </p>
+      </div>
+    </div>
+    
+    <!-- Listes des utilisateurs -->
+    <div v-if="!isLoading && filteredUsers.length > 0" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+      <!-- En-tête du tableau -->
+      <div class="bg-gray-50 dark:bg-gray-700 px-6 py-3 border-b border-gray-200 dark:border-gray-700 grid grid-cols-12 gap-4 text-left">
+        <div class="col-span-5 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+          Utilisateur
+        </div>
+        <div class="col-span-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+          Rôle
+        </div>
+        <div class="col-span-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+          Statut
+        </div>
+        <div class="col-span-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">
+          Actions
+        </div>
+      </div>
+      
+      <!-- Liste des utilisateurs -->
+      <div class="divide-y divide-gray-200 dark:divide-gray-700">
+        <div 
+          v-for="user in paginatedUsers" 
+          :key="user.id"
+          class="px-6 py-4 grid grid-cols-12 gap-4 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
+        >
+          <!-- Colonne utilisateur -->
+          <div class="col-span-5 flex items-center">
+            <div class="flex-shrink-0 relative">
+              <div v-if="!user.avatar_url" class="h-10 w-10 bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300 flex items-center justify-center rounded-full">
+                {{ getInitials(user.first_name, user.last_name) }}
+              </div>
+              <img 
+                v-else 
+                :src="user.avatar_url" 
+                :alt="user.first_name + ' ' + user.last_name"
+                class="h-10 w-10 rounded-full object-cover"
+              />
+              <div 
+                v-if="user.is_online" 
+                class="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"
+              ></div>
+            </div>
+            <div class="ml-4">
+              <div class="font-medium text-gray-900 dark:text-white">
+                {{ user.first_name }} {{ user.last_name }}
+              </div>
+              <div class="text-sm text-gray-500 dark:text-gray-400">
+                {{ user.email }}
+              </div>
+            </div>
+          </div>
+          
+          <!-- Rôle -->
+          <div class="col-span-2 flex items-center">
+            <span 
+              :class="[
+                'px-2.5 py-1 rounded-full text-xs font-medium',
+                user.role === 'admin' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300' : '',
+                user.role === 'expert' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' : '',
+                user.role === 'client' || !user.role ? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' : '',
+              ]"
+            >
+              {{ formatRole(user.role || 'client') }}
             </span>
           </div>
           
-          <div v-if="selectedUsers.length > 0" class="flex space-x-2">
-            <button 
-              @click="bulkActivate"
-              class="px-3 py-1.5 text-xs font-medium rounded-lg bg-green-600 text-white hover:bg-green-700"
+          <!-- Vérification -->
+          <div class="col-span-2 flex items-center">
+            <span 
+              :class="[
+                'px-2.5 py-1 rounded-full text-xs font-medium',
+                user.verification_status === 'verified' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : '',
+                user.verification_status === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' : '',
+                user.verification_status === 'rejected' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' : '',
+                !user.verification_status ? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' : '',
+              ]"
             >
-              Activer
+              {{ formatVerificationStatus(user.verification_status || 'none') }}
+            </span>
+          </div>
+          
+          <!-- Statut -->
+          <div class="col-span-1 flex items-center">
+            <span 
+              :class="[
+                'flex items-center text-sm font-medium',
+                user.is_blocked ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'
+              ]"
+            >
+              <div 
+                class="h-2 w-2 rounded-full mr-1.5"
+                :class="user.is_blocked ? 'bg-red-500' : 'bg-green-500'"
+              ></div>
+              {{ user.is_blocked ? 'Bloqué' : 'Actif' }}
+            </span>
+          </div>
+          
+          <!-- Actions -->
+          <div class="col-span-3 flex items-center justify-end space-x-2">
+            <!-- Voir le profil -->
+            <button 
+              @click="viewProfile(user.id)"
+              class="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              title="Voir le profil"
+            >
+              <User class="h-5 w-5" />
+            </button>
+            
+            <!-- Vérifier le compte (pour les experts en attente) -->
+            <button 
+              v-if="user.role === 'expert' && user.verification_status === 'pending'"
+              @click="openVerificationModal(user)"
+              class="p-1.5 text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
+              title="Vérifier le compte"
+            >
+              <CheckCircle class="h-5 w-5" />
+            </button>
+            
+            <!-- Modifier l'utilisateur -->
+            <button 
+              @click="editUser(user)"
+              class="p-1.5 text-indigo-500 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 rounded-full hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors"
+              title="Modifier"
+            >
+              <Edit class="h-5 w-5" />
+            </button>
+            
+            <!-- Bloquer/Débloquer l'utilisateur -->
+            <button 
+              v-if="user.is_blocked"
+              @click="confirmUnblock(user)"
+              class="p-1.5 text-green-500 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 rounded-full hover:bg-green-50 dark:hover:bg-green-900/30 transition-colors"
+              title="Débloquer l'utilisateur"
+            >
+              <Unlock class="h-5 w-5" />
             </button>
             <button 
-              @click="bulkVerify"
-              class="px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+              v-else
+              @click="confirmBlock(user)"
+              class="p-1.5 text-orange-500 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 rounded-full hover:bg-orange-50 dark:hover:bg-orange-900/30 transition-colors"
+              title="Bloquer l'utilisateur"
             >
-              Vérifier
+              <Lock class="h-5 w-5" />
             </button>
+            
+            <!-- Supprimer l'utilisateur -->
             <button 
-              @click="confirmBulkDelete"
-              class="px-3 py-1.5 text-xs font-medium rounded-lg bg-red-600 text-white hover:bg-red-700"
+              @click="confirmDelete(user)"
+              class="p-1.5 text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 rounded-full hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+              title="Supprimer"
             >
-              Supprimer
+              <Trash class="h-5 w-5" />
             </button>
+          </div>
         </div>
       </div>
       
-        <!-- Table body -->
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead class="bg-gray-50 dark:bg-gray-700">
-              <tr>
-                <th scope="col" class="pl-4 pr-2 py-3 w-12">
-                  <!-- Already have the checkbox above -->
-                </th>
-                <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Utilisateur
-                </th>
-                <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Rôle
-                </th>
-                <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Statut
-                </th>
-                <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Date d'inscription
-                </th>
-                <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              <tr 
-                v-for="user in paginatedUsers" 
-                :key="user.id"
-                class="hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
-              >
-                <td class="pl-4 pr-2 py-4 whitespace-nowrap">
-                  <input
-                    type="checkbox"
-                    :checked="selectedUsers.includes(user.id)"
-                    @change="toggleUserSelection(user.id)"
-                    class="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                  />
-                </td>
-                <td class="px-4 py-4 whitespace-nowrap">
-          <div class="flex items-center">
-                    <NuxtLink :to="`/admin/users/${user.id}`" class="flex items-center group">
-                      <div class="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden mr-3 flex-shrink-0">
-              <img 
-                          v-if="user.avatar_url" 
-                          :src="user.avatar_url" 
-                        alt="Avatar"
-                        class="h-full w-full object-cover"
-                      />
-                        <User v-else class="h-5 w-5 text-gray-400 m-2.5" />
-                    </div>
-                      <div>
-                        <div class="font-medium text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-                          {{ user.first_name }} {{ user.last_name }}
-                    </div>
-                        <div class="text-sm text-gray-500 dark:text-gray-400">{{ user.email }}</div>
-                  </div>
-                    </NuxtLink>
-                  </div>
-                </td>
-                <td class="px-4 py-4 whitespace-nowrap">
-                <span 
-              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                    :class="{
-                      'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200': user.role === 'admin',
-                      'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200': user.role === 'expert',
-                      'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200': user.role === 'client'
-                    }"
-                  >
-                    {{ formatRole(user.role) }}
-                </span>
-                </td>
-                <td class="px-4 py-4 whitespace-nowrap">
-                <span 
-            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                    :class="{
-                      'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': user.status === 'active',
-                      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200': user.status === 'pending',
-                      'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200': user.status === 'blocked'
-                    }"
-                  >
-                    <div class="h-1.5 w-1.5 rounded-full mr-1.5"
-                      :class="{
-                        'bg-green-500': user.status === 'active',
-                        'bg-yellow-500': user.status === 'pending',
-                        'bg-red-500': user.status === 'blocked'
-                      }"
-                    ></div>
-                    {{ formatStatus(user.status) }}
-                </span>
-                </td>
-                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                  {{ formatDate(user.created_at) }}
-                </td>
-                <td class="px-4 py-4 whitespace-nowrap text-sm text-center">
-                  <div class="flex justify-center space-x-1">
-                    <NuxtLink 
-                      :to="`/admin/users/${user.id}`"
-                      class="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-                      title="Voir les détails"
+      <!-- Pagination -->
+      <div class="bg-gray-50 dark:bg-gray-700 px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+        <div class="text-sm text-gray-700 dark:text-gray-300">
+          Affichage de <span class="font-medium">{{ startItem }}</span> à <span class="font-medium">{{ endItem }}</span> sur <span class="font-medium">{{ filteredUsers.length }}</span> utilisateurs
+        </div>
+        
+        <div class="flex space-x-2">
+          <button 
+            @click="currentPage--"
+            :disabled="currentPage === 1"
+            class="px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-full text-sm text-gray-700 dark:text-gray-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Eye class="h-4 w-4" />
-                    </NuxtLink>
-                    
-                  <button 
-                      @click="editUser(user)"
-                      class="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-                    title="Modifier"
-                  >
-            <Edit class="h-4 w-4" />
-                  </button>
-                    
-                    <button 
-                      v-if="user.status !== 'active'"
-                      @click="activateUser(user)"
-                      class="p-1.5 rounded-lg hover:bg-green-100 dark:hover:bg-green-900 text-gray-500 dark:text-gray-400 hover:text-green-700 dark:hover:text-green-300"
-                      title="Activer"
-                    >
-                      <CheckCircle class="h-4 w-4" />
-                    </button>
-                    
-                    <button 
-                      v-if="user.role === 'expert' && !user.is_verified"
-                      @click="verifyUser(user.id, true)"
-                      class="p-1.5 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900 text-gray-500 dark:text-gray-400 hover:text-blue-700 dark:hover:text-blue-300"
-                      title="Vérifier"
-                    >
-                      <BadgeCheck class="h-4 w-4" />
-                    </button>
-                    
-                    <button 
-                      v-if="user.status !== 'blocked'"
-                      @click="blockUser(user)"
-                      class="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900 text-gray-500 dark:text-gray-400 hover:text-red-700 dark:hover:text-red-300"
-                      title="Bloquer"
-                    >
-                      <Ban class="h-4 w-4" />
-                    </button>
-                    
-                    <button 
-                      @click="confirmDelete(user)"
-                      class="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900 text-gray-500 dark:text-gray-400 hover:text-red-700 dark:hover:text-red-300"
-                      title="Supprimer"
-                    >
-                      <Trash class="h-4 w-4" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        
-        <!-- Pagination -->
-        <div class="px-4 py-3 flex items-center justify-between border-t dark:border-gray-700 sm:px-6">
-          <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-            <div>
-              <p class="text-sm text-gray-700 dark:text-gray-300">
-                Affichage de <span class="font-medium">{{ (currentPage - 1) * itemsPerPage + 1 }}</span> à <span class="font-medium">{{ Math.min(currentPage * itemsPerPage, filteredUsers.length) }}</span> sur <span class="font-medium">{{ filteredUsers.length }}</span> utilisateurs
-              </p>
-            </div>
-            <div>
-              <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                <button
-                  @click="currentPage = 1"
-                  :disabled="currentPage === 1"
-                  class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <span class="sr-only">Première</span>
-                  <ChevronsLeft class="h-4 w-4" />
-                </button>
-                <button
-                  @click="currentPage--"
-                  :disabled="currentPage === 1"
-                  class="relative inline-flex items-center px-2 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <span class="sr-only">Précédent</span>
-                  <ChevronLeft class="h-4 w-4" />
-                </button>
-                
-                <!-- Pages -->
-                <button
-                  v-for="page in paginationButtons"
-                  :key="page"
-                  @click="page !== '...' && (currentPage = page)"
-                  :disabled="page === '...'"
-                  :class="[
-                    'relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium',
-                    page === currentPage
-                      ? 'z-10 bg-primary-50 dark:bg-primary-900 border-primary-500 dark:border-primary-600 text-primary-600 dark:text-primary-400'
-                      : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700',
-                    page === '...' ? 'cursor-default' : ''
-                  ]"
-                >
-                  {{ page }}
-                </button>
-                
-                <button
-                  @click="currentPage++"
-                  :disabled="currentPage === totalPages"
-                  class="relative inline-flex items-center px-2 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <span class="sr-only">Suivant</span>
-                  <ChevronRight class="h-4 w-4" />
-                </button>
-                <button
-                  @click="currentPage = totalPages"
-                  :disabled="currentPage === totalPages"
-                  class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <span class="sr-only">Dernière</span>
-                  <ChevronsRight class="h-4 w-4" />
-                </button>
-              </nav>
-            </div>
-          </div>
+            Précédent
+          </button>
+          
+          <button 
+            @click="currentPage++"
+            :disabled="currentPage >= totalPages"
+            class="px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-full text-sm text-gray-700 dark:text-gray-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Suivant
+          </button>
         </div>
       </div>
-      
-      <!-- Aucun résultat -->
-      <div v-else class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden p-8 text-center">
-        <SearchX class="h-12 w-12 text-gray-400 mx-auto mb-4" />
-        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Aucun utilisateur trouvé</h3>
-        <p class="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">
-          Aucun utilisateur ne correspond à vos critères de recherche. Essayez de modifier vos filtres.
-        </p>
-        <button 
-          @click="resetFilters"
-          class="mt-4 px-4 py-2 text-sm font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-700"
-        >
-          Réinitialiser les filtres
-        </button>
-      </div>
-      
-      <!-- Modals -->
-      <UserModal 
-        :show="showUserModal"
-        :user="userToEdit"
-        :edit-mode="editMode"
-        @close="showUserModal = false"
-        @save="saveUser"
-      />
-      
-      <ConfirmModal
-        :show="showDeleteModal"
-        title="Supprimer l'utilisateur"
-        @close="showDeleteModal = false"
-        @confirm="deleteUser"
-      >
-        <template #icon>
-          <Trash class="h-5 w-5 text-red-500 mr-2" />
-        </template>
-        
-        <p class="text-gray-700 dark:text-gray-300">
-          Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible et supprimera toutes les données associées.
-        </p>
-        
-        <div v-if="userToDelete" class="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <div class="flex items-center">
-            <div class="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden mr-3">
-              <img 
-                v-if="userToDelete.avatar_url" 
-                :src="userToDelete.avatar_url" 
-                alt="Avatar"
-                class="h-full w-full object-cover"
-              />
-              <User v-else class="h-full w-full text-gray-400" />
-            </div>
-            <div>
-              <div class="font-medium text-gray-900 dark:text-white">
-                {{ userToDelete.first_name }} {{ userToDelete.last_name }}
-              </div>
-              <div class="text-sm text-gray-500 dark:text-gray-400">{{ userToDelete.email }}</div>
-            </div>
-          </div>
-        </div>
-      </ConfirmModal>
     </div>
-  </template>
-  
-  <script setup>
-  import { ref, computed, watch, onMounted } from 'vue'
-  import { useRouter } from 'vue-router'
-  import {
-    Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Trash, Edit, Download, 
-    User, UserPlus, CheckCircle, BadgeCheck, Eye, Ban, SearchX, Loader2
-  } from 'lucide-vue-next'
-  import UserModal from '@/components/admin/UserModal.vue'
-  import ConfirmModal from '@/components/admin/ConfirmModal.vue'
-  import { useSupabaseClient } from '#imports'
-  
-  // États
-  const router = useRouter()
-  const client = useSupabaseClient()
-  const users = ref([])
-  const loading = ref(true)
-  const search = ref('')
-  const roleFilter = ref('')
-  const statusFilter = ref('')
-  const currentPage = ref(1)
-  const itemsPerPage = ref(10)
-  const showUserModal = ref(false)
-  const showDeleteModal = ref(false)
-  const editMode = ref(false)
-  const userToEdit = ref(null)
-  const userToDelete = ref(null)
-  const selectedUsers = ref([])
-  const selectAll = ref(false)
-  
-  // Filtrage des utilisateurs
-  const filteredUsers = computed(() => {
-    let filtered = [...users.value]
+    <UserModal 
+        :isOpen="showUserModal"
+        :user="userToEdit"
+        @close="showUserModal = false"
+      />
+    <!-- Modal de vérification d'expert -->
+    <Teleport to="body">
+      <div v-if="showVerificationModal" class="fixed inset-0 bg-black/50 dark:bg-gray-900/70 flex items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center sticky top-0 bg-white dark:bg-gray-800 z-10">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Vérification du compte expert</h3>
+            <button @click="showVerificationModal = false" class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
+              <X class="h-5 w-5" />
+            </button>
+          </div>
+          
+          <div class="p-6">
+            <div v-if="selectedUser" class="space-y-6">
+              <!-- Informations de base -->
+              <div class="flex flex-col md:flex-row gap-6">
+                <div class="w-24 h-24 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 flex-shrink-0 mx-auto md:mx-0">
+                  <img v-if="selectedUser.avatar_url" :src="selectedUser.avatar_url" alt="" class="h-full w-full object-cover">
+                  <div v-else class="h-full w-full flex items-center justify-center bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 text-2xl font-medium">
+                    {{ getInitials(selectedUser.first_name, selectedUser.last_name) }}
+                  </div>
+                </div>
+                
+                <div class="flex-1 text-center md:text-left">
+                  <h4 class="text-xl font-semibold text-gray-900 dark:text-white">
+                    {{ selectedUser.first_name }} {{ selectedUser.last_name }}
+                  </h4>
+                  <p class="text-gray-600 dark:text-gray-400">{{ selectedUser.email }}</p>
+                  <p class="text-gray-600 dark:text-gray-400 mt-1">
+                    {{ selectedUser.phone || 'Aucun téléphone' }} • {{ selectedUser.city || 'N/A' }}, {{ selectedUser.country || 'N/A' }}
+                  </p>
+                  
+                  <div class="mt-3 flex flex-wrap gap-2 justify-center md:justify-start">
+                    <span class="px-2.5 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 rounded-full text-xs font-medium">
+                      {{ formatRole(selectedUser.role) }}
+                    </span>
+                    <span class="px-2.5 py-1 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 rounded-full text-xs font-medium">
+                      En attente de vérification
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Bio -->
+              <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                <h5 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">À propos</h5>
+                <p class="text-gray-600 dark:text-gray-400 text-sm whitespace-pre-line">{{ selectedUser.bio || 'Aucune biographie fournie.' }}</p>
+              </div>
+              
+              <!-- Documents de vérification -->
+              <div>
+                <h5 class="text-base font-medium text-gray-900 dark:text-white mb-3">Documents d'identité</h5>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <!-- Pièce d'identité (recto) -->
+                  <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                    <div class="px-3 py-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700 text-xs font-medium text-gray-700 dark:text-gray-300">
+                      Pièce d'identité (recto)
+                    </div>
+                    <div class="p-2 bg-white dark:bg-gray-800">
+                      <div v-if="selectedUser.id_front" class="aspect-[4/3] overflow-hidden rounded bg-gray-100 dark:bg-gray-700">
+                        <img :src="selectedUser.id_front" alt="ID recto" class="w-full h-full object-cover hover:scale-150 transition-all cursor-zoom-in" />
+                      </div>
+                      <div v-else class="aspect-[4/3] flex items-center justify-center bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 text-sm">
+                        Non fourni
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Pièce d'identité (verso) -->
+                  <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                    <div class="px-3 py-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700 text-xs font-medium text-gray-700 dark:text-gray-300">
+                      Pièce d'identité (verso)
+                    </div>
+                    <div class="p-2 bg-white dark:bg-gray-800">
+                      <div v-if="selectedUser.id_back" class="aspect-[4/3] overflow-hidden rounded bg-gray-100 dark:bg-gray-700">
+                        <img :src="selectedUser.id_back" alt="ID verso" class="w-full h-full object-cover hover:scale-150 transition-all cursor-zoom-in" />
+                      </div>
+                      <div v-else class="aspect-[4/3] flex items-center justify-center bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 text-sm">
+                        Non fourni
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Justificatif de domicile -->
+                  <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                    <div class="px-3 py-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700 text-xs font-medium text-gray-700 dark:text-gray-300">
+                      Justificatif de domicile
+                    </div>
+                    <div class="p-2 bg-white dark:bg-gray-800">
+                      <div v-if="selectedUser.proof_address" class="aspect-[4/3] overflow-hidden rounded bg-gray-100 dark:bg-gray-700">
+                        <img :src="selectedUser.proof_address" alt="Justificatif de domicile" class="w-full h-full object-cover hover:scale-150 transition-all cursor-zoom-in" />
+                      </div>
+                      <div v-else class="aspect-[4/3] flex items-center justify-center bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 text-sm">
+                        Non fourni
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Notes de vérification -->
+              <div>
+                <label for="verificationNotes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                  Notes de vérification
+                </label>
+                <textarea
+                  v-model="verificationNotes"
+                  id="verificationNotes"
+                  rows="3"
+                  class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                  placeholder="Ajoutez des notes concernant cette vérification..."
+                ></textarea>
+              </div>
+              
+              <!-- Actions -->
+              <div class="flex justify-end space-x-3 border-t border-gray-200 dark:border-gray-700 pt-4">
+                <button 
+                  @click="rejectVerification" 
+                  class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-full transition-colors"
+                  :disabled="isProcessing"
+                >
+                  <div v-if="isRejecting" class="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  {{ isRejecting ? 'Refus en cours...' : 'Refuser' }}
+                </button>
+                
+                <button 
+                  @click="approveVerification" 
+                  class="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-full transition-colors flex items-center"
+                  :disabled="isProcessing"
+                >
+                  <div v-if="isApproving" class="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  {{ isApproving ? 'Approbation en cours...' : 'Approuver' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
     
-    // Filtre par recherche
-    if (search.value) {
-      const query = search.value.toLowerCase()
-      filtered = filtered.filter(user => 
-        (user.first_name && user.first_name.toLowerCase().includes(query)) ||
-        (user.last_name && user.last_name.toLowerCase().includes(query)) ||
-        user.email.toLowerCase().includes(query)
-      )
-    }
-    
-    // Filtre par rôle
-    if (roleFilter.value) {
-      filtered = filtered.filter(user => user.role === roleFilter.value)
-    }
-    
-    // Filtre par statut
-    if (statusFilter.value) {
-      filtered = filtered.filter(user => user.status === statusFilter.value)
-    }
-    
-    return filtered
-  })
-  
-  // Pagination
-  const totalPages = computed(() => 
-    Math.ceil(filteredUsers.value.length / itemsPerPage.value)
-  )
-  
-  const paginatedUsers = computed(() => {
-    const start = (currentPage.value - 1) * itemsPerPage.value
-    const end = start + itemsPerPage.value
-    return filteredUsers.value.slice(start, end)
-  })
-  
-  // Boutons de pagination
-  const paginationButtons = computed(() => {
-    const buttons = []
-    const MAX_VISIBLE = 5
-    
-    if (totalPages.value <= MAX_VISIBLE) {
-      // Afficher toutes les pages
-      for (let i = 1; i <= totalPages.value; i++) {
-        buttons.push(i)
-      }
-    } else {
-      // Afficher un sous-ensemble de pages avec '...'
-      buttons.push(1)
-      
-      if (currentPage.value < 3) {
-        buttons.push(2, 3, '...', totalPages.value)
-      } else if (currentPage.value > totalPages.value - 2) {
-        buttons.push('...', totalPages.value - 2, totalPages.value - 1, totalPages.value)
-      } else {
-        buttons.push('...', currentPage.value, '...', totalPages.value)
-      }
-    }
-    
-    return buttons
-  })
-  
-  // Gestion des utilisateurs
-  const openUserModal = (user = null) => {
-    if (user) {
-      userToEdit.value = { ...user }
-      editMode.value = true
-    } else {
-      userToEdit.value = {
-        first_name: '',
-        last_name: '',
-        email: '',
-        password: '',
-        role: 'client'
-      }
-      editMode.value = false
-    }
-    showUserModal.value = true
-  }
-  
-  // Formater le rôle
-  const formatRole = (role) => {
-    switch (role) {
-      case 'admin':
-        return 'Administrateur'
-      case 'expert':
-        return 'Expert'
-      case 'client':
-        return 'Client'
-      default:
-        return role
-    }
-  }
-  
-  // Formater le statut
-  const formatStatus = (status) => {
-    switch (status) {
-      case 'active':
-        return 'Actif'
-      case 'pending':
-        return 'En attente'
-      case 'blocked':
-        return 'Bloqué'
-      default:
-        return status
-    }
-  }
-  
-  // Formater la date
-  const formatDate = (dateString) => {
-    if (!dateString) return '—'
-    const date = new Date(dateString)
-    return date.toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })
-  }
-  
-  // Réinitialiser les filtres
-  const resetFilters = () => {
-    search.value = ''
-    roleFilter.value = ''
-    statusFilter.value = ''
-    currentPage.value = 1
-  }
-  
-  // Sélection des utilisateurs
-  const toggleUserSelection = (userId) => {
-    const index = selectedUsers.value.indexOf(userId)
-    if (index === -1) {
-      selectedUsers.value.push(userId)
-    } else {
-      selectedUsers.value.splice(index, 1)
-  }
-  
-    // Mettre à jour l'état de sélection totale
-    selectAll.value = selectedUsers.value.length === paginatedUsers.value.length
-  }
-  
-  const toggleSelectAll = () => {
-    selectAll.value = !selectAll.value
-    if (selectAll.value) {
-      selectedUsers.value = paginatedUsers.value.map(user => user.id)
-    } else {
-      selectedUsers.value = []
-    }
-  }
-  
-  // Actions sur les utilisateurs
-  const confirmDelete = (user) => {
-    userToDelete.value = user
-    showDeleteModal.value = true
-  }
-  
-  const deleteUser = async () => {
-    try {
-      // Logique de suppression
-      console.log('Supprimer', userToDelete.value)
-      // Rafraîchir la liste
-      await fetchUsers()
-      showDeleteModal.value = false
-    } catch (error) {
-      console.error('Erreur lors de la suppression:', error)
-    }
-  }
-  
-  const editUser = (user) => {
-    openUserModal(user)
-  }
-  
-  const saveUser = async (userData) => {
-    try {
-      // Logique d'enregistrement
-      console.log('Enregistrer', userData)
-      // Rafraîchir la liste
-      await fetchUsers()
-      showUserModal.value = false
-    } catch (error) {
-      console.error('Erreur lors de l\'enregistrement:', error)
-    }
-  }
-  
-  const verifyUser = async (userId, verified = true) => {
-    try {
-      const { error } = await client
-        .from('profiles')
-        .update({
-          verification_status: verified ? 'verified' : 'rejected',
-          verified_at: verified ? new Date().toISOString() : null
-        })
-        .eq('id', userId)
+    <!-- Modal de blocage d'utilisateur -->
+    <Teleport to="body">
+      <div v-if="showBlockModal" class="fixed inset-0 bg-black/50 dark:bg-gray-900/70 flex items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg max-w-lg w-full">
+          <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Bloquer l'utilisateur</h3>
+            <button @click="showBlockModal = false" class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
+              <X class="h-5 w-5" />
+            </button>
+          </div>
+          
+          <div class="p-6">
+            <div v-if="selectedUser" class="text-center mb-6">
+              <div class="w-16 h-16 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 mx-auto mb-3">
+                <img v-if="selectedUser.avatar_url" :src="selectedUser.avatar_url" alt="" class="h-full w-full object-cover">
+                <div v-else class="h-full w-full flex items-center justify-center bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 text-xl font-medium">
+                  {{ getInitials(selectedUser.first_name, selectedUser.last_name) }}
+                </div>
+              </div>
+              
+              <h4 class="text-lg font-medium text-gray-900 dark:text-white">
+                {{ selectedUser.first_name }} {{ selectedUser.last_name }}
+              </h4>
+              <p class="text-gray-600 dark:text-gray-400 text-sm">{{ selectedUser.email }}</p>
+            </div>
+            
+            <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-900/40 text-yellow-800 dark:text-yellow-300 p-4 rounded-lg mb-4 text-sm">
+              <div class="flex">
+                <AlertTriangle class="h-5 w-5 text-yellow-600 dark:text-yellow-500 mr-2 flex-shrink-0" />
+                <div>
+                  <strong>Attention :</strong> Bloquer cet utilisateur l'empêchera de se connecter à son compte et d'utiliser les services de la plateforme.
+                </div>
+              </div>
+            </div>
+            
+            <div class="mb-4">
+              <label for="blockReason" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                Raison du blocage
+              </label>
+              <textarea
+                v-model="blockReason"
+                id="blockReason"
+                rows="3"
+                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                placeholder="Précisez la raison du blocage..."
+              ></textarea>
+            </div>
+            
+            <div class="flex justify-end space-x-3">
+              <button 
+                @click="showBlockModal = false" 
+                class="px-5 py-2.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-full hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+              >
+                Annuler
+              </button>
+              
+              <button 
+                @click="blockUser" 
+                class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-full transition-colors flex items-center"
+                :disabled="isBlocking"
+              >
+                <div v-if="isBlocking" class="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                {{ isBlocking ? 'Blocage en cours...' : 'Bloquer l\'utilisateur' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+  </div>
+</template>
 
-      if (error) throw error
+<script setup>
+import { ref, onMounted, watch, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useSupabaseClient } from '#imports'
+import {
+  Search, User, UserX, Edit, Trash, Lock, Unlock, CheckCircle,
+  Mail, Bell, X, AlertCircle, Info, ChevronLeft, ChevronRight,
+  ChevronsLeft, ChevronsRight, Loader2
+} from 'lucide-vue-next'
 
-      // Mettre à jour l'état local sans rechargement complet
-      users.value = users.value.map(user => {
-        if (user.id === userId) {
-          return {
-            ...user,
-            verification_status: verified ? 'verified' : 'rejected',
-            verified_at: verified ? new Date().toISOString() : null
-          }
-        }
-        return user
-      })
-    } catch (error) {
-      console.error('Erreur lors de la vérification:', error)
+import UserModal from '@/components/admin/users/UserModal.vue'
+const router = useRouter()
+const supabase = useSupabaseClient()
+
+const selectedUser = ref(null)
+const verificationNotes = ref('')
+const showVerificationModal = ref(false)
+const blockReason = ref('')
+const showBlockModal = ref(false)
+// const showStatusMessage = ref(null)
+const search = ref('')
+const roleFilter = ref('all')
+const statusFilter = ref('all')
+const sortOption = ref('recent')
+const currentPage = ref(1)
+const users = ref([])
+const isApproving = ref(false)
+const isRejecting = ref(false)
+const isBlocking = ref(false)
+const isUnblocking = ref(false)
+const isLoading = ref(false)
+const showUserModal = ref(false)
+const userToEdit = ref(null)
+const editMode = ref(false)
+
+// Ouvrir le modal de vérification
+const openVerificationModal = (user) => {
+  selectedUser.value = user
+  verificationNotes.value = user.verification_notes || ''
+  showVerificationModal.value = true
+}
+
+// Ouvrir le modal de blocage
+const openBlockModal = (user) => {
+  selectedUser.value = user
+  blockReason.value = user.block_reason || ''
+  showBlockModal.value = true
+}
+
+// Voir le profil complet
+const viewProfile = (userId) => {
+  router.push(`/admin/users/${userId}`)
+}
+
+// Chargement des données
+const fetchUsers = async () => {
+  isLoading.value = true
+  
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+    
+    if (error) throw error
+    
+    if (Array.isArray(data)) {
+      users.value = data
+      console.log('Utilisateurs chargés:', users.value.length)
+    } else {
+      console.error('Données invalides:', data)
+      users.value = []
     }
-  }
-  
-  const blockUser = async (user) => {
-    try {
-      // Logique de blocage
-      console.log('Bloquer', user)
-      // Rafraîchir la liste
-      await fetchUsers()
-    } catch (error) {
-      console.error('Erreur lors du blocage:', error)
-    }
-  }
-  
-  const activateUser = async (user) => {
-    try {
-      // Logique d'activation
-      console.log('Activer', user)
-      // Rafraîchir la liste
-      await fetchUsers()
-    } catch (error) {
-      console.error('Erreur lors de l\'activation:', error)
-    }
-  }
-  
-  // Actions en masse
-  const bulkVerify = async () => {
-    try {
-      // Logique de vérification en masse
-      console.log('Vérifier', selectedUsers.value)
-      // Rafraîchir la liste
-      await fetchUsers()
-    } catch (error) {
-      console.error('Erreur lors de la vérification en masse:', error)
-    }
-  }
-  
-  const bulkActivate = async () => {
-    try {
-      // Logique d'activation en masse
-      console.log('Activer', selectedUsers.value)
-      // Rafraîchir la liste
-      await fetchUsers()
-    } catch (error) {
-      console.error('Erreur lors de l\'activation en masse:', error)
-    }
-  }
-  
-  const confirmBulkDelete = async () => {
-    try {
-      // Logique de suppression en masse
-      console.log('Supprimer', selectedUsers.value)
-      // Rafraîchir la liste
-      await fetchUsers()
-    } catch (error) {
-      console.error('Erreur lors de la suppression en masse:', error)
-    }
-  }
-  
-  const exportUsers = () => {
-    // Logique d'exportation
-    console.log('Exporter les utilisateurs')
-  }
-  
-  // Chargement des données
-  const fetchUsers = async () => {
-    try {
-      loading.value = true
-      
-      // Récupérer les utilisateurs depuis la base de données
-      const { data, error } = await client
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false })
-      
-      if (error) throw error
-      users.value = data || []
-    } catch (error) {
-      console.error('Erreur lors du chargement des utilisateurs:', error)
-    } finally {
-      loading.value = false
+  } catch (error) {
+    console.error('Erreur lors de la récupération des utilisateurs:', error)
+    showStatusMessage('error', 'Erreur lors de la récupération des utilisateurs')
+    users.value = []
+  } finally {
+    isLoading.value = false
   }
 }
 
 // Réinitialiser la pagination quand les filtres changent
-  watch([search, roleFilter, statusFilter], () => {
+watch([search, roleFilter, statusFilter], () => {
   currentPage.value = 1
 })
 
-// Charger les utilisateurs au montage du composant
-onMounted(fetchUsers)
+// Modifier un utilisateur
+const editUser = (user) => {
+  userToEdit.value = user
+  editMode.value = true
+  showUserModal.value = true
+}
 
-definePageMeta({
-    layout: 'admin'
+// Fonction pour confirmer le blocage d'un utilisateur
+const confirmBlock = (user) => {
+  selectedUser.value = user
+  showBlockModal.value = true
+}
+
+// Fonction pour confirmer le déblocage d'un utilisateur
+const confirmUnblock = (user) => {
+  selectedUser.value = user
+  showUnblockModal.value = true
+}
+const confirmDelete = (user) => {
+  selectedUser.value = user
+  showDeleteModal.value = true
+}
+
+
+// Approuver un expert
+const approveExpert = async () => {
+  if (!selectedUser.value) return
+  
+  isApproving.value = true
+  
+  try {
+    // Capturer l'ID avant de réinitialiser
+    const userId = selectedUser.value.id
+    
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        verification_status: 'verified',
+        verification_notes: verificationNotes.value,
+        verified_at: new Date().toISOString(),
+        is_expert: true
+      })
+      .eq('id', userId)
+    
+    if (error) throw error
+    
+    // Mise à jour dans le state local
+    const index = users.value.findIndex(u => u.id === userId)
+    if (index !== -1) {
+      users.value[index] = {
+        ...users.value[index],
+        verification_status: 'verified',
+        verification_notes: verificationNotes.value,
+        verified_at: new Date().toISOString(),
+        is_expert: true
+      }
+    }
+    
+    showStatusMessage('success', 'Compte expert approuvé avec succès')
+    
+    // Fermer le modal
+    showVerificationModal.value = false
+    selectedUser.value = null
+    verificationNotes.value = ''
+    
+    // Notification APRÈS réinitialisation
+    await sendNotification(
+      userId, // Utiliser userId au lieu de selectedUser.value.id
+      'Votre compte expert a été approuvé',
+      'Félicitations ! Votre demande de compte expert a été approuvée.'
+    )
+  } catch (error) {
+    console.error('Erreur lors de l\'approbation du compte expert:', error)
+    showStatusMessage('error', 'Erreur lors de l\'approbation du compte expert')
+  } finally {
+    isApproving.value = false
+  }
+}
+
+// Rejeter un expert
+const rejectExpert = async () => {
+  if (!selectedUser.value) return
+  
+  isRejecting.value = true
+  
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        verification_status: 'rejected',
+        verification_notes: verificationNotes.value
+      })
+      .eq('id', selectedUser.value.id)
+    
+    if (error) throw error
+    
+    // Mise à jour dans le state local
+    const index = users.value.findIndex(u => u.id === selectedUser.value.id)
+    if (index !== -1) {
+      users.value[index] = {
+        ...users.value[index],
+        verification_status: 'rejected',
+        verification_notes: verificationNotes.value
+      }
+    }
+    
+    showStatusMessage('success', 'Demande de compte expert rejetée')
+    
+    // Fermer le modal
+    showVerificationModal.value = false
+    selectedUser.value = null
+    verificationNotes.value = ''
+    
+    // Notification à l'utilisateur
+    await sendNotification(
+      selectedUser.value.id,
+      'Votre demande de compte expert a été rejetée',
+      `Votre demande de compte expert n'a pas été approuvée pour la raison suivante: ${verificationNotes.value || 'Non spécifiée'}. Vous pouvez contacter notre équipe pour plus d'informations.`
+    )
+  } catch (error) {
+    console.error('Erreur lors du rejet du compte expert:', error)
+    showStatusMessage('error', 'Erreur lors du rejet du compte expert')
+  } finally {
+    isRejecting.value = false
+  }
+}
+
+// Bloquer un utilisateur
+const blockUser = async () => {
+  if (!selectedUser.value) return
+  
+  isBlocking.value = true
+  
+  try {
+    // Capturer l'ID de l'utilisateur avant de réinitialiser
+    const userId = selectedUser.value.id
+    const reasonText = blockReason.value || 'Non spécifiée'
+    
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        is_blocked: true,
+        block_reason: blockReason.value,
+        blocked_at: new Date().toISOString()
+      })
+      .eq('id', userId)
+    
+    if (error) throw error
+    
+    // Mise à jour dans le state local
+    const index = users.value.findIndex(u => u.id === userId)
+    if (index !== -1) {
+      users.value[index] = {
+        ...users.value[index],
+        is_blocked: true,
+        block_reason: blockReason.value,
+        blocked_at: new Date().toISOString()
+      }
+    }
+    
+    showStatusMessage('success', 'Utilisateur bloqué avec succès')
+    
+    // Fermer le modal
+    showBlockModal.value = false
+    selectedUser.value = null
+    blockReason.value = ''
+    
+    // Notification à l'utilisateur APRÈS avoir réinitialisé
+    await sendNotification(
+      userId,
+      'Votre compte a été suspendu',
+      `Votre compte a été temporairement suspendu pour la raison suivante: ${reasonText}. Veuillez contacter notre équipe de support pour plus d'informations.`
+    )
+  } catch (error) {
+    console.error('Erreur lors du blocage de l\'utilisateur:', error)
+    showStatusMessage('error', 'Erreur lors du blocage de l\'utilisateur')
+  } finally {
+    isBlocking.value = false
+  }
+}
+
+// Débloquer un utilisateur
+const unblockUser = async (user) => {
+  isUnblocking.value = true
+  
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        is_blocked: false,
+        block_reason: null,
+        blocked_at: null
+      })
+      .eq('id', user.id)
+    
+    if (error) throw error
+    
+    // Mise à jour dans le state local
+    const index = users.value.findIndex(u => u.id === user.id)
+    if (index !== -1) {
+      users.value[index] = {
+        ...users.value[index],
+        is_blocked: false,
+        block_reason: null,
+        blocked_at: null
+      }
+    }
+    
+    showStatusMessage('success', 'Utilisateur débloqué avec succès')
+    
+    // Notification à l'utilisateur
+    await sendNotification(
+      user.id,
+      'Votre compte a été réactivé',
+      'Votre compte a été débloqué et vous pouvez à nouveau accéder à toutes les fonctionnalités de la plateforme.'
+    )
+  } catch (error) {
+    console.error('Erreur lors du déblocage de l\'utilisateur:', error)
+    showStatusMessage('error', 'Erreur lors du déblocage de l\'utilisateur')
+  } finally {
+    isUnblocking.value = false
+  }
+}
+
+// Envoyer une notification à un utilisateur
+const sendNotification = async (userId, title, message) => {
+  try {
+    const { error } = await supabase
+      .from('notifications')
+      .insert([
+        { 
+          user_id: userId,
+          title,
+          message,
+          type: 'system',
+          is_read: false
+        }
+      ])
+    
+    if (error) throw error
+    
+    return true
+  } catch (error) {
+    console.error('Erreur lors de l\'envoi de la notification:', error)
+    return false
+  }
+}
+
+// Afficher un message de statut
+const showStatusMessage = (type, message, duration = 5000) => {
+  statusMessage.value = {
+    show: true,
+    type,
+    message
+  }
+  
+  setTimeout(() => {
+    statusMessage.value.show = false
+  }, duration)
+}
+
+// Réinitialiser les filtres
+const resetFilters = () => {
+  search.value = ''
+  roleFilter.value = 'all'
+  statusFilter.value = 'all'
+  sortOption.value = 'recent'
+  currentPage.value = 1
+}
+
+// Pagination
+const goToPage = (page) => {
+  currentPage.value = page
+}
+
+// Formater la date
+const formatDate = (dateString) => {
+  if (!dateString) return '-'
+  
+  return new Date(dateString).toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  })
+}
+
+// Réinitialiser la page quand les filtres changent
+watch([search, roleFilter, statusFilter, sortOption], () => {
+  currentPage.value = 1
 })
-</script> 
+
+// Correction des filtres et de la pagination
+const paginatedUsers = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return filteredUsers.value.slice(start, end)
+})
+
+// Vérifiez que ces variables sont bien définies
+const itemsPerPage = ref(10) // Nombre d'utilisateurs par page
+
+// Correction du filteredUsers computed
+const filteredUsers = computed(() => {
+  let filtered = [...users.value]
+  
+  // Filtre par recherche
+  if (search.value) {
+    const query = search.value.toLowerCase()
+    filtered = filtered.filter(user => 
+      (user.first_name && user.first_name.toLowerCase().includes(query)) ||
+      (user.last_name && user.last_name.toLowerCase().includes(query)) ||
+      (user.email && user.email.toLowerCase().includes(query))
+    )
+  }
+  
+  // Filtre par rôle
+  if (roleFilter.value !== 'all') {
+    filtered = filtered.filter(user => user.role === roleFilter.value)
+  }
+  
+  // Filtre par statut
+  if (statusFilter.value !== 'all') {
+    switch (statusFilter.value) {
+      case 'active':
+        filtered = filtered.filter(user => !user.is_blocked)
+        break
+      case 'blocked':
+        filtered = filtered.filter(user => user.is_blocked)
+        break
+      case 'pending':
+        filtered = filtered.filter(user => user.verification_status === 'pending')
+        break
+      case 'unverified':
+        filtered = filtered.filter(user => !user.verification_status || user.verification_status === 'none')
+        break
+    }
+  }
+  
+  // Tri
+  switch (sortOption.value) {
+    case 'recent':
+      filtered.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
+      break
+    case 'oldest':
+      filtered.sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0))
+      break
+    case 'name':
+      filtered.sort((a, b) => {
+        const nameA = `${a.first_name || ''} ${a.last_name || ''}`.trim()
+        const nameB = `${b.first_name || ''} ${b.last_name || ''}`.trim()
+        return nameA.localeCompare(nameB)
+      })
+      break
+  }
+  
+  return filtered
+})
+
+// Obtenir les initiales de l'utilisateur pour l'avatar
+const getInitials = (firstName, lastName) => {
+  let initials = ''
+  if (firstName) initials += firstName.charAt(0).toUpperCase()
+  if (lastName) initials += lastName.charAt(0).toUpperCase()
+  return initials || '?'  // Renvoyer '?' si aucune initiale n'est disponible
+}
+
+// Formater le rôle de l'utilisateur
+const formatRole = (role) => {
+  switch (role) {
+    case 'admin':
+      return 'Administrateur'
+    case 'expert':
+      return 'Expert'
+    case 'client':
+      return 'Client'
+    default:
+      return 'Client'
+  }
+}
+
+// Formater le statut de vérification
+const formatVerificationStatus = (status) => {
+  switch (status) {
+    case 'verified':
+      return 'Vérifié'
+    case 'pending':
+      return 'En attente'
+    case 'rejected':
+      return 'Rejeté'
+    case 'none':
+    default:
+      return 'Non vérifié'
+  }
+}
+
+// Initialisation
+onMounted(() => {
+  fetchUsers()
+})
+definePageMeta({
+  layout: 'admin'
+})
+</script>
+
+<style scoped>
+/* Style pour les sélecteurs avec flèche dropdown */
+select {
+  background-position: right 1rem center;
+  background-repeat: no-repeat;
+  background-size: 1em;
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>');
+}
+
+/* Animation pour le modal */
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+  transform: scale(0.95);
+}
+</style> 

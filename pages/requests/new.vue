@@ -49,28 +49,39 @@
                 </p>
               </div>
               
-              <!-- Catégories avec défilement -->
-              <div class="max-h-[60vh] overflow-y-auto pr-2 -mr-2">
-                <div class="grid grid-cols-2 gap-4">
-                  <button
-                    v-for="category in serviceCategories"
-                    :key="category.id"
-                    @click="selectCategory(category.id)"
-                    class="aspect-square relative overflow-hidden group"
-                  >
-                    <div 
-                      :class="[
-                        'absolute inset-0 text-black rounded-xl flex flex-col items-center justify-center p-4 transition-all duration-200',
-                        form.category_id === category.id 
-                          ? 'bg-black text-white' 
-                          : 'bg-gray-100 text-black group-hover:bg-gray-200'
-                      ]"
-                    >
-                      <span class="text-3xl mb-3">{{ category.icon }}</span>
-                      <span class="font-medium text-center">{{ category.name }}</span>
-                    </div>
-                  </button>
+              <!-- Débogage - Nombre de catégories chargées -->
+              <div class="text-sm text-gray-500 mb-4">
+                {{ serviceCategories.length }} catégories disponibles
+              </div>
+              
+              <!-- Catégories - Nouveau design simplifié -->
+              <div class="grid grid-cols-2 gap-4">
+                <button
+                  v-for="category in serviceCategories"
+                  :key="category.id"
+                  @click="selectCategory(category.id)"
+                  class="bg-gray-100 hover:bg-gray-200 p-4 rounded-xl transition-all"
+                  :class="{ 'ring-2 ring-black': form.category_id === category.id }"
+                >
+                  <div class="flex flex-col items-center">
+                    <span class="text-3xl mb-2">{{ category.icon }}</span>
+                    <span class="font-medium text-center">{{ category.name }}</span>
+                  </div>
+                </button>
+              </div>
+              
+              <!-- Fallback si pas de catégories -->
+              <div v-if="serviceCategories.length === 0" class="bg-yellow-50 p-4 rounded-xl mt-4">
+                <div class="flex items-center">
+                  <AlertCircle class="h-5 w-5 text-yellow-500 mr-2" />
+                  <span class="text-yellow-700">Chargement des catégories...</span>
                 </div>
+                <button 
+                  @click="loadCategoriesManually" 
+                  class="mt-2 text-sm text-yellow-800 underline"
+                >
+                  Recharger les catégories
+                </button>
               </div>
             </div>
             
@@ -478,8 +489,8 @@ const canProceed = computed(() => {
 
 // Sélection de catégorie
 const selectCategory = (categoryId) => {
+  console.log("Catégorie sélectionnée:", categoryId)
   form.value.category_id = categoryId
-  form.value.service_id = ''
 }
 
 // Sélection de service
@@ -544,7 +555,11 @@ const submitRequest = async () => {
         time: form.value.time,
         duration: form.value.duration,
         budget: parseFloat(form.value.budget),
-        status: 'active',
+
+        deadline: form.value.date ? new Date(form.value.date).toISOString() : null,
+      budget: parseFloat(form.value.budget) || 0,
+      status: 'open', // Utiliser 'open' au lieu de 'active' selon le schéma
+   
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
@@ -603,6 +618,62 @@ const limitedCategories = computed(() => {
   
   return uniqueCategories;
 });
+
+// Chargement manuel des catégories (pour le bouton de rechargement)
+const loadCategoriesManually = async () => {
+  await fetchCategories()
+}
+
+// Chargement des données
+const fetchCategories = async () => {
+  try {
+    console.log("Chargement des catégories...")
+    
+    const { data, error } = await client
+      .from('service_categories')
+      .select('id, name, icon')
+    
+    if (error) throw error
+    
+    console.log("Catégories chargées:", data)
+    serviceCategories.value = data || []
+    
+    // Si aucune catégorie n'est chargée, utiliser des données de repli
+    if (serviceCategories.value.length === 0) {
+      console.log("Utilisation des catégories de secours")
+      serviceCategories.value = [
+        { id: "cat1", name: "Ménage", icon: "🧹" },
+        { id: "cat2", name: "Bricolage", icon: "🔨" },
+        { id: "cat3", name: "Jardinage", icon: "🌱" },
+        { id: "cat4", name: "Cours", icon: "📚" },
+        { id: "cat5", name: "Informatique", icon: "💻" },
+        { id: "cat6", name: "Garde d'enfants", icon: "👶" }
+      ]
+    }
+  } catch (err) {
+    console.error("Erreur lors du chargement des catégories:", err)
+  }
+}
+
+// Chargement des services
+const fetchServices = async () => {
+  try {
+    const { data, error } = await client
+      .from('services')
+      .select('id, category_id, name')
+    
+    if (error) throw error
+    services.value = data || []
+  } catch (err) {
+    console.error("Erreur lors du chargement des services:", err)
+  }
+}
+
+// Initialisation
+onMounted(async () => {
+  await fetchCategories()
+  await fetchServices()
+})
 
 definePageMeta({
   layout: 'default',

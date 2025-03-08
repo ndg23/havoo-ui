@@ -239,4 +239,9 @@ const getStatusClasses = (status) => {
 
 // Initialisation
 onMounted(fetchMyProposals)
+
+// Vous pouvez ajouter ce bloc en haut de chaque fichier
+definePageMeta({
+  layout: 'account'
+})
 </script> 

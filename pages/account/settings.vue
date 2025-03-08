@@ -565,7 +565,7 @@ const deleteAccount = async () => {
 onMounted(fetchSettings)
 
 definePageMeta({
-  layout: 'default',
+  layout: 'account',
   auth: true
 })
 </script>

@@ -351,6 +351,195 @@
         </div>
       </div>
     </Teleport>
+    
+    <!-- Actions rapides et statuts -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm mt-8">
+      <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
+        <h2 class="text-lg font-medium text-gray-900 dark:text-white flex items-center">
+          <Zap class="h-5 w-5 mr-2 text-primary-600 dark:text-primary-400" />
+          Actions rapides
+        </h2>
+      </div>
+      
+      <div class="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <!-- Statut de vérification -->
+        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-5 border border-gray-100 dark:border-gray-700">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-medium text-gray-900 dark:text-white">Vérification</h3>
+            <span 
+              :class="[
+                'px-2.5 py-1 text-xs font-medium rounded-full',
+                profile.is_verified ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'
+              ]"
+            >
+              {{ profile.is_verified ? 'Vérifié' : 'Non vérifié' }}
+            </span>
+          </div>
+          
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            {{ profile.is_verified ? 'Votre compte est vérifié.' : 'Vérifiez votre compte pour accéder à toutes les fonctionnalités.' }}
+          </p>
+          
+          <NuxtLink 
+            v-if="!profile.is_verified"
+            to="/account/verify"
+            class="w-full px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-full transition-colors inline-flex items-center justify-center"
+          >
+            <CheckCircle class="h-4 w-4 mr-1.5" />
+            Vérifier mon compte
+          </NuxtLink>
+        </div>
+        
+        <!-- Devenir expert -->
+        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-5 border border-gray-100 dark:border-gray-700">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-medium text-gray-900 dark:text-white">Statut expert</h3>
+            <span 
+              :class="[
+                'px-2.5 py-1 text-xs font-medium rounded-full',
+                isExpert ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300' : 'bg-gray-100 text-gray-700 dark:bg-gray-600 dark:text-gray-300'
+              ]"
+            >
+              {{ isExpert ? 'Expert' : 'Client' }}
+            </span>
+          </div>
+          
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            {{ isExpert ? 'Vous êtes expert et pouvez proposer vos services.' : 'Devenez expert pour proposer vos services sur la plateforme.' }}
+          </p>
+          
+          <NuxtLink 
+            v-if="!isExpert"
+            to="/account/become-expert"
+            class="w-full px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-full transition-colors inline-flex items-center justify-center"
+          >
+            <Award class="h-4 w-4 mr-1.5" />
+            Devenir expert
+          </NuxtLink>
+          
+          <NuxtLink 
+            v-else
+            to="/account/expert"
+            class="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-full hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors inline-flex items-center justify-center"
+          >
+            <User class="h-4 w-4 mr-1.5" />
+            Gérer mon profil expert
+          </NuxtLink>
+        </div>
+        
+        <!-- Nouvelle demande -->
+        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-5 border border-gray-100 dark:border-gray-700">
+          <h3 class="font-medium text-gray-900 dark:text-white mb-3">Besoin d'un service?</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            Publiez une demande pour trouver un expert qualifié.
+          </p>
+          
+          <NuxtLink 
+            to="/requests/create"
+            class="w-full px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-full transition-colors inline-flex items-center justify-center"
+          >
+            <Plus class="h-4 w-4 mr-1.5" />
+            Nouvelle demande
+          </NuxtLink>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Mes activités -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm mt-8">
+      <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
+        <h2 class="text-lg font-medium text-gray-900 dark:text-white flex items-center">
+          <Activity class="h-5 w-5 mr-2 text-primary-600 dark:text-primary-400" />
+          Mes activités
+        </h2>
+      </div>
+      
+      <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!-- Mes demandes -->
+        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-5 border border-gray-100 dark:border-gray-700 hover:border-primary-200 dark:hover:border-primary-800 transition-colors">
+          <NuxtLink to="/account/requests" class="block">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-medium text-gray-900 dark:text-white">Mes demandes</h3>
+              <span class="px-2.5 py-1 bg-primary-100 dark:bg-primary-900/40 text-primary-800 dark:text-primary-300 text-xs font-medium rounded-full">
+                {{ stats.requestCount }}
+              </span>
+            </div>
+            
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Consultez et gérez vos demandes de services en cours et passées.
+            </p>
+            
+            <span class="text-primary-600 dark:text-primary-400 text-sm font-medium flex items-center">
+              Voir mes demandes
+              <ArrowRight class="h-4 w-4 ml-1" />
+            </span>
+          </NuxtLink>
+        </div>
+        
+        <!-- Mes propositions (si expert) -->
+        <div v-if="isExpert" class="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-5 border border-gray-100 dark:border-gray-700 hover:border-primary-200 dark:hover:border-primary-800 transition-colors">
+          <NuxtLink to="/account/proposals" class="block">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-medium text-gray-900 dark:text-white">Mes propositions</h3>
+              <span class="px-2.5 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 text-xs font-medium rounded-full">
+                {{ stats.myProposalCount || 0 }}
+              </span>
+            </div>
+            
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Consultez les propositions que vous avez envoyées aux clients.
+            </p>
+            
+            <span class="text-primary-600 dark:text-primary-400 text-sm font-medium flex items-center">
+              Voir mes propositions
+              <ArrowRight class="h-4 w-4 ml-1" />
+            </span>
+          </NuxtLink>
+        </div>
+        
+        <!-- Mes services (si expert) -->
+        <div v-if="isExpert" class="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-5 border border-gray-100 dark:border-gray-700 hover:border-primary-200 dark:hover:border-primary-800 transition-colors">
+          <NuxtLink to="/account/services" class="block">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-medium text-gray-900 dark:text-white">Mes services</h3>
+              <span class="px-2.5 py-1 bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 text-xs font-medium rounded-full">
+                {{ stats.serviceCount || 0 }}
+              </span>
+            </div>
+            
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Gérez vos offres de services et modifiez vos disponibilités.
+            </p>
+            
+            <span class="text-primary-600 dark:text-primary-400 text-sm font-medium flex items-center">
+              Gérer mes services
+              <ArrowRight class="h-4 w-4 ml-1" />
+            </span>
+          </NuxtLink>
+        </div>
+        
+        <!-- Mes contrats -->
+        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-5 border border-gray-100 dark:border-gray-700 hover:border-primary-200 dark:hover:border-primary-800 transition-colors">
+          <NuxtLink to="/account/contracts" class="block">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-medium text-gray-900 dark:text-white">Mes contrats</h3>
+              <span class="px-2.5 py-1 bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 text-xs font-medium rounded-full">
+                {{ stats.contractCount }}
+              </span>
+            </div>
+            
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Suivez l'avancement et gérez vos contrats en cours et passés.
+            </p>
+            
+            <span class="text-primary-600 dark:text-primary-400 text-sm font-medium flex items-center">
+              Voir mes contrats
+              <ArrowRight class="h-4 w-4 ml-1" />
+            </span>
+          </NuxtLink>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -374,7 +563,13 @@ import {
   Shield, 
   LogOut, 
   AlertTriangle, 
-  X 
+  X, 
+  Zap, 
+  Activity, 
+  ArrowRight, 
+  CheckCircle, 
+  Award, 
+  Plus
 } from 'lucide-vue-next'
 
 // États
@@ -385,7 +580,9 @@ const stats = ref({
   requestCount: 0,
   proposalCount: 0,
   contractCount: 0,
-  rating: null
+  rating: null,
+  myProposalCount: 0,
+  serviceCount: 0
 })
 const preferences = ref({
   emailNotifications: true,
@@ -486,7 +683,31 @@ const fetchStats = async () => {
       requestCount: requestCount || 0,
       proposalCount: proposalCount || 0,
       contractCount: contractCount || 0,
-      rating: ratingData.rating ? Number(ratingData.rating).toFixed(1) : null
+      rating: ratingData.rating ? Number(ratingData.rating).toFixed(1) : null,
+      myProposalCount: 0,
+      serviceCount: 0
+    }
+    
+    // Récupérer le nombre de propositions envoyées (pour experts)
+    if (isExpert.value) {
+      const { count: myProposalCount, error: myProposalError } = await supabase
+        .from('proposals')
+        .select('id', { count: 'exact', head: true })
+        .eq('expert_id', user.value.id)
+      
+      if (!myProposalError) {
+        stats.value.myProposalCount = myProposalCount || 0
+      }
+      
+      // Récupérer le nombre de services proposés (pour experts)
+      const { count: serviceCount, error: serviceError } = await supabase
+        .from('services')
+        .select('id', { count: 'exact', head: true })
+        .eq('expert_id', user.value.id)
+      
+      if (!serviceError) {
+        stats.value.serviceCount = serviceCount || 0
+      }
     }
   } catch (error) {
     console.error('Erreur lors du chargement des statistiques:', error)
@@ -590,6 +811,11 @@ const showStatusMessage = (type, message, duration = 5000) => {
 // Initialisation
 onMounted(() => {
   fetchProfile()
+})
+
+// Vous pouvez ajouter ce bloc en haut de chaque fichier
+definePageMeta({
+  layout: 'account'
 })
 </script> 
 

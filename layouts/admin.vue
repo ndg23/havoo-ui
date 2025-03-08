@@ -1,392 +1,452 @@
 <template>
-  <div class="h-screen flex bg-white dark:bg-gray-950 text-gray-900 dark:text-white overflow-hidden font-sans">
-    <!-- Sidebar style Twitter 2024 -->
-    <aside 
-      class="transition-all duration-300 ease-in-out flex flex-col z-30 border-r border-gray-100 dark:border-gray-800/60"
-      :class="{ 
-        'w-[260px]': !sidebarCollapsed, 
-        'w-[68px]': sidebarCollapsed,
-      }"
-    >
-      <!-- Logo area -->
-      <div class="h-[72px] flex items-center px-3">
-        <NuxtLink to="/admin" class="flex items-center">
-          <div class="flex-shrink-0 p-1.5">
-            <Logo :icon-only="sidebarCollapsed" :small="false" />
+  <div class="min-h-screen bg-white dark:bg-black">
+    <div class="flex">
+      <!-- Sidebar Admin Twitter-style -->
+      <aside class="hidden md:flex h-screen w-72 lg:w-80 fixed flex-col py-4 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950">
+        <!-- Logo et titre Admin -->
+        <div class="px-4 mb-8">
+          <div class="flex items-center">
+            <NuxtLink to="/" class="inline-block">
+              <Logo :small="false" />
+            </NuxtLink>
+            <div class="ml-2 px-2 py-1 bg-gray-800 dark:bg-gray-700 rounded text-xs font-bold text-white">
+              ADMIN
+            </div>
           </div>
+        </div>
+        
+        <!-- Menu principal (Twitter-style) -->
+        <nav class="flex-1 px-2">
+          <!-- Section "Vue d'ensemble" -->
+          <div class="mb-2 px-4 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            Vue d'ensemble
+          </div>
+          <div class="space-y-1 mb-6">
+            <NuxtLink 
+              v-for="item in dashboardItems" 
+              :key="item.to" 
+              :to="item.to"
+              class="flex items-center p-3 text-lg rounded-full transition-colors group relative hover:bg-gray-100 dark:hover:bg-gray-900"
+              :class="route.path === item.to ? 'font-bold' : 'font-medium text-gray-700 dark:text-gray-300'"
+            >
+              <component :is="item.icon" class="h-7 w-7 mr-4" :class="route.path === item.to ? 'text-blue-500' : ''" />
+              <span>{{ item.label }}</span>
+              <div 
+                v-if="route.path === item.to" 
+                class="absolute right-4 h-2 w-2 rounded-full bg-blue-500"
+              ></div>
         </NuxtLink>
       </div>
       
-      <!-- Navigation links - Twitter 2024 style -->
-      <div class="flex-1 overflow-y-auto scrollbar-none pt-2">
-        <div v-for="section in simplifiedNav" :key="section.title" class="mb-6">
-          <h3 
-            v-if="!sidebarCollapsed && section.title" 
-            class="px-5 text-xs uppercase font-semibold text-gray-500 dark:text-gray-400 tracking-wider mb-2"
-          >
-            {{ section.title }}
-          </h3>
-          
-          <div v-if="sidebarCollapsed && section.title" class="h-4"></div>
-          
-          <NuxtLink 
-            v-for="item in section.items"
-            :key="item.to"
-            :to="item.to"
-            class="flex items-center py-2.5 px-3 mx-2 rounded-full text-[15px] transition-all"
-            :class="[
-              isActive(item.to)
-                ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white font-medium'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60'
-            ]"
-            :title="sidebarCollapsed ? item.label : ''"
-          >
-            <div 
-              class="flex items-center justify-center h-[22px] w-[22px] mr-4"
-              :class="[
-                isActive(item.to)
-                  ? 'text-gray-900 dark:text-white'
-                  : 'text-gray-600 dark:text-gray-400'
-              ]"
+          <!-- Section "Gestion" -->
+          <div class="mb-2 px-4 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            Gestion
+          </div>
+          <div class="space-y-1 mb-6">
+            <NuxtLink 
+              v-for="item in managementItems" 
+              :key="item.to" 
+              :to="item.to"
+              class="flex items-center p-3 text-lg rounded-full transition-colors group relative hover:bg-gray-100 dark:hover:bg-gray-900"
+              :class="route.path === item.to ? 'font-bold' : 'font-medium text-gray-700 dark:text-gray-300'"
             >
-              <component :is="item.icon" class="h-[22px] w-[22px]" />
+              <component :is="item.icon" class="h-7 w-7 mr-4" :class="route.path.includes(item.to) ? 'text-blue-500' : ''" />
+              <span>{{ item.label }}</span>
+              <div 
+                v-if="route.path.includes(item.to)" 
+                class="absolute right-4 h-2 w-2 rounded-full bg-blue-500"
+              ></div>
+            </NuxtLink>
+          </div>
+          
+          <!-- Section "Configuration" -->
+          <div class="mb-2 px-4 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            Configuration
+          </div>
+          <div class="space-y-1">
+            <NuxtLink 
+              v-for="item in configItems" 
+              :key="item.to" 
+              :to="item.to"
+              class="flex items-center p-3 text-lg rounded-full transition-colors group relative hover:bg-gray-100 dark:hover:bg-gray-900"
+              :class="route.path === item.to ? 'font-bold' : 'font-medium text-gray-700 dark:text-gray-300'"
+            >
+              <component :is="item.icon" class="h-7 w-7 mr-4" :class="route.path === item.to ? 'text-blue-500' : ''" />
+              <span>{{ item.label }}</span>
+              <div 
+                v-if="route.path === item.to" 
+                class="absolute right-4 h-2 w-2 rounded-full bg-blue-500"
+              ></div>
+            </NuxtLink>
+          </div>
+          
+          <!-- Bouton "Retour au site" (style badge Twitter) -->
+          <div class="mt-8 px-2">
+          <NuxtLink 
+              to="/"
+              class="bg-gray-900 dark:bg-gray-800 hover:bg-gray-800 dark:hover:bg-gray-700 text-white rounded-full py-3.5 px-4 w-full flex items-center justify-center font-bold text-lg transition-colors shadow-sm"
+            >
+              <ArrowLeft class="h-5 w-5 mr-2" />
+              Retour au site
+            </NuxtLink>
+          </div>
+        </nav>
+        
+        <!-- Profil administrateur en bas (Twitter-style) -->
+        <div class="mt-auto px-4">
+          <button 
+            @click="showUserMenu = !showUserMenu"
+            class="flex items-center p-3 w-full rounded-full hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors relative group"
+          >
+            <div class="flex items-center flex-1 min-w-0">
+              <div class="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold mr-3">
+                <Shield class="h-5 w-5" />
+              </div>
+              <div class="flex flex-col min-w-0">
+                <span class="font-bold text-black dark:text-white truncate">{{ adminName || 'Admin' }}</span>
+                <span class="text-gray-500 dark:text-gray-400 text-sm truncate">
+                  Administrateur
+                </span>
+              </div>
             </div>
-            <span v-if="!sidebarCollapsed" class="truncate">{{ item.label }}</span>
+            <MoreHorizontal class="h-5 w-5 text-gray-500 dark:text-gray-400 ml-2" />
+            
+            <!-- Menu contextuel administrateur -->
+            <div 
+              v-if="showUserMenu" 
+              class="absolute bottom-full left-0 mb-2 w-full bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 py-2 z-50"
+            >
+              <NuxtLink 
+                to="/admin/profile" 
+                class="flex items-center w-full px-4 py-2.5 text-left hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <User class="h-5 w-5 mr-3 text-gray-500 dark:text-gray-400" />
+                <span>Mon profil admin</span>
+              </NuxtLink>
+              <NuxtLink 
+                to="/admin/settings" 
+                class="flex items-center w-full px-4 py-2.5 text-left hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <Settings class="h-5 w-5 mr-3 text-gray-500 dark:text-gray-400" />
+                <span>Paramètres admin</span>
+              </NuxtLink>
+              <button 
+                @click="logout" 
+                class="flex items-center w-full px-4 py-2.5 text-left hover:bg-gray-100 dark:hover:bg-gray-800 text-red-600 dark:text-red-400"
+              >
+                <LogOut class="h-5 w-5 mr-3" />
+                <span>Déconnexion</span>
+              </button>
+            </div>
+          </button>
+        </div>
+      </aside>
+      
+      <!-- Menu mobile admin (bottom bar) -->
+      <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 z-50">
+        <div class="flex justify-around py-2">
+          <NuxtLink 
+            v-for="item in mobileMenuItems" 
+            :key="item.to" 
+            :to="item.to"
+            class="flex flex-col items-center p-2 rounded-full"
+            :class="route.path.includes(item.to) ? 'text-blue-500' : 'text-gray-600 dark:text-gray-400'"
+          >
+            <component :is="item.icon" class="h-6 w-6 mb-1" />
+            <span class="text-xs">{{ item.label }}</span>
           </NuxtLink>
         </div>
       </div>
       
-      <!-- Bottom actions -->
-      <div class="py-4 px-2">
-        <!-- Toggle sidebar button -->
-        <button 
-          @click="toggleSidebar"
-          class="flex items-center justify-center h-10 w-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
-        >
-          <PanelLeftClose v-if="!sidebarCollapsed" class="h-5 w-5" />
-          <PanelLeftOpen v-else class="h-5 w-5" />
+      <!-- Contenu principal -->
+      <main class="flex-1 md:ml-72 lg:ml-80 min-h-screen pb-16 md:pb-0">
+        <!-- Header mobile -->
+        <header class="md:hidden flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 sticky top-0 z-40">
+          <div class="flex items-center">
+            <h1 class="font-bold text-xl">{{ getPageTitle() }}</h1>
+            <div class="ml-2 px-2 py-0.5 bg-gray-800 dark:bg-gray-700 rounded text-xs font-bold text-white">
+              ADMIN
+            </div>
+          </div>
+          <button @click="isMobileMenuOpen = true" class="p-2">
+            <div class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
+              <Shield class="h-4 w-4" />
+            </div>
         </button>
-      </div>
-      
-      <!-- User profile -->
-      <div class="border-t border-gray-100 dark:border-gray-800/60 p-3">
+        </header>
+        
+        <!-- Menu mobile slide-out -->
         <div 
-          class="flex items-center gap-3 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800/60 transition-colors cursor-pointer"
-          @click="showUserMenu = !showUserMenu"
+          v-if="isMobileMenuOpen" 
+          class="fixed inset-0 z-50 md:hidden"
         >
-          <div class="relative h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-800 overflow-hidden flex-shrink-0">
-            <img 
-              v-if="user?.avatar_url" 
-              :src="user.avatar_url" 
-              alt="Avatar"
-              class="h-full w-full object-cover"
-            />
-            <User v-else class="h-5 w-5 text-gray-400 m-2.5" />
+          <!-- Backdrop -->
+          <div 
+            class="absolute inset-0 bg-black/50" 
+            @click="isMobileMenuOpen = false"
+          ></div>
+          
+          <!-- Menu slide-in -->
+          <div class="absolute top-0 left-0 h-full w-4/5 max-w-xs bg-white dark:bg-gray-900 transform transition-transform duration-300 ease-in-out animate-slide-in">
+            <div class="p-4 flex justify-between items-center border-b border-gray-200 dark:border-gray-800">
+              <div class="flex items-center">
+                <Logo :small="true" />
+                <div class="ml-2 px-2 py-0.5 bg-gray-800 dark:bg-gray-700 rounded text-xs font-bold text-white">
+                  ADMIN
+                </div>
+              </div>
+              <button @click="isMobileMenuOpen = false" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
+                <X class="h-6 w-6 text-gray-500 dark:text-gray-400" />
+              </button>
+            </div>
+            
+            <div class="p-4">
+              <div class="flex items-center mb-6">
+                <div class="h-14 w-14 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold mr-3">
+                  <Shield class="h-7 w-7" />
+                </div>
+                <div>
+                  <div class="font-bold text-lg">{{ adminName || 'Admin' }}</div>
+                  <div class="text-gray-500 dark:text-gray-400">
+                    Administrateur
+                  </div>
+            </div>
           </div>
           
-          <div v-if="!sidebarCollapsed" class="flex-1 min-w-0">
-            <div class="font-medium text-gray-900 dark:text-white truncate">
-              {{ user?.full_name || user?.email?.split('@')[0] || 'Admin' }}
-            </div>
-            <div class="text-xs text-gray-500 dark:text-gray-400 truncate">
-              {{ user?.email || 'admin@example.com' }}
-            </div>
-          </div>
-          
-          <ChevronDown v-if="!sidebarCollapsed" class="h-4 w-4 text-gray-400" />
+              <!-- Sections de navigation mobile -->
+              <div class="space-y-6">
+                <!-- Vue d'ensemble -->
+                <div>
+                  <div class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
+                    Vue d'ensemble
+                  </div>
+                  <nav class="space-y-1">
+                    <NuxtLink 
+                      v-for="item in dashboardItems" 
+                      :key="item.to" 
+                      :to="item.to"
+                      class="flex items-center p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                      :class="route.path === item.to ? 'font-bold' : 'font-medium text-gray-700 dark:text-gray-300'"
+                      @click="isMobileMenuOpen = false"
+                    >
+                      <component :is="item.icon" class="h-6 w-6 mr-3" :class="route.path === item.to ? 'text-blue-500' : ''" />
+                      <span>{{ item.label }}</span>
+                    </NuxtLink>
+                  </nav>
         </div>
         
-        <!-- User menu dropdown -->
-        <div 
-          v-if="showUserMenu && !sidebarCollapsed" 
-          class="absolute bottom-20 left-4 w-[240px] bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 overflow-hidden z-50"
-        >
-          <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-800">
-            <div class="font-medium text-gray-900 dark:text-white">
-              {{ user?.full_name || user?.email?.split('@')[0] || 'Admin' }}
+                <!-- Gestion -->
+                <div>
+                  <div class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
+                    Gestion
+                  </div>
+                  <nav class="space-y-1">
+                    <NuxtLink 
+                      v-for="item in managementItems" 
+                      :key="item.to" 
+                      :to="item.to"
+                      class="flex items-center p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                      :class="route.path.includes(item.to) ? 'font-bold' : 'font-medium text-gray-700 dark:text-gray-300'"
+                      @click="isMobileMenuOpen = false"
+                    >
+                      <component :is="item.icon" class="h-6 w-6 mr-3" :class="route.path.includes(item.to) ? 'text-blue-500' : ''" />
+                      <span>{{ item.label }}</span>
+                    </NuxtLink>
+                  </nav>
+                </div>
+                
+                <!-- Configuration -->
+                <div>
+                  <div class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
+                    Configuration
             </div>
-            <div class="text-xs text-gray-500 dark:text-gray-400">
-              {{ user?.email || 'admin@example.com' }}
+                  <nav class="space-y-1">
+                    <NuxtLink 
+                      v-for="item in configItems" 
+                      :key="item.to" 
+                      :to="item.to"
+                      class="flex items-center p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                      :class="route.path === item.to ? 'font-bold' : 'font-medium text-gray-700 dark:text-gray-300'"
+                      @click="isMobileMenuOpen = false"
+                    >
+                      <component :is="item.icon" class="h-6 w-6 mr-3" :class="route.path === item.to ? 'text-blue-500' : ''" />
+                      <span>{{ item.label }}</span>
+                    </NuxtLink>
+                  </nav>
             </div>
           </div>
-          <div class="py-2">
-            <button 
-              @click="toggleDarkMode"
-              class="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60"
-            >
-              <Sun v-if="isDarkMode" class="h-4 w-4 mr-3" />
-              <Moon v-else class="h-4 w-4 mr-3" />
-              {{ isDarkMode ? 'Mode clair' : 'Mode sombre' }}
-            </button>
+              
+              <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-800">
+                <NuxtLink 
+                  to="/" 
+                  class="flex items-center w-full p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 font-medium"
+                  @click="isMobileMenuOpen = false"
+                >
+                  <ArrowLeft class="h-6 w-6 mr-3" />
+                  <span>Retour au site</span>
+                </NuxtLink>
+                
             <button 
               @click="logout"
-              class="flex items-center w-full px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-gray-800/60"
+                  class="flex items-center w-full p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-red-600 dark:text-red-400 font-medium mt-2"
             >
-              <LogOut class="h-4 w-4 mr-3" />
-              Déconnexion
+                  <LogOut class="h-6 w-6 mr-3" />
+                  <span>Déconnexion</span>
             </button>
           </div>
         </div>
       </div>
-    </aside>
-    
-    <!-- Overlay for mobile sidebar -->
-    <div 
-      v-if="isMobile && !sidebarCollapsed" 
-      class="fixed inset-0 bg-black/30 backdrop-blur-sm z-20"
-      @click="closeSidebar"
-    ></div>
-
-    <!-- Main content -->
-    <div class="flex-1 flex flex-col overflow-hidden">
-      <!-- Top header -->
-      <header class="h-[72px] border-b border-gray-100 dark:border-gray-800/60 flex items-center justify-between px-6 bg-white dark:bg-gray-900">
-        <!-- Mobile menu button -->
-        <button 
-          v-if="isMobile" 
-          @click="openSidebar"
-          class="h-10 w-10 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
-        >
-          <Menu class="h-5 w-5" />
-        </button>
-        
-        <!-- Page title -->
-        <h1 class="text-xl font-semibold text-gray-900 dark:text-white">
-          {{ pageTitle }}
-        </h1>
-        
-        <!-- Header actions -->
-        <div class="flex items-center gap-2">
-          <!-- Dark mode toggle -->
-          <button 
-            @click="toggleDarkMode"
-            class="h-10 w-10 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
-          >
-            <Sun v-if="isDarkMode" class="h-5 w-5" />
-            <Moon v-else class="h-5 w-5" />
-          </button>
-          
-          <!-- Notifications -->
-          <button class="h-10 w-10 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 relative">
-            <Bell class="h-5 w-5" />
-            <span class="absolute top-1.5 right-1.5 h-2 w-2 bg-primary-500 rounded-full"></span>
-          </button>
         </div>
-      </header>
-      
-      <!-- Page content -->
-      <main class="flex-1 overflow-auto bg-neutral-50 dark:bg-gray-950">
-        <slot />
+        
+        <!-- Contenu de la page admin -->
+        <div class="p-4 md:p-8 max-w-7xl mx-auto">
+          <slot />
+        </div>
       </main>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-// import { useSupabaseClient, useSupabaseUser } from '#imports'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useSupabaseClient, useSupabaseUser } from '#imports'
 import {
-  LayoutDashboard, Users, ShoppingCart, MessageSquare, Settings,
-  FileText, BarChart3, Package, Shield, LogOut, Sun, Moon,
-  PanelLeftClose, PanelLeftOpen, Menu, Bell, User, 
-  ChevronDown, MoreHorizontal, Home, List
+  Home, Users, Settings, Database, LogOut, LayoutDashboard,
+  FileText, PanelLeft, Shield, ChevronDown, MessageSquare,
+  MoreHorizontal, X, Gauge, BarChart2, ArrowLeft, Bell,
+  User, ShoppingBag, Calendar, Globe, Lock, Cog, HelpCircle,
+  Layers, FileSpreadsheet, CreditCard, LayoutList, LayoutGrid
 } from 'lucide-vue-next'
-import Logo from '~/components/Logo.vue'
 
-// State
-const router = useRouter()
 const route = useRoute()
+const router = useRouter()
 const client = useSupabaseClient()
 const user = useSupabaseUser()
-const isDarkMode = ref(false)
-const sidebarCollapsed = ref(false)
-const isMobile = ref(false)
+
+// État utilisateur
+const adminName = ref('')
 const showUserMenu = ref(false)
+const isMobileMenuOpen = ref(false)
 
-// Page title based on current route
-const pageTitle = computed(() => {
-  const path = route.path
-  if (path === '/admin' || path === '/admin/dashboard') return 'Tableau de bord'
-  if (path.includes('/admin/users')) return 'Utilisateurs'
-  if (path.includes('/admin/requests')) return 'Demandes'
-  if (path.includes('/admin/messages')) return 'Messages'
-  if (path.includes('/admin/services')) return 'Services'
-  if (path.includes('/admin/categories')) return 'Catégories'
-  if (path.includes('/admin/settings')) return 'Paramètres'
-  return 'Administration'
-})
-
-// Simplified navigation structure
-const simplifiedNav = [
-  {
-    title: 'Principal',
-    items: [
-      { label: 'Tableau de bord', to: '/admin/dashboard', icon: LayoutDashboard },
-      { label: 'Utilisateurs', to: '/admin/users', icon: Users },
-      { label: 'Demandes', to: '/admin/requests', icon: FileText },
-      { label: 'Messages', to: '/admin/messages', icon: MessageSquare },
-    ]
-  },
-  {
-    title: 'Gestion',
-    items: [
-      { label: 'Services', to: '/admin/services', icon: Package },
-      { label: 'Catégories', to: '/admin/categories', icon: List },
-      { label: 'Vérifications', to: '/admin/verifications', icon: Shield },
-      { label: 'Statistiques', to: '/admin/analytics', icon: BarChart3 },
-    ]
-  },
-  {
-    title: 'Configuration',
-    items: [
-      { label: 'Paramètres', to: '/admin/settings', icon: Settings },
-    ]
-  }
-]
-
-// Check if a link is active
-const isActive = (path) => {
-  if (path === '/admin' && route.path === '/admin') return true
-  if (path === '/admin/dashboard' && route.path === '/admin') return true
-  return route.path.startsWith(path)
-}
-
-// Toggle sidebar
-const toggleSidebar = () => {
-  sidebarCollapsed.value = !sidebarCollapsed.value
-}
-
-// Open sidebar (mobile)
-const openSidebar = () => {
-  sidebarCollapsed.value = false
-}
-
-// Close sidebar (mobile)
-const closeSidebar = () => {
-  if (isMobile.value) {
-    sidebarCollapsed.value = true
-  }
-}
-
-// Toggle dark mode
-const toggleDarkMode = () => {
-  isDarkMode.value = !isDarkMode.value
-  localStorage.setItem('darkMode', isDarkMode.value)
-  
-  if (isDarkMode.value) {
-    document.documentElement.classList.add('dark')
-  } else {
-    document.documentElement.classList.remove('dark')
-  }
-}
-
-// Logout
-const logout = async () => {
-  try {
-    await client.auth.signOut()
-    router.push('/auth/login')
-  } catch (error) {
-    console.error('Error logging out:', error)
-  }
-}
-
-// Check screen size
-const checkScreenSize = () => {
-  isMobile.value = window.innerWidth < 768
-  if (isMobile.value && !sidebarCollapsed.value) {
-    sidebarCollapsed.value = true
-  }
-}
-
-// Click outside to close user menu
+// Fermer le menu utilisateur quand on clique ailleurs
 const closeUserMenu = (event) => {
-  if (showUserMenu.value && !event.target.closest('.user-menu')) {
+  if (showUserMenu.value && !event.target.closest('button')) {
     showUserMenu.value = false
   }
 }
 
-// Initialize theme and responsive behavior
+// Fermer le menu mobile avec la touche Échap
+const handleKeyDown = (event) => {
+  if (event.key === 'Escape') {
+    isMobileMenuOpen.value = false
+    showUserMenu.value = false
+  }
+}
+
+// Écouter les clics et touches
 onMounted(() => {
-  // Initialize dark mode from preferences
-  const savedMode = localStorage.getItem('darkMode')
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-  
-  if (savedMode === 'true' || (savedMode !== 'false' && prefersDark)) {
-    isDarkMode.value = true
-    document.documentElement.classList.add('dark')
-  }
-  
-  // Initialize sidebar state
-  const savedSidebar = localStorage.getItem('sidebarCollapsed')
-  if (savedSidebar === 'true') {
-    sidebarCollapsed.value = true
-  }
-  
-  // Check screen size
-  checkScreenSize()
-  window.addEventListener('resize', checkScreenSize)
   document.addEventListener('click', closeUserMenu)
+  document.addEventListener('keydown', handleKeyDown)
+  
+  // Récupérer les infos administrateur
+  fetchAdminInfo()
 })
 
-// Clean up
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', checkScreenSize)
+// Nettoyer les écouteurs
+onUnmounted(() => {
   document.removeEventListener('click', closeUserMenu)
+  document.removeEventListener('keydown', handleKeyDown)
 })
 
-// Save sidebar state
-watch(sidebarCollapsed, (value) => {
-  localStorage.setItem('sidebarCollapsed', value)
-})
-
-// Close user menu when clicking elsewhere
-watch(showUserMenu, (value) => {
-  if (value) {
-    nextTick(() => {
-      document.addEventListener('click', closeUserMenu)
-    })
-  } else {
-    document.removeEventListener('click', closeUserMenu)
+// Récupérer les infos de l'administrateur
+const fetchAdminInfo = async () => {
+  if (user.value) {
+    try {
+      const { data, error } = await client
+        .from('profiles')
+        .select('first_name, last_name, role')
+        .eq('id', user.value.id)
+        .single()
+      
+      if (error) throw error
+      
+      if (data) {
+        adminName.value = `${data.first_name || ''} ${data.last_name || ''}`.trim() || 'Admin'
+      }
+    } catch (error) {
+      console.error('Erreur lors de la récupération du profil:', error)
+    }
   }
-})
+}
+
+// Obtenir le titre de la page actuelle
+const getPageTitle = () => {
+  if (route.path === '/admin') return 'Tableau de bord'
+  if (route.path.includes('/admin/users')) return 'Gestion des utilisateurs'
+  if (route.path.includes('/admin/requests')) return 'Demandes de service'
+  if (route.path.includes('/admin/categories')) return 'Catégories'
+  if (route.path.includes('/admin/services')) return 'Services'
+  if (route.path.includes('/admin/settings')) return 'Paramètres'
+  return 'Administration'
+}
+
+// Menu de tableau de bord
+const dashboardItems = computed(() => [
+  { to: '/admin', label: 'Tableau de bord', icon: LayoutDashboard },
+  { to: '/admin/analytics', label: 'Statistiques', icon: BarChart2 },
+  { to: '/admin/activity', label: 'Activité récente', icon: Bell },
+])
+
+// Menu de gestion
+const managementItems = computed(() => [
+  { to: '/admin/users', label: 'Utilisateurs', icon: Users },
+  { to: '/admin/requests', label: 'Demandes', icon: FileText },
+  { to: '/admin/categories', label: 'Catégories', icon: LayoutGrid },
+  { to: '/admin/services', label: 'Services', icon: ShoppingBag },
+  { to: '/admin/payments', label: 'Paiements', icon: CreditCard },
+])
+
+// Menu de configuration
+const configItems = computed(() => [
+  { to: '/admin/settings', label: 'Paramètres site', icon: Settings },
+  { to: '/admin/permissions', label: 'Permissions', icon: Lock },
+  { to: '/admin/maintenance', label: 'Maintenance', icon: Cog },
+])
+
+// Menu mobile simplifié
+const mobileMenuItems = computed(() => [
+  { to: '/admin', label: 'Accueil', icon: Home },
+  { to: '/admin/users', label: 'Utilisateurs', icon: Users },
+  { to: '/admin/requests', label: 'Demandes', icon: FileText },
+  { to: '/admin/settings', label: 'Réglages', icon: Settings },
+])
+
+// Déconnexion
+const logout = async () => {
+  try {
+    const { error } = await client.auth.signOut()
+    if (error) throw error
+    router.push('/login')
+  } catch (error) {
+    console.error('Erreur lors de la déconnexion:', error)
+  }
+}
 </script>
 
-<style>
-/* Remove default outline */
-*:focus {
-  outline: none;
+<style scoped>
+/* Effet de transition pour le menu mobile */
+@keyframes slide-in {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(0); }
 }
 
-/* Smooth scrolling */
-html {
-  scroll-behavior: smooth;
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out forwards;
 }
 
-/* Dark mode transitions */
-.dark body {
-  background-color: #030712;
-  color: white;
-}
-
-/* Transitions for theme switching */
-* {
-  transition-property: color, background-color, border-color, transform, opacity;
-  transition-duration: 200ms;
-}
-
-/* Hide default scrollbars */
-.scrollbar-none::-webkit-scrollbar {
-  display: none;
-}
-.scrollbar-none {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-/* Improved font rendering */
-body {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* Prévenir le scrolling quand le menu mobile est ouvert */
+:global(body) {
+  overflow: v-bind(isMobileMenuOpen ? 'hidden' : 'auto');
 }
 </style> 

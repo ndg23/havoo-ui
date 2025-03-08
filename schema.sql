@@ -27,6 +27,12 @@ CREATE TABLE public.profiles (
     profile_image_url TEXT,
     banner_image_url TEXT,
     is_expert BOOLEAN DEFAULT FALSE,
+    role VARCHAR(50) DEFAULT 'client',
+    status VARCHAR(50) DEFAULT 'active',
+    is_verified BOOLEAN DEFAULT FALSE,
+    is_blocked BOOLEAN DEFAULT FALSE,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

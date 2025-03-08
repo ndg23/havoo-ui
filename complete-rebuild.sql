@@ -714,6 +714,77 @@ CREATE POLICY "Les administrateurs peuvent gérer tous les paramètres"
 ON public.app_settings
 USING (auth.jwt() ->> 'role' = 'service_role' OR auth.jwt() ->> 'role' = 'admin');
 
+
+---VUE---
+
+-- Création de la vue request_details pour l'administration
+CREATE OR REPLACE VIEW request_details AS
+SELECT 
+    r.id,
+    r.title,
+    r.description,
+    r.budget,
+    r.deadline,
+    r.location,
+    r.is_urgent,
+    r.created_at,
+    r.updated_at,
+    r.status,
+    r.category_id,
+    r.client_id,
+    
+    -- Informations sur le client
+    p.first_name AS client_first_name,
+    p.last_name AS client_last_name,
+    p.avatar_url AS client_avatar_url,
+    CONCAT(p.first_name, ' ', p.last_name) AS client_name,
+    u.email AS client_email,
+    
+    -- Informations sur la catégorie
+    c.name AS category_name,
+    c.icon AS category_icon,
+    c.color AS category_color,
+    
+    -- Statistiques
+    (SELECT COUNT(*) FROM proposals WHERE request_id = r.id) AS proposals_count,
+    
+    -- Compétences requises (si stockées en JSON)
+    r.skills,
+    
+    -- Statuts calculés
+    CASE 
+        WHEN r.deadline < NOW() AND r.status = 'open' THEN true
+        ELSE false
+    END AS is_expired,
+    
+    -- Temps restant
+    CASE
+        WHEN r.deadline > NOW() THEN 
+            EXTRACT(DAY FROM r.deadline - NOW())
+        ELSE 0
+    END AS days_remaining
+FROM 
+    requests r
+LEFT JOIN 
+    profiles p ON r.client_id = p.id
+LEFT JOIN 
+    auth.users u ON p.id = u.id
+LEFT JOIN 
+    service_categories c ON r.category_id = c.id;
+
+-- Ajouter les autorisations nécessaires
+ALTER VIEW request_details OWNER TO postgres;
+GRANT SELECT ON request_details TO service_role;
+GRANT SELECT ON request_details TO anon;
+GRANT SELECT ON request_details TO authenticated;
+
+
+
+
+
+
+
+
 -- ===========================================
 -- PHASE 5: DONNÉES INITIALES
 -- ===========================================
