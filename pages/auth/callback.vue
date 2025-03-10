@@ -1,149 +1,239 @@
 <script setup>
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { useSupabaseClient } from '#imports'
+import { 
+  CheckCircle, 
+  RefreshCcw, 
+  AlertCircle, 
+  Loader, 
+  Info as InfoIcon 
+} from 'lucide-vue-next'
+
 const client = useSupabaseClient()
 const router = useRouter()
+const route = useRoute()
 
-definePageMeta({
-  layout: 'auth'
+// États
+const status = ref('loading') // loading, success, error
+const errorMessage = ref('')
+const step = ref(1)
+const showHelp = ref(false)
+
+// Étapes du processus d'authentification
+const steps = [
+  'Vérification de la session...',
+  'Validation des identifiants...',
+  'Préparation de votre espace...'
+]
+
+// Pour simuler un processus progressif
+const advanceStep = () => {
+  if (step.value < 3) {
+    step.value++
+  }
+}
+
+// Icône en fonction du statut
+const statusIcon = computed(() => {
+  switch (status.value) {
+    case 'success': return CheckCircle
+    case 'error': return AlertCircle
+    default: return Loader
+  }
 })
 
-// Gérer le retour OAuth
-onMounted(async () => {
+// Titre en fonction du statut
+const statusTitle = computed(() => {
+  switch (status.value) {
+    case 'success': return 'Authentification réussie'
+    case 'error': return 'Erreur de connexion'
+    default: return 'Authentification en cours'
+  }
+})
+
+// Message en fonction du statut
+const statusMessage = computed(() => {
+  switch (status.value) {
+    case 'success': 
+      return 'Vous êtes maintenant connecté. Redirection vers votre espace...'
+    case 'error': 
+      return errorMessage.value || 'Un problème est survenu lors de l\'authentification.'
+    default: 
+      return 'Nous vérifions votre identité. Cela ne prendra qu\'un instant...'
+  }
+})
+
+// Traiter la redirection après authentification
+const handleAuthRedirect = async () => {
   try {
-    const { data: { user }, error } = await client.auth.getUser()
-  
-    if (error) {
-      console.error('Erreur auth:', error.message)
-      router.push('/auth/login?error=auth_failed')
+    // Avancer les étapes visuelles
+    const stepInterval = setInterval(advanceStep, 800)
+    
+    // Montrer le message d'aide après un délai
+    setTimeout(() => {
+      showHelp.value = true
+    }, 10000)
+    
+    // Récupérer le hash de l'URL si présent (pour OAuth)
+    const hash = window.location.hash.substring(1)
+    const params = new URLSearchParams(hash)
+    
+    // Si nous avons un paramètre d'erreur, traiter l'erreur
+    if (params.get('error')) {
+      clearInterval(stepInterval)
+      status.value = 'error'
+      errorMessage.value = decodeURIComponent(params.get('error_description') || 'Erreur d\'authentification')
       return
     }
-
-    if (user) {
-      try {
-        // Vérifier si le profil existe déjà
-        const { data: profile, error: profileError } = await client
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .maybeSingle()
-
-        if (profileError && profileError.code !== 'PGRST116') {
-          throw profileError
-        }
-
-        if (!profile) {
-          // Extraire le prénom et le nom
-          const [firstName, ...lastNameParts] = user.user_metadata.full_name.split(' ')
-          const lastName = lastNameParts.join(' ')
-
-          // Créer le profil
-          const { error: insertError } = await client
-            .from('profiles')
-            .insert({
-              id: user.id,
-              first_name: firstName,
-              last_name: lastName,
-              email: user.email,
-              profile_image_url: user.user_metadata.avatar_url,
-              is_expert: false,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            })
-            .select('*')
-            .single()
-
-          if (insertError) {
-            console.error('Erreur création profil:', insertError)
-            throw insertError
-          }
-
-        
-
-          router.push('/account/edit-profile')
-        } else {
-          // Le profil existe déjà
-          router.push(profile.is_expert ? '/expert/dashboard' : '/account/edit-profile')
-        }
-      } catch (dbError) {
-        console.error('Erreur DB:', dbError)
-        // Déconnexion en cas d'erreur
-        await client.auth.signOut()
-        router.push('/auth/login?error=profile_creation_failed')
-      }
+    
+    // Récupérer la session courante
+    const { data: { session } } = await client.auth.getSession()
+    
+    // Si une session existe, l'authentification est réussie
+    if (session) {
+      clearInterval(stepInterval)
+      status.value = 'success'
+      
+      // Rediriger après un court délai pour permettre à l'utilisateur de voir le succès
+      setTimeout(() => {
+        router.push('/account')
+      }, 1500)
     } else {
-      router.push('/auth/login?error=no_user')
+      // Pas de session, vérifier la présence d'un access_token dans l'URL
+      const accessToken = params.get('access_token')
+      
+      if (accessToken) {
+        // Échanger le token contre une session
+        const { data, error } = await client.auth.exchangeSessionForToken(accessToken, params.get('refresh_token'))
+        
+        if (error) {
+          throw error
+        }
+        
+        // Succès
+        clearInterval(stepInterval)
+        status.value = 'success'
+        
+        // Rediriger
+        setTimeout(() => {
+          router.push('/account')
+        }, 1500)
+      } else {
+        throw new Error('Aucune session ou token trouvé')
+      }
     }
   } catch (error) {
-    console.error('Erreur générale:', error)
-    router.push('/auth/login?error=unknown')
+    console.error('Erreur de callback:', error)
+    status.value = 'error'
+    errorMessage.value = error.message || 'Une erreur est survenue lors de l\'authentification'
   }
+}
+
+// Réessayer l'authentification
+const retryAuth = () => {
+  router.push('/login')
+}
+
+// Retour à la page de connexion
+const goToLogin = () => {
+  router.push('/login')
+}
+
+// Au montage du composant
+onMounted(() => {
+  // Démarrer le processus de vérification d'authentification
+  handleAuthRedirect()
+})
+
+// Définir le layout
+definePageMeta({
+  layout: 'auth'
 })
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col items-center justify-center bg-white px-4">
-    <!-- Logo Animation -->
-    <div class="relative mb-8">
-      <div class="w-16 h-16 bg-primary-500 rounded-2xl rotate-45 transform">
-        <div class="absolute inset-0 flex items-center justify-center -rotate-45">
-          <span class="text-2xl font-oswald-bold text-white">H</span>
+  <div class="w-full flex flex-col items-center justify-center py-10">
+    <!-- Conteneur principal avec effet de carte -->
+    <div class="w-full max-w-lg bg-white rounded-2xl p-8 border border-gray-100 shadow-sm">
+      <!-- Animation de connexion -->
+      <div class="flex flex-col items-center mb-8">
+        <div class="relative mb-8">
+          <!-- Cercle principal -->
+          <div class="h-20 w-20 rounded-full bg-primary-50 flex items-center justify-center">
+            <!-- Cercle animé autour -->
+            <div class="absolute inset-0 border-4 border-primary-500 rounded-full border-t-transparent animate-spin"></div>
+            <!-- Icône au centre -->
+            <div class="relative z-10 flex items-center justify-center">
+              <component :is="statusIcon" class="h-10 w-10 text-primary-500" />
+            </div>
+          </div>
+        </div>
+        
+        <!-- Texte de statut -->
+        <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ statusTitle }}</h2>
+        <p class="text-gray-600 text-center max-w-sm">{{ statusMessage }}</p>
+      </div>
+      
+      <!-- Message pour les cas d'erreur ou délais -->
+      <div v-if="showHelp" class="bg-gray-50 rounded-xl p-4 mb-6">
+        <div class="flex">
+          <InfoIcon class="h-5 w-5 text-primary-500 mt-0.5 mr-3 flex-shrink-0" />
+          <p class="text-sm text-gray-600">
+            L'authentification prend plus de temps que prévu? Vous pouvez 
+            <button 
+              @click="retryAuth" 
+              class="text-primary-600 font-medium hover:text-primary-700"
+            >
+              réessayer maintenant
+            </button> 
+            ou contacter notre support.
+          </p>
         </div>
       </div>
-      <!-- Pulse Effect -->
-      <div class="absolute inset-0 rounded-2xl bg-primary-500/30 rotate-45 animate-ping"></div>
+      
+      <!-- Boutons d'action -->
+      <div class="flex flex-col gap-3">
+        <button
+          v-if="status === 'error'"
+          @click="retryAuth"
+          class="w-full bg-primary-500 hover:bg-primary-600 text-white rounded-full py-3 px-4 flex items-center justify-center font-bold text-lg transition-colors shadow-sm"
+        >
+          <RefreshCcw class="h-5 w-5 mr-2" />
+          Réessayer
+        </button>
+        
+        <button
+          v-if="status === 'error'"
+          @click="goToLogin"
+          class="w-full bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-full py-3 px-4 flex items-center justify-center font-medium text-lg transition-colors"
+        >
+          Retour à la connexion
+        </button>
+      </div>
     </div>
-
-    <!-- Loading Text -->
-    <h2 class="text-xl font-medium text-gray-900 mb-3">
-      Connexion en cours
-    </h2>
     
-    <!-- Loading Dots -->
-    <div class="flex gap-1.5">
-      <div v-for="i in 3" :key="i"
-        class="w-2 h-2 rounded-full bg-primary-500"
-        :class="`animate-bounce-${i}`"
-      ></div>
+    <!-- Indicateur de progression -->
+    <div v-if="status === 'loading'" class="mt-10 flex flex-col items-center">
+      <div class="flex items-center space-x-2 mb-2">
+        <div class="h-2 w-2 rounded-full" :class="step >= 1 ? 'bg-primary-500' : 'bg-gray-200'"></div>
+        <div class="h-2 w-2 rounded-full" :class="step >= 2 ? 'bg-primary-500' : 'bg-gray-200'"></div>
+        <div class="h-2 w-2 rounded-full" :class="step >= 3 ? 'bg-primary-500' : 'bg-gray-200'"></div>
+      </div>
+      <p class="text-sm text-gray-500">{{ steps[step - 1] }}</p>
     </div>
-
-    <!-- Subtle Message -->
-    <p class="mt-6 text-sm text-gray-500">
-      Redirection vers votre espace personnel
-    </p>
   </div>
 </template>
 
 <style scoped>
-.animate-bounce-1 {
-  animation: bounce 1s infinite;
-}
-.animate-bounce-2 {
-  animation: bounce 1s infinite;
-  animation-delay: 0.2s;
-}
-.animate-bounce-3 {
-  animation: bounce 1s infinite;
-  animation-delay: 0.4s;
+/* Animation pulse pour le cercle principal en état de chargement */
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
 }
 
-@keyframes bounce {
-  0%, 100% {
-    transform: translateY(0);
-    opacity: 0.5;
-  }
-  50% {
-    transform: translateY(-8px);
-    opacity: 1;
-  }
-}
-
-.animate-ping {
-  animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
-}
-
-@keyframes ping {
-  75%, 100% {
-    transform: scale(1.5) rotate(45deg);
-    opacity: 0;
-  }
+.animate-pulse-custom {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 </style>

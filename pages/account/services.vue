@@ -551,20 +551,10 @@ const fetchServices = async () => {
     }
     
     const { data, error } = await supabase
-      .from('services')
+      .from('expert_services')
+
       .select(`
-        id, 
-        title, 
-        description, 
-        price, 
-        status, 
-        category_id, 
-        created_at,
-        updated_at,
-        image_url,
-        view_count,
-        rating,
-        order_count
+       *
       `)
       .eq('expert_id', userData.user.id)
       .order('created_at', { ascending: false })
@@ -648,7 +638,7 @@ const duplicateService = async (service) => {
     
     // Créer une copie du service sans l'id, les stats et avec statut brouillon
     const { data, error } = await supabase
-      .from('services')
+      .from('expert_services')
       .insert({
         title: newTitle,
         description: service.description,
@@ -697,7 +687,7 @@ const deleteService = async () => {
   
   try {
     const { error } = await supabase
-      .from('services')
+      .from('expert_services')
       .delete()
       .eq('id', deleteTarget.value.id)
     

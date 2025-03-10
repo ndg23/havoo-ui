@@ -266,7 +266,7 @@ const canProceed = computed(() => {
 onMounted(async () => {
   try {
     const [skillsResponse, servicesResponse] = await Promise.all([
-      client.from('skills').select('*'),
+      client.from('services').select('*'),
       client.from('services').select('*')
     ])
 

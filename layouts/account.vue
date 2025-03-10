@@ -39,6 +39,21 @@
               Créer une demande
             </NuxtLink>
           </div>
+          
+          <!-- Liens existants... -->
+          
+          <NuxtLink 
+            to="/account/skills" 
+            class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg"
+            :class="route.path.includes('/account/skills') 
+              ? 'bg-primary-500 text-white' 
+              : 'text-gray-700 hover:bg-gray-100'"
+          >
+            <Badge class="mr-3 h-5 w-5" :class="route.path.includes('/account/skills') ? 'text-white' : 'text-gray-500'" />
+            <span>Mes compétences</span>
+          </NuxtLink>
+          
+          <!-- Autres liens... -->
         </nav>
         
         <!-- Profil utilisateur en bas (Twitter-style) -->
@@ -201,7 +216,7 @@ import { useRoute, useRouter } from 'vue-router'
   Home, User, Settings, Bell, LogOut, PackageOpen,
   FileText, PanelLeft, Briefcase, Wrench, MessageSquare, 
   Shield, MoreHorizontal, X, Plus, UserPlus,
-  Clock, Bookmark, LayoutDashboard, Activity
+  Clock, Bookmark, LayoutDashboard, Activity, Badge, Search, CheckCircle
   } from 'lucide-vue-next'
   
   const route = useRoute()
@@ -215,6 +230,7 @@ import { useRoute, useRouter } from 'vue-router'
 const userHandle = ref('')
 const showUserMenu = ref(false)
 const isMobileMenuOpen = ref(false)
+const userRole = ref('')
 
 // Fermer le menu utilisateur quand on clique ailleurs
 const closeUserMenu = (event) => {
@@ -252,7 +268,7 @@ const fetchUserInfo = async () => {
       try {
         const { data, error } = await client
           .from('profiles')
-        .select('first_name, last_name, avatar_url, username')
+        .select('first_name, last_name, avatar_url, role')
           .eq('id', user.value.id)
           .single()
         
@@ -261,7 +277,7 @@ const fetchUserInfo = async () => {
         if (data) {
         userName.value = `${data.first_name || ''} ${data.last_name || ''}`.trim()
           userAvatar.value = data.avatar_url
-        userHandle.value = data.username
+          userRole.value = data.role
         }
       } catch (error) {
         console.error('Erreur lors de la récupération du profil:', error)

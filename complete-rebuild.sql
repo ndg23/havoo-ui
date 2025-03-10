@@ -713,7 +713,11 @@ USING (is_public = true);
 CREATE POLICY "Les administrateurs peuvent gérer tous les paramètres"
 ON public.app_settings
 USING (auth.jwt() ->> 'role' = 'service_role' OR auth.jwt() ->> 'role' = 'admin');
-
+-- Ajouter cette politique si elle n'existe pas déjà
+CREATE POLICY "Les compétences sont visibles par tous" 
+ON public.skills 
+FOR SELECT 
+USING (true);
 
 ---VUE---
 
@@ -778,13 +782,6 @@ GRANT SELECT ON request_details TO service_role;
 GRANT SELECT ON request_details TO anon;
 GRANT SELECT ON request_details TO authenticated;
 
-
-
-
-
-
-
-
 -- ===========================================
 -- PHASE 5: DONNÉES INITIALES
 -- ===========================================
@@ -838,3 +835,75 @@ VALUES
 ('featured_categories', '["1", "2", "3"]', 'IDs des catégories mises en avant', true),
 ('max_proposal_count', '5', 'Nombre maximum de propositions par expert par jour', false)
 ON CONFLICT (key) DO NOTHING; 
+
+-- Insertion des services courants
+INSERT INTO public.services (id, name, description, category_id, icon) 
+SELECT 
+  uuid_generate_v4(), 
+  name, 
+  description, 
+  (SELECT id FROM service_categories WHERE name = category_name LIMIT 1),
+  icon
+FROM (VALUES
+  ('Ménage complet', 'Nettoyage complet de votre domicile, incluant sols, surfaces et salle de bain', 'Ménage', '🧹'),
+  ('Repassage', 'Service de repassage de vos vêtements et linges de maison', 'Ménage', '👕'),
+  ('Entretien jardin', 'Tonte, taille et entretien général de votre jardin', 'Jardinage', '🌱'),
+  ('Plomberie', 'Réparation et installation de robinetterie et canalisations', 'Bricolage', '🚿'),
+  ('Électricité', 'Installation et dépannage électrique', 'Bricolage', '💡'),
+  ('Peinture', 'Travaux de peinture intérieure et extérieure', 'Bricolage', '🎨'),
+  ('Garde d''enfants', 'Garde d''enfants à votre domicile', 'Garde d''enfants', '👶'),
+  ('Soutien scolaire', 'Aide aux devoirs et cours particuliers', 'Cours particuliers', '📚'),
+  ('Assistance informatique', 'Dépannage et configuration de vos appareils', 'Informatique', '💻'),
+  ('Montage de meubles', 'Assemblage de meubles en kit', 'Bricolage', '🪑')
+) AS data(name, description, category_name, icon);
+
+-- Insertion des compétences initiales avec UUID généré
+INSERT INTO public.skills (id, name, icon) VALUES
+  (uuid_generate_v4(), 'Ménage', '🧹'),
+  (uuid_generate_v4(), 'Repassage', '👕'),
+  (uuid_generate_v4(), 'Jardinage', '🌱'),
+  (uuid_generate_v4(), 'Tonte de pelouse', '🌿'),
+  (uuid_generate_v4(), 'Bricolage', '🔨'),
+  (uuid_generate_v4(), 'Plomberie', '🚿'),
+  (uuid_generate_v4(), 'Électricité', '💡'),
+  (uuid_generate_v4(), 'Peinture', '🎨'),
+  (uuid_generate_v4(), 'Garde d''enfants', '👶'),
+  (uuid_generate_v4(), 'Cours particuliers', '📚'),
+  (uuid_generate_v4(), 'Aide aux devoirs', '📝'),
+  (uuid_generate_v4(), 'Assistance informatique', '💻'),
+  (uuid_generate_v4(), 'Réparation smartphone', '📱'),
+  (uuid_generate_v4(), 'Montage de meubles', '🪑'),
+  (uuid_generate_v4(), 'Déménagement', '📦'),
+  (uuid_generate_v4(), 'Aide administrative', '📋'),
+  (uuid_generate_v4(), 'Cuisine', '🍳'),
+  (uuid_generate_v4(), 'Cours de langue', '🗣️'),
+  (uuid_generate_v4(), 'Photographie', '📷'),
+  (uuid_generate_v4(), 'Coiffure à domicile', '💇');
+
+-- Politique pour la table experts
+CREATE POLICY "Les experts peuvent créer leur propre profil expert" 
+ON public.experts 
+FOR INSERT 
+WITH CHECK (auth.uid() = id);
+
+CREATE POLICY "Les utilisateurs peuvent voir tous les experts" 
+ON public.experts 
+FOR SELECT 
+USING (true);
+
+CREATE POLICY "Les experts peuvent modifier leur propre profil" 
+ON public.experts 
+FOR UPDATE 
+USING (auth.uid() = id);
+
+-- Politique pour profile_skills
+CREATE POLICY "Les utilisateurs peuvent gérer leurs propres compétences" 
+ON public.profile_skills 
+FOR ALL 
+USING (auth.uid() = profile_id);
+
+-- Politique pour expert_services
+CREATE POLICY "Les experts peuvent gérer leurs propres services" 
+ON public.expert_services 
+FOR ALL 
+USING (auth.uid() = expert_id);

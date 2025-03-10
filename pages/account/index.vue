@@ -2,7 +2,54 @@
   <div class="max-w-4xl mx-auto px-4 py-8">
     <!-- En-tête de la page -->
     <div class="mb-8">
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Mon compte</h1>
+      <h1 class="text-3xl font-bold">Bonjour {{ firstName }}</h1>
+      <p class="text-lg text-gray-600 mt-2">Que souhaitez-vous faire aujourd'hui ?</p>
+    </div>
+    
+    <!-- Actions principales clairement visibles -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+      <!-- Pour clients -->
+      <div v-if="userRole === 'client'" class="bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl p-6 text-white">
+        <h2 class="text-xl font-bold mb-4">Besoin d'un service ?</h2>
+        <p class="mb-6">Publiez votre demande et recevez des propositions d'experts qualifiés.</p>
+        <NuxtLink to="/requests/new" class="bg-white text-primary-600 font-bold py-3 px-6 rounded-full inline-flex items-center">
+          <Plus class="h-5 w-5 mr-2" />
+          Publier une demande
+        </NuxtLink>
+      </div>
+      
+      <!-- Pour experts -->
+      <div v-else class="bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl p-6 text-white">
+        <h2 class="text-xl font-bold mb-4">Trouvez de nouvelles missions</h2>
+        <p class="mb-6">Parcourez les demandes et proposez vos services.</p>
+        <NuxtLink to="/requests" class="bg-white text-primary-600 font-bold py-3 px-6 rounded-full inline-flex items-center">
+          <Search class="h-5 w-5 mr-2" />
+          Voir les demandes
+        </NuxtLink>
+      </div>
+      
+      <!-- Statut du profil -->
+      <div class="bg-white rounded-xl border border-gray-200 p-6">
+        <h2 class="text-xl font-bold mb-4">État de votre profil</h2>
+        <div class="space-y-4">
+          <div class="flex items-center">
+            <div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+              <CheckCircle class="h-6 w-6 text-green-600" />
+            </div>
+            <div class="ml-4">
+              <p class="font-medium">Profil complété à {{ profileCompletion }}%</p>
+              <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                <div class="bg-green-600 h-2.5 rounded-full" :style="{width: `${profileCompletion}%`}"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- En-tête de la section -->
+    <div class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Mon compte</h2>
       <p class="text-gray-600 dark:text-gray-400 mt-1">Gérez vos informations personnelles et vos préférences</p>
     </div>
     
@@ -569,7 +616,8 @@ import {
   ArrowRight, 
   CheckCircle, 
   Award, 
-  Plus
+  Plus,
+  Search
 } from 'lucide-vue-next'
 
 // États

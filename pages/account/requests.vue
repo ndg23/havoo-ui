@@ -463,6 +463,8 @@ const fetchRequests = async () => {
       return
     }
     
+    // view_count,
+    //     proposals(count)
     const { data, error } = await supabase
       .from('requests')
       .select(`
@@ -476,8 +478,6 @@ const fetchRequests = async () => {
         is_urgent, 
         category_id, 
         created_at,
-        view_count,
-        proposals(count)
       `)
       .eq('client_id', userData.user.id)
       .order('created_at', { ascending: false })
