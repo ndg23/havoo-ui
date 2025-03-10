@@ -370,7 +370,7 @@ const progress = computed(() => (currentStep.value / totalSteps) * 100)
 const fetchCategories = async () => {
   try {
     const { data, error } = await client
-      .from('service_categories')
+      .from('categories')
       .select('id, name')
     
     if (error) throw error

@@ -309,68 +309,59 @@ const handleSubmit = async () => {
     if (userError) throw userError
     if (!user) throw new Error('Utilisateur non connecté')
 
-    // 1. Mettre à jour le profil existant
-    const { error: profileError } = await client
-      .from('profiles')
+    // Mettre à jour le profil utilisateur avec les informations d'expert
+    const { error: updateError } = await client
+      .from('users')
       .update({
         first_name: form.value.firstName,
         last_name: form.value.lastName,
         bio: form.value.bio,
         is_expert: true,
+        hourly_rate: parseFloat(form.value.hourlyRate),
         updated_at: new Date().toISOString()
       })
       .eq('id', user.id)
 
-    if (profileError) throw profileError
+    if (updateError) throw updateError
 
-    // 2. Créer l'entrée expert
-    const { error: expertError } = await client
-      .from('experts')
-      .insert({
-        id: user.id,
-        bio: form.value.bio,
-        hourly_rate: parseFloat(form.value.hourlyRate),
-        availability_status: 'available',
-        verification_status: 'pending',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-
-    if (expertError) throw expertError
-
-    // 3. Associer les compétences
+    // Associer les compétences à l'utilisateur
     if (form.value.skills.length > 0) {
       const skillsToInsert = form.value.skills.map(skillId => ({
-        profile_id: user.id,
+        user_id: user.id,
         skill_id: skillId,
         created_at: new Date().toISOString()
       }))
 
       const { error: skillsError } = await client
-        .from('profile_skills')
+        .from('user_skills')
         .insert(skillsToInsert)
 
       if (skillsError) throw skillsError
     }
 
-    // 4. Associer les services
+    // Créer les services pour l'expert
     if (form.value.services.length > 0) {
       const servicesToInsert = form.value.services.map(serviceId => ({
-        expert_id: user.id,
-        service_id: serviceId,
-        price_per_hour: parseFloat(form.value.hourlyRate),
-        created_at: new Date().toISOString()
+        title: `Service basé sur ${serviceId}`, // À adapter selon vos besoins
+        description: "Description par défaut",
+        category_id: serviceId, // Supposant que serviceId est une catégorie
+        user_id: user.id,
+        price: parseFloat(form.value.hourlyRate),
+        price_type: 'hourly',
+        status: 'active',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       }))
 
       const { error: servicesError } = await client
-        .from('expert_services')
+        .from('services')
         .insert(servicesToInsert)
 
       if (servicesError) throw servicesError
     }
 
-    // Rediriger vers le tableau de bord expert
-    router.push('/expert/dashboard')
+    // Rediriger vers le tableau de bord
+    router.push('/account')
   } catch (error) {
     console.error('Erreur création profil expert:', error)
     // Afficher une notification d'erreur

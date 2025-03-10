@@ -1,697 +1,501 @@
 <template>
-  <div class="min-h-screen bg-white">
-    <!-- Barre de progression Uber-style -->
-    <div class="fixed top-0 left-0 right-0 z-50">
-      <div class="h-1 bg-black transition-all duration-500 ease-out"
-           :style="{ width: `${(currentStep / totalSteps) * 100}%` }">
+  <div class="max-w-2xl mx-auto px-4 pt-5 pb-16">
+    <!-- En-tête avec illustration subtile -->
+    <div class="mb-7 bg-white dark:bg-gray-800 rounded-xl p-5 border-l-4 border-primary-500 shadow-sm flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Publiez votre demande</h1>
+        <p class="text-gray-600 dark:text-gray-400 mt-1">
+          Des experts qualifiés vous proposeront leurs services
+        </p>
       </div>
-    </div>
-    
-    <div class="max-w-lg mx-auto px-5 pt-16 pb-8">
-      <!-- En-tête minimaliste style Uber -->
-      <div class="mb-6 flex items-center">
-        <button 
-          @click="goBack" 
-          class="text-black p-1 -ml-1"
-          aria-label="Retour"
-        >
-          <ChevronLeft class="h-6 w-6" />
-        </button>
-        <div class="text-xs font-medium text-gray-500 ml-auto">
-          ÉTAPE {{ currentStep }}/{{ totalSteps }}
-        </div>
-      </div>
-      
-      <!-- Zone de contenu principal - une question à la fois comme Uber -->
-      <div class="py-4">
-        <transition 
-          name="uber-fade" 
-          mode="out-in"
-        >
-          <div :key="currentStep" class="space-y-6">
-            <!-- Étape 1: Titre et catégorie de service - style Uber -->
-            <div v-if="currentStep === 1">
-              <h1 class="text-3xl font-bold text-black mb-10 tracking-tight">
-                Que recherchez-vous ?
-              </h1>
-              
-              <!-- Titre de la demande -->
-              <div class="mb-10">
-                <input
-                  id="title"
-                  v-model="form.title"
-                  type="text"
-                  placeholder="Titre de votre demande"
-                  class="w-full py-4 px-0 text-xl border-b-2 border-gray-200 focus:border-black focus:outline-none transition-colors"
-                />
-                <p class="mt-2 text-sm text-gray-500">
-                  Par exemple : "Besoin d'un plombier pour réparer un robinet"
-                </p>
-              </div>
-              
-              <!-- Débogage - Nombre de catégories chargées -->
-              <div class="text-sm text-gray-500 mb-4">
-                {{ serviceCategories.length }} catégories disponibles
-              </div>
-              
-              <!-- Catégories - Nouveau design simplifié -->
-              <div class="grid grid-cols-2 gap-4">
-                <button
-                  v-for="category in serviceCategories"
-                  :key="category.id"
-                  @click="selectCategory(category.id)"
-                  class="bg-gray-100 hover:bg-gray-200 p-4 rounded-xl transition-all"
-                  :class="{ 'ring-2 ring-black': form.category_id === category.id }"
-                >
-                  <div class="flex flex-col items-center">
-                    <span class="text-3xl mb-2">{{ category.icon }}</span>
-                    <span class="font-medium text-center">{{ category.name }}</span>
-                  </div>
-                </button>
-              </div>
-              
-              <!-- Fallback si pas de catégories -->
-              <div v-if="serviceCategories.length === 0" class="bg-yellow-50 p-4 rounded-xl mt-4">
-                <div class="flex items-center">
-                  <AlertCircle class="h-5 w-5 text-yellow-500 mr-2" />
-                  <span class="text-yellow-700">Chargement des catégories...</span>
-                </div>
-                <button 
-                  @click="loadCategoriesManually" 
-                  class="mt-2 text-sm text-yellow-800 underline"
-                >
-                  Recharger les catégories
-                </button>
-              </div>
-            </div>
-            
-            <!-- Étape 2: Services spécifiques - style Uber -->
-            <div v-else-if="currentStep === 2">
-              <h1 class="text-3xl font-bold text-black mb-8 tracking-tight">
-                Quel service précis vous faut-il ?
-              </h1>
-              
-              <div v-if="filteredServices.length > 0" class="space-y-3">
-                <div class="max-h-[60vh] overflow-y-auto pr-2 -mr-2 space-y-2">
-                  <button
-                    v-for="service in filteredServices"
-                    :key="service.id"
-                    @click="selectService(service.id)"
-                    :class="[
-                      'w-full p-5 text-left rounded-xl transition-all flex items-center',
-                      form.service_id === service.id 
-                        ? 'bg-black text-white'
-                        : 'bg-gray-100 hover:bg-gray-200 text-black'
-                    ]"
-                  >
-                    <span class="text-lg">{{ service.name }}</span>
-                    <ChevronRight 
-                      class="h-5 w-5 ml-auto" 
-                      :class="form.service_id === service.id ? 'text-white' : 'text-gray-400'"
-                    />
-                  </button>
-                </div>
-              </div>
-              
-              <div v-else class="py-12 text-center">
-                <div class="rounded-full bg-gray-100 h-16 w-16 flex items-center justify-center mx-auto mb-4">
-                  <AlertCircle class="h-8 w-8 text-gray-500" />
-                </div>
-                <p class="text-gray-500 font-medium">Veuillez d'abord sélectionner une catégorie</p>
-              </div>
-            </div>
-            
-            <!-- Étape 3: Description et localisation - style Uber -->
-            <div v-else-if="currentStep === 3">
-              <h1 class="text-3xl font-bold text-black mb-8 tracking-tight">
-                Précisez votre besoin
-              </h1>
-              
-              <!-- Description -->
-              <div class="mb-10">
-                <label for="description" class="block text-sm font-semibold text-gray-700 mb-2">
-                  Description de votre demande
-                </label>
-                <textarea
-                  id="description"
-                  v-model="form.description"
-                  placeholder="Expliquez votre besoin avec le plus de détails possible..."
-                  rows="4"
-                  class="w-full p-4 text-lg border-2 border-gray-200 rounded-xl focus:border-black focus:outline-none transition-colors"
-                ></textarea>
-              </div>
-              
-              <!-- Localisation -->
-              <div>
-                <label for="location" class="block text-sm font-semibold text-gray-700 mb-2">
-                  Adresse du service
-                </label>
-                <div class="relative">
-                  <MapPin class="absolute left-4 top-4 text-gray-400 h-6 w-6" />
-                  <input
-                    id="location"
-                    v-model="form.location"
-                    type="text"
-                    placeholder="Où le service sera-t-il réalisé ?"
-                    class="w-full p-4 pl-12 text-lg border-2 border-gray-200 rounded-xl focus:border-black focus:outline-none transition-colors"
-                  />
-                </div>
-              </div>
-            </div>
-            
-            <!-- Étape 4: Date & heure - style Uber -->
-            <div v-else-if="currentStep === 4">
-              <h1 class="text-3xl font-bold text-black mb-8 tracking-tight">
-                Quand en avez-vous besoin ?
-              </h1>
-              
-              <!-- Date -->
-              <div class="mb-8">
-                <label for="date" class="block text-sm font-semibold text-gray-700 mb-2">
-                  Date souhaitée
-                </label>
-                <input
-                  id="date"
-                  v-model="form.date"
-                  type="date"
-                  :min="new Date().toISOString().split('T')[0]"
-                  class="w-full p-4 text-lg border-2 border-gray-200 rounded-xl focus:border-black focus:outline-none transition-colors"
-                />
-              </div>
-              
-              <!-- Période de la journée -->
-              <div class="mb-8">
-                <label class="block text-sm font-semibold text-gray-700 mb-2">
-                  Période de la journée
-                </label>
-                <div class="grid grid-cols-3 gap-3">
-                  <button
-                    v-for="(period, index) in ['Matin', 'Après-midi', 'Soir']"
-                    :key="index"
-                    @click="selectTimePeriod(period)"
-                    :class="[
-                      'py-4 rounded-xl text-center transition-all',
-                      form.time === getPeriodTime(period)
-                        ? 'bg-black text-white'
-                        : 'bg-gray-100 hover:bg-gray-200 text-black'
-                    ]"
-                  >
-                    {{ period }}
-                  </button>
-                </div>
-              </div>
-              
-              <!-- Durée estimée -->
-              <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">
-                  Durée estimée
-                </label>
-                <div class="grid grid-cols-3 gap-3">
-                  <button
-                    v-for="duration in [30, 60, 120]"
-                    :key="duration"
-                    type="button"
-                    @click="form.duration = duration"
-                    :class="[
-                      'py-4 rounded-xl text-center transition-colors',
-                      form.duration === duration
-                        ? 'bg-black text-white'
-                        : 'bg-gray-100 hover:bg-gray-200 text-black'
-                    ]"
-                  >
-                    {{ duration >= 60 ? `${duration/60}h` : `${duration}min` }}
-                  </button>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Étape 5: Budget - style Uber -->
-            <div v-else-if="currentStep === 5">
-              <h1 class="text-3xl font-bold text-black mb-12 tracking-tight">
-                Quel est votre budget ?
-              </h1>
-              
-              <!-- Options de budget style Uber -->
-              <div class="space-y-4">
-                <button
-                  v-for="range in budgetRanges"
-                  :key="range.label"
-                  @click="selectBudgetRange(range.value)"
-                  :class="[
-                    'w-full py-5 px-6 rounded-xl text-left transition-all flex items-center text-lg',
-                    form.budget === range.value
-                      ? 'bg-black text-white'
-                      : 'bg-gray-100 hover:bg-gray-200 text-black'
-                  ]"
-                >
-                  {{ range.label }}
-                  <Check 
-                    v-if="form.budget === range.value"
-                    class="h-5 w-5 ml-auto" 
-                  />
-                </button>
-              </div>
-              
-              <!-- Option de saisie manuelle -->
-              <div class="mt-8">
-                <label for="custom-budget" class="block text-sm font-semibold text-gray-700 mb-2">
-                  Ou précisez votre budget exact
-                </label>
-                <div class="relative">
-                  <input
-                    id="custom-budget"
-                    v-model="form.budget"
-                    type="number"
-                    min="0"
-                    step="5"
-                    placeholder="Montant"
-                    class="w-full p-4 text-lg border-2 border-gray-200 rounded-xl focus:border-black focus:outline-none transition-colors pl-12"
-                  />
-                  <div class="absolute inset-y-0 left-0 flex items-center pl-4 text-xl font-medium">
-                    €
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Étape 6: Résumé - style Uber -->
-            <div v-else-if="currentStep === 6">
-              <h1 class="text-3xl font-bold text-black mb-8 tracking-tight">
-                Vérifiez et publiez
-              </h1>
-              
-              <div class="space-y-6">
-                <!-- Titre et service -->
-                <div class="p-4 bg-gray-50 rounded-xl">
-                  <div class="flex justify-between items-start">
-                    <div>
-                      <h3 class="font-bold text-lg text-black">{{ form.title || "Sans titre" }}</h3>
-                      <p v-if="selectedService" class="text-gray-600">
-                        {{ selectedService.name }}
-                      </p>
-                    </div>
-                    <button @click="goToStep(1)" class="p-2 text-gray-500">
-                      <Edit class="h-5 w-5" />
-                    </button>
-                  </div>
-                </div>
-                
-                <!-- Description et lieu -->
-                <div class="p-4 bg-gray-50 rounded-xl">
-                  <div class="flex justify-between items-start">
-                    <div class="flex-1">
-                      <h3 class="font-bold text-black mb-2">Détails</h3>
-                      <p class="text-gray-600 mb-3 line-clamp-3">{{ form.description }}</p>
-                      <div class="flex items-center text-gray-600">
-                        <MapPin class="h-4 w-4 mr-1" />
-                        <span>{{ form.location }}</span>
-                      </div>
-                    </div>
-                    <button @click="goToStep(3)" class="p-2 text-gray-500">
-                      <Edit class="h-5 w-5" />
-                    </button>
-                  </div>
-                </div>
-                
-                <!-- Planification -->
-                <div class="p-4 bg-gray-50 rounded-xl">
-                  <div class="flex justify-between items-start">
-                    <div>
-                      <h3 class="font-bold text-black mb-2">Planification</h3>
-                      <div class="flex items-center">
-                        <Calendar class="h-4 w-4 mr-2 text-gray-500" />
-                        <span class="text-gray-600">
-                          {{ form.date ? formatDate(form.date) : "Non spécifié" }}
-                        </span>
-                      </div>
-                      <div class="flex items-center mt-1">
-                        <Clock class="h-4 w-4 mr-2 text-gray-500" />
-                        <span class="text-gray-600">
-                          {{ getFormattedPeriod(form.time) }} · {{ form.duration }} min
-                        </span>
-                      </div>
-                    </div>
-                    <button @click="goToStep(4)" class="p-2 text-gray-500">
-                      <Edit class="h-5 w-5" />
-                    </button>
-                  </div>
-                </div>
-                
-                <!-- Budget -->
-                <div class="p-4 bg-gray-50 rounded-xl">
-                  <div class="flex justify-between items-center">
-                    <div>
-                      <h3 class="font-bold text-black mb-1">Budget</h3>
-                      <span class="text-2xl font-bold">{{ form.budget }}€</span>
-                    </div>
-                    <button @click="goToStep(5)" class="p-2 text-gray-500">
-                      <Edit class="h-5 w-5" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </transition>
-          
-        <!-- Navigation buttons style Uber - bouton unique et impactant -->
-        <div class="mt-12">
-          <button
-            v-if="currentStep < totalSteps"
-            @click="nextStep"
-            :disabled="!canProceed"
-            class="w-full py-4 bg-black text-white font-medium text-lg rounded-xl
-              disabled:bg-gray-300 disabled:text-gray-500
-              transition-all duration-200 transform hover:scale-[0.98] active:scale-[0.96]"
-          >
-            Continuer
-          </button>
-          
-          <button
-            v-else
-            @click="submitRequest"
-            :disabled="loading"
-            class="w-full py-4 bg-black text-white font-medium text-lg rounded-xl
-              disabled:bg-gray-300 disabled:text-gray-500
-              transition-all duration-200 transform hover:scale-[0.98] active:scale-[0.96]
-              flex items-center justify-center"
-          >
-            <Loader2 v-if="loading" class="animate-spin mr-2 h-5 w-5" />
-            {{ loading ? 'Publication en cours...' : 'Publier ma demande' }}
-          </button>
-          
-          <button
-            v-if="currentStep > 1"
-            @click="goBack"
-            class="w-full text-black font-medium mt-3 py-3"
-          >
-            Retour
-          </button>
-        </div>
+      <div class="bg-primary-50 dark:bg-primary-900/20 p-3 rounded-full">
+        <MessageSquarePlus class="h-6 w-6 text-primary-600 dark:text-primary-400" />
       </div>
     </div>
 
-    <!-- Ajouter près du début du template -->
-    <!-- <div class="bg-gray-100 p-4 my-4 rounded-lg">
-      <pre class="text-xs overflow-x-auto">{{ JSON.stringify(serviceCategories, null, 2) }}</pre>
-    </div> -->
+    <!-- Formulaire principal -->
+    <form @submit.prevent="submitRequest" class="space-y-6">
+      <!-- Titre de la demande -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 transition-shadow hover:shadow-sm">
+        <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+          Titre de votre demande
+        </label>
+        <input 
+          id="title"
+          v-model="requestForm.title"
+          type="text"
+          placeholder="Ex: Création d'un site web pour mon restaurant"
+          class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          :class="{ 'border-red-500 dark:border-red-500': errors.title }"
+          required
+        />
+        <p v-if="errors.title" class="text-red-600 dark:text-red-400 text-sm mt-1">{{ errors.title }}</p>
+        <p v-else class="text-gray-500 dark:text-gray-400 text-xs mt-1.5">Soyez précis et concis (max. 100 caractères)</p>
+      </div>
+
+      <!-- Description -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 transition-shadow hover:shadow-sm">
+        <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+          Description détaillée
+        </label>
+        <textarea 
+          id="description"
+          v-model="requestForm.description"
+          placeholder="Décrivez votre besoin en détail... Qu'attendez-vous exactement ? Avez-vous des contraintes particulières ?"
+          rows="5"
+          class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          :class="{ 'border-red-500 dark:border-red-500': errors.description }"
+          required
+        ></textarea>
+        <p v-if="errors.description" class="text-red-600 dark:text-red-400 text-sm mt-1">{{ errors.description }}</p>
+        <div v-else class="flex justify-between text-xs mt-1.5">
+          <span class="text-gray-500 dark:text-gray-400">Plus votre description est détaillée, plus les propositions seront pertinentes</span>
+          <span :class="requestForm.description.length > 800 ? 'text-amber-600' : 'text-gray-500 dark:text-gray-400'">
+            {{ requestForm.description.length }}/1000
+          </span>
+        </div>
+      </div>
+
+      <!-- Catégorie et Budget (côte à côte sur desktop) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 transition-shadow hover:shadow-sm">
+          <label for="category" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            Catégorie
+          </label>
+          <select 
+            id="category"
+            v-model="requestForm.category"
+            class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            :class="{ 'border-red-500 dark:border-red-500': errors.category }"
+            required
+          >
+            <option value="" disabled selected>Sélectionnez une catégorie</option>
+            <option v-for="category in categories" :key="category.id" :value="category.name">
+              {{ category.name }}
+            </option>
+          </select>
+          <p v-if="errors.category" class="text-red-600 dark:text-red-400 text-sm mt-1">{{ errors.category }}</p>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 transition-shadow hover:shadow-sm">
+          <label for="budget" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            Budget estimé (€)
+          </label>
+          <div class="relative">
+            <input 
+              id="budget"
+              v-model="requestForm.budget"
+              type="number"
+              min="10"
+              placeholder="Votre budget pour cette mission"
+              class="w-full pl-4 pr-10 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              :class="{ 'border-red-500 dark:border-red-500': errors.budget }"
+              required
+            />
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <Euro class="h-5 w-5 text-gray-400" />
+            </div>
+          </div>
+          <p v-if="errors.budget" class="text-red-600 dark:text-red-400 text-sm mt-1">{{ errors.budget }}</p>
+        </div>
+      </div>
+
+      <!-- Localisation et Date -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 transition-shadow hover:shadow-sm">
+          <label for="location" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            Localisation
+          </label>
+          <div class="flex items-center space-x-3 mb-3">
+            <button 
+              type="button"
+              @click="requestForm.isRemote = true"
+              class="flex-1 py-2.5 px-3 rounded-lg text-center text-sm font-medium transition-colors"
+              :class="requestForm.isRemote ? 'bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400' : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'"
+            >
+              À distance
+            </button>
+            <button 
+              type="button"
+              @click="requestForm.isRemote = false"
+              class="flex-1 py-2.5 px-3 rounded-lg text-center text-sm font-medium transition-colors"
+              :class="!requestForm.isRemote ? 'bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400' : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'"
+            >
+              Sur place
+            </button>
+          </div>
+          <input 
+            v-if="!requestForm.isRemote"
+            v-model="requestForm.location"
+            type="text"
+            placeholder="Ville ou code postal"
+            class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            :class="{ 'border-red-500 dark:border-red-500': errors.location }"
+          />
+          <p v-if="errors.location" class="text-red-600 dark:text-red-400 text-sm mt-1">{{ errors.location }}</p>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 transition-shadow hover:shadow-sm">
+          <label for="deadline" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            Date souhaitée
+          </label>
+          <input 
+            id="deadline"
+            v-model="requestForm.deadline"
+            type="date"
+            class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            :class="{ 'border-red-500 dark:border-red-500': errors.deadline }"
+            :min="tomorrow"
+            required
+          />
+          <p v-if="errors.deadline" class="text-red-600 dark:text-red-400 text-sm mt-1">{{ errors.deadline }}</p>
+        </div>
+      </div>
+
+      <!-- Fichiers annexes -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 transition-shadow hover:shadow-sm">
+        <div class="flex items-center justify-between mb-1.5">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Fichiers annexes (facultatif)
+          </label>
+          <span class="text-xs text-gray-500 dark:text-gray-400">Max 3 fichiers</span>
+        </div>
+        
+        <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center"
+          :class="isDragging ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/10' : ''"
+          @dragenter.prevent="isDragging = true"
+          @dragleave.prevent="isDragging = false"
+          @dragover.prevent
+          @drop.prevent="handleFileDrop"
+        >
+          <div class="flex flex-col items-center">
+            <Upload class="h-8 w-8 text-gray-400 dark:text-gray-500 mb-2" />
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">
+              Glissez vos fichiers ici ou 
+              <button 
+                type="button"
+                class="text-primary-600 dark:text-primary-400 font-medium"
+                @click="$refs.fileInput.click()"
+              >
+                parcourez
+              </button>
+            </p>
+            <p class="text-xs text-gray-500 dark:text-gray-500">
+              PNG, JPG, PDF jusqu'à 5MB
+            </p>
+            <input 
+              ref="fileInput"
+              type="file"
+              multiple
+              class="hidden"
+              accept="image/png,image/jpeg,application/pdf"
+              @change="handleFileInput"
+            />
+          </div>
+        </div>
+
+        <!-- Aperçu des fichiers -->
+        <div v-if="requestForm.files.length > 0" class="mt-3 space-y-2">
+          <div v-for="(file, index) in requestForm.files" :key="index" 
+            class="flex items-center justify-between bg-gray-50 dark:bg-gray-750 p-2 rounded-lg">
+            <div class="flex items-center">
+              <FileText class="h-5 w-5 text-gray-500 mr-2" />
+              <span class="text-sm text-gray-700 dark:text-gray-300 truncate max-w-xs">{{ file.name }}</span>
+            </div>
+            <button type="button" @click="removeFile(index)" class="text-gray-500 hover:text-red-500">
+              <X class="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Aperçu de la demande -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div class="bg-gray-50 dark:bg-gray-750 px-5 py-3 border-b border-gray-200 dark:border-gray-700">
+          <h3 class="font-medium text-gray-900 dark:text-white">Aperçu de votre demande</h3>
+        </div>
+        <div class="p-5">
+          <div class="flex items-start justify-between">
+            <div>
+              <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+                {{ requestForm.title || 'Titre de votre demande' }}
+              </h4>
+              <div class="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400 mb-3">
+                <span class="flex items-center">
+                  <Calendar class="h-4 w-4 mr-1" />
+                  {{ requestForm.deadline ? formatDate(requestForm.deadline) : 'Date à définir' }}
+                </span>
+                <span class="flex items-center">
+                  <Tag class="h-4 w-4 mr-1" />
+                  {{ requestForm.category || 'Catégorie' }}
+                </span>
+                <span class="flex items-center">
+                  <MapPin class="h-4 w-4 mr-1" />
+                  {{ requestForm.isRemote ? 'À distance' : (requestForm.location || 'Lieu à définir') }}
+                </span>
+              </div>
+              <p class="text-gray-700 dark:text-gray-300 line-clamp-3">
+                {{ requestForm.description || 'Votre description apparaîtra ici...' }}
+              </p>
+            </div>
+            <div>
+              <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                {{ requestForm.budget ? `${requestForm.budget}€` : 'Budget' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bouton de soumission -->
+      <div class="mt-8">
+        <button 
+          type="submit"
+          :disabled="isSubmitting"
+          class="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3.5 px-6 rounded-xl shadow-sm hover:shadow-md transition-all flex items-center justify-center"
+        >
+          <span v-if="isSubmitting">
+            <span class="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
+            Publication en cours...
+          </span>
+          <span v-else>
+            Publier ma demande
+          </span>
+        </button>
+      </div>
+    </form>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { ChevronLeft, ChevronRight, Loader2, MapPin, Calendar, Clock, 
-         Check, Edit, AlertCircle } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
-import { useSupabaseClient } from '#imports'
+import { useSupabaseClient, useSupabaseUser } from '#imports'
+import {
+  MessageSquarePlus,
+  Calendar,
+  Tag,
+  MapPin,
+  FileText,
+  Upload,
+  X,
+  Euro
+} from 'lucide-vue-next'
 
+// Initialisation
 const router = useRouter()
-const client = useSupabaseClient()
+const user = useSupabaseUser()
+const supabase = useSupabaseClient()
 
-// État du formulaire et étapes
-const currentStep = ref(1)
-const totalSteps = 6
-const loading = ref(false)
-
-// Catégories et services
-const serviceCategories = ref([])
-const services = ref([])
-const filteredServices = computed(() => 
-  services.value.filter(s => s.category_id === form.value.category_id)
-)
-
-// Données du formulaire
-const form = ref({
+// État du formulaire
+const requestForm = ref({
   title: '',
-  category_id: '',
-  service_id: '',
   description: '',
-  location: '',
-  date: null,
-  time: '',
-  duration: 60,
+  category: '',
   budget: '',
+  isRemote: true,
+  location: '',
+  deadline: '',
+  files: []
 })
 
-// Fourchettes de budget prédéfinies
-const budgetRanges = [
-  { label: 'Moins de 50€', value: 50 },
-  { label: 'Entre 50€ et 200€', value: 125 },
-  { label: 'Plus de 200€', value: 250 },
-]
+// États UI
+const errors = ref({})
+const isSubmitting = ref(false)
+const isDragging = ref(false)
 
-// Formater la date
-const formatDate = (date) => {
-  if (!date) return null
-  const d = new Date(date)
-  return d.toLocaleDateString('fr-FR', { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  })
-}
+// Données de référence
+const categories = ref([
+  { id: 1, name: 'Développement web' },
+  { id: 2, name: 'Design graphique' },
+  { id: 3, name: 'Marketing digital' },
+  { id: 4, name: 'Rédaction de contenu' },
+  { id: 5, name: 'Traduction' },
+  { id: 6, name: 'Support administratif' },
+  { id: 7, name: 'Coaching' },
+  { id: 8, name: 'Photographie' },
+  { id: 9, name: 'Montage vidéo' },
+  { id: 10, name: 'Conseil juridique' },
+  { id: 11, name: 'Conseil financier' },
+  { id: 12, name: 'Assistance informatique' }
+])
 
-// Sélection de la période de temps
-const selectTimePeriod = (period) => {
-  form.value.time = getPeriodTime(period)
-}
-
-const getPeriodTime = (period) => {
-  switch(period) {
-    case 'Matin': return '09:00'
-    case 'Après-midi': return '14:00'
-    case 'Soir': return '18:00'
-    default: return ''
-  }
-}
-
-const getFormattedPeriod = (time) => {
-  if (!time) return 'Non spécifié'
-  
-  if (time === '09:00') return 'Matin'
-  if (time === '14:00') return 'Après-midi'
-  if (time === '18:00') return 'Soir'
-  
-  return time
-}
-
-// Vérifier si l'utilisateur peut passer à l'étape suivante
-const canProceed = computed(() => {
-  switch (currentStep.value) {
-    case 1: return !!form.value.title?.trim() && !!form.value.category_id
-    case 2: return !!form.value.service_id
-    case 3: return !!form.value.description?.trim() && !!form.value.location?.trim()
-    case 4: return !!form.value.date && !!form.value.time && !!form.value.duration
-    case 5: return !!form.value.budget && form.value.budget > 0
-    default: return true
-  }
+// Date de demain (pour la date minimale)
+const tomorrow = computed(() => {
+  const date = new Date()
+  date.setDate(date.getDate() + 1)
+  return date.toISOString().split('T')[0]
 })
 
-// Sélection de catégorie
-const selectCategory = (categoryId) => {
-  console.log("Catégorie sélectionnée:", categoryId)
-  form.value.category_id = categoryId
+// Méthodes pour la gestion des fichiers
+const handleFileInput = (event) => {
+  const newFiles = Array.from(event.target.files)
+  addFiles(newFiles)
+  event.target.value = null // Réinitialise l'input
 }
 
-// Sélection de service
-const selectService = (serviceId) => {
-  form.value.service_id = serviceId
+const handleFileDrop = (event) => {
+  isDragging.value = false
+  const newFiles = Array.from(event.dataTransfer.files)
+  addFiles(newFiles)
 }
 
-// Sélection de budget
-const selectBudgetRange = (value) => {
-  form.value.budget = value
+const addFiles = (newFiles) => {
+  // Filtrer les types de fichiers autorisés
+  const validFiles = newFiles.filter(file => 
+    ['image/jpeg', 'image/png', 'application/pdf'].includes(file.type) && file.size <= 5 * 1024 * 1024
+  )
+  
+  // Limiter à 3 fichiers maximum
+  const remainingSlots = 3 - requestForm.value.files.length
+  const filesToAdd = validFiles.slice(0, remainingSlots)
+  
+  requestForm.value.files = [...requestForm.value.files, ...filesToAdd]
 }
 
-// Données sélectionnées
-const selectedCategory = computed(() => 
-  serviceCategories.value.find(c => c.id === form.value.category_id)
-)
+const removeFile = (index) => {
+  requestForm.value.files.splice(index, 1)
+}
 
-const selectedService = computed(() => 
-  services.value.find(s => s.id === form.value.service_id)
-)
-
-// Navigation
-const nextStep = () => {
-  if (currentStep.value < totalSteps) {
-    currentStep.value++
-    window.scrollTo(0, 0)
+// Validation du formulaire
+const validateForm = () => {
+  const newErrors = {}
+  
+  if (!requestForm.value.title.trim()) {
+    newErrors.title = 'Veuillez saisir un titre'
+  } else if (requestForm.value.title.length > 100) {
+    newErrors.title = 'Le titre ne doit pas dépasser 100 caractères'
   }
-}
-
-const goToStep = (step) => {
-  currentStep.value = step
-  window.scrollTo(0, 0)
-}
-
-const goBack = () => {
-  if (currentStep.value > 1) {
-    currentStep.value--
-    window.scrollTo(0, 0)
-  } else {
-    router.push('/requests')
+  
+  if (!requestForm.value.description.trim()) {
+    newErrors.description = 'Veuillez détailler votre demande'
+  } else if (requestForm.value.description.length < 50) {
+    newErrors.description = 'La description doit contenir au moins 50 caractères'
+  } else if (requestForm.value.description.length > 1000) {
+    newErrors.description = 'La description ne doit pas dépasser 1000 caractères'
   }
+  
+  if (!requestForm.value.category) {
+    newErrors.category = 'Veuillez sélectionner une catégorie'
+  }
+  
+  if (!requestForm.value.budget) {
+    newErrors.budget = 'Veuillez indiquer votre budget'
+  } else if (requestForm.value.budget < 10) {
+    newErrors.budget = 'Le budget minimum est de 10€'
+  }
+  
+  if (!requestForm.value.isRemote && !requestForm.value.location.trim()) {
+    newErrors.location = 'Veuillez indiquer votre localisation'
+  }
+  
+  if (!requestForm.value.deadline) {
+    newErrors.deadline = 'Veuillez indiquer une date souhaitée'
+  }
+  
+  errors.value = newErrors
+  return Object.keys(newErrors).length === 0
 }
 
 // Soumission du formulaire
 const submitRequest = async () => {
+  if (!validateForm()) {
+    // Scroll to first error
+    const firstError = document.querySelector('.border-red-500')
+    if (firstError) {
+      firstError.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+    return
+  }
+  
+  isSubmitting.value = true
+  
   try {
-    loading.value = true
-    
-    const { data: { user }, error: userError } = await client.auth.getUser()
-    if (userError) throw userError
-    if (!user) throw new Error('Utilisateur non connecté')
-    
-    const { error: requestError } = await client
+    // Envoi des données à la base de données
+    const { data, error } = await supabase
       .from('requests')
       .insert({
-        client_id: user.id,
-        service_id: form.value.service_id,
-        title: form.value.title,
-        description: form.value.description,
-        location: form.value.location,
-        date: form.value.date,
-        time: form.value.time,
-        duration: form.value.duration,
-        budget: parseFloat(form.value.budget),
-
-        deadline: form.value.date ? new Date(form.value.date).toISOString() : null,
-      budget: parseFloat(form.value.budget) || 0,
-      status: 'open', // Utiliser 'open' au lieu de 'active' selon le schéma
-   
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        user_id: user.value.id,
+        title: requestForm.value.title,
+        description: requestForm.value.description,
+        category: requestForm.value.category,
+        budget: parseFloat(requestForm.value.budget),
+        location: requestForm.value.isRemote ? 'À distance' : requestForm.value.location,
+        deadline: requestForm.value.deadline,
+        status: 'En attente',
+        created_at: new Date().toISOString()
       })
+      .select()
     
-    if (requestError) throw requestError
+    if (error) throw error
     
+    // Upload des fichiers si nécessaire
+    if (requestForm.value.files.length > 0) {
+      const requestId = data[0].id
+      
+      for (const file of requestForm.value.files) {
+        const fileName = `${Date.now()}_${file.name}`
+        const filePath = `requests/${requestId}/${fileName}`
+        
+        const { error: uploadError } = await supabase.storage
+          .from('attachments')
+          .upload(filePath, file)
+        
+        if (uploadError) throw uploadError
+      }
+    }
+    
+    // Redirection vers la page des demandes avec un message de succès
     router.push({ 
-      path: '/requests', 
-      query: { success: 'request_created' } 
+      path: '/account/requests',
+      query: { success: 'created' }
     })
   } catch (error) {
-    console.error('Erreur:', error)
+    console.error('Erreur lors de la création de la demande:', error)
+    alert('Une erreur est survenue lors de la création de votre demande. Veuillez réessayer.')
   } finally {
-    loading.value = false
+    isSubmitting.value = false
   }
 }
 
-// Chargement des données
-onMounted(async () => {
-  try {
-    // Chargement des catégories
-    const { data: categoriesData, error: categoriesError } = await client
-      .from('service_categories')
-      .select('id, name, icon')
-    
-    if (categoriesError) throw categoriesError
-    
-    // Utiliser directement les icônes de la base de données (emojis)
-    serviceCategories.value = categoriesData;
-    console.log("Catégories chargées:", serviceCategories.value);
-    
-    // Chargement des services
-    const { data: servicesData, error: servicesError } = await client
-      .from('services')
-      .select('id, category_id, name')
-    
-    if (servicesError) throw servicesError
-    services.value = servicesData || []
-  } catch (error) {
-    console.error('Erreur chargement données:', error)
-  }
-})
-
-// Limiter le nombre de catégories affichées (pour éviter les problèmes de performance)
-const limitedCategories = computed(() => {
-  // On affiche seulement les 6 premières catégories uniques
-  const uniqueCategories = [];
-  const seenNames = new Set();
-  
-  for (const cat of serviceCategories.value) {
-    if (!seenNames.has(cat.name)) {
-      seenNames.add(cat.name);
-      uniqueCategories.push(cat);
-    }
-  }
-  
-  return uniqueCategories;
-});
-
-// Chargement manuel des catégories (pour le bouton de rechargement)
-const loadCategoriesManually = async () => {
-  await fetchCategories()
+// Format de date pour l'aperçu
+const formatDate = (dateString) => {
+  const date = new Date(dateString)
+  return new Intl.DateTimeFormat('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  }).format(date)
 }
-
-// Chargement des données
-const fetchCategories = async () => {
-  try {
-    console.log("Chargement des catégories...")
-    
-    const { data, error } = await client
-      .from('service_categories')
-      .select('id, name, icon')
-    
-    if (error) throw error
-    
-    console.log("Catégories chargées:", data)
-    serviceCategories.value = data || []
-    
-    // Si aucune catégorie n'est chargée, utiliser des données de repli
-    if (serviceCategories.value.length === 0) {
-      console.log("Utilisation des catégories de secours")
-      serviceCategories.value = [
-        { id: "cat1", name: "Ménage", icon: "🧹" },
-        { id: "cat2", name: "Bricolage", icon: "🔨" },
-        { id: "cat3", name: "Jardinage", icon: "🌱" },
-        { id: "cat4", name: "Cours", icon: "📚" },
-        { id: "cat5", name: "Informatique", icon: "💻" },
-        { id: "cat6", name: "Garde d'enfants", icon: "👶" }
-      ]
-    }
-  } catch (err) {
-    console.error("Erreur lors du chargement des catégories:", err)
-  }
-}
-
-// Chargement des services
-const fetchServices = async () => {
-  try {
-    const { data, error } = await client
-      .from('services')
-      .select('id, category_id, name')
-    
-    if (error) throw error
-    services.value = data || []
-  } catch (err) {
-    console.error("Erreur lors du chargement des services:", err)
-  }
-}
-
-// Initialisation
-onMounted(async () => {
-  await fetchCategories()
-  await fetchServices()
-})
 
 definePageMeta({
-  layout: 'default',
-  auth: true
+  layout: 'default'
 })
 </script>
 
 <style scoped>
-.uber-fade-enter-active,
-.uber-fade-leave-active {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+/* Animation des composants */
+.rounded-xl {
+  animation: fadeIn 0.4s ease;
+  animation-fill-mode: both;
 }
-.uber-fade-enter-from {
-  opacity: 0;
-  transform: translateY(8px);
-}
-.uber-fade-leave-to {
-  opacity: 0;
-  transform: translateY(-8px);
+
+/* Animation séquentielle pour chaque section */
+.space-y-6 > div:nth-child(1) { animation-delay: 0.05s; }
+.space-y-6 > div:nth-child(2) { animation-delay: 0.1s; }
+.space-y-6 > div:nth-child(3) { animation-delay: 0.15s; }
+.space-y-6 > div:nth-child(4) { animation-delay: 0.2s; }
+.space-y-6 > div:nth-child(5) { animation-delay: 0.25s; }
+.space-y-6 > div:nth-child(6) { animation-delay: 0.3s; }
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>

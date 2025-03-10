@@ -1,234 +1,345 @@
 <template>
-    <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <!-- En-tête -->
-      <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex justify-between h-16">
-            <!-- Logo et Navigation principale -->
-            <div class="flex">
-              <div class="flex-shrink-0 flex items-center">
-                <NuxtLink to="/" class="text-primary-600 dark:text-primary-400 font-bold text-xl">
-                  HAVOO
-                </NuxtLink>
-              </div>
-              <nav class="hidden sm:ml-6 sm:flex sm:space-x-8">
-                <NuxtLink to="/" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
-                  Accueil
-                </NuxtLink>
-                <NuxtLink to="/requests" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
-                  Demandes
-                </NuxtLink>
-                <NuxtLink to="/services" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
-                  Services
-                </NuxtLink>
-                <NuxtLink to="/experts" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
-                  Experts
-                </NuxtLink>
-              </nav>
-            </div>
-            
-            <!-- Actions utilisateur -->
-            <div class="hidden sm:ml-6 sm:flex sm:items-center">
-              <!-- Notifications -->
-              <button class="p-1.5 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white focus:outline-none">
-                <Bell class="h-5 w-5" />
-              </button>
-              
-              <!-- Menu utilisateur -->
-              <div class="ml-3 relative">
-                <button class="flex items-center space-x-2 p-1.5 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white focus:outline-none">
-                  <User class="h-5 w-5" />
-                  <span class="text-sm font-medium">Mon compte</span>
-                  <ChevronDown class="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          </div>
+  <div class="min-h-screen bg-white dark:bg-black">
+    <div class="flex">
+      <!-- Sidebar Twitter-style -->
+      <aside class="hidden md:flex h-screen w-72 lg:w-80 fixed flex-col py-4 border-r border-gray-200 dark:border-gray-800">
+        <!-- Logo -->
+        <div class="px-4 mb-6">
+          <NuxtLink to="/" class="inline-block">
+            <Logo :small="false" />
+          </NuxtLink>
         </div>
-      </header>
-      
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="flex flex-col md:flex-row gap-8">
-          <!-- Barre latérale de navigation de compte -->
-          <div class="w-full md:w-64 flex-shrink-0">
-            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-              <div class="px-6 py-4 bg-gradient-to-r from-primary-600 to-primary-700 text-white">
-                <h2 class="font-semibold text-lg">Mon espace</h2>
-              </div>
-              
-              <nav class="py-2">
-                <NuxtLink 
-                  to="/account" 
-                  class="flex items-center px-6 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  :class="{ 'bg-gray-100 dark:bg-gray-700 border-l-4 border-primary-500 font-medium text-primary-600 dark:text-primary-400': $route.path === '/account' }"
-                >
-                  <User class="h-5 w-5 mr-3" />
-                  Tableau de bord
-                </NuxtLink>
-                
-                <NuxtLink 
-                  to="/account/edit-profile" 
-                  class="flex items-center px-6 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  :class="{ 'bg-gray-100 dark:bg-gray-700 border-l-4 border-primary-500 font-medium text-primary-600 dark:text-primary-400': $route.path === '/account/edit-profile' }"
-                >
-                  <Settings class="h-5 w-5 mr-3" />
-                  Modifier mon profil
-                </NuxtLink>
-                
-                <div class="px-6 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mt-4">
-                  Demandes
-                </div>
-                
-                <NuxtLink 
-                  to="/account/requests" 
-                  class="flex items-center px-6 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  :class="{ 'bg-gray-100 dark:bg-gray-700 border-l-4 border-primary-500 font-medium text-primary-600 dark:text-primary-400': $route.path === '/account/requests' }"
-                >
-                  <FileQuestion class="h-5 w-5 mr-3" />
-                  Mes demandes
-                </NuxtLink>
-                
-                <div v-if="isExpert" class="px-6 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mt-4">
-                  Expert
-                </div>
-                
-                <NuxtLink 
-                  v-if="isExpert"
-                  to="/account/services" 
-                  class="flex items-center px-6 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  :class="{ 'bg-gray-100 dark:bg-gray-700 border-l-4 border-primary-500 font-medium text-primary-600 dark:text-primary-400': $route.path === '/account/services' }"
-                >
-                  <Briefcase class="h-5 w-5 mr-3" />
-                  Mes services
-                </NuxtLink>
-                
-                <NuxtLink 
-                  v-if="isExpert"
-                  to="/account/my-proposals" 
-                  class="flex items-center px-6 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  :class="{ 'bg-gray-100 dark:bg-gray-700 border-l-4 border-primary-500 font-medium text-primary-600 dark:text-primary-400': $route.path === '/account/my-proposals' }"
-                >
-                  <Send class="h-5 w-5 mr-3" />
-                  Mes propositions
-                </NuxtLink>
-                
-                <div class="px-6 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mt-4">
-                  Contrats
-                </div>
-                
-                <NuxtLink 
-                  to="/account/contracts" 
-                  class="flex items-center px-6 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  :class="{ 'bg-gray-100 dark:bg-gray-700 border-l-4 border-primary-500 font-medium text-primary-600 dark:text-primary-400': $route.path === '/account/contracts' }"
-                >
-                  <FileText class="h-5 w-5 mr-3" />
-                  Mes contrats
-                </NuxtLink>
-                
-                <div class="px-6 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mt-4">
-                  Paiements
-                </div>
-                
-                <NuxtLink 
-                  to="/account/payment-methods" 
-                  class="flex items-center px-6 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  :class="{ 'bg-gray-100 dark:bg-gray-700 border-l-4 border-primary-500 font-medium text-primary-600 dark:text-primary-400': $route.path === '/account/payment-methods' }"
-                >
-                  <CreditCard class="h-5 w-5 mr-3" />
-                  Moyens de paiement
-                </NuxtLink>
-                
-                <NuxtLink 
-                  to="/account/transactions" 
-                  class="flex items-center px-6 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  :class="{ 'bg-gray-100 dark:bg-gray-700 border-l-4 border-primary-500 font-medium text-primary-600 dark:text-primary-400': $route.path === '/account/transactions' }"
-                >
-                  <DollarSign class="h-5 w-5 mr-3" />
-                  Transactions
-                </NuxtLink>
-                
-                <div class="border-t border-gray-200 dark:border-gray-700 my-2"></div>
-                
-                <button 
-                  @click="logout"
-                  class="w-full flex items-center px-6 py-3 text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                >
-                  <LogOut class="h-5 w-5 mr-3" />
-                  Déconnexion
-                </button>
-              </nav>
-            </div>
+        
+        <!-- Menu principal (Twitter-style) -->
+        <nav class="flex-1 px-2">
+          <div class="space-y-1">
+            <NuxtLink 
+              v-for="item in mainMenuItems" 
+              :key="item.to" 
+              :to="item.to"
+              class="flex items-center p-3 text-xl rounded-full transition-colors group relative hover:bg-gray-100 dark:hover:bg-gray-900"
+              :class="route.path === item.to ? 'font-bold' : 'font-medium text-gray-700 dark:text-gray-300'"
+            >
+              <component :is="item.icon" class="h-7 w-7 mr-4" :class="route.path === item.to ? 'text-primary-500' : ''" />
+              <span>{{ item.label }}</span>
+              <div 
+                v-if="route.path === item.to" 
+                class="absolute right-4 h-2 w-2 rounded-full bg-primary-500"
+              ></div>
+            </NuxtLink>
           </div>
           
-          <!-- Contenu principal -->
-          <div class="flex-1">
-            <slot />
+          <!-- Bouton "Créer" (style Twitter "Tweet") -->
+          <div class="mt-8 px-2">
+            <NuxtLink 
+              to="/requests/new"
+              class="bg-primary-500 hover:bg-primary-600 text-white rounded-full py-3.5 px-4 w-full flex items-center justify-center font-bold text-lg transition-colors shadow-sm"
+            >
+              <Plus class="h-5 w-5 mr-2" />
+              Créer une demande
+            </NuxtLink>
+          </div>
+          
+          <!-- Liens existants... -->
+          
+          <NuxtLink 
+            to="/account/skills" 
+            class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg"
+            :class="route.path.includes('/account/skills') 
+              ? 'bg-primary-500 text-white' 
+              : 'text-gray-700 hover:bg-gray-100'"
+          >
+            <Badge class="mr-3 h-5 w-5" :class="route.path.includes('/account/skills') ? 'text-white' : 'text-gray-500'" />
+            <span>Mes compétences</span>
+          </NuxtLink>
+          
+          <!-- Autres liens... -->
+        </nav>
+        
+        <!-- Profil utilisateur en bas (Twitter-style) -->
+        <div class="mt-auto px-4">
+          <button 
+            @click="showUserMenu = !showUserMenu"
+            class="flex items-center p-3 w-full rounded-full hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors relative group"
+          >
+            <div class="flex items-center flex-1 min-w-0">
+                <img 
+                  :src="userAvatar || '/images/default-avatar.png'" 
+                  alt="Photo de profil"
+                class="h-10 w-10 rounded-full mr-3 object-cover border border-gray-200 dark:border-gray-700"
+              />
+              <div class="flex flex-col min-w-0">
+                <span class="font-bold text-black dark:text-white truncate">{{ userName || 'Utilisateur' }}</span>
+                <span class="text-gray-500 dark:text-gray-400 text-sm truncate">
+                  @{{ userHandle || userName?.toLowerCase().replace(/\s/g, '') || 'user' }}
+                </span>
+              </div>
+            </div>
+            <MoreHorizontal class="h-5 w-5 text-gray-500 dark:text-gray-400 ml-2" />
+            
+            <!-- Menu contextuel utilisateur -->
+            <div 
+              v-if="showUserMenu" 
+              class="absolute bottom-full left-0 mb-2 w-full bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 py-2 z-50"
+            >
+              <NuxtLink 
+                to="/account/edit-profile" 
+                class="flex items-center w-full px-4 py-2.5 text-left hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <User class="h-5 w-5 mr-3 text-gray-500 dark:text-gray-400" />
+                <span>Modifier mon profil</span>
+              </NuxtLink>
+                      <NuxtLink 
+                to="/account/settings" 
+                class="flex items-center w-full px-4 py-2.5 text-left hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <Settings class="h-5 w-5 mr-3 text-gray-500 dark:text-gray-400" />
+                <span>Paramètres</span>
+                      </NuxtLink>
+              <button 
+                @click="logout" 
+                class="flex items-center w-full px-4 py-2.5 text-left hover:bg-gray-100 dark:hover:bg-gray-800 text-red-600 dark:text-red-400"
+              >
+                <LogOut class="h-5 w-5 mr-3" />
+                <span>Déconnexion</span>
+              </button>
+            </div>
+          </button>
+          </div>
+        </aside>
+        
+      <!-- Menu mobile (bottom bar) -->
+      <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 z-50">
+        <div class="flex justify-around py-2">
+            <NuxtLink 
+              v-for="item in mobileMenuItems" 
+              :key="item.to" 
+              :to="item.to"
+            class="flex flex-col items-center p-2 rounded-full"
+            :class="route.path === item.to ? 'text-primary-500' : 'text-gray-600 dark:text-gray-400'"
+            >
+            <component :is="item.icon" class="h-6 w-6 mb-1" />
+            <span class="text-xs">{{ item.label }}</span>
+            </NuxtLink>
           </div>
         </div>
+        
+        <!-- Contenu principal -->
+      <main class="flex-1 md:ml-72 lg:ml-80 min-h-screen pb-16 md:pb-0">
+        <!-- Header mobile -->
+        <header class="md:hidden flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 sticky top-0 z-40">
+          <h1 class="font-bold text-xl">{{ getPageTitle() }}</h1>
+          <button @click="isMobileMenuOpen = true" class="p-2">
+            <img 
+              :src="userAvatar || '/images/default-avatar.png'" 
+              alt="Menu"
+              class="h-8 w-8 rounded-full object-cover"
+            />
+          </button>
+        </header>
+        
+        <!-- Menu mobile slide-out -->
+        <div 
+          v-if="isMobileMenuOpen" 
+          class="fixed inset-0 z-50 md:hidden"
+        >
+          <!-- Backdrop -->
+          <div 
+            class="absolute inset-0 bg-black/50" 
+            @click="isMobileMenuOpen = false"
+          ></div>
+          
+          <!-- Menu slide-in -->
+          <div class="absolute top-0 left-0 h-full w-4/5 max-w-xs bg-white dark:bg-gray-900 transform transition-transform duration-300 ease-in-out">
+            <div class="p-4 flex justify-between items-center border-b border-gray-200 dark:border-gray-800">
+              <Logo :small="true" />
+              <button @click="isMobileMenuOpen = false" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
+                <X class="h-6 w-6 text-gray-500 dark:text-gray-400" />
+              </button>
+            </div>
+            
+            <div class="p-4">
+              <div class="flex items-center mb-6">
+                <img 
+                  :src="userAvatar || '/images/default-avatar.png'" 
+                  alt="Photo de profil"
+                  class="h-14 w-14 rounded-full mr-3 object-cover"
+                />
+                <div>
+                  <div class="font-bold text-lg">{{ userName || 'Utilisateur' }}</div>
+                  <div class="text-gray-500 dark:text-gray-400">
+                    @{{ userHandle || userName?.toLowerCase().replace(/\s/g, '') || 'user' }}
+                  </div>
+                </div>
+              </div>
+              
+              <nav class="space-y-1">
+                <NuxtLink 
+                  v-for="item in mainMenuItems" 
+                  :key="item.to" 
+                  :to="item.to"
+                  class="flex items-center p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  :class="route.path === item.to ? 'font-bold' : 'font-medium text-gray-700 dark:text-gray-300'"
+                  @click="isMobileMenuOpen = false"
+                >
+                  <component :is="item.icon" class="h-6 w-6 mr-3" :class="route.path === item.to ? 'text-primary-500' : ''" />
+                  <span>{{ item.label }}</span>
+                </NuxtLink>
+              </nav>
+              
+              <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-800">
+                <button 
+                  @click="logout" 
+                  class="flex items-center w-full p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-red-600 dark:text-red-400"
+                >
+                  <LogOut class="h-6 w-6 mr-3" />
+                  <span class="font-medium">Déconnexion</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="p-4 md:p-8 max-w-4xl mx-auto">
+          <slot />
+          </div>
+        </main>
       </div>
-      
-      <!-- Pied de page -->
-      <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-8 mt-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="text-center text-gray-500 dark:text-gray-400 text-sm">
-            <p>&copy; {{ new Date().getFullYear() }} HAVOO. Tous droits réservés.</p>
-          </div>
-        </div>
-      </footer>
     </div>
   </template>
   
   <script setup>
-  import { ref, onMounted } from 'vue'
-  import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+  import { useSupabaseClient, useSupabaseUser } from '#imports'
   import { 
-    User, 
-    Bell, 
-    Settings, 
-    FileQuestion, 
-    Briefcase, 
-    FileText,
-    CreditCard,
-    DollarSign,
-    LogOut,
-    Send,
-    ChevronDown
+  Home, User, Settings, Bell, LogOut, PackageOpen,
+  FileText, PanelLeft, Briefcase, Wrench, MessageSquare, 
+  Shield, MoreHorizontal, X, Plus, UserPlus,
+  Clock, Bookmark, LayoutDashboard, Activity, Badge, Search, CheckCircle
   } from 'lucide-vue-next'
   
+  const route = useRoute()
   const router = useRouter()
-  const supabase = useSupabaseClient()
-  const isExpert = ref(false)
+  const client = useSupabaseClient()
+  const user = useSupabaseUser()
   
-  // Vérifier si l'utilisateur est un expert
-  const checkUserRole = async () => {
-    try {
-      const { data: userData } = await supabase.auth.getUser()
-      
-      if (userData?.user) {
-        const { data } = await supabase
-          .from('profiles')
-          .select('is_expert, role')
-          .eq('id', userData.user.id)
+// État utilisateur
+  const userName = ref('')
+  const userAvatar = ref('')
+const userHandle = ref('')
+const showUserMenu = ref(false)
+const isMobileMenuOpen = ref(false)
+const userRole = ref('')
+
+// Fermer le menu utilisateur quand on clique ailleurs
+const closeUserMenu = (event) => {
+  if (showUserMenu.value && !event.target.closest('button')) {
+    showUserMenu.value = false
+  }
+}
+
+// Fermer le menu mobile avec la touche Échap
+const handleKeyDown = (event) => {
+  if (event.key === 'Escape') {
+    isMobileMenuOpen.value = false
+    showUserMenu.value = false
+  }
+}
+
+// Écouter les clics et touches
+onMounted(() => {
+  document.addEventListener('click', closeUserMenu)
+  document.addEventListener('keydown', handleKeyDown)
+  
+  // Récupérer les infos utilisateur
+  fetchUserInfo()
+})
+
+// Nettoyer les écouteurs
+onUnmounted(() => {
+  document.removeEventListener('click', closeUserMenu)
+  document.removeEventListener('keydown', handleKeyDown)
+})
+  
+  // Récupérer les infos de l'utilisateur
+const fetchUserInfo = async () => {
+    if (user.value) {
+      try {
+        const { data, error } = await client
+          .from('users')
+          .select('first_name, last_name, avatar_url, is_expert')
+          .eq('id', user.value.id)
           .single()
         
-        isExpert.value = data?.is_expert || data?.role === 'expert'
+        if (error) throw error
+        
+        if (data) {
+          userName.value = `${data.first_name || ''} ${data.last_name || ''}`.trim()
+          userAvatar.value = data.avatar_url
+          userRole.value = data.is_expert ? 'expert' : 'client'
+        }
+      } catch (error) {
+        console.error('Erreur lors de la récupération du profil:', error)
       }
-    } catch (error) {
-      console.error('Erreur lors de la vérification du rôle:', error)
     }
+}
+
+// Obtenir le titre de la page actuelle
+const getPageTitle = () => {
+  switch (route.path) {
+    case '/account': return 'Tableau de bord'
+    case '/account/edit-profile': return 'Profil'
+    case '/account/requests': return 'Mes demandes'
+    case '/account/my-proposals': return 'Mes propositions'
+    case '/account/services': return 'Services'
+    case '/account/feedback': return 'Avis'
+    case '/account/settings': return 'Paramètres'
+    case '/account/verification': return 'Vérification'
+    default: return 'Compte'
   }
+}
+
+// Menu principal (style Twitter avec grandes icônes)
+const mainMenuItems = computed(() => [
+  { to: '/account', label: 'Accueil', icon: Home },
+        { to: '/account/requests', label: 'Mes demandes', icon: FileText },
+  { to: '/account/my-proposals', label: 'Propositions', icon: PackageOpen },
+  { to: '/account/services', label: 'Services', icon: Briefcase },
+  { to: '/account/edit-profile', label: 'Profil', icon: User },
+  { to: '/account/feedback', label: 'Avis reçus', icon: MessageSquare },
+  { to: '/account/settings', label: 'Paramètres', icon: Settings },
+  ])
+  
+  // Menu mobile simplifié
+  const mobileMenuItems = computed(() => [
+    { to: '/account', label: 'Accueil', icon: Home },
+    { to: '/account/requests', label: 'Demandes', icon: FileText },
+  { to: '/account/my-proposals', label: 'Offres', icon: PackageOpen },
+    { to: '/account/edit-profile', label: 'Profil', icon: User },
+  ])
   
   // Déconnexion
   const logout = async () => {
     try {
-      await supabase.auth.signOut()
-      router.push('/auth/login')
+      const { error } = await client.auth.signOut()
+      if (error) throw error
+      router.push('/login')
     } catch (error) {
       console.error('Erreur lors de la déconnexion:', error)
     }
   }
-  
-  onMounted(() => {
-    checkUserRole()
-  })
   </script>
+  
+  <style scoped>
+/* Effet de transition pour le menu mobile */
+@keyframes slideIn {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(0); }
+}
+
+/* Prévenir le scrolling quand le menu mobile est ouvert */
+:global(body) {
+  overflow: v-bind(isMobileMenuOpen ? 'hidden' : 'auto');
+}
+</style>
