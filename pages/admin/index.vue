@@ -1,297 +1,272 @@
 <template>
-  <div class="space-y-10 p-8 md:p-12 bg-gray-50 dark:bg-gray-900 min-h-screen">
-    <!-- Header Section - More spacious, Apple-style typography -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
-      <div>
-        <h1 class="text-3xl font-medium text-gray-900 dark:text-white tracking-tight">Dashboard</h1>
-        <p class="text-gray-500 dark:text-gray-400 mt-2 text-lg">Vue d'ensemble de votre plateforme</p>
-      </div>
+  <div class="space-y-8 max-w-7xl mx-auto">
+    <!-- En-tête avec statistiques globales -->
+    <div class="p-8 bg-gradient-to-br from-primary-600 to-primary-800 rounded-2xl shadow-lg text-white">
+      <h1 class="text-3xl font-bold mb-6 flex items-center">
+        <ActivityIcon class="h-8 w-8 mr-3" />
+        Vue d'ensemble
+      </h1>
       
-      <div class="flex items-center gap-4">
-        <button class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-5 py-2.5 flex items-center gap-3 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
-          <Download class="h-5 w-5" />
-          <span>Exporter</span>
-        </button>
-        
-        <button class="bg-primary-600 hover:bg-primary-700 text-white rounded-xl px-5 py-2.5 flex items-center gap-3 transition-colors">
-          <PlusCircle class="h-5 w-5" />
-          <span>Nouvelle action</span>
-        </button>
-      </div>
-    </div>
-    
-    <!-- Cartes de statistiques - Apple-inspired clean design with more space -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-      <div 
-        v-for="(stat, index) in stats" 
-        :key="index"
-        class="bg-white dark:bg-gray-800 shadow-sm rounded-3xl p-8 transition-transform duration-300 hover:-translate-y-1 border border-gray-100 dark:border-gray-700"
-      >
-        <div class="flex items-center justify-between">
-          <span class="text-gray-500 dark:text-gray-400 text-base font-medium">{{ stat.name }}</span>
-          <div :class="getIconBgClass(index)" class="h-14 w-14 rounded-2xl flex items-center justify-center shadow-md">
-            <component :is="stat.icon" class="h-7 w-7 text-white" />
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div 
+          v-for="stat in summaryStats" 
+          :key="stat.name"
+          class="bg-white/10 backdrop-blur-sm rounded-xl p-6 hover:bg-white/15 transition-all"
+        >
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-white/80 text-sm font-medium mb-1">{{ stat.name }}</p>
+              <h3 class="text-3xl font-bold">{{ stat.value }}</h3>
+              <div 
+                class="flex items-center mt-2 text-sm"
+                :class="stat.trend > 0 ? 'text-green-300' : stat.trend < 0 ? 'text-red-300' : 'text-gray-300'"
+              >
+                <component 
+                  :is="stat.trend > 0 ? 'TrendingUpIcon' : stat.trend < 0 ? 'TrendingDownIcon' : 'MinusIcon'" 
+                  class="h-4 w-4 mr-1"
+                />
+                <span>{{ Math.abs(stat.trend) }}% vs mois dernier</span>
+              </div>
+            </div>
+            <div class="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center">
+              <component :is="stat.icon" class="h-6 w-6 text-white" />
+            </div>
           </div>
         </div>
-        
-        <div class="mt-6">
-          <div v-if="loading" class="animate-pulse h-10 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
-          <div v-else class="text-4xl font-medium text-gray-900 dark:text-white">{{ stat.value }}</div>
-        </div>
-        
-        <div class="flex items-center mt-4">
-          <span 
-            v-if="stat.change >= 0" 
-            class="flex items-center text-green-600 dark:text-green-500 font-medium"
-          >
-            <TrendingUp class="h-4 w-4 mr-1" />
-            +{{ stat.change }}%
-          </span>
-          <span 
-            v-else 
-            class="flex items-center text-red-600 dark:text-red-500 font-medium"
-          >
-            <TrendingDown class="h-4 w-4 mr-1" />
-            {{ stat.change }}%
-          </span>
-          <span class="text-sm text-gray-500 dark:text-gray-400 ml-2">vs. dernier mois</span>
-        </div>
       </div>
     </div>
     
-    <!-- Graphique des statistiques - More minimal, Apple-style chart -->
-    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-3xl overflow-hidden border border-gray-100 dark:border-gray-700">
-      <div class="px-8 py-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
-        <h2 class="font-medium text-xl text-gray-900 dark:text-white">Aperçu des activités</h2>
-        
-        <div class="flex items-center gap-4">
-          <div class="flex items-center bg-gray-100 dark:bg-gray-700 rounded-xl p-1.5">
+    <!-- Section Principale avec Graphique et Activité -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Graphique Activité -->
+      <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-white">Tendance des demandes</h2>
+          <div class="flex space-x-2">
             <button 
-              v-for="(period, idx) in ['Jour', 'Semaine', 'Mois', 'Année']" 
-              :key="idx"
-              class="px-4 py-1.5 text-sm rounded-lg transition-colors"
-              :class="selectedPeriod === idx ? 'bg-white dark:bg-gray-600 text-primary-600 dark:text-primary-400 shadow-sm' : 'text-gray-500 dark:text-gray-400'"
-              @click="selectedPeriod = idx"
+              v-for="period in ['7j', '30j', '90j']" 
+              :key="period"
+              :class="[
+                'px-3 py-1 text-sm font-medium rounded-full',
+                activePeriod === period 
+                  ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300' 
+                  : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700'
+              ]"
+              @click="activePeriod = period"
             >
               {{ period }}
             </button>
           </div>
-          
-          <button class="p-2 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-            <MoreHorizontal class="h-5 w-5" />
-          </button>
+        </div>
+        
+        <div class="h-72 relative">
+          <!-- Emplacement du graphique -->
+          <LineChart 
+            :chartData="chartData" 
+            :options="chartOptions"
+          />
         </div>
       </div>
       
-      <div class="p-8">
-        <div v-if="loading" class="animate-pulse">
-          <div class="h-72 bg-gray-200 dark:bg-gray-700 rounded-xl"></div>
+      <!-- Activité Récente -->
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-white">Activité récente</h2>
+          <button class="text-primary-600 dark:text-primary-400 text-sm font-medium hover:underline">
+            Voir tout
+          </button>
         </div>
-        <div v-else class="h-72 w-full relative">
-          <!-- SVG du graphique inspiré par le style Apple -->
-          <svg width="100%" height="100%" viewBox="0 0 800 300">
-            <!-- Lignes de grille plus subtiles -->
-            <line x1="0" y1="250" x2="800" y2="250" stroke="#E5E7EB" stroke-width="1" stroke-opacity="0.5" />
-            <line x1="0" y1="200" x2="800" y2="200" stroke="#E5E7EB" stroke-width="1" stroke-opacity="0.5" />
-            <line x1="0" y1="150" x2="800" y2="150" stroke="#E5E7EB" stroke-width="1" stroke-opacity="0.5" />
-            <line x1="0" y1="100" x2="800" y2="100" stroke="#E5E7EB" stroke-width="1" stroke-opacity="0.5" />
-            <line x1="0" y1="50" x2="800" y2="50" stroke="#E5E7EB" stroke-width="1" stroke-opacity="0.5" />
+        
+        <div class="space-y-5">
+          <div 
+            v-for="(activity, index) in recentActivities" 
+            :key="index"
+            class="flex items-start space-x-4 pb-4"
+            :class="index < recentActivities.length - 1 ? 'border-b border-gray-100 dark:border-gray-700' : ''"
+          >
+            <div 
+              class="h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0"
+              :class="getActivityColorClass(activity.type)"
+            >
+              <component :is="getActivityIcon(activity.type)" class="h-5 w-5 text-white" />
+            </div>
             
-            <!-- Courbe principale - style Apple, plus fine et élégante -->
-            <path d="M0,200 C100,180 200,100 300,120 C400,140 500,80 600,60 C700,40 800,100 800,100" 
-                  fill="none" 
-                  stroke="#4F46E5" 
-                  stroke-width="2.5" 
-                  stroke-linecap="round" />
-                  
-            <!-- Aire sous la courbe - plus subtile -->
-            <path d="M0,200 C100,180 200,100 300,120 C400,140 500,80 600,60 C700,40 800,100 800,100 L800,250 L0,250 Z" 
-                  fill="url(#gradient1)" 
-                  opacity="0.1" />
-                  
-            <!-- Points sur la courbe - style Apple -->
-            <circle cx="300" cy="120" r="5" fill="#4F46E5" />
-            <circle cx="300" cy="120" r="8" fill="#4F46E5" fill-opacity="0.2" />
-            <circle cx="600" cy="60" r="5" fill="#4F46E5" />
-            <circle cx="600" cy="60" r="8" fill="#4F46E5" fill-opacity="0.2" />
-            
-            <!-- Définitions des dégradés -->
-            <defs>
-              <linearGradient id="gradient1" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stop-color="#4F46E5" stop-opacity="0.7" />
-                <stop offset="100%" stop-color="#4F46E5" stop-opacity="0.05" />
-              </linearGradient>
-            </defs>
-          </svg>
-          
-          <!-- Légende du graphique - Apple-style spacing -->
-          <div class="flex justify-between mt-6">
-            <div v-for="month in ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin']" :key="month" class="text-sm text-gray-500 dark:text-gray-400">
-              {{ month }}
+            <div class="flex-1 min-w-0">
+              <div class="flex justify-between items-start">
+                <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                  {{ activity.title }}
+                </p>
+                <span class="text-xs text-gray-500 dark:text-gray-400 ml-2 whitespace-nowrap">
+                  {{ activity.time }}
+                </span>
+              </div>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ activity.description }}</p>
+              
+              <div v-if="activity.user" class="flex items-center mt-2">
+                <div class="h-5 w-5 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700">
+                  <img 
+                    v-if="activity.user.avatar" 
+                    :src="activity.user.avatar" 
+                    alt="User avatar" 
+                    class="h-full w-full object-cover"
+                  />
+                  <User v-else class="h-full w-full p-1 text-gray-400" />
+                </div>
+                <span class="ml-1.5 text-xs font-medium text-gray-700 dark:text-gray-300">
+                  {{ activity.user.name }}
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
     
-    <!-- Tableaux et listes - Apple-style spacing and design -->
+    <!-- Section Inférieure -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <!-- Demandes récentes -->
-      <div class="lg:col-span-2 bg-white dark:bg-gray-800 shadow-sm rounded-3xl overflow-hidden border border-gray-100 dark:border-gray-700">
-        <div class="px-8 py-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
-          <h2 class="font-medium text-xl text-gray-900 dark:text-white flex items-center">
-            <FileText class="h-6 w-6 mr-3 text-primary-600 dark:text-primary-400" />
-            Demandes récentes
-          </h2>
-          
+      <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-white">Dernières demandes</h2>
           <NuxtLink 
             to="/admin/requests" 
-            class="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium flex items-center"
+            class="text-primary-600 dark:text-primary-400 text-sm font-medium hover:underline"
           >
-            Voir tout
-            <ChevronRight class="h-4 w-4 ml-1" />
+            Voir toutes
           </NuxtLink>
         </div>
         
-        <div class="p-8">
-          <div v-if="loading" class="space-y-6">
-            <div v-for="i in 5" :key="i" class="animate-pulse flex items-center">
-              <div class="h-14 w-14 bg-gray-200 dark:bg-gray-700 rounded-xl"></div>
-              <div class="h-14 flex-1 ml-6 bg-gray-200 dark:bg-gray-700 rounded-xl"></div>
-            </div>
-          </div>
-          
-          <div v-else-if="recentRequests.length" class="divide-y divide-gray-100 dark:divide-gray-700">
-            <div 
-              v-for="request in recentRequests" 
-              :key="request.id"
-              class="py-5 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-750 -mx-8 px-8 transition-colors"
-            >
-              <div class="flex items-center">
-                <div class="h-14 w-14 rounded-xl flex items-center justify-center"
-                     :class="getRequestIconBg(request.status)">
-                  <component :is="getRequestIcon(request.status)" class="h-7 w-7 text-white" />
-                </div>
-                
-                <div class="ml-6">
-                  <div class="font-medium text-gray-900 dark:text-white">{{ truncateText(request.title, 40) }}</div>
-                  <div class="text-sm text-gray-500 dark:text-gray-400 flex items-center mt-1.5">
-                    <Clock class="h-4 w-4 mr-1.5" />
-                    {{ formatDate(request.created_at) }}
+        <div class="overflow-hidden">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead>
+              <tr>
+                <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Client
+                </th>
+                <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Service
+                </th>
+                <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Date
+                </th>
+                <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Statut
+                </th>
+                <th scope="col" class="relative px-4 py-3">
+                  <span class="sr-only">Actions</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+              <tr 
+                v-for="request in latestRequests" 
+                :key="request.id"
+                class="hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
+              >
+                <td class="px-4 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="h-8 w-8 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700">
+                      <img 
+                        v-if="request.client.avatar" 
+                        :src="request.client.avatar" 
+                        alt="Client avatar" 
+                        class="h-full w-full object-cover"
+                      />
+                      <User v-else class="h-full w-full p-1.5 text-gray-400" />
+                    </div>
+                    <div class="ml-3">
+                      <p class="text-sm font-medium text-gray-900 dark:text-white">
+                        {{ request.client.name }}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </div>
-              
-              <div class="flex items-center">
-                <span 
-                  class="px-4 py-1.5 text-xs font-medium rounded-full"
-                  :class="getStatusClass(request.status)"
-                >
-                  {{ getStatusText(request.status) }}
-                </span>
-                
-                <div class="flex ml-6">
-                  <NuxtLink 
-                    :to="`/admin/requests/${request.id}`"
-                    class="p-2 text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                </td>
+                <td class="px-4 py-4 whitespace-nowrap">
+                  <p class="text-sm text-gray-900 dark:text-white">{{ request.service }}</p>
+                </td>
+                <td class="px-4 py-4 whitespace-nowrap">
+                  <p class="text-sm text-gray-500 dark:text-gray-400">{{ request.date }}</p>
+                </td>
+                <td class="px-4 py-4 whitespace-nowrap">
+                  <span 
+                    class="px-2.5 py-1 text-xs font-medium rounded-full"
+                    :class="getStatusClass(request.status)"
                   >
-                    <ExternalLink class="h-4 w-4" />
+                    {{ getStatusLabel(request.status) }}
+                  </span>
+                </td>
+                <td class="px-4 py-4 whitespace-nowrap text-right text-sm">
+                  <NuxtLink 
+                    :to="`/admin/requests/${request.id}`" 
+                    class="text-primary-600 dark:text-primary-400 font-medium hover:underline"
+                  >
+                    Détails
                   </NuxtLink>
-                  
-                  <button class="p-2 text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                    <MoreVertical class="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div v-else class="py-12 text-center">
-            <div class="bg-gray-100 dark:bg-gray-700 h-24 w-24 rounded-full flex items-center justify-center mx-auto mb-6">
-              <FileX class="h-12 w-12 text-gray-400 dark:text-gray-500" />
-            </div>
-            <p class="text-gray-500 dark:text-gray-400 font-medium text-lg">Aucune demande récente</p>
-            <p class="text-sm text-gray-400 dark:text-gray-500 mt-2">Les nouvelles demandes apparaîtront ici</p>
-          </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
       
-      <!-- Utilisateurs récemment inscrits -->
-      <div class="bg-white dark:bg-gray-800 shadow-sm rounded-3xl overflow-hidden border border-gray-100 dark:border-gray-700">
-        <div class="px-8 py-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
-          <h2 class="font-medium text-xl text-gray-900 dark:text-white flex items-center">
-            <Users class="h-6 w-6 mr-3 text-primary-600 dark:text-primary-400" />
-            Nouveaux utilisateurs
-          </h2>
-          
-          <NuxtLink 
-            to="/admin/users" 
-            class="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium flex items-center"
-          >
-            Voir tout
-            <ChevronRight class="h-4 w-4 ml-1" />
-          </NuxtLink>
+      <!-- Tâches et rappels -->
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-white">À faire</h2>
+          <button class="text-primary-600 dark:text-primary-400 text-sm font-medium hover:underline">
+            <PlusIcon class="h-4 w-4 inline-block" />
+            Ajouter
+          </button>
         </div>
         
-        <div class="p-8">
-          <div v-if="loading" class="space-y-6">
-            <div v-for="i in 5" :key="i" class="animate-pulse flex items-center">
-              <div class="h-14 w-14 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-              <div class="h-14 flex-1 ml-6 bg-gray-200 dark:bg-gray-700 rounded-xl"></div>
+        <div class="space-y-3">
+          <div 
+            v-for="(task, index) in tasks" 
+            :key="index"
+            class="flex items-start space-x-3 p-3 rounded-lg"
+            :class="task.completed ? 'bg-gray-50 dark:bg-gray-700/50' : 'bg-white dark:bg-gray-800'"
+          >
+            <input 
+              :id="`task-${index}`"
+              type="checkbox" 
+              v-model="task.completed" 
+              class="h-5 w-5 rounded text-primary-600 focus:ring-primary-500 mt-0.5"
+            />
+            <div class="flex-1">
+              <label 
+                :for="`task-${index}`" 
+                class="block text-sm font-medium cursor-pointer"
+                :class="task.completed ? 'text-gray-500 dark:text-gray-400 line-through' : 'text-gray-800 dark:text-white'"
+              >
+                {{ task.title }}
+              </label>
+              <p v-if="task.dueDate" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Échéance: {{ task.dueDate }}
+              </p>
+            </div>
+            
+            <div v-if="task.priority" class="flex-shrink-0">
+              <span 
+                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+                :class="{
+                  'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400': task.priority === 'high',
+                  'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400': task.priority === 'medium',
+                  'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400': task.priority === 'low'
+                }"
+              >
+                {{ 
+                  task.priority === 'high' ? 'Urgent' : 
+                  task.priority === 'medium' ? 'Normal' : 'Faible' 
+                }}
+              </span>
             </div>
           </div>
-          
-          <div v-else-if="recentUsers.length" class="divide-y divide-gray-100 dark:divide-gray-700">
-            <div 
-              v-for="user in recentUsers" 
-              :key="user.id"
-              class="py-5 flex items-center hover:bg-gray-50 dark:hover:bg-gray-750 -mx-8 px-8 transition-colors"
-            >
-              <div class="h-14 w-14 rounded-full bg-gradient-to-br from-blue-400 to-primary-600 mr-6 flex-shrink-0 p-0.5">
-                <div class="h-full w-full bg-white dark:bg-gray-800 rounded-full p-0.5">
-                  <img 
-                    v-if="user.profile_image_url"
-                    :src="user.profile_image_url"
-                    class="h-full w-full object-cover rounded-full"
-                    alt="Avatar"
-                  />
-                  <div v-else class="h-full w-full flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-full">
-                    <User class="h-6 w-6 text-gray-400 dark:text-gray-500" />
-                  </div>
-                </div>
-              </div>
-              
-              <div class="flex-1 min-w-0">
-                <div class="font-medium text-gray-900 dark:text-white truncate text-base">
-                  {{ user.first_name }} {{ user.last_name }}
-                </div>
-                <div class="text-sm text-gray-500 dark:text-gray-400 truncate mt-1">
-                  {{ user.email }}
-                </div>
-              </div>
-              
-              <div class="flex">
-                <NuxtLink 
-                  :to="`/admin/users/${user.id}`"
-                  class="p-2 text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                >
-                  <ExternalLink class="h-4 w-4" />
-                </NuxtLink>
-                
-                <button class="p-2 text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                  <MoreVertical class="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          <div v-else class="py-12 text-center">
-            <div class="bg-gray-100 dark:bg-gray-700 h-24 w-24 rounded-full flex items-center justify-center mx-auto mb-6">
-              <UserX class="h-12 w-12 text-gray-400 dark:text-gray-500" />
-            </div>
-            <p class="text-gray-500 dark:text-gray-400 font-medium text-lg">Aucun utilisateur récent</p>
-            <p class="text-sm text-gray-400 dark:text-gray-500 mt-2">Les nouveaux utilisateurs apparaîtront ici</p>
-          </div>
+        </div>
+        
+        <div v-if="tasks.filter(t => t.completed).length > 0" class="mt-4 text-right">
+          <button class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+            Effacer les tâches terminées
+          </button>
         </div>
       </div>
     </div>
@@ -299,153 +274,235 @@
 </template>
 
 <script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useSupabaseClient } from '#imports'
 import { 
-  Users, FileText, Tag, Activity, Clock, 
-  ExternalLink, User, DollarSign, TrendingUp,
-  TrendingDown, MoreHorizontal, ChevronRight,
-  Download, PlusCircle, MoreVertical, FileX,
-  UserX, CircleCheck, ClockIcon, XCircle, AlertTriangle
+  Activity as ActivityIcon, 
+  Users,
+  User,
+  TrendingUp as TrendingUpIcon,
+  TrendingDown as TrendingDownIcon,
+  Minus as MinusIcon,
+  Package, 
+  Calendar, 
+  DollarSign,
+  UserPlus,
+  MessageSquare,
+  ShoppingBag,
+  AlertTriangle,
+  CheckCircle,
+  Plus as PlusIcon,
+  Bell
 } from 'lucide-vue-next'
-import { ref, onMounted } from 'vue'
 
-const client = useSupabaseClient()
-const loading = ref(true)
-const selectedPeriod = ref(2) // Mois par défaut
+const supabase = useSupabaseClient()
+const activePeriod = ref('7j')
+const isLoading = ref(true)
+const error = ref(null)
 
-const stats = ref([
-  { name: 'Utilisateurs', value: 0, change: 0, icon: Users },
-  { name: 'Demandes actives', value: 0, change: 0, icon: FileText },
-  { name: 'Experts', value: 0, change: 0, icon: Activity },
-  { name: 'Catégories', value: 0, change: 0, icon: Tag },
+// Statistiques globales
+const summaryStats = ref([
+  {
+    name: 'Utilisateurs',
+    value: '2,581',
+    trend: 12,
+    icon: Users
+  },
+  {
+    name: 'Demandes',
+    value: '1,247',
+    trend: 24,
+    icon: MessageSquare
+  },
+  {
+    name: 'Services',
+    value: '358',
+    trend: 6,
+    icon: Package
+  },
+  {
+    name: 'Revenus',
+    value: '598K',
+    trend: -3,
+    icon: DollarSign
+  }
 ])
-const recentRequests = ref([])
-const recentUsers = ref([])
 
-// Obtenir la classe de couleur de bordure pour les cartes de statistiques
-const getBorderClass = (index) => {
-  const colors = [
-    'border-blue-500',
-    'border-green-500',
-    'border-purple-500',
-    'border-orange-500'
+// Options du graphique
+const chartData = ref({
+  labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'],
+  datasets: [
+    {
+      label: 'Demandes',
+      data: [65, 78, 90, 110, 125, 180, 210, 220, 250, 268, 280, 320],
+      borderColor: 'rgb(99, 102, 241)',
+      backgroundColor: 'rgba(99, 102, 241, 0.2)',
+      tension: 0.4,
+      fill: true
+    },
+    {
+      label: 'Services',
+      data: [28, 42, 53, 69, 98, 127, 154, 178, 190, 220, 235, 245],
+      borderColor: 'rgb(34, 197, 94)',
+      backgroundColor: 'rgba(34, 197, 94, 0.2)',
+      tension: 0.4,
+      fill: true
+    }
   ]
-  return colors[index % colors.length]
-}
+})
 
-// Obtenir la classe de fond pour les icônes
-const getIconBgClass = (index) => {
-  const colors = [
-    'bg-gradient-to-br from-blue-400 to-blue-600',
-    'bg-gradient-to-br from-green-400 to-green-600',
-    'bg-gradient-to-br from-purple-400 to-purple-600',
-    'bg-gradient-to-br from-orange-400 to-orange-600'
-  ]
-  return colors[index % colors.length]
-}
+const chartOptions = ref({
+  responsive: true,
+  maintainAspectRatio: false,
+  scales: {
+    y: {
+      beginAtZero: true,
+      grid: {
+        display: true,
+        color: 'rgba(156, 163, 175, 0.1)'
+      }
+    },
+    x: {
+      grid: {
+        display: false
+      }
+    }
+  },
+  plugins: {
+    legend: {
+      position: 'top',
+      labels: {
+        usePointStyle: true,
+        boxWidth: 6
+      }
+    }
+  }
+})
 
-// Obtenir l'icône pour les types de demandes
-const getRequestIcon = (status) => {
-  switch (status) {
-    case 'active': return Activity
-    case 'pending': return ClockIcon
-    case 'completed': return CircleCheck
-    case 'cancelled': return XCircle
-    default: return AlertTriangle
+// Activités récentes
+const recentActivities = ref([
+  {
+    type: 'new_user',
+    title: 'Nouvel utilisateur inscrit',
+    description: 'Un nouvel utilisateur a rejoint la plateforme',
+    time: 'il y a 10 minutes',
+    user: { name: 'Amadou Diallo', avatar: null }
+  },
+  {
+    type: 'new_request',
+    title: 'Nouvelle demande créée',
+    description: 'Développement d\'une application mobile',
+    time: 'il y a 45 minutes',
+    user: { name: 'Fatou Ndiaye', avatar: null }
+  },
+  {
+    type: 'service_completed',
+    title: 'Service terminé',
+    description: 'Conception de logo d\'entreprise',
+    time: 'il y a 2 heures',
+    user: { name: 'Ibrahim Touré', avatar: null }
+  },
+  {
+    type: 'payment',
+    title: 'Paiement reçu',
+    description: '45,000 XOF pour service de traduction',
+    time: 'il y a 3 heures',
+    user: { name: 'Mariam Sow', avatar: null }
+  }
+])
+
+// Dernières demandes
+const latestRequests = ref([
+  {
+    id: '1',
+    client: { name: 'Moussa Camara', avatar: null },
+    service: 'Développement de site web',
+    date: '10/05/2023',
+    status: 'pending'
+  },
+  {
+    id: '2',
+    client: { name: 'Aissatou Diop', avatar: null },
+    service: 'Design d\'application',
+    date: '09/05/2023',
+    status: 'active'
+  },
+  {
+    id: '3',
+    client: { name: 'Omar Sy', avatar: null },
+    service: 'Traduction de documents',
+    date: '08/05/2023',
+    status: 'completed'
+  },
+  {
+    id: '4',
+    client: { name: 'Fatoumata Bah', avatar: null },
+    service: 'Montage vidéo',
+    date: '07/05/2023',
+    status: 'cancelled'
+  }
+])
+
+// Tâches à faire
+const tasks = ref([
+  {
+    title: 'Modérer les nouveaux services',
+    dueDate: 'Aujourd\'hui',
+    priority: 'high',
+    completed: false
+  },
+  {
+    title: 'Valider le paiement en attente pour Omar',
+    dueDate: 'Aujourd\'hui',
+    priority: 'medium',
+    completed: false
+  },
+  {
+    title: 'Répondre aux demandes de support',
+    dueDate: 'Demain',
+    priority: 'high',
+    completed: false
+  },
+  {
+    title: 'Mettre à jour les conditions d\'utilisation',
+    dueDate: '12 Mai',
+    priority: 'low',
+    completed: true
+  }
+])
+
+// Helpers
+const getActivityIcon = (type) => {
+  switch (type) {
+    case 'new_user': return UserPlus
+    case 'new_request': return MessageSquare
+    case 'service_completed': return CheckCircle
+    case 'payment': return DollarSign
+    default: return Bell
   }
 }
 
-// Obtenir la couleur de fond pour les icônes de demandes
-const getRequestIconBg = (status) => {
-  switch (status) {
-    case 'active': return 'bg-green-600'
-    case 'pending': return 'bg-yellow-500'
-    case 'completed': return 'bg-blue-600'
-    case 'cancelled': return 'bg-gray-500'
-    default: return 'bg-gray-400'
+const getActivityColorClass = (type) => {
+  switch (type) {
+    case 'new_user': return 'bg-green-500'
+    case 'new_request': return 'bg-blue-500'
+    case 'service_completed': return 'bg-purple-500' 
+    case 'payment': return 'bg-amber-500'
+    default: return 'bg-gray-500'
   }
 }
 
-// Charger les données
-const fetchDashboardData = async () => {
-  try {
-    loading.value = true
-    
-    // Récupérer les statistiques
-    const [
-      { count: userCount }, 
-      { count: requestCount }, 
-      { count: expertCount },
-      { count: categoryCount }
-    ] = await Promise.all([
-      client.from('profiles').select('*', { count: 'exact', head: true }),
-      client.from('requests').select('*', { count: 'exact', head: true }).eq('status', 'active'),
-      client.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'expert'),
-      client.from('service_categories').select('*', { count: 'exact', head: true })
-    ])
-    
-    // Mettre à jour les statistiques (avec des variations fictives pour la démo)
-    stats.value[0].value = userCount
-    stats.value[0].change = 12.5
-    stats.value[1].value = requestCount
-    stats.value[1].change = 8.3
-    stats.value[2].value = expertCount
-    stats.value[2].change = 5.7
-    stats.value[3].value = categoryCount
-    stats.value[3].change = -2.1
-    
-    // Récupérer les demandes récentes
-    const { data: requests } = await client
-      .from('requests')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(5)
-    
-    recentRequests.value = requests || []
-    
-    // Récupérer les utilisateurs récents
-    const { data: users } = await client
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(5)
-    
-    recentUsers.value = users || []
-  } catch (error) {
-    console.error('Erreur lors du chargement des données :', error)
-  } finally {
-    loading.value = false
-  }
-}
-
-// Formatage de date
-const formatDate = (dateString) => {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  return date.toLocaleDateString('fr-FR', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric'
-  })
-}
-
-// Tronquer le texte
-const truncateText = (text, length) => {
-  if (!text) return ''
-  return text.length > length ? `${text.substring(0, length)}...` : text
-}
-
-// Classes et textes pour les statuts des demandes
 const getStatusClass = (status) => {
   switch (status) {
-    case 'active': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
-    case 'pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
-    case 'completed': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
-    case 'cancelled': return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-    default: return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+    case 'active': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+    case 'pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+    case 'completed': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+    case 'cancelled': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+    default: return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400'
   }
 }
 
-const getStatusText = (status) => {
+const getStatusLabel = (status) => {
   switch (status) {
     case 'active': return 'Active'
     case 'pending': return 'En attente'
@@ -455,11 +512,32 @@ const getStatusText = (status) => {
   }
 }
 
-// Charger les données au montage du composant
-onMounted(fetchDashboardData)
+// Initialisation
+onMounted(async () => {
+  try {
+    isLoading.value = true
+    
+    // Charger des données réelles
+    // Exemple:
+    // const { data: usersData, error: usersError } = await supabase.from('users').select('count')
+    // if (usersError) throw usersError
+    // summaryStats.value[0].value = usersData[0].count.toLocaleString()
+    
+    // ...autres chargements...
+    
+  } catch (err) {
+    console.error('Erreur lors du chargement des données:', err)
+    error.value = err.message
+  } finally {
+    isLoading.value = false
+  }
+})
 
-// Définir le layout admin
 definePageMeta({
-  layout: 'admin',
+  layout: 'admin'
 })
 </script>
+
+<style>
+/* Ajouter un rappel d'importer vue-chartjs et Chart.js dans le projet */
+</style>

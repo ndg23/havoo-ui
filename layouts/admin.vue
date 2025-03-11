@@ -391,30 +391,27 @@ const getPageTitle = () => {
   return 'Administration'
 }
 
-// Menu de tableau de bord
+// Menu de tableau de bord - simplifier à un seul élément
 const dashboardItems = computed(() => [
   { to: '/admin', label: 'Tableau de bord', icon: LayoutDashboard },
-  { to: '/admin/analytics', label: 'Statistiques', icon: BarChart2 },
-  { to: '/admin/activity', label: 'Activité récente', icon: Bell },
 ])
 
-// Menu de gestion
+// Menu de gestion - garder uniquement les éléments les plus importants
 const managementItems = computed(() => [
   { to: '/admin/users', label: 'Utilisateurs', icon: Users },
   { to: '/admin/requests', label: 'Demandes', icon: FileText },
-  { to: '/admin/categories', label: 'Catégories', icon: LayoutGrid },
   { to: '/admin/services', label: 'Services', icon: ShoppingBag },
-  { to: '/admin/payments', label: 'Paiements', icon: CreditCard },
+  { to: '/admin/categories', label: 'Catégories', icon: Layers },
+  { to: '/admin/documents', label: 'Documents', icon: FileText },
+  { to: '/admin/proposals', label: 'Propositions', icon: FileText },
 ])
 
-// Menu de configuration
+// Menu de configuration - réduire à un seul élément
 const configItems = computed(() => [
-  { to: '/admin/settings', label: 'Paramètres site', icon: Settings },
-  { to: '/admin/permissions', label: 'Permissions', icon: Lock },
-  { to: '/admin/maintenance', label: 'Maintenance', icon: Cog },
+  { to: '/admin/settings', label: 'Paramètres', icon: Settings },
 ])
 
-// Menu mobile simplifié
+// Menu mobile - mettre à jour pour correspondre
 const mobileMenuItems = computed(() => [
   { to: '/admin', label: 'Accueil', icon: Home },
   { to: '/admin/users', label: 'Utilisateurs', icon: Users },

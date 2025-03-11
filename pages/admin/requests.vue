@@ -1,481 +1,779 @@
 <template>
-  <div class="space-y-6 bg-gray-50 min-h-screen p-6">
-    <!-- En-tête -->
-    <div class="flex justify-between items-center bg-black text-white p-4 rounded-xl">
-      <h1 class="text-xl font-bold">Tableau de bord administrateur</h1>
-      <div class="flex items-center gap-3">
-        <button class="bg-white text-black px-4 py-2 rounded-full font-medium text-sm hover:bg-gray-200 transition-colors">
-          Aide
-        </button>
-        <div class="relative">
-          <img 
-            src="https://ui-avatars.com/api/?name=Admin" 
-            alt="Admin profile" 
-            class="w-10 h-10 rounded-full border-2 border-white"
-          />
-        </div>
-      </div>
+  <div class="space-y-6 max-w-7xl mx-auto">
+    <!-- En-tête avec style Twitter -->
+    <div class="px-4 py-6">
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Demandes de service</h1>
+      <p class="text-gray-600 dark:text-gray-400 mt-1">Gérez les demandes de service et assignez des experts</p>
     </div>
-
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    
+    <!-- Notifications -->
+    <div 
+      v-if="notification.show" 
+      class="mx-4 p-4 rounded-xl flex items-start gap-3"
+      :class="[
+        notification.type === 'success' ? 'bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400' : 
+        notification.type === 'error' ? 'bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-400' : 
+        'bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
+      ]"
+    >
+      <component 
+        :is="notification.type === 'success' ? 'CheckCircle' : notification.type === 'error' ? 'AlertTriangle' : 'Info'" 
+        class="h-5 w-5 mt-0.5 flex-shrink-0" 
+      />
+      <div>
+        <h3 class="font-medium">{{ notification.title }}</h3>
+        <p class="text-sm opacity-80 mt-0.5">{{ notification.message }}</p>
+      </div>
+      <button 
+        @click="notification.show = false" 
+        class="ml-auto p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5"
+      >
+        <X class="h-4 w-4" />
+      </button>
+    </div>
+    
+    <!-- Statistiques rapides -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <div 
         v-for="stat in stats" 
-        :key="stat.name"
-        class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
+        :key="stat.label"
+        class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700"
       >
-        <div class="flex items-center gap-4">
-          <div class="shrink-0 w-12 h-12 rounded-full bg-black flex items-center justify-center">
-            <component :is="stat.icon" class="w-6 h-6 text-white" />
-          </div>
+        <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm font-medium text-gray-500">{{ stat.name }}</p>
-            <p class="text-2xl font-bold text-gray-900">{{ stat.value }}</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">{{ stat.label }}</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ stat.value }}</p>
+          </div>
+          <div 
+            class="h-12 w-12 rounded-full flex items-center justify-center"
+            :class="stat.colorClass"
+          >
+            <component :is="stat.icon" class="h-6 w-6 text-white" />
           </div>
         </div>
       </div>
     </div>
-
-    <!-- Filtres -->
-    <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-      <div class="flex items-center justify-between gap-4 flex-wrap">
-        <div class="flex items-center gap-3 flex-wrap">
-          <div class="relative w-64">
-            <MagnifyingGlassIcon class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+    
+    <!-- Filtres et actions -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-5">
+      <div class="flex flex-wrap gap-4 items-center justify-between">
+        <div class="flex flex-wrap gap-3">
+          <!-- Recherche -->
+          <div class="relative">
+            <Search class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
             <input 
-              v-model="searchQuery"
+              v-model="search"
               type="text"
               placeholder="Rechercher une demande..."
-              class="w-full pl-10 pr-4 py-3 rounded-full border border-gray-200 focus:ring-black focus:border-black"
+              class="pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-600 rounded-full focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white w-60"
             />
           </div>
+          
+          <!-- Filtre de statut -->
           <select 
             v-model="statusFilter"
-            class="px-4 py-3 rounded-full border border-gray-200 focus:ring-black focus:border-black bg-white"
+            class="px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-full focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white appearance-none"
           >
-            <option value="">Tous les statuts</option>
-            <option value="active">Active</option>
-            <option value="pending">En attente</option>
-            <option value="completed">Terminée</option>
-            <option value="cancelled">Annulée</option>
+            <option value="all">Tous les statuts</option>
+            <option value="open">Nouvelles</option>
+            <option value="assigned">Assignées</option>
+            <option value="in_progress">En cours</option>
+            <option value="completed">Terminées</option>
+            <option value="cancelled">Annulées</option>
           </select>
+          
+          <!-- Filtre de catégorie -->
           <select 
-            v-model="serviceFilter"
-            class="px-4 py-3 rounded-full border border-gray-200 focus:ring-black focus:border-black bg-white"
+            v-model="categoryFilter"
+            class="px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-full focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white appearance-none"
           >
-            <option value="">Tous les services</option>
-            <option v-for="service in services" :key="service.id" :value="service.id">
-              {{ service.name }}
+            <option value="all">Toutes les catégories</option>
+            <option v-for="category in categories" :key="category.id" :value="category.id">
+              {{ category.name }}
             </option>
           </select>
         </div>
-        <button 
-          class="bg-black text-white px-6 py-3 rounded-full font-medium text-sm hover:bg-gray-800 transition-colors"
-          @click="showCreateRequestModal = true"
-        >
-          Nouvelle demande
-        </button>
-      </div>
-    </div>
-
-    <!-- Liste des demandes -->
-    <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-      <h2 class="text-xl font-bold mb-4 text-gray-900">Demandes récentes</h2>
-      <div v-if="loading" class="flex justify-center p-8">
-        <div class="animate-spin rounded-full h-12 w-12 border-4 border-black border-t-transparent"></div>
-      </div>
-      <div v-else-if="error" class="bg-red-50 p-4 rounded-xl border border-red-200 text-red-700">
-        {{ error }}
-      </div>
-      <div v-else-if="filteredRequests.length === 0" class="text-center py-8 text-gray-500">
-        Aucune demande ne correspond aux critères sélectionnés
-      </div>
-      <div v-else class="space-y-4">
-        <div 
-          v-for="request in paginatedRequests" 
-          :key="request.id"
-          class="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
-        >
-          <div class="p-6">
-            <div class="flex items-start justify-between">
-              <div class="flex items-start gap-4">
-                <div class="w-14 h-14 rounded-full bg-black flex items-center justify-center text-xl text-white">
-                  {{ request.service_icon }}
-                </div>
-                <div>
-                  <h3 class="font-semibold text-gray-900 text-lg">{{ request.service_name }}</h3>
-                  <div class="mt-1 flex items-center gap-2 text-sm text-gray-500">
-                    <CalendarIcon class="w-4 h-4" />
-                    {{ formatDate(request.date) }} à {{ formatTime(request.time) }}
-                  </div>
-                  <div class="mt-1 flex items-center gap-2 text-sm text-gray-500">
-                    <MapPinIcon class="w-4 h-4" />
-                    {{ request.location }}
-                  </div>
-                </div>
-              </div>
-              <div class="flex items-center gap-3">
-                <span 
-                  class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"
-                  :class="{
-                    'bg-yellow-50 text-yellow-800 border border-yellow-200': request.status === 'active',
-                    'bg-blue-50 text-blue-800 border border-blue-200': request.status === 'pending',
-                    'bg-green-50 text-green-800 border border-green-200': request.status === 'completed',
-                    'bg-red-50 text-red-800 border border-red-200': request.status === 'cancelled'
-                  }"
-                >
-                  {{ getStatusLabel(request.status) }}
-                </span>
-                <Menu as="div" class="relative">
-                  <MenuButton class="p-2 rounded-full hover:bg-gray-100">
-                    <EllipsisVerticalIcon class="w-5 h-5 text-gray-400" />
-                  </MenuButton>
-                  <MenuItems class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg py-1 border border-gray-200 z-10">
-                    <MenuItem v-slot="{ active }">
-                      <button
-                        class="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                        @click="viewDetails(request)"
-                      >
-                        <EyeIcon class="w-4 h-4 mr-3" />
-                        Voir les détails
-                      </button>
-                    </MenuItem>
-                    <MenuItem v-if="request.status === 'active'" v-slot="{ active }">
-                      <button
-                        class="flex w-full items-center px-4 py-2 text-sm text-green-600 hover:bg-green-50"
-                        @click="assignExpert(request)"
-                      >
-                        <UserPlusIcon class="w-4 h-4 mr-3" />
-                        Assigner un expert
-                      </button>
-                    </MenuItem>
-                    <MenuItem v-if="['active', 'pending'].includes(request.status)" v-slot="{ active }">
-                      <button
-                        class="flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                        @click="cancelRequest(request)"
-                      >
-                        <XMarkIcon class="w-4 h-4 mr-3" />
-                        Annuler
-                      </button>
-                    </MenuItem>
-                  </MenuItems>
-                </Menu>
-              </div>
-            </div>
-
-            <div class="mt-4 border-t border-gray-100 pt-4">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                  <img 
-                    :src="request.client_image || `https://ui-avatars.com/api/?name=${request.client_first_name}+${request.client_last_name}&background=000000&color=ffffff`"
-                    class="w-10 h-10 rounded-full border border-gray-200"
-                    alt="Client avatar"
-                  />
-                  <div>
-                    <div class="font-medium text-gray-900">{{ request.client_first_name }} {{ request.client_last_name }}</div>
-                    <div class="text-sm text-gray-500">{{ request.client_email || '—' }}</div>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <div class="font-semibold text-gray-900">{{ formatPrice(request.budget) }}</div>
-                  <div class="text-sm text-gray-500">{{ request.duration }}h</div>
-                </div>
-              </div>
-            </div>
-          </div>
+        
+        <!-- Actions -->
+        <div class="flex items-center gap-2">
+          <button 
+            @click="resetFilters"
+            class="flex items-center p-2.5 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-full hover:bg-gray-50 dark:hover:bg-gray-700"
+            title="Réinitialiser les filtres"
+          >
+            <RefreshCw class="h-5 w-5" />
+          </button>
+          <button 
+            @click="exportData"
+            class="flex items-center p-2.5 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-full hover:bg-gray-50 dark:hover:bg-gray-700"
+            title="Exporter"
+          >
+            <Download class="h-5 w-5" />
+          </button>
+          <button 
+            @click="refreshData"
+            class="flex items-center p-2.5 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-full hover:bg-gray-50 dark:hover:bg-gray-700"
+            title="Rafraîchir"
+          >
+            <RefreshCw class="h-5 w-5" />
+          </button>
         </div>
       </div>
     </div>
-
-    <!-- Pagination -->
-    <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
-      <div class="text-sm text-gray-500">
-        Affichage de {{ startIndex + 1 }}-{{ endIndex }} sur {{ totalRequests }} demandes
+    
+    <!-- Liste des demandes -->
+    <div v-if="isLoading" class="flex justify-center p-12">
+      <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-500 border-r-transparent"></div>
+    </div>
+    
+    <div v-else-if="filteredRequests.length === 0" class="bg-white dark:bg-gray-800 rounded-xl p-8 text-center border border-gray-100 dark:border-gray-700">
+      <div class="inline-flex items-center justify-center h-16 w-16 rounded-full bg-gray-100 dark:bg-gray-700 mb-4">
+        <FileText class="h-8 w-8 text-gray-500 dark:text-gray-400" />
       </div>
-      <div class="flex items-center gap-2">
-        <button
-          class="px-4 py-2 rounded-full border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50"
-          :disabled="currentPage === 1"
-          @click="currentPage--"
+      <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Aucune demande trouvée</h3>
+      <p class="text-gray-600 dark:text-gray-400 mb-4">
+        Essayez de modifier vos filtres ou d'effectuer une nouvelle recherche.
+      </p>
+      <button 
+        @click="resetFilters"
+        class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-full shadow-sm"
+      >
+        Réinitialiser les filtres
+      </button>
+    </div>
+    
+    <div v-else class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <!-- En-tête du tableau -->
+      <div class="grid grid-cols-6 gap-4 px-6 py-3 bg-gray-50 dark:bg-gray-800/80 border-b border-gray-100 dark:border-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400">
+        <div>Service</div>
+        <div>Client</div>
+        <div>Budget</div>
+        <div>Date limite</div>
+        <div>Statut</div>
+        <div class="text-right">Actions</div>
+      </div>
+      
+      <!-- Lignes du tableau -->
+      <div class="divide-y divide-gray-100 dark:divide-gray-700">
+        <div 
+          v-for="request in paginatedRequests" 
+          :key="request.id"
+          class="grid grid-cols-6 gap-4 px-6 py-4 items-center hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
         >
-          Précédent
-        </button>
-        <button
-          class="px-4 py-2 rounded-full border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50"
-          :disabled="endIndex >= totalRequests"
-          @click="currentPage++"
-        >
-          Suivant
-        </button>
+          <!-- Service -->
+          <div class="flex items-center gap-3">
+            <div 
+              class="h-10 w-10 rounded-full flex items-center justify-center"
+              :class="getCategoryColorClass(request.category_id)"
+            >
+              <component :is="getCategoryIcon(request.category_id)" class="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-900 dark:text-white line-clamp-1">{{ request.title }}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">{{ getCategoryName(request.category_id) }}</p>
+            </div>
+          </div>
+          
+          <!-- Client -->
+          <div>
+            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ request.client_name }}</p>
+            <div class="flex items-center text-xs text-gray-500 dark:text-gray-400">
+              <MapPin class="h-3 w-3 mr-1" /> 
+              {{ request.location || 'Non spécifié' }}
+            </div>
+          </div>
+          
+          <!-- Budget -->
+          <div>
+            <span class="inline-flex items-center px-2.5 py-1 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 rounded-full text-xs font-bold">
+              {{ request.budget ? `${request.budget}€` : 'Non défini' }}
+            </span>
+          </div>
+          
+          <!-- Date limite -->
+          <div class="text-sm text-gray-600 dark:text-gray-400">
+            {{ formatDate(request.deadline) }}
+          </div>
+          
+          <!-- Statut -->
+          <div>
+            <span 
+              class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium"
+              :class="getStatusClass(request.status)"
+            >
+              <span class="w-1.5 h-1.5 rounded-full mr-1.5" :class="getStatusDotClass(request.status)"></span>
+              {{ formatStatus(request.status) }}
+            </span>
+          </div>
+          
+          <!-- Actions -->
+          <div class="flex justify-end gap-2">
+            <button 
+              @click="viewRequestDetails(request)"
+              class="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+              title="Voir les détails"
+            >
+              <Eye class="h-5 w-5" />
+            </button>
+            <button 
+              v-if="request.status === 'open'"
+              @click="openAssignModal(request)"
+              class="p-1.5 text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-full"
+              title="Assigner un expert"
+            >
+              <UserPlus class="h-5 w-5" />
+            </button>
+            <button 
+              v-if="['open', 'assigned'].includes(request.status)"
+              @click="cancelRequest(request)"
+              class="p-1.5 text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full"
+              title="Annuler"
+            >
+              <X class="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Pagination -->
+      <div class="p-4 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center">
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          Affichage de {{ (currentPage - 1) * itemsPerPage + 1 }} à {{ Math.min(currentPage * itemsPerPage, filteredRequests.length) }} sur {{ filteredRequests.length }} demandes
+        </p>
+        
+        <div class="flex gap-1">
+          <button 
+            @click="currentPage = Math.max(1, currentPage - 1)"
+            :disabled="currentPage === 1"
+            class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 disabled:opacity-50"
+          >
+            <ChevronLeft class="h-5 w-5" />
+          </button>
+          
+          <button 
+            v-for="page in visiblePages" 
+            :key="page"
+            @click="typeof page === 'number' ? currentPage = page : null"
+            :disabled="page === '...'"
+            class="min-w-[40px] h-10 rounded-full flex items-center justify-center text-sm font-medium"
+            :class="[
+              page === '...' ? 'text-gray-400 cursor-default' : '',
+              page === currentPage 
+                ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400' 
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+            ]"
+          >
+            {{ page }}
+          </button>
+          
+          <button 
+            @click="currentPage = Math.min(totalPages, currentPage + 1)"
+            :disabled="currentPage === totalPages || totalPages === 0"
+            class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 disabled:opacity-50"
+          >
+            <ChevronRight class="h-5 w-5" />
+          </button>
+        </div>
       </div>
     </div>
-
-    <RequestDetailsModal 
-      v-if="showDetailsModal"
-      :request="selectedRequest"
-      @close="showDetailsModal = false"
-    />
-
-    <AssignExpertModal 
-      v-if="showAssignModal"
-      :request="selectedRequest"
+    
+    <!-- Modal d'assignation d'expert -->
+    <AdminModal
+      :show="showAssignModal"
+      title="Assigner un expert"
       @close="showAssignModal = false"
-      @assign="handleAssignExpert"
-    />
+    >
+      <template #icon>
+        <UserCheck class="h-5 w-5 text-primary-600 mr-2" />
+      </template>
+      
+      <div class="p-6">
+        <div v-if="selectedRequest" class="mb-6">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">
+            {{ selectedRequest.title }}
+          </h3>
+          <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-4">
+            <Tag class="h-4 w-4" />
+            <span>{{ getCategoryName(selectedRequest.category_id) }}</span>
+            <span class="mx-2">•</span>
+            <MapPin class="h-4 w-4" /> 
+            <span>{{ selectedRequest.location || 'Non spécifié' }}</span>
+            <span class="mx-2">•</span>
+            <DollarSign class="h-4 w-4" />
+            <span>{{ selectedRequest.budget ? `${selectedRequest.budget}€` : 'Non défini' }}</span>
+          </div>
+          
+          <div class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 text-sm text-gray-600 dark:text-gray-400 mb-6">
+            <p>{{ selectedRequest.description }}</p>
+          </div>
+          
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Sélectionner un expert
+              </label>
+              <select 
+                v-model="selectedExpertId"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+              >
+                <option value="">Choisir un expert</option>
+                <option v-for="expert in availableExperts" :key="expert.id" :value="expert.id">
+                  {{ expert.first_name }} {{ expert.last_name }} - {{ expert.skills.join(', ') }}
+                </option>
+              </select>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Notes pour l'expert (optionnel)
+              </label>
+              <textarea 
+                v-model="assignmentNotes"
+                rows="3"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                placeholder="Instructions spécifiques pour l'expert..."
+              ></textarea>
+            </div>
+          </div>
+        </div>
+        
+        <div class="flex justify-end gap-3 mt-6">
+          <button 
+            @click="showAssignModal = false"
+            class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+          >
+            Annuler
+          </button>
+          <button 
+            @click="assignExpert"
+            :disabled="!selectedExpertId || isAssigning"
+            class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg shadow-sm disabled:opacity-50 disabled:pointer-events-none"
+          >
+            <span v-if="isAssigning" class="flex items-center">
+              <div class="h-4 w-4 border-2 border-white/60 border-t-white rounded-full animate-spin mr-2"></div>
+              Assignation...
+            </span>
+            <span v-else>Assigner l'expert</span>
+          </button>
+        </div>
+      </div>
+    </AdminModal>
+    
+    <!-- Modal de détails de la demande -->
+    <AdminModal
+      :show="showDetailsModal"
+      title="Détails de la demande"
+      @close="showDetailsModal = false"
+      size="lg"
+    >
+      <template #icon>
+        <FileText class="h-5 w-5 text-primary-600 mr-2" />
+      </template>
+      
+      <div class="p-6">
+        <!-- Contenu du modal de détails -->
+      </div>
+    </AdminModal>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useSupabaseClient } from '#imports'
 import { 
-  MagnifyingGlassIcon,
-  EllipsisVerticalIcon,
-  CalendarIcon,
-  MapPinIcon,
-  EyeIcon,
-  UserPlusIcon,
-  XMarkIcon,
-  ClipboardDocumentListIcon,
-  CheckCircleIcon,
-  ClockIcon,
-  XCircleIcon,
-  CurrencyDollarIcon
-} from '@heroicons/vue/24/outline'
+  Search, FileText, Users as UsersIcon, Clock, Calendar, 
+  DollarSign, Tag, MapPin, CheckCircle, X, 
+  ChevronLeft, ChevronRight, Eye, UserPlus, UserCheck,
+  AlertTriangle, Download, RefreshCw, LayoutGrid, Home,
+  Paintbrush, Wrench, Briefcase, Scissors, Info
+} from 'lucide-vue-next'
 
-// État
-const requests = ref([])
-const loading = ref(false)
-const error = ref(null)
-const searchQuery = ref('')
-const statusFilter = ref('')
-const serviceFilter = ref('')
-const currentPage = ref(1)
-const perPage = 10
-const showDetailsModal = ref(false)
-const showAssignModal = ref(false)
-const selectedRequest = ref(null)
-const services = ref([])
-const stats = ref([
-  { 
-    name: 'Total demandes',
-    value: '0',
-    icon: ClipboardDocumentListIcon
-  },
-  {
-    name: 'Complétées',
-    value: '0',
-    icon: CheckCircleIcon
-  },
-  {
-    name: 'En attente',
-    value: '0',
-    icon: ClockIcon
-  },
-  {
-    name: 'Revenus',
-    value: '0 FCFA',
-    icon: CurrencyDollarIcon
-  }
-])
 const supabase = useSupabaseClient()
-// Chargement des données
-onMounted(async () => {
-  await fetchServices()
-  await fetchRequests()
-  updateStats()
+
+// États
+const requests = ref([])
+const categories = ref([])
+const experts = ref([])
+const search = ref('')
+const statusFilter = ref('all')
+const categoryFilter = ref('all')
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+const isLoading = ref(true)
+const error = ref(null)
+
+// Modals
+const showAssignModal = ref(false)
+const showDetailsModal = ref(false)
+const selectedRequest = ref(null)
+const selectedExpertId = ref('')
+const assignmentNotes = ref('')
+const isAssigning = ref(false)
+
+// Notification
+const notification = ref({
+  show: false,
+  type: '',
+  title: '',
+  message: ''
 })
 
-// Récupérer les services
-const fetchServices = async () => {
-  try {
-    const { data, error: err } = await supabase
-      .from('services')
-      .select('id, name, icon')
-    
-    if (err) throw err
-    services.value = data || []
-  } catch (err) {
-    console.error('Erreur lors du chargement des services:', err)
-    error.value = 'Impossible de charger les services'
+// Statistiques
+const stats = ref([
+  { 
+    label: 'Total demandes', 
+    value: '0', 
+    icon: FileText, 
+    colorClass: 'bg-blue-500 dark:bg-blue-600' 
+  },
+  { 
+    label: 'Nouvelles', 
+    value: '0', 
+    icon: AlertTriangle, 
+    colorClass: 'bg-amber-500 dark:bg-amber-600' 
+  },
+  { 
+    label: 'En cours', 
+    value: '0', 
+    icon: Clock, 
+    colorClass: 'bg-indigo-500 dark:bg-indigo-600' 
+  },
+  { 
+    label: 'Terminées', 
+    value: '0', 
+    icon: CheckCircle, 
+    colorClass: 'bg-green-500 dark:bg-green-600' 
   }
-}
+])
 
-// Récupérer les demandes
-const fetchRequests = async () => {
-  try {
-    loading.value = true
-    error.value = null
-    
-    // Utilisation de la vue request_details créée dans votre schéma SQL
-    const { data, error: err } = await supabase
-      .from('request_details')
-      .select('*')
-    
-    if (err) throw err
-    requests.value = data || []
-  } catch (err) {
-    console.error('Erreur lors du chargement des demandes:', err)
-    error.value = 'Impossible de charger les demandes'
-  } finally {
-    loading.value = false
+// Filtrer les demandes
+const filteredRequests = computed(() => {
+  let filtered = [...requests.value]
+  
+  // Filtre de recherche
+  if (search.value) {
+    const searchLower = search.value.toLowerCase()
+    filtered = filtered.filter(request => 
+      request.title?.toLowerCase().includes(searchLower) ||
+      request.description?.toLowerCase().includes(searchLower) ||
+      request.client_name?.toLowerCase().includes(searchLower)
+    )
   }
+  
+  // Filtre de statut
+  if (statusFilter.value !== 'all') {
+    filtered = filtered.filter(request => request.status === statusFilter.value)
+  }
+  
+  // Filtre de catégorie
+  if (categoryFilter.value !== 'all') {
+    filtered = filtered.filter(request => 
+      request.category_id === parseInt(categoryFilter.value)
+    )
+  }
+  
+  return filtered
+})
+
+// Pagination
+const totalPages = computed(() => Math.ceil(filteredRequests.value.length / itemsPerPage.value))
+
+const paginatedRequests = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return filteredRequests.value.slice(start, end)
+})
+
+// Pages visibles pour la pagination
+const visiblePages = computed(() => {
+  const totalPageCount = totalPages.value
+  if (totalPageCount <= 7) {
+    return Array.from({ length: totalPageCount }, (_, i) => i + 1)
+  }
+  
+  // Logique pour afficher un nombre limité de pages avec des ellipses
+  if (currentPage.value <= 3) {
+    return [1, 2, 3, 4, 5, '...', totalPageCount]
+  } else if (currentPage.value >= totalPageCount - 2) {
+    return [1, '...', totalPageCount - 4, totalPageCount - 3, totalPageCount - 2, totalPageCount - 1, totalPageCount]
+  } else {
+    return [1, '...', currentPage.value - 1, currentPage.value, currentPage.value + 1, '...', totalPageCount]
+  }
+})
+
+// Experts disponibles pour l'assignation
+const availableExperts = computed(() => {
+  return experts.value.filter(expert => 
+    expert.is_expert && expert.verification_status === 'approved'
+  )
+})
+
+// Méthodes
+const showNotification = (type, title, message = '') => {
+  notification.value = {
+    show: true,
+    type,
+    title,
+    message
+  }
+  
+  // Masquer la notification après 5 secondes
+  setTimeout(() => {
+    notification.value.show = false
+  }, 5000)
 }
 
 // Mettre à jour les statistiques
 const updateStats = () => {
-  if (requests.value.length > 0) {
-    const total = requests.value.length
-    const completed = requests.value.filter(r => r.status === 'completed').length
-    const pending = requests.value.filter(r => r.status === 'pending').length
-    const revenue = requests.value
-      .filter(r => r.status === 'completed')
-      .reduce((sum, r) => sum + (r.budget || 0), 0)
+  if (!requests.value.length) return
+  
+  // Total des demandes
+  stats.value[0].value = requests.value.length.toString()
+  
+  // Nouvelles demandes
+  stats.value[1].value = requests.value.filter(
+    r => r.status === 'open'
+  ).length.toString()
+  
+  // Demandes en cours
+  stats.value[2].value = requests.value.filter(
+    r => r.status === 'in_progress' || r.status === 'assigned'
+  ).length.toString()
+  
+  // Demandes terminées
+  stats.value[3].value = requests.value.filter(
+    r => r.status === 'completed'
+  ).length.toString()
+}
+
+// Charger les données
+const fetchRequests = async () => {
+  isLoading.value = true
+  
+  try {
+    // Récupérer les catégories
+    const { data: categoriesData, error: categoriesError } = await supabase
+      .from('services_categories')
+      .select('*')
     
-    stats.value = [
-      { name: 'Total demandes', value: total.toString(), icon: ClipboardDocumentListIcon },
-      { name: 'Complétées', value: completed.toString(), icon: CheckCircleIcon },
-      { name: 'En attente', value: pending.toString(), icon: ClockIcon },
-      { name: 'Revenus', value: formatPrice(revenue), icon: CurrencyDollarIcon }
-    ]
+    if (categoriesError) throw categoriesError
+    categories.value = categoriesData
+    
+    // Récupérer les demandes
+    const { data: requestsData, error: requestsError } = await supabase
+      .from('requests')
+      .select('*')
+      .order('created_at', { ascending: false })
+    
+    if (requestsError) throw requestsError
+    requests.value = requestsData
+    
+    // Récupérer les experts
+    const { data: expertsData, error: expertsError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('is_expert', true)
+    
+    if (expertsError) throw expertsError
+    experts.value = expertsData
+    
+    // Mettre à jour les statistiques
+    updateStats()
+  } catch (err) {
+    console.error('Erreur lors du chargement des données:', err)
+    error.value = err.message
+    showNotification('error', 'Erreur', 'Impossible de charger les données')
+  } finally {
+    isLoading.value = false
   }
 }
 
-// Filtrage et pagination
-const filteredRequests = computed(() => {
-  let filtered = requests.value
-
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(request => 
-      request.service_name?.toLowerCase().includes(query) ||
-      `${request.client_first_name} ${request.client_last_name}`.toLowerCase().includes(query) ||
-      request.client_email?.toLowerCase().includes(query) ||
-      request.location?.toLowerCase().includes(query)
-    )
-  }
-
-  if (statusFilter.value) {
-    filtered = filtered.filter(request => request.status === statusFilter.value)
-  }
-
-  if (serviceFilter.value) {
-    filtered = filtered.filter(request => request.service_id === serviceFilter.value)
-  }
-
-  return filtered
-})
-
-const totalRequests = computed(() => filteredRequests.value.length)
-const startIndex = computed(() => (currentPage.value - 1) * perPage)
-const endIndex = computed(() => Math.min(startIndex.value + perPage, totalRequests.value))
-const paginatedRequests = computed(() => 
-  filteredRequests.value.slice(startIndex.value, endIndex.value)
-)
-
-// Formatage
-const formatDate = (date) => {
-  if (!date) return '—'
-  return new Date(date).toLocaleDateString('fr-FR', {
-    year: 'numeric',
+// Formater une date
+const formatDate = (dateString) => {
+  if (!dateString) return 'Non spécifiée'
+  
+  const date = new Date(dateString)
+  return new Intl.DateTimeFormat('fr-FR', {
+    day: 'numeric',
     month: 'long',
-    day: 'numeric'
-  })
+    year: 'numeric'
+  }).format(date)
 }
 
-const formatTime = (time) => {
-  if (!time) return '—'
-  return time
-}
-
-const formatPrice = (price) => {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'XOF',
-    maximumFractionDigits: 0
-  }).format(price || 0)
-}
-
-const getStatusLabel = (status) => {
-  const statusMap = {
-    'active': 'Active',
-    'pending': 'En attente',
-    'completed': 'Terminée',
-    'cancelled': 'Annulée'
+// Formater le statut
+const formatStatus = (status) => {
+  switch (status) {
+    case 'open': return 'Nouvelle'
+    case 'assigned': return 'Assignée'
+    case 'in_progress': return 'En cours'
+    case 'completed': return 'Terminée'
+    case 'cancelled': return 'Annulée'
+    default: return status
   }
-  return statusMap[status] || status
 }
 
-// Actions
-const viewDetails = (request) => {
+// Obtenir la classe CSS pour le statut
+const getStatusClass = (status) => {
+  switch (status) {
+    case 'open':
+      return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
+    case 'assigned':
+      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+    case 'in_progress':
+      return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400'
+    case 'completed':
+      return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+    case 'cancelled':
+      return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+    default:
+      return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400'
+  }
+}
+
+// Obtenir la classe pour le point de statut
+const getStatusDotClass = (status) => {
+  switch (status) {
+    case 'open': return 'bg-amber-500'
+    case 'assigned': return 'bg-blue-500'
+    case 'in_progress': return 'bg-indigo-500'
+    case 'completed': return 'bg-green-500'
+    case 'cancelled': return 'bg-red-500'
+    default: return 'bg-gray-500'
+  }
+}
+
+// Obtenir le nom de la catégorie
+const getCategoryName = (categoryId) => {
+  const category = categories.value.find(c => c.id === categoryId)
+  return category ? category.name : 'Service général'
+}
+
+// Obtenir l'icône de la catégorie
+const getCategoryIcon = (categoryId) => {
+  switch (categoryId) {
+    case 1: return Home // Ménage
+    case 2: return Paintbrush // Peinture
+    case 3: return Wrench // Plomberie
+    case 4: return Briefcase // Montage de meubles
+    case 5: return Scissors // Jardinage
+    default: return LayoutGrid
+  }
+}
+
+// Obtenir la classe de couleur pour la catégorie
+const getCategoryColorClass = (categoryId) => {
+  switch (categoryId) {
+    case 1: return 'bg-teal-500'
+    case 2: return 'bg-purple-500'
+    case 3: return 'bg-blue-500'
+    case 4: return 'bg-amber-500'
+    case 5: return 'bg-green-500'
+    default: return 'bg-gray-500'
+  }
+}
+
+// Voir les détails d'une demande
+const viewRequestDetails = (request) => {
   selectedRequest.value = request
   showDetailsModal.value = true
 }
 
-const assignExpert = (request) => {
+// Ouvrir le modal d'assignation
+const openAssignModal = (request) => {
   selectedRequest.value = request
+  selectedExpertId.value = ''
+  assignmentNotes.value = ''
   showAssignModal.value = true
 }
 
-const cancelRequest = async (request) => {
-  if (confirm(`Êtes-vous sûr de vouloir annuler la demande "${request.service_name}" ?`)) {
-    try {
-      const { error: err } = await supabase
-        .from('requests')
-        .update({ status: 'cancelled', updated_at: new Date() })
-        .eq('id', request.id)
-      
-      if (err) throw err
-      
-      // Mettre à jour la liste locale
-      await fetchRequests()
-      updateStats()
-    } catch (err) {
-      console.error('Erreur lors de l\'annulation de la demande:', err)
-      alert('Erreur lors de l\'annulation de la demande')
-    }
-  }
-}
-
-const handleAssignExpert = async ({ request, expert }) => {
+// Assigner un expert
+const assignExpert = async () => {
+  if (!selectedExpertId.value || !selectedRequest.value) return
+  
+  isAssigning.value = true
+  
   try {
-    // 1. Créer une proposition
-    const { data: proposal, error: proposalError } = await supabase
-      .from('proposals')
-      .insert({
-        request_id: request.id,
-        expert_id: expert.id,
-        price: request.budget, // Vous pourriez ajuster cela
-        message: 'Assigné par l\'administrateur',
-        status: 'accepted'
-      })
-      .select()
-      .single()
-    
-    if (proposalError) throw proposalError
-    
-    // 2. Mettre à jour le statut de la demande
+    // Mettre à jour la demande avec l'expert assigné
     const { error: requestError } = await supabase
       .from('requests')
       .update({ 
-        status: 'pending',
+        expert_id: selectedExpertId.value,
+        admin_notes: assignmentNotes.value,
+        status: 'assigned',
+        updated_at: new Date()
+      })
+      .eq('id', selectedRequest.value.id)
+    
+    if (requestError) throw requestError
+    
+    // Rafraîchir les données
+    await fetchRequests()
+    
+    showAssignModal.value = false
+    showNotification('success', 'Expert assigné', 'L\'expert a été assigné à la demande avec succès')
+  } catch (err) {
+    console.error('Erreur lors de l\'assignation:', err)
+    showNotification('error', 'Erreur', 'Impossible d\'assigner l\'expert à la demande')
+  } finally {
+    isAssigning.value = false
+  }
+}
+
+// Annuler une demande
+const cancelRequest = async (request) => {
+  if (!confirm(`Êtes-vous sûr de vouloir annuler la demande "${request.title}" ?`)) return
+  
+  try {
+    const { error } = await supabase
+      .from('requests')
+      .update({ 
+        status: 'cancelled',
         updated_at: new Date()
       })
       .eq('id', request.id)
     
-    if (requestError) throw requestError
+    if (error) throw error
     
-    // Mettre à jour la liste locale
+    // Rafraîchir les données
     await fetchRequests()
-    updateStats()
-    showAssignModal.value = false
-  } catch (error) {
-    console.error('Erreur lors de l\'assignation:', error)
-    alert('Erreur lors de l\'assignation de l\'expert')
+    showNotification('success', 'Demande annulée', 'La demande a été annulée avec succès')
+  } catch (err) {
+    console.error('Erreur lors de l\'annulation:', err)
+    showNotification('error', 'Erreur', 'Impossible d\'annuler la demande')
   }
 }
+
+// Réinitialiser les filtres
+const resetFilters = () => {
+  search.value = ''
+  statusFilter.value = 'all'
+  categoryFilter.value = 'all'
+  currentPage.value = 1
+}
+
+// Exporter les données
+const exportData = () => {
+  // Implémenter l'export CSV/Excel ici
+  alert('La fonctionnalité d\'export sera bientôt disponible')
+}
+
+// Rafraîchir les données
+const refreshData = async () => {
+  await fetchRequests()
+  showNotification('success', 'Données actualisées', 'La liste des demandes a été mise à jour')
+}
+
+// Réinitialiser la pagination quand les filtres changent
+watch([search, statusFilter, categoryFilter], () => {
+  currentPage.value = 1
+})
+
+// Initialisation
+onMounted(() => {
+  fetchRequests()
+})
+
 definePageMeta({
-  // middleware: ['auth'],
   layout: 'admin'
 })
 </script>

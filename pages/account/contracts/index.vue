@@ -1,146 +1,153 @@
 <template>
-  <div class="max-w-4xl mx-auto px-4 pt-5 pb-16">
-    <!-- En-tête de la page -->
-    <div class="mb-7 bg-white dark:bg-gray-800 rounded-xl p-5 border-l-4 border-primary-500 shadow-sm">
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-        <FileCheck class="h-6 w-6 mr-3 text-primary-600 dark:text-primary-400" />
-        Mes contrats
-      </h1>
-      <p class="text-gray-600 dark:text-gray-400 mt-1">
-        Suivez l'état de tous vos contrats et engagements en cours
-      </p>
-    </div>
+  <div class="max-w-4xl mx-auto">
+    <AccountHeader 
+      title="Mes contrats" 
+      subtitle="Gérez vos contrats et missions en cours" 
+    />
 
-    <!-- Filtres et statistiques -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-7">
-      <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 text-center">
-        <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ stats.active }}</div>
-        <div class="text-xs font-medium text-gray-600 dark:text-gray-400">Contrats actifs</div>
-      </div>
-      <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 text-center">
-        <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ stats.pending }}</div>
-        <div class="text-xs font-medium text-gray-600 dark:text-gray-400">En attente</div>
-      </div>
-      <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 text-center">
-        <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ stats.completed }}</div>
-        <div class="text-xs font-medium text-gray-600 dark:text-gray-400">Terminés</div>
-      </div>
-      <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 text-center">
-        <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ stats.revenues }}€</div>
-        <div class="text-xs font-medium text-gray-600 dark:text-gray-400">{{ isExpert ? 'Revenus totaux' : 'Budget engagé' }}</div>
+    <!-- Notification de succès après finalisation d'un contrat -->
+    <div 
+      v-if="successMessage" 
+      class="mb-6 bg-green-100 dark:bg-green-900/30 border-l-4 border-green-500 text-green-700 dark:text-green-400 p-4 rounded-lg flex items-start"
+    >
+      <CheckCircle class="h-5 w-5 mr-3 flex-shrink-0 mt-0.5" />
+      <div>
+        <p class="font-medium">{{ successMessage }}</p>
+        <p class="text-sm mt-1">Le paiement a été traité et la mission est maintenant terminée.</p>
       </div>
     </div>
 
-    <!-- Filtres et recherche -->
-    <div class="mb-7 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <div class="flex items-center gap-2">
-        <button 
-          @click="activeFilter = 'all'"
-          class="px-4 py-2 rounded-full text-sm font-medium transition-all"
-          :class="activeFilter === 'all' ? 'bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200'"
-        >
-          Tous
-        </button>
-        <button 
-          @click="activeFilter = 'active'"
-          class="px-4 py-2 rounded-full text-sm font-medium transition-all"
-          :class="activeFilter === 'active' ? 'bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200'"
-        >
-          En cours
-        </button>
-        <button 
-          @click="activeFilter = 'completed'"
-          class="px-4 py-2 rounded-full text-sm font-medium transition-all"
-          :class="activeFilter === 'completed' ? 'bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200'"
-        >
-          Terminés
-        </button>
-      </div>
-
-      <div class="relative">
-        <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-        <input 
-          type="text" 
-          placeholder="Rechercher dans mes contrats..."
-          v-model="searchQuery"
-          class="pl-10 pr-4 py-2 w-full sm:w-64 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:focus:ring-primary-600 dark:focus:border-primary-600"
-        />
-      </div>
+    <!-- Chargement -->
+    <div v-if="isLoading" class="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm text-center">
+      <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-500 border-r-transparent"></div>
+      <p class="mt-3 text-gray-600 dark:text-gray-400">Chargement de vos contrats...</p>
     </div>
 
-    <!-- Liste des contrats -->
-    <div v-if="isLoading" class="bg-white dark:bg-gray-800 rounded-xl p-12 flex flex-col items-center">
-      <div class="h-10 w-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
-      <p class="mt-4 text-gray-600 dark:text-gray-400">Chargement de vos contrats...</p>
-    </div>
-
-    <div v-else-if="filteredContracts.length === 0" class="bg-white dark:bg-gray-800 rounded-xl p-8 text-center border border-gray-200 dark:border-gray-700">
-      <div class="mb-4 flex justify-center">
-        <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-full">
-          <FileX class="h-8 w-8 text-gray-500 dark:text-gray-400" />
-        </div>
+    <!-- Aucun contrat -->
+    <div v-else-if="contracts.length === 0" class="bg-white dark:bg-gray-800 rounded-xl p-8 text-center border border-gray-200 dark:border-gray-700">
+      <div class="inline-flex items-center justify-center h-16 w-16 rounded-full bg-gray-100 dark:bg-gray-700 mb-4">
+        <ClipboardList class="h-8 w-8 text-gray-500 dark:text-gray-400" />
       </div>
-      <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Aucun contrat trouvé</h3>
-      <p class="text-gray-600 dark:text-gray-400 mb-6">
-        {{ activeFilter === 'all' 
-          ? "Vous n'avez encore aucun contrat à afficher." 
-          : activeFilter === 'active' 
-          ? "Vous n'avez aucun contrat actif en ce moment."
-          : "Vous n'avez pas encore de contrats terminés." 
+      <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Aucun contrat actif</h3>
+      <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+        {{ isExpert ? 
+          "Vous n'avez pas encore de contrats en cours. Proposez vos services pour obtenir des missions." : 
+          "Vous n'avez pas encore de contrats en cours. Contactez un expert pour démarrer une mission." 
         }}
       </p>
-      <NuxtLink to="/requests" class="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-full shadow-sm inline-flex items-center">
-        <Search class="h-4 w-4 mr-2" />
-        Explorer les demandes
+      <NuxtLink 
+        :to="isExpert ? '/requests' : '/services'" 
+        class="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-full shadow-sm"
+      >
+        {{ isExpert ? 'Voir les demandes' : 'Trouver un expert' }}
       </NuxtLink>
     </div>
 
-    <div v-else class="space-y-4">
-      <div v-for="contract in filteredContracts" :key="contract.id" 
-        class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-200">
-        <div class="p-5">
-          <div class="flex items-start justify-between">
-            <div>
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">{{ contract.title }}</h3>
-              <div class="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-gray-400 mb-3">
-                <span class="flex items-center">
-                  <User class="h-4 w-4 mr-1" />
-                  {{ isExpert ? 'Client: ' : 'Expert: ' }} {{ contract.with_user }}
-                </span>
-                <span class="flex items-center">
-                  <Calendar class="h-4 w-4 mr-1" />
-                  Début: {{ formatDate(contract.start_date) }}
-                </span>
-                <span class="flex items-center">
-                  <Clock class="h-4 w-4 mr-1" />
-                  Durée: {{ contract.duration }}
-                </span>
-              </div>
-              <p class="text-gray-700 dark:text-gray-300 mb-4 line-clamp-2">
-                {{ contract.description }}
-              </p>
-            </div>
-            <div>
-              <span class="px-3 py-1 rounded-full text-xs font-bold" 
-                :class="getStatusClass(contract.status)">
-                {{ contract.status }}
-              </span>
-            </div>
-          </div>
+    <!-- Liste des contrats -->
+    <div v-else>
+      <!-- Filtres -->
+      <div class="mb-6 flex items-center space-x-4 overflow-x-auto py-2">
+        <button 
+          v-for="filter in statusFilters" 
+          :key="filter.value"
+          @click="activeFilter = filter.value"
+          class="px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap"
+          :class="activeFilter === filter.value ? 
+            'bg-primary-600 text-white' : 
+            'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'"
+        >
+          {{ filter.label }}
+          <span class="ml-1.5 bg-white bg-opacity-20 text-white px-1.5 py-0.5 rounded-full text-xs">
+            {{ getContractCountByStatus(filter.value) }}
+          </span>
+        </button>
+      </div>
 
-          <div class="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <div class="flex-1">
-              <div class="flex items-baseline">
-                <span class="text-lg font-bold text-gray-900 dark:text-white">{{ contract.amount }}€</span>
-                <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">
-                  {{ contract.payment_status }}
-                </span>
+      <!-- Contrats -->
+      <div class="space-y-4">
+        <div 
+          v-for="contract in filteredContracts" 
+          :key="contract.id"
+          class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-all"
+        >
+          <div class="p-5">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white">{{ contract.title }}</h3>
+                <div class="flex items-center mt-1 text-sm text-gray-600 dark:text-gray-400">
+                  <CalendarIcon class="h-4 w-4 mr-1.5" />
+                  <span>Créé le {{ formatDate(contract.created_at) }}</span>
+                </div>
+              </div>
+              
+              <div 
+                class="px-3 py-1 rounded-full text-xs font-medium"
+                :class="getStatusClass(contract.status)"
+              >
+                {{ formatStatus(contract.status) }}
               </div>
             </div>
             
-            <NuxtLink :to="`/account/contracts/${contract.id}`" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-full shadow-sm">
-              Voir le contrat
-            </NuxtLink>
+            <div class="flex items-center mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+              <div class="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
+                <UserIcon class="h-5 w-5 text-primary-600 dark:text-primary-400" />
+              </div>
+              <div class="ml-3">
+                <p class="text-sm font-medium text-gray-900 dark:text-white">
+                  {{ isExpert ? 'Client' : 'Expert' }}
+                </p>
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                  {{ isExpert ? contract.client_name : contract.expert_name }}
+                </p>
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2 text-sm">
+              <div>
+                <span class="text-gray-600 dark:text-gray-400">Montant:</span>
+                <span class="font-medium text-gray-900 dark:text-white ml-1">{{ contract.amount }}€</span>
+              </div>
+              <div>
+                <span class="text-gray-600 dark:text-gray-400">Service:</span>
+                <span class="font-medium text-gray-900 dark:text-white ml-1">{{ contract.service_name }}</span>
+              </div>
+              <div v-if="contract.completed_at">
+                <span class="text-gray-600 dark:text-gray-400">Terminé le:</span>
+                <span class="font-medium text-gray-900 dark:text-white ml-1">{{ formatDate(contract.completed_at) }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Actions -->
+          <div class="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-5 py-3 flex justify-between items-center">
+            <div>
+              <NuxtLink 
+                :to="`/account/contracts/${contract.id}`"
+                class="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium"
+              >
+                Voir les détails
+              </NuxtLink>
+            </div>
+            
+            <div class="flex gap-2">
+              <!-- Bouton de finalisation pour les contrats en cours -->
+              <NuxtLink 
+                v-if="contract.status === 'in_progress'"
+                :to="`/account/contracts/${contract.id}/complete`"
+                class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-md shadow-sm transition-colors"
+              >
+                <CheckIcon class="h-4 w-4 inline-block mr-1.5" />
+                Finaliser
+              </NuxtLink>
+              
+              <!-- Bouton de contact -->
+              <button 
+                class="px-4 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-md border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+              >
+                <MessageSquare class="h-4 w-4 inline-block mr-1.5" />
+                Message
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -152,144 +159,136 @@
 import { ref, computed, onMounted } from 'vue'
 import { useSupabaseClient, useSupabaseUser } from '#imports'
 import {
-  FileCheck,
-  Calendar,
-  User,
-  Clock,
-  Search,
-  FileX
+  CheckCircle,
+  UserIcon,
+  CalendarIcon,
+  MessageSquare,
+  CheckIcon,
+  ClipboardList
 } from 'lucide-vue-next'
+import AccountHeader from '~/components/account/AccountHeader.vue'
+
+const supabase = useSupabaseClient()
+const user = useSupabaseUser()
+const router = useRouter()
+const route = useRoute()
 
 // États
-const user = useSupabaseUser()
-const supabase = useSupabaseClient()
 const isLoading = ref(true)
 const contracts = ref([])
 const activeFilter = ref('all')
-const searchQuery = ref('')
 const isExpert = ref(false)
+const successMessage = ref('')
 
-// Statistiques des contrats
-const stats = ref({
-  active: 0,
-  pending: 0,
-  completed: 0,
-  revenues: 0
-})
+// Filtres disponibles
+const statusFilters = [
+  { label: 'Tous', value: 'all' },
+  { label: 'En cours', value: 'in_progress' },
+  { label: 'Terminés', value: 'completed' }
+]
 
-// Filtrer les contrats selon les critères
+// Contrats filtrés
 const filteredContracts = computed(() => {
-  let filtered = [...contracts.value]
-  
-  // Filtrer par statut
-  if (activeFilter.value === 'active') {
-    filtered = filtered.filter(contract => ['En cours', 'En préparation'].includes(contract.status))
-  } else if (activeFilter.value === 'completed') {
-    filtered = filtered.filter(contract => ['Terminé', 'Annulé'].includes(contract.status))
+  if (activeFilter.value === 'all') {
+    return contracts.value
   }
   
-  // Recherche textuelle
-  if (searchQuery.value.trim()) {
-    const query = searchQuery.value.toLowerCase().trim()
-    filtered = filtered.filter(contract => 
-      contract.title.toLowerCase().includes(query) || 
-      contract.description.toLowerCase().includes(query) ||
-      contract.with_user.toLowerCase().includes(query)
-    )
-  }
-  
-  return filtered
+  return contracts.value.filter(contract => contract.status === activeFilter.value)
 })
 
-// Récupérer les contrats de l'utilisateur
+// Vérifier si l'utilisateur est un expert
+const checkUserRole = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.value.id)
+      .single()
+    
+    if (error) throw error
+    
+    isExpert.value = data.role === 'expert'
+  } catch (err) {
+    console.error('Erreur lors de la vérification du rôle:', err)
+  }
+}
+
+// Récupérer les contrats
 const fetchContracts = async () => {
   isLoading.value = true
   
   try {
-    // D'abord récupérer le profil pour savoir si l'utilisateur est un expert
-    const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
-      .select('is_expert')
-      .eq('id', user.value.id)
-      .single()
+    await checkUserRole()
     
-    if (profileError) throw profileError
+    // Déterminer la colonne à utiliser pour la requête
+    const columnToUse = isExpert.value ? 'expert_id' : 'client_id'
     
-    isExpert.value = profileData?.is_expert || false
-    
-    // Récupérer les contrats
     const { data, error } = await supabase
       .from('contracts')
-      .select('*')
-      .eq(isExpert.value ? 'expert_id' : 'client_id', user.value.id)
+      .select(`
+        *,
+        services (
+          title
+        ),
+        client:client_id (
+          first_name,
+          last_name
+        ),
+        expert:expert_id (
+          first_name,
+          last_name
+        )
+      `)
+      .eq(columnToUse, user.value.id)
       .order('created_at', { ascending: false })
     
     if (error) throw error
     
-    // Simuler des données pour l'exemple
-    if (!data || data.length === 0) {
-      contracts.value = [
-        {
-          id: 1,
-          title: 'Développement site e-commerce',
-          description: 'Création d\'un site e-commerce complet avec système de paiement et gestion de stock.',
-          status: 'En cours',
-          with_user: 'Marie Lambert',
-          start_date: '2023-05-10',
-          duration: '4 semaines',
-          amount: 2800,
-          payment_status: 'Acompte payé'
-        },
-        {
-          id: 2,
-          title: 'Campagne marketing réseaux sociaux',
-          description: 'Élaboration et gestion d\'une campagne marketing sur 3 plateformes sociales.',
-          status: 'En préparation',
-          with_user: 'Thomas Martin',
-          start_date: '2023-06-15',
-          duration: '2 mois',
-          amount: 1500,
-          payment_status: 'En attente'
-        },
-        {
-          id: 3,
-          title: 'Création logo et charte graphique',
-          description: 'Design d\'un logo et développement d\'une charte graphique complète pour une nouvelle marque.',
-          status: 'Terminé',
-          with_user: 'Julie Dubois',
-          start_date: '2023-04-05',
-          duration: '3 semaines',
-          amount: 950,
-          payment_status: 'Payé intégralement'
-        }
-      ]
-    } else {
-      contracts.value = data
-    }
+    // Formater les données des contrats
+    contracts.value = (data || []).map(contract => ({
+      ...contract,
+      client_name: `${contract.client.first_name} ${contract.client.last_name}`,
+      expert_name: `${contract.expert.first_name} ${contract.expert.last_name}`,
+      service_name: contract.services?.title || 'Service non spécifié',
+      title: contract.title || contract.services?.title || 'Contrat'
+    }))
     
-    // Calculer les statistiques
-    updateStats()
-  } catch (error) {
-    console.error('Erreur lors du chargement des contrats:', error)
+    // Vérifier s'il y a un message de succès dans l'URL
+    checkSuccessMessage()
+    
+  } catch (err) {
+    console.error('Erreur lors du chargement des contrats:', err)
   } finally {
     isLoading.value = false
   }
 }
 
-// Mettre à jour les statistiques
-const updateStats = () => {
-  stats.value = {
-    active: contracts.value.filter(c => ['En cours', 'En préparation'].includes(c.status)).length,
-    pending: contracts.value.filter(c => c.status === 'En préparation').length,
-    completed: contracts.value.filter(c => c.status === 'Terminé').length,
-    revenues: contracts.value.reduce((sum, contract) => {
-      return contract.status !== 'Annulé' ? sum + contract.amount : sum
-    }, 0)
+// Compter les contrats par statut
+const getContractCountByStatus = (status) => {
+  if (status === 'all') {
+    return contracts.value.length
+  }
+  
+  return contracts.value.filter(contract => contract.status === status).length
+}
+
+// Vérifier les paramètres d'URL pour afficher un message de succès
+const checkSuccessMessage = () => {
+  if (route.query.success === 'completed') {
+    successMessage.value = 'Contrat finalisé avec succès!'
+    
+    // Effacer le message après 5 secondes
+    setTimeout(() => {
+      successMessage.value = ''
+      router.replace({ path: route.path })
+    }, 5000)
   }
 }
 
-// Formater la date pour affichage
+// Formater une date
 const formatDate = (dateString) => {
+  if (!dateString) return 'Non spécifiée'
+  
   const date = new Date(dateString)
   return new Intl.DateTimeFormat('fr-FR', {
     day: 'numeric',
@@ -298,19 +297,35 @@ const formatDate = (dateString) => {
   }).format(date)
 }
 
-// Définir la classe de couleur selon le statut
+// Formater le statut d'un contrat
+const formatStatus = (status) => {
+  switch (status) {
+    case 'pending':
+      return 'En attente'
+    case 'in_progress':
+      return 'En cours'
+    case 'completed':
+      return 'Terminé'
+    case 'cancelled':
+      return 'Annulé'
+    default:
+      return status
+  }
+}
+
+// Obtenir la classe CSS pour le statut
 const getStatusClass = (status) => {
-  switch(status) {
-    case 'En préparation':
+  switch (status) {
+    case 'pending':
       return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
-    case 'En cours':
+    case 'in_progress':
       return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
-    case 'Terminé':
+    case 'completed':
       return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-    case 'Annulé':
+    case 'cancelled':
       return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
     default:
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+      return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400'
   }
 }
 
@@ -320,24 +335,6 @@ onMounted(() => {
 })
 
 definePageMeta({
-  layout: 'default'
+  layout: 'account'
 })
-</script>
-
-<style scoped>
-/* Animation des composants */
-.rounded-xl {
-  animation: fadeIn 0.5s ease;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-</style> 
+</script> 
