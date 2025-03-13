@@ -1,287 +1,287 @@
 <template>
-    <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div class="bg-white rounded-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-        <div class="sticky top-0 bg-white p-6 border-b border-gray-100 flex justify-between items-center">
-          <h2 class="text-xl font-bold">Détails de la demande</h2>
-          <button @click="$emit('close')" class="p-2 rounded-full hover:bg-gray-100">
-            <XMarkIcon class="w-6 h-6" />
-          </button>
+  <div class="max-w-4xl mx-auto px-4 pt-5 pb-16">
+    <!-- En-tête de la demande -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm mb-6">
+      <div class="flex justify-between items-start">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ request.title }}</h1>
+          <div class="flex items-center mt-2">
+            <Calendar class="h-4 w-4 text-gray-500 mr-1.5" />
+            <span class="text-gray-600 dark:text-gray-400 text-sm">Publiée le {{ formatDate(request.created_at) }}</span>
+          </div>
         </div>
         
-        <div class="p-6">
-          <!-- En-tête -->
-          <div class="flex items-start gap-4 mb-6">
-            <div class="w-16 h-16 rounded-full bg-black flex items-center justify-center text-2xl text-white">
-              {{ request.service_icon }}
-            </div>
-            <div>
-              <h3 class="text-2xl font-bold text-gray-900">{{ request.service_name }}</h3>
-              <div class="text-lg text-gray-500">{{ formatPrice(request.budget) }} • {{ request.duration }}h</div>
+        <div class="bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full">
+          <span class="text-blue-600 dark:text-blue-400 text-sm font-medium">{{ request.status }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Détails de la demande -->
+      <div class="md:col-span-2">
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden mb-6">
+          <!-- Description -->
+          <div class="p-5">
+            <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-3">Description du projet</h2>
+            <div class="text-gray-700 dark:text-gray-300 space-y-3">
+              <p>{{ request.description }}</p>
             </div>
           </div>
           
-          <!-- Informations principales -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div>
-              <h4 class="font-medium text-gray-500 mb-2">Détails</h4>
-              <div class="space-y-3">
-                <div class="flex items-center gap-3">
-                  <CalendarIcon class="w-5 h-5 text-gray-400" />
-                  <span>{{ formatDate(request.date) }} à {{ formatTime(request.time) }}</span>
+          <!-- Spécifications -->
+          <div class="border-t border-gray-200 dark:border-gray-700 p-5">
+            <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-3">Spécifications</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="flex items-start">
+                <Calendar class="h-5 w-5 text-gray-500 mr-2 mt-0.5" />
+                <div>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">Délai souhaité</p>
+                  <p class="font-medium text-gray-900 dark:text-white">
+                    {{ request.deadline || 'Flexible' }}
+                  </p>
                 </div>
-                <div class="flex items-center gap-3">
-                  <MapPinIcon class="w-5 h-5 text-gray-400" />
-                  <span>{{ request.location }}</span>
+              </div>
+              
+              <div class="flex items-start">
+                <DollarSign class="h-5 w-5 text-gray-500 mr-2 mt-0.5" />
+                <div>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">Budget</p>
+                  <p class="font-medium text-gray-900 dark:text-white">
+                    {{ request.budget ? request.budget + '€' : 'À discuter' }}
+                  </p>
                 </div>
-                <div class="flex items-center gap-3">
-                  <ClockIcon class="w-5 h-5 text-gray-400" />
-                  <span>{{ request.duration }} heures</span>
+              </div>
+              
+              <div class="flex items-start">
+                <MapPin class="h-5 w-5 text-gray-500 mr-2 mt-0.5" />
+                <div>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">Localisation</p>
+                  <p class="font-medium text-gray-900 dark:text-white">
+                    {{ request.location || 'À distance' }}
+                  </p>
                 </div>
-                <div class="flex items-center gap-3">
-                  <TagIcon class="w-5 h-5 text-gray-400" />
-                  <span 
-                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"
-                    :class="{
-                      'bg-yellow-50 text-yellow-800 border border-yellow-200': request.status === 'active',
-                      'bg-blue-50 text-blue-800 border border-blue-200': request.status === 'pending',
-                      'bg-green-50 text-green-800 border border-green-200': request.status === 'completed',
-                      'bg-red-50 text-red-800 border border-red-200': request.status === 'cancelled'
-                    }"
-                  >
-                    {{ getStatusLabel(request.status) }}
+              </div>
+              
+              <div class="flex items-start">
+                <CheckCircle class="h-5 w-5 text-gray-500 mr-2 mt-0.5" />
+                <div>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">Type de projet</p>
+                  <p class="font-medium text-gray-900 dark:text-white">
+                    {{ request.project_type }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Compétences requises -->
+          <div class="border-t border-gray-200 dark:border-gray-700 p-5">
+            <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-3">Compétences requises</h2>
+            <div class="flex flex-wrap gap-2">
+              <span 
+                v-for="skill in request.skills" 
+                :key="skill"
+                class="bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full text-gray-800 dark:text-gray-200 text-sm"
+              >
+                {{ skill }}
+              </span>
+            </div>
+          </div>
+          
+          <!-- Client -->
+          <div class="border-t border-gray-200 dark:border-gray-700 p-5">
+            <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-3">À propos du client</h2>
+            <div class="flex items-center">
+              <img 
+                :src="request.client.avatar_url || '/img/default-avatar.png'" 
+                class="w-12 h-12 rounded-full mr-3 object-cover" 
+                alt="Avatar du client"
+              />
+              <div>
+                <p class="font-medium text-gray-900 dark:text-white">
+                  {{ request.client.name }}
+                </p>
+                <div class="flex items-center mt-1">
+                  <Star class="h-4 w-4 text-amber-500 fill-amber-500 mr-1" />
+                  <span class="text-gray-700 dark:text-gray-300 text-sm">
+                    {{ request.client.rating }} · {{ request.client.projects_count }} projets
                   </span>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Section action (soumettre une proposition) -->
+      <div class="md:col-span-1">
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 sticky top-6">
+          <div class="p-5">
+            <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Faire une proposition</h2>
+            
+            <div v-if="!isExpert" class="text-center py-4">
+              <Shield class="h-12 w-12 text-gray-400 mx-auto mb-3" />
+              <p class="text-gray-700 dark:text-gray-300 mb-4">
+                Vous devez être en mode expert pour répondre à cette demande.
+              </p>
+              <NuxtLink to="/account" class="text-blue-600 dark:text-blue-400 font-medium hover:underline">
+                Activer le mode expert
+              </NuxtLink>
+            </div>
+            
+            <div v-else-if="hasProposed" class="text-center py-4">
+              <CheckCircle class="h-12 w-12 text-green-500 mx-auto mb-3" />
+              <p class="text-gray-700 dark:text-gray-300 mb-2">
+                Vous avez déjà envoyé une proposition pour cette demande.
+              </p>
+              <div class="mt-4">
+                <NuxtLink to="/account/proposals" class="text-blue-600 dark:text-blue-400 font-medium hover:underline">
+                  Voir mes propositions
+                </NuxtLink>
               </div>
             </div>
             
-            <div>
-              <h4 class="font-medium text-gray-500 mb-2">Client</h4>
-              <div class="flex items-center gap-3 mb-4">
-                <img 
-                  :src="request.client_image || `https://ui-avatars.com/api/?name=${request.client_first_name}+${request.client_last_name}&background=000000&color=ffffff`"
-                  class="w-12 h-12 rounded-full border border-gray-200"
-                  alt="Client avatar"
-                />
-                <div>
-                  <div class="font-medium text-gray-900">{{ request.client_first_name }} {{ request.client_last_name }}</div>
-                  <div class="text-sm text-gray-500">{{ request.client_email || '—' }}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Description -->
-          <div class="mb-6">
-            <h4 class="font-medium text-gray-500 mb-2">Description</h4>
-            <p class="text-gray-700 whitespace-pre-line">{{ request.description }}</p>
-          </div>
-          
-          <!-- Propositions -->
-          <div v-if="proposals.length > 0">
-            <h4 class="font-medium text-gray-500 mb-2">Propositions ({{ proposals.length }})</h4>
-            <div class="space-y-4">
-              <div 
-                v-for="proposal in proposals" 
-                :key="proposal.id"
-                class="bg-gray-50 p-4 rounded-xl"
-              >
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-3">
-                    <img 
-                      :src="proposal.expert_image || `https://ui-avatars.com/api/?name=${proposal.expert_first_name}+${proposal.expert_last_name}&background=000000&color=ffffff`"
-                      class="w-10 h-10 rounded-full border border-gray-200"
-                      alt="Expert avatar"
-                    />
-                    <div>
-                      <div class="font-medium text-gray-900">{{ proposal.expert_first_name }} {{ proposal.expert_last_name }}</div>
-                      <div class="text-sm text-gray-500">{{ formatPrice(proposal.price) }}</div>
+            <div v-else>
+              <form @submit.prevent="submitProposal">
+                <div class="space-y-4">
+                  <!-- Tarif -->
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Votre tarif (€)
+                    </label>
+                    <div class="relative">
+                      <input 
+                        type="number" 
+                        v-model="proposal.price"
+                        class="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg"
+                        placeholder="Montant"
+                        min="1"
+                      />
+                      <span class="absolute right-3 top-2 text-gray-500">€</span>
                     </div>
                   </div>
-                  <span 
-                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"
-                    :class="{
-                      'bg-yellow-50 text-yellow-800 border border-yellow-200': proposal.status === 'pending',
-                      'bg-green-50 text-green-800 border border-green-200': proposal.status === 'accepted',
-                      'bg-red-50 text-red-800 border border-red-200': proposal.status === 'rejected'
-                    }"
+                  
+                  <!-- Délai -->
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Délai d'exécution (jours)
+                    </label>
+                    <input 
+                      type="number" 
+                      v-model="proposal.days"
+                      class="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg"
+                      placeholder="Nombre de jours"
+                      min="1"
+                    />
+                  </div>
+                  
+                  <!-- Message -->
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Votre message
+                    </label>
+                    <textarea 
+                      v-model="proposal.message"
+                      rows="5"
+                      class="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg"
+                      placeholder="Décrivez votre approche pour ce projet..."
+                    ></textarea>
+                    <p class="text-xs text-gray-500 mt-1">
+                      {{ 1000 - proposal.message.length }} caractères restants
+                    </p>
+                  </div>
+                  
+                  <!-- Submit -->
+                  <button 
+                    type="submit"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors"
+                    :disabled="!canSubmit"
                   >
-                    {{ getProposalStatusLabel(proposal.status) }}
-                  </span>
+                    Envoyer ma proposition
+                  </button>
+                  
+                  <p class="text-xs text-gray-500 text-center">
+                    En soumettant votre proposition, vous acceptez les conditions de service de Havoo.
+                  </p>
                 </div>
-                <p v-if="proposal.message" class="mt-2 text-gray-700">
-                  {{ proposal.message }}
-                </p>
-              </div>
+              </form>
             </div>
-          </div>
-          
-          <!-- Section résolution (visible uniquement pour le propriétaire) -->
-          <RequestResolution
-            v-if="isOwner && request.status === 'accepted'"
-            :request="request"
-            @resolved="onRequestResolved"
-          />
-          
-          <!-- Actions -->
-          <div class="mt-8 flex justify-end gap-3">
-            <button 
-              v-if="request.status === 'active'"
-              class="px-4 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition-colors"
-              @click="$emit('assign', request)"
-            >
-              Assigner un expert
-            </button>
-            <button 
-              v-if="['active', 'pending'].includes(request.status)"
-              class="px-4 py-2 bg-red-50 text-red-700 rounded-full hover:bg-red-100 transition-colors"
-              @click="cancelRequest"
-            >
-              Annuler la demande
-            </button>
           </div>
         </div>
       </div>
     </div>
-  </template>
-  
-  <script setup>
-  import { ref, onMounted } from 'vue'
-  import { 
-    XMarkIcon,
-    CalendarIcon, 
-    MapPinIcon, 
-    ClockIcon,
-    TagIcon
-  } from '@heroicons/vue/24/outline'
-  // import { supabase } from '~/lib/supabase'
-  import RequestResolution from '~/components/requests/RequestResolution.vue'
-  
-  const props = defineProps({
-    request: {
-      type: Object,
-      required: true
-    }
-  })
-  
-  const emit = defineEmits(['close', 'assign'])
-  const proposals = ref([])
-  const client = useSupabaseClient()
-  onMounted(async () => {
-    await fetchProposals()
-  })
-  
-  const fetchProposals = async () => {
-    try {
-      const { data, error } = await client
-        .from('proposals')
-        .select(`
-          id,
-          price,
-          message,
-          status,
-          created_at,
-          experts:expert_id (
-            id,
-            profiles:id (
-              first_name,
-              last_name,
-              profile_image_url
-            )
-          )
-        `)
-        .eq('request_id', props.request.id)
-      
-      if (error) throw error
-      
-      // Transformer les données pour faciliter l'affichage
-      proposals.value = data.map(p => ({
-        id: p.id,
-        price: p.price,
-        message: p.message,
-        status: p.status,
-        created_at: p.created_at,
-        expert_id: p.experts.id,
-        expert_first_name: p.experts.profiles.first_name,
-        expert_last_name: p.experts.profiles.last_name,
-        expert_image: p.experts.profiles.profile_image_url
-      }))
-    } catch (error) {
-      console.error('Erreur lors du chargement des propositions:', error)
-    }
+  </div>
+</template>
+
+<script setup>
+import { ref, computed } from 'vue'
+import { 
+  Calendar, DollarSign, MapPin, CheckCircle, 
+  Star, Shield, CheckIcon
+} from 'lucide-vue-next'
+
+// Données de la demande (mock)
+const request = ref({
+  id: '123',
+  title: 'Création d\'un site e-commerce responsive',
+  status: 'Ouverte',
+  created_at: '2023-08-15T10:00:00',
+  description: `Je recherche un développeur expérimenté pour créer un site e-commerce responsive pour ma boutique de vêtements. Le site doit être facile à naviguer, avec un design moderne et épuré. Il doit être optimisé pour le mobile et inclure un système de paiement sécurisé.`,
+  deadline: '30 jours',
+  budget: 2500,
+  location: 'À distance',
+  project_type: 'Site web complet',
+  skills: ['Wordpress', 'WooCommerce', 'HTML/CSS', 'Responsive Design', 'SEO'],
+  client: {
+    name: 'Marie Dubois',
+    avatar_url: 'https://randomuser.me/api/portraits/women/42.jpg',
+    rating: 4.8,
+    projects_count: 7
   }
-  
-  // Formatage
-  const formatDate = (date) => {
-    if (!date) return '—'
-    return new Date(date).toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
-  }
-  
-  const formatTime = (time) => {
-    if (!time) return '—'
-    return time
-  }
-  
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XOF',
-      maximumFractionDigits: 0
-    }).format(price || 0)
-  }
-  
-  const getStatusLabel = (status) => {
-  const statusMap = {
-    'active': 'En cours',
-    'pending': 'En attente',
-    'completed': 'Terminé',
-    'cancelled': 'Annulé'
-  }
-  return statusMap[status] || status
+})
+
+// État de l'utilisateur
+const isExpert = ref(true)
+const hasProposed = ref(false)
+
+// État de la proposition
+const proposal = ref({
+  price: '',
+  days: '',
+  message: ''
+})
+
+// Validations
+const canSubmit = computed(() => {
+  return proposal.value.price > 0 && 
+         proposal.value.days > 0 && 
+         proposal.value.message.length > 20 &&
+         proposal.value.message.length <= 1000
+})
+
+// Formatage de la date
+const formatDate = (dateString) => {
+  const date = new Date(dateString)
+  return new Intl.DateTimeFormat('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  }).format(date)
 }
 
-const getProposalStatusLabel = (status) => {
-  const statusMap = {
-    'pending': 'En attente',
-    'accepted': 'Acceptée',
-    'rejected': 'Refusée'
-  }
-  return statusMap[status] || status
+// Soumettre la proposition
+const submitProposal = () => {
+  if (!canSubmit.value) return
+  
+  // Simuler une soumission réussie
+  setTimeout(() => {
+    hasProposed.value = true
+    // Redirection ou notification ici
+  }, 1000)
 }
 
-const cancelRequest = async () => {
-  try {
-    const { error } = await supabase
-      .from('requests')
-      .update({ status: 'cancelled' })
-      .eq('id', props.request.id)
-    
-    if (error) throw error
-    
-    // Informer le parent que la demande a été annulée
-    emit('close')
-    // Rafraîchir la liste des demandes
-    emit('refresh')
-  } catch (error) {
-    console.error('Erreur lors de l\'annulation de la demande:', error)
-  }
-}
-
-// Gérer la résolution
-const onRequestResolved = ({ rating, comment }) => {
-  // Mettre à jour l'interface
-  props.request = {
-    ...props.request,
-    resolved_at: new Date().toISOString(),
-    rating,
-    review: comment
-  }
-}
-</script>
-
-<style scoped>
-/* Styles spécifiques au composant si nécessaire */
-</style>
+definePageMeta({
+  layout: 'default'
+})
+</script> 

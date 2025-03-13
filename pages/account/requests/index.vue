@@ -175,51 +175,36 @@ const fetchRequests = async () => {
   isLoading.value = true
   
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('requests')
-      .select('*')
-      .eq('user_id', user.value.id)
-      .order('created_at', { ascending: false })
+      .select(`
+        *,
+        client:client_id(id, first_name, last_name, avatar_url),
+        proposals:proposals(id, status)
+      `)
+    
+    // Filtrer selon le mode
+    if (isExpert.value) {
+      // Expert voit les demandes publiques
+      query = query.eq('status', 'open')
+    } else {
+      // Client voit ses propres demandes
+      query = query.eq('client_id', user.value.id)
+    }
+    
+    // Trier par date
+    query = query.order('created_at', { ascending: false })
+    
+    const { data, error } = await query
     
     if (error) throw error
     
-    // Simuler des données pour l'exemple
-    if (!data || data.length === 0) {
-      requests.value = [
-        {
-          id: 1,
-          title: 'Création d un site web vitrine',
-          description: 'Je recherche un développeur pour créer un site web vitrine pour mon entreprise de décoration d\'intérieur. Le site devra être responsive et facile à naviguer.',
-          status: 'En cours',
-          category: 'Développement web',
-          location: 'Paris',
-          created_at: '2023-05-15T10:30:00',
-          proposal_count: 4
-        },
-        {
-          id: 2,
-          title: 'Assistance pour montage vidéo',
-          description: 'Besoin d\'aide pour monter une vidéo promotionnelle de 3 minutes pour mes réseaux sociaux. Je dispose déjà des rushs.',
-          status: 'En attente',
-          category: 'Vidéo & Animation',
-          location: 'À distance',
-          created_at: '2023-06-01T14:15:00',
-          proposal_count: 2
-        },
-        {
-          id: 3,
-          title: 'Traduction de document technique',
-          description: 'Document technique de 20 pages à traduire de l\'anglais vers le français. Domaine: médical.',
-          status: 'Terminée',
-          category: 'Traduction',
-          location: 'Lyon',
-          created_at: '2023-04-10T09:00:00',
-          proposal_count: 3
-        }
-      ]
-    } else {
-      requests.value = data
-    }
+    requests.value = data.map(request => ({
+      ...request,
+      proposals_count: request.proposals ? request.proposals.length : 0,
+      client_name: `${request.client.first_name} ${request.client.last_name}`,
+      client_avatar: request.client.avatar_url
+    }))
   } catch (error) {
     console.error('Erreur lors du chargement des demandes:', error)
   } finally {

@@ -220,37 +220,39 @@ const fetchContracts = async () => {
   try {
     await checkUserRole()
     
-    // Déterminer la colonne à utiliser pour la requête
-    const columnToUse = isExpert.value ? 'expert_id' : 'client_id'
-    
-    const { data, error } = await supabase
+    let query = supabase
       .from('contracts')
       .select(`
         *,
-        services (
-          title
-        ),
-        client:client_id (
-          first_name,
-          last_name
-        ),
-        expert:expert_id (
-          first_name,
-          last_name
-        )
+        client:client_id(first_name, last_name, avatar_url),
+        expert:expert_id(first_name, last_name, avatar_url),
+        request:request_id(title, description)
       `)
-      .eq(columnToUse, user.value.id)
-      .order('created_at', { ascending: false })
+    
+    // Filtrer selon l'utilisateur
+    if (isExpert.value) {
+      query = query.eq('expert_id', user.value.id)
+    } else {
+      query = query.eq('client_id', user.value.id)
+    }
+    
+    // Trier par date
+    query = query.order('created_at', { ascending: false })
+    
+    const { data, error } = await query
     
     if (error) throw error
     
-    // Formater les données des contrats
-    contracts.value = (data || []).map(contract => ({
+    contracts.value = data.map(contract => ({
       ...contract,
-      client_name: `${contract.client.first_name} ${contract.client.last_name}`,
-      expert_name: `${contract.expert.first_name} ${contract.expert.last_name}`,
-      service_name: contract.services?.title || 'Service non spécifié',
-      title: contract.title || contract.services?.title || 'Contrat'
+      title: contract.title || contract.request?.title || 'Contrat sans titre',
+      counterparty_name: isExpert.value 
+        ? `${contract.client.first_name} ${contract.client.last_name}`
+        : `${contract.expert.first_name} ${contract.expert.last_name}`,
+      counterparty_avatar: isExpert.value 
+        ? contract.client.avatar_url
+        : contract.expert.avatar_url,
+      formatted_price: new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(contract.price)
     }))
     
     // Vérifier s'il y a un message de succès dans l'URL
@@ -335,6 +337,6 @@ onMounted(() => {
 })
 
 definePageMeta({
-  layout: 'account'
+  layout: 'default'
 })
 </script> 

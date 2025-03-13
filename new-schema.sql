@@ -323,3 +323,290 @@ CREATE INDEX idx_requests_fulltext ON requests USING gin(to_tsvector('french', t
 
 -- Créer un index sur le rôle pour des recherches efficaces
 CREATE INDEX idx_users_role ON users(role);
+
+-- Créer un index sur la colonne 'status' de la table 'payments'
+CREATE INDEX idx_payments_status ON payments(status);
+
+-- Table des paiements
+CREATE TABLE payments (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    request_id UUID NOT NULL REFERENCES requests(id) ON DELETE CASCADE,
+    client_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    expert_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    amount DECIMAL(10, 2) NOT NULL,
+    fee DECIMAL(10, 2) NOT NULL,
+    payment_method VARCHAR(50) NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'completed', 'failed', 'refunded')),
+    transaction_id VARCHAR(255),
+    invoice_number VARCHAR(100),
+    payment_date TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Trigger pour mettre à jour la date de modification des paiements
+CREATE TRIGGER update_payments_updated_at
+BEFORE UPDATE ON payments
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
+
+-- Table de disponibilité des experts
+CREATE TABLE expert_availability (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    expert_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    day_of_week INTEGER NOT NULL CHECK (day_of_week BETWEEN 0 AND 6),
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    is_available BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Trigger pour la disponibilité des experts
+CREATE TRIGGER update_availability_updated_at
+BEFORE UPDATE ON expert_availability
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
+
+-- Table des notifications
+CREATE TABLE notifications (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    type VARCHAR(50) NOT NULL CHECK (type IN ('info', 'success', 'warning', 'error')),
+    is_read BOOLEAN DEFAULT FALSE,
+    entity_type VARCHAR(50),
+    entity_id UUID,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Table des favoris (experts favoris des clients)
+CREATE TABLE favorites (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    client_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    expert_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(client_id, expert_id)
+);
+
+-- Table des paramètres de l'application
+CREATE TABLE app_settings (
+    id INTEGER PRIMARY KEY CHECK (id = 1), -- Une seule ligne pour les paramètres globaux
+    settings JSONB NOT NULL DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Trigger pour les paramètres
+CREATE TRIGGER update_app_settings_updated_at
+BEFORE UPDATE ON app_settings
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
+
+-- Fonction pour créer une notification
+CREATE OR REPLACE FUNCTION create_notification(
+    p_user_id UUID,
+    p_title VARCHAR(255),
+    p_content TEXT,
+    p_type VARCHAR(50),
+    p_entity_type VARCHAR(50) DEFAULT NULL,
+    p_entity_id UUID DEFAULT NULL
+) RETURNS UUID AS $$
+DECLARE
+    new_id UUID;
+BEGIN
+    INSERT INTO notifications (
+        user_id, title, content, type, entity_type, entity_id
+    ) VALUES (
+        p_user_id, p_title, p_content, p_type, p_entity_type, p_entity_id
+    ) RETURNING id INTO new_id;
+    
+    RETURN new_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger pour notifier l'expert quand sa proposition est acceptée
+CREATE OR REPLACE FUNCTION notify_on_proposal_status_change()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.status = 'accepted' AND OLD.status != 'accepted' THEN
+        PERFORM create_notification(
+            NEW.expert_id,
+            'Proposition acceptée',
+            'Votre proposition a été acceptée par le client.',
+            'success',
+            'proposal',
+            NEW.id
+        );
+        
+        -- Notifier aussi le client
+        PERFORM create_notification(
+            (SELECT client_id FROM requests WHERE id = NEW.request_id),
+            'Confirmation d''expert',
+            'Vous avez accepté une proposition d''expert.',
+            'info',
+            'proposal',
+            NEW.id
+        );
+    ELSIF NEW.status = 'rejected' AND OLD.status != 'rejected' THEN
+        PERFORM create_notification(
+            NEW.expert_id,
+            'Proposition refusée',
+            'Votre proposition n''a pas été retenue par le client.',
+            'warning',
+            'proposal',
+            NEW.id
+        );
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER proposal_status_notification_trigger
+AFTER UPDATE OF status ON proposals
+FOR EACH ROW
+EXECUTE FUNCTION notify_on_proposal_status_change();
+
+-- Index pour optimiser les recherches supplémentaires
+CREATE INDEX idx_payments_request ON payments(request_id);
+CREATE INDEX idx_payments_client ON payments(client_id);
+CREATE INDEX idx_payments_expert ON payments(expert_id);
+CREATE INDEX idx_payments_status ON payments(status);
+CREATE INDEX idx_notifications_user ON notifications(user_id);
+CREATE INDEX idx_notifications_read ON notifications(is_read);
+CREATE INDEX idx_expert_availability_expert ON expert_availability(expert_id);
+CREATE INDEX idx_favorites_client ON favorites(client_id);
+CREATE INDEX idx_favorites_expert ON favorites(expert_id);
+
+-- Suppression des données de test explicites avec IDs et restructuration
+
+-- Insertion de quelques catégories
+INSERT INTO categories (name, description, icon) VALUES
+('Ménage', 'Services de nettoyage et d''entretien', 'mdi-broom'),
+('Bricolage', 'Petits travaux de réparation et d''amélioration', 'mdi-hammer'),
+('Jardinage', 'Entretien et aménagement d''espaces verts', 'mdi-flower'),
+('Informatique', 'Assistance et dépannage informatique', 'mdi-laptop'),
+('Cours particuliers', 'Enseignement et soutien scolaire', 'mdi-school');
+
+-- Définir une fonction temporaire pour insérer des utilisateurs
+-- Note: Pour les utilisateurs, vous devrez d'abord les créer via auth.users puis obtenir leurs IDs
+
+-- Fonction pour créer des utilisateurs de test (pour un environnement de développement uniquement)
+CREATE OR REPLACE FUNCTION create_test_users() 
+RETURNS VOID AS $$
+DECLARE
+    admin_id UUID;
+    expert1_id UUID;
+    expert2_id UUID;
+    expert3_id UUID;
+    client1_id UUID;
+    client2_id UUID;
+    menage_id UUID;
+    bricolage_id UUID;
+    jardinage_id UUID;
+    informatique_id UUID;
+    cours_id UUID;
+    nettoyage_skill_id UUID;
+    repassage_skill_id UUID;
+    peinture_skill_id UUID;
+    plomberie_skill_id UUID;
+    tonte_skill_id UUID;
+    request1_id UUID;
+    request2_id UUID;
+    request3_id UUID;
+BEGIN
+    -- Création des utilisateurs (dans un environnement réel, ils seraient créés via auth.users)
+    -- Simulation pour le développement uniquement
+    INSERT INTO auth.users (email) VALUES 
+        ('admin@example.com'),
+        ('expert1@example.com'),
+        ('expert2@example.com'),
+        ('expert3@example.com'),
+        ('client1@example.com'),
+        ('client2@example.com')
+    RETURNING id INTO admin_id;
+    
+    -- Récupérer leurs IDs (en pratique, il faudrait les récupérer après création)
+    SELECT id INTO admin_id FROM auth.users WHERE email = 'admin@example.com';
+    SELECT id INTO expert1_id FROM auth.users WHERE email = 'expert1@example.com';
+    SELECT id INTO expert2_id FROM auth.users WHERE email = 'expert2@example.com';
+    SELECT id INTO expert3_id FROM auth.users WHERE email = 'expert3@example.com';
+    SELECT id INTO client1_id FROM auth.users WHERE email = 'client1@example.com';
+    SELECT id INTO client2_id FROM auth.users WHERE email = 'client2@example.com';
+    
+    -- Insérer les profils
+    INSERT INTO users (id, email, first_name, last_name, role, avatar_url, bio, phone, location, city, country, reviews_count, hourly_rate) VALUES
+    (admin_id, 'admin@example.com', 'Admin', 'Système', 'admin', 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin', 'Administrateur du système', '+221 77 123 45 67', 'Dakar', 'Dakar', 'Sénégal', 0, NULL),
+    (expert1_id, 'expert1@example.com', 'Moussa', 'Diop', 'expert', 'https://api.dicebear.com/7.x/avataaars/svg?seed=expert1', 'Expert en nettoyage et entretien avec 5 ans d''expérience', '+221 77 234 56 78', 'Dakar', 'Dakar', 'Sénégal', 12, 5000),
+    (expert2_id, 'expert2@example.com', 'Fatou', 'Ndiaye', 'expert', 'https://api.dicebear.com/7.x/avataaars/svg?seed=expert2', 'Spécialiste en bricolage et réparations', '+221 77 345 67 89', 'Thiès', 'Thiès', 'Sénégal', 8, 6500),
+    (expert3_id, 'expert3@example.com', 'Amadou', 'Sow', 'expert', 'https://api.dicebear.com/7.x/avataaars/svg?seed=expert3', 'Jardinier professionnel depuis plus de 10 ans', '+221 77 456 78 90', 'Saint-Louis', 'Saint-Louis', 'Sénégal', 15, 4500),
+    (client1_id, 'client1@example.com', 'Omar', 'Samb', 'client', 'https://api.dicebear.com/7.x/avataaars/svg?seed=client1', NULL, '+221 77 567 89 01', 'Dakar', 'Dakar', 'Sénégal', 0, NULL),
+    (client2_id, 'client2@example.com', 'Aïda', 'Fall', 'client', 'https://api.dicebear.com/7.x/avataaars/svg?seed=client2', NULL, '+221 77 678 90 12', 'Mbour', 'Mbour', 'Sénégal', 0, NULL);
+    
+    -- Récupérer les IDs des catégories
+    SELECT id INTO menage_id FROM categories WHERE name = 'Ménage';
+    SELECT id INTO bricolage_id FROM categories WHERE name = 'Bricolage';
+    SELECT id INTO jardinage_id FROM categories WHERE name = 'Jardinage';
+    SELECT id INTO informatique_id FROM categories WHERE name = 'Informatique';
+    SELECT id INTO cours_id FROM categories WHERE name = 'Cours particuliers';
+    
+    -- Insertion des compétences
+    INSERT INTO skills (name, description, category_id) VALUES
+    ('Nettoyage maison', 'Nettoyage complet de maison ou appartement', menage_id) RETURNING id INTO nettoyage_skill_id;
+    INSERT INTO skills (name, description, category_id) VALUES
+    ('Repassage', 'Service de repassage de vêtements', menage_id) RETURNING id INTO repassage_skill_id;
+    INSERT INTO skills (name, description, category_id) VALUES
+    ('Peinture', 'Travaux de peinture intérieure et extérieure', bricolage_id) RETURNING id INTO peinture_skill_id;
+    INSERT INTO skills (name, description, category_id) VALUES
+    ('Plomberie', 'Réparation et installation de plomberie', bricolage_id) RETURNING id INTO plomberie_skill_id;
+INSERT INTO skills (name, description, category_id) VALUES
+    ('Tonte de pelouse', 'Entretien régulier de pelouse', jardinage_id) RETURNING id INTO tonte_skill_id;
+
+-- Associer des compétences aux experts
+INSERT INTO user_skills (user_id, skill_id, level) VALUES
+    (expert1_id, nettoyage_skill_id, 5),
+    (expert1_id, repassage_skill_id, 4),
+    (expert2_id, peinture_skill_id, 5),
+    (expert2_id, plomberie_skill_id, 4),
+    (expert3_id, tonte_skill_id, 5);
+
+-- Insérer des services proposés par les experts
+    INSERT INTO services (title, description, category_id, user_id, price, price_type, location, status) VALUES
+    ('Nettoyage complet maison/appartement', 'Service de nettoyage approfondi incluant toutes les pièces de vie, cuisine et sanitaires', menage_id, expert1_id, 3500, 'hourly', 'Dakar', 'active'),
+    ('Repassage à domicile', 'Service de repassage professionnel pour tous types de vêtements', menage_id, expert1_id, 2000, 'hourly', 'Dakar', 'active'),
+    ('Peinture intérieure', 'Travaux de peinture intérieure pour toutes les pièces de votre logement', bricolage_id, expert2_id, 6000, 'hourly', 'Thiès', 'active'),
+    ('Réparation plomberie', 'Réparation de fuites, remplacement de robinets et autres problèmes de plomberie', bricolage_id, expert2_id, 7500, 'fixed', 'Thiès', 'active'),
+    ('Entretien jardin complet', 'Service d''entretien complet de jardin : tonte, taille, désherbage', jardinage_id, expert3_id, 4000, 'hourly', 'Saint-Louis', 'active');
+
+-- Insérer des demandes de services
+    INSERT INTO requests (title, description, client_id, category_id, budget, location, deadline, status, is_urgent) VALUES
+    ('Besoin de nettoyage après déménagement', 'Je viens d''emménager et j''ai besoin d''un nettoyage complet de l''appartement', client1_id, menage_id, 15000, 'Dakar', '2023-12-15', 'open', TRUE) RETURNING id INTO request1_id;
+    INSERT INTO requests (title, description, client_id, category_id, budget, location, deadline, status, is_urgent) VALUES
+    ('Réparation fuite lavabo', 'Fuite importante sous le lavabo de la salle de bain', client2_id, bricolage_id, 8000, 'Mbour', '2023-12-10', 'open', TRUE) RETURNING id INTO request2_id;
+    INSERT INTO requests (title, description, client_id, category_id, budget, location, deadline, status, is_urgent) VALUES
+    ('Tonte de pelouse hebdomadaire', 'Recherche jardinier pour entretien régulier de mon jardin', client1_id, jardinage_id, 5000, 'Dakar', '2023-12-20', 'open', FALSE) RETURNING id INTO request3_id;
+    
+    -- Le reste des insertions suit la même logique...
+END;
+$$ LANGUAGE plpgsql;
+
+-- Ajouter des données à app_settings sans ID 
+INSERT INTO app_settings (settings) VALUES
+('{
+  "app_name": "ExpertConnect",
+  "app_url": "https://expertconnect.sn",
+  "contact_email": "contact@expertconnect.sn",
+  "platform_fee_percentage": 10,
+  "minimum_hourly_rate": 1500,
+  "enable_instant_booking": true,
+  "max_file_upload_size": 5,
+  "enable_notifications": true,
+  "default_currency": "XOF",
+  "allowed_payment_methods": ["carte", "mobile_money", "cash"],
+  "maintenance_mode": false
+}');
+
+-- Note: Pour utiliser cette fonction en développement
+-- SELECT create_test_users();

@@ -1098,13 +1098,15 @@
       const { error } = await supabase
         .from('profiles')
         .update({
-          notif_email: notifs.value.email,
-          notif_sms: notifs.value.sms,
-          notif_app: notifs.value.app,
-          notif_messages: notifs.value.messages,
-          notif_proposals: notifs.value.proposals,
-          notif_contracts: notifs.value.contracts,
-          notif_payments: notifs.value.payments
+          notification_preferences: {
+            email: notifs.value.email,
+            sms: notifs.value.sms,
+            app: notifs.value.app,
+            messages: notifs.value.messages,
+            proposals: notifs.value.proposals,
+            contracts: notifs.value.contracts,
+            payments: notifs.value.payments
+          }
         })
         .eq('id', user.value.id)
       
@@ -1241,7 +1243,7 @@
   })
 
   definePageMeta({
-    layout: 'default'
+    layout: 'account'
   })
 </script>
 

@@ -1,16 +1,16 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
     <!-- Navbar -->
     <Navbar />
 
     <!-- Contenu principal -->
-    <main class="pt-16"> <!-- pt-16 pour compenser la hauteur de la navbar -->
+    <main class="mx-auto min-h-screen pt-20 pb-24">
       <slot />
     </main>
 
     <!-- Footer -->
-    <footer class="bg-white border-t border-gray-200">
-      <div class="max-w-7xl mx-auto px-4 py-12">
+    <footer class="bg-white/90 backdrop-blur-md border-t border-gray-200/50 dark:bg-gray-800/90 dark:border-gray-700/50">
+      <div class="max-w-7xl mx-auto px-6 py-16">
         <div class="grid md:grid-cols-3 gap-8">
           <!-- Logo et description -->
           <div>
@@ -64,6 +64,15 @@
         </div>
       </div>
     </footer>
+
+    <!-- Bouton principal d'action -->
+    <NuxtLink 
+      to="/account/new-request" 
+      class="fixed right-6 bottom-6 bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-full font-medium flex items-center justify-center shadow-lg transform hover:scale-105 transition-all duration-300 z-50"
+    >
+      <PlusIcon class="h-4 w-4 mr-2" />
+      <span>Créer une demande</span>
+    </NuxtLink>
   </div>
 </template>
 

@@ -1,0 +1,90 @@
+<template>
+  <!-- Reste du code existant -->
+  
+  <!-- Ajouter le bouton de contact dans la carte d'expert -->
+  <button 
+    v-if="!isExpert"
+    @click="openContactModal(expert)"
+    class="mt-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-full text-sm font-medium"
+  >
+    Contacter
+  </button>
+  
+  <!-- Ajouter le modal à la fin du template -->
+  <ContactExpertModal
+    :is-open="contactModalOpen"
+    :expert="selectedExpert"
+    @close="closeContactModal"
+    @submit="handleContactSubmit"
+  />
+</template>
+
+<script setup>
+// Imports existants
+import ContactExpertModal from '~/components/ContactExpertModal.vue'
+
+// Variables réactives existantes
+const contactModalOpen = ref(false)
+const selectedExpert = ref({})
+
+// Méthodes pour gérer le modal
+const openContactModal = (expert) => {
+  selectedExpert.value = expert
+  contactModalOpen.value = true
+}
+
+const closeContactModal = () => {
+  contactModalOpen.value = false
+}
+
+const handleContactSubmit = async (contact) => {
+  try {
+    // Dans un environnement réel, nous enverrions le message à Supabase et créerions une conversation
+    /*
+    // 1. Créer une conversation
+    const { data: conversation, error: convError } = await supabase
+      .from('conversations')
+      .insert({
+        created_at: new Date()
+      })
+      .select('id')
+      .single()
+    
+    if (convError) throw convError
+    
+    // 2. Ajouter les participants
+    const participants = [
+      { conversation_id: conversation.id, user_id: auth.user().id },
+      { conversation_id: conversation.id, user_id: contact.expertId }
+    ]
+    
+    const { error: partError } = await supabase
+      .from('conversation_participants')
+      .insert(participants)
+    
+    if (partError) throw partError
+    
+    // 3. Envoyer le premier message
+    const { error: msgError } = await supabase
+      .from('messages')
+      .insert({
+        conversation_id: conversation.id,
+        user_id: auth.user().id,
+        content: contact.message,
+        subject: contact.subject,
+        budget: contact.budget || null
+      })
+    
+    if (msgError) throw msgError
+    */
+    
+    // Afficher un message de succès
+    console.log('Message envoyé avec succès', contact)
+    
+    // Dans un environnement réel, vous pourriez rediriger vers la conversation
+    alert('Votre message a été envoyé avec succès! L\'expert vous répondra bientôt.')
+  } catch (error) {
+    console.error('Erreur lors de l\'envoi du message:', error)
+  }
+}
+</script> 

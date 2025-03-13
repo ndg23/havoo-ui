@@ -1,0 +1,203 @@
+export interface Database {
+  public: {
+    Tables: {
+      profiles: {
+        Row: {
+          id: string;
+          first_name: string;
+          last_name: string;
+          email: string;
+          phone: string | null;
+          avatar_url: string | null;
+          profession: string | null;
+          experience: number | null;
+          bio: string | null;
+          is_expert: boolean;
+          is_available: boolean;
+          is_verified: boolean;
+          created_at: string;
+          updated_at: string;
+          notification_preferences?: {
+            email: boolean;
+            sms: boolean;
+            app: boolean;
+            messages: boolean;
+            proposals: boolean;
+            contracts: boolean;
+            payments: boolean;
+          };
+        }
+        Insert: {
+          id: string;
+          first_name: string;
+          last_name: string;
+          email: string;
+          phone?: string | null;
+          avatar_url?: string | null;
+          profession?: string | null;
+          experience?: number | null;
+          bio?: string | null;
+          is_expert?: boolean;
+          is_available?: boolean;
+          is_verified?: boolean;
+        }
+        Update: {
+          first_name?: string;
+          last_name?: string;
+          email?: string;
+          phone?: string | null;
+          avatar_url?: string | null;
+          profession?: string | null;
+          experience?: number | null;
+          bio?: string | null;
+          is_expert?: boolean;
+          is_available?: boolean;
+          is_verified?: boolean;
+          notification_preferences?: object;
+        }
+      }
+      
+      requests: {
+        Row: {
+          id: number;
+          client_id: string;
+          title: string;
+          description: string;
+          budget: number | null;
+          deadline: string | null;
+          status: 'open' | 'assigned' | 'completed' | 'cancelled';
+          skills_required: string[] | null;
+          created_at: string;
+          updated_at: string;
+        }
+        Insert: {
+          client_id: string;
+          title: string;
+          description: string;
+          budget?: number | null;
+          deadline?: string | null;
+          status?: 'open' | 'assigned' | 'completed' | 'cancelled';
+          skills_required?: string[] | null;
+        }
+        Update: {
+          title?: string;
+          description?: string;
+          budget?: number | null;
+          deadline?: string | null;
+          status?: 'open' | 'assigned' | 'completed' | 'cancelled';
+          skills_required?: string[] | null;
+        }
+      }
+      
+      proposals: {
+        Row: {
+          id: number;
+          request_id: number;
+          expert_id: string;
+          price: number;
+          duration: number;
+          message: string;
+          status: 'pending' | 'accepted' | 'rejected';
+          created_at: string;
+          updated_at: string;
+        }
+        Insert: {
+          request_id: number;
+          expert_id: string;
+          price: number;
+          duration: number;
+          message: string;
+          status?: 'pending' | 'accepted' | 'rejected';
+        }
+        Update: {
+          price?: number;
+          duration?: number;
+          message?: string;
+          status?: 'pending' | 'accepted' | 'rejected';
+        }
+      }
+      
+      contracts: {
+        Row: {
+          id: number;
+          request_id: number | null;
+          proposal_id: number | null;
+          client_id: string;
+          expert_id: string;
+          title: string;
+          description: string | null;
+          price: number;
+          start_date: string | null;
+          end_date: string | null;
+          status: 'pending' | 'active' | 'completed' | 'cancelled';
+          created_at: string;
+          updated_at: string;
+        }
+        Insert: {
+          request_id?: number | null;
+          proposal_id?: number | null;
+          client_id: string;
+          expert_id: string;
+          title: string;
+          description?: string | null;
+          price: number;
+          start_date?: string | null;
+          end_date?: string | null;
+          status?: 'pending' | 'active' | 'completed' | 'cancelled';
+        }
+        Update: {
+          title?: string;
+          description?: string | null;
+          price?: number;
+          start_date?: string | null;
+          end_date?: string | null;
+          status?: 'pending' | 'active' | 'completed' | 'cancelled';
+        }
+      }
+      
+      skills: {
+        Row: {
+          id: number;
+          name: string;
+          category: string | null;
+        }
+      }
+      
+      user_skills: {
+        Row: {
+          id: number;
+          user_id: string;
+          skill_id: number;
+          level: number;
+        }
+        Insert: {
+          user_id: string;
+          skill_id: number;
+          level: number;
+        }
+        Update: {
+          level?: number;
+        }
+      }
+      
+      messages: {
+        Row: {
+          id: number;
+          sender_id: string;
+          receiver_id: string;
+          contract_id: number | null;
+          content: string;
+          is_read: boolean;
+          created_at: string;
+        }
+        Insert: {
+          sender_id: string;
+          receiver_id: string;
+          contract_id?: number | null;
+          content: string;
+          is_read?: boolean;
+        }
+      }
+    }
+  }
+} 

@@ -1,269 +1,274 @@
 <template>
-  <div class="max-w-2xl mx-auto px-4 pt-5 pb-16">
-    <!-- En-tête avec illustration subtile -->
-    <div class="mb-7 bg-white dark:bg-gray-800 rounded-xl p-5 border-l-4 border-primary-500 shadow-sm flex items-center justify-between">
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Publiez votre demande</h1>
-        <p class="text-gray-600 dark:text-gray-400 mt-1">
-          Des experts qualifiés vous proposeront leurs services
-        </p>
-      </div>
-      <div class="bg-primary-50 dark:bg-primary-900/20 p-3 rounded-full">
-        <MessageSquarePlus class="h-6 w-6 text-primary-600 dark:text-primary-400" />
-      </div>
+  <div class="max-w-3xl mx-auto px-4 pt-5 pb-16">
+    <!-- En-tête -->
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Publier une demande</h1>
+      <p class="text-gray-600 dark:text-gray-400 mt-1">
+        Décrivez clairement votre besoin pour recevoir des propositions d'experts qualifiés
+      </p>
     </div>
 
-    <!-- Formulaire principal -->
+    <!-- Formulaire de demande -->
     <form @submit.prevent="submitRequest" class="space-y-6">
-      <!-- Titre de la demande -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 transition-shadow hover:shadow-sm">
-        <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-          Titre de votre demande
-        </label>
-        <input 
-          id="title"
-          v-model="requestForm.title"
-          type="text"
-          placeholder="Ex: Création d'un site web pour mon restaurant"
-          class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-          :class="{ 'border-red-500 dark:border-red-500': errors.title }"
-          required
-        />
-        <p v-if="errors.title" class="text-red-600 dark:text-red-400 text-sm mt-1">{{ errors.title }}</p>
-        <p v-else class="text-gray-500 dark:text-gray-400 text-xs mt-1.5">Soyez précis et concis (max. 100 caractères)</p>
-      </div>
-
-      <!-- Description -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 transition-shadow hover:shadow-sm">
-        <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-          Description détaillée
-        </label>
-        <textarea 
-          id="description"
-          v-model="requestForm.description"
-          placeholder="Décrivez votre besoin en détail... Qu'attendez-vous exactement ? Avez-vous des contraintes particulières ?"
-          rows="5"
-          class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-          :class="{ 'border-red-500 dark:border-red-500': errors.description }"
-          required
-        ></textarea>
-        <p v-if="errors.description" class="text-red-600 dark:text-red-400 text-sm mt-1">{{ errors.description }}</p>
-        <div v-else class="flex justify-between text-xs mt-1.5">
-          <span class="text-gray-500 dark:text-gray-400">Plus votre description est détaillée, plus les propositions seront pertinentes</span>
-          <span :class="requestForm.description.length > 800 ? 'text-amber-600' : 'text-gray-500 dark:text-gray-400'">
-            {{ requestForm.description.length }}/1000
-          </span>
-        </div>
-      </div>
-
-      <!-- Catégorie et Budget (côte à côte sur desktop) -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 transition-shadow hover:shadow-sm">
-          <label for="category" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-            Catégorie
-          </label>
-          <select 
-            id="category"
-            v-model="requestForm.category"
-            class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            :class="{ 'border-red-500 dark:border-red-500': errors.category }"
-            required
-          >
-            <option value="" disabled selected>Sélectionnez une catégorie</option>
-            <option v-for="category in categories" :key="category.id" :value="category.name">
-              {{ category.name }}
-            </option>
-          </select>
-          <p v-if="errors.category" class="text-red-600 dark:text-red-400 text-sm mt-1">{{ errors.category }}</p>
-        </div>
-
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 transition-shadow hover:shadow-sm">
-          <label for="budget" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-            Budget estimé (€)
-          </label>
-          <div class="relative">
+      <!-- Informations de base -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          Informations générales
+        </h2>
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Titre de la demande*</label>
             <input 
-              id="budget"
-              v-model="requestForm.budget"
-              type="number"
-              min="10"
-              placeholder="Votre budget pour cette mission"
-              class="w-full pl-4 pr-10 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              :class="{ 'border-red-500 dark:border-red-500': errors.budget }"
+              type="text" 
+              v-model="requestData.title" 
               required
+              placeholder="Ex: Création d'un site web e-commerce"
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             />
-            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-              <Euro class="h-5 w-5 text-gray-400" />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Catégorie*</label>
+            <select 
+              v-model="requestData.category" 
+              required
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            >
+              <option value="" disabled selected>Sélectionner une catégorie</option>
+              <option v-for="category in categories" :key="category.id" :value="category.id">
+                {{ category.name }}
+              </option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description détaillée*</label>
+            <textarea 
+              v-model="requestData.description" 
+              required
+              rows="6"
+              placeholder="Décrivez votre projet en détail : objectifs, fonctionnalités attendues, contraintes éventuelles..."
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            ></textarea>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              {{ 2000 - (requestData.description?.length || 0) }} caractères restants
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Fichiers et documents -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          Documents annexes
+        </h2>
+        
+        <div class="space-y-4">
+          <div class="border-dashed border-2 border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
+            <input type="file" id="file-upload" class="hidden" multiple @change="handleFileUpload" />
+            <label for="file-upload" class="cursor-pointer">
+              <UploadCloud class="mx-auto h-10 w-10 text-gray-400 dark:text-gray-500 mb-3" />
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                Déposez vos fichiers ici ou <span class="text-primary-600 dark:text-primary-400 font-medium">parcourir</span>
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                PDF, Word, Excel, images (max 10 MB chacun)
+              </p>
+            </label>
+          </div>
+          
+          <!-- Liste des fichiers ajoutés -->
+          <div v-if="requestData.files.length > 0" class="space-y-2">
+            <div 
+              v-for="(file, index) in requestData.files" 
+              :key="index"
+              class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
+            >
+              <div class="flex items-center">
+                <FileText class="h-5 w-5 text-gray-500 dark:text-gray-400 mr-3" />
+                <div class="text-sm">
+                  <p class="text-gray-700 dark:text-gray-300 font-medium truncate max-w-xs">{{ file.name }}</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-500">{{ formatFileSize(file.size) }}</p>
+                </div>
+              </div>
+              <button 
+                type="button" 
+                @click="removeFile(index)"
+                class="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600"
+              >
+                <X class="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              </button>
             </div>
           </div>
-          <p v-if="errors.budget" class="text-red-600 dark:text-red-400 text-sm mt-1">{{ errors.budget }}</p>
         </div>
       </div>
-
-      <!-- Localisation et Date -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 transition-shadow hover:shadow-sm">
-          <label for="location" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-            Localisation
-          </label>
-          <div class="flex items-center space-x-3 mb-3">
-            <button 
-              type="button"
-              @click="requestForm.isRemote = true"
-              class="flex-1 py-2.5 px-3 rounded-lg text-center text-sm font-medium transition-colors"
-              :class="requestForm.isRemote ? 'bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400' : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'"
-            >
-              À distance
-            </button>
-            <button 
-              type="button"
-              @click="requestForm.isRemote = false"
-              class="flex-1 py-2.5 px-3 rounded-lg text-center text-sm font-medium transition-colors"
-              :class="!requestForm.isRemote ? 'bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400' : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'"
-            >
-              Sur place
-            </button>
-          </div>
-          <input 
-            v-if="!requestForm.isRemote"
-            v-model="requestForm.location"
-            type="text"
-            placeholder="Ville ou code postal"
-            class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            :class="{ 'border-red-500 dark:border-red-500': errors.location }"
-          />
-          <p v-if="errors.location" class="text-red-600 dark:text-red-400 text-sm mt-1">{{ errors.location }}</p>
-        </div>
-
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 transition-shadow hover:shadow-sm">
-          <label for="deadline" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-            Date souhaitée
-          </label>
-          <input 
-            id="deadline"
-            v-model="requestForm.deadline"
-            type="date"
-            class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            :class="{ 'border-red-500 dark:border-red-500': errors.deadline }"
-            :min="tomorrow"
-            required
-          />
-          <p v-if="errors.deadline" class="text-red-600 dark:text-red-400 text-sm mt-1">{{ errors.deadline }}</p>
-        </div>
-      </div>
-
-      <!-- Fichiers annexes -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 transition-shadow hover:shadow-sm">
-        <div class="flex items-center justify-between mb-1.5">
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Fichiers annexes (facultatif)
-          </label>
-          <span class="text-xs text-gray-500 dark:text-gray-400">Max 3 fichiers</span>
-        </div>
+      
+      <!-- Budget et délai -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          Budget et délai
+        </h2>
         
-        <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center"
-          :class="isDragging ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/10' : ''"
-          @dragenter.prevent="isDragging = true"
-          @dragleave.prevent="isDragging = false"
-          @dragover.prevent
-          @drop.prevent="handleFileDrop"
-        >
-          <div class="flex flex-col items-center">
-            <Upload class="h-8 w-8 text-gray-400 dark:text-gray-500 mb-2" />
-            <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">
-              Glissez vos fichiers ici ou 
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Budget estimé (FCFA)*</label>
+            <div class="flex gap-4">
+              <div class="w-1/2">
+                <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Minimum</label>
+                <input 
+                  type="number" 
+                  v-model="requestData.budget_min" 
+                  required
+                  min="0"
+                  step="1000"
+                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                />
+              </div>
+              <div class="w-1/2">
+                <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Maximum</label>
+                <input 
+                  type="number" 
+                  v-model="requestData.budget_max" 
+                  required
+                  min="0"
+                  step="1000"
+                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                />
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Délai souhaité*</label>
+            <input 
+              type="date" 
+              v-model="requestData.deadline" 
+              required
+              :min="minDate"
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            />
+          </div>
+          
+          <div>
+            <label class="flex items-center space-x-2">
+              <input 
+                type="checkbox" 
+                v-model="requestData.is_urgent"
+                class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              />
+              <span class="text-sm text-gray-700 dark:text-gray-300">Marquer comme urgent</span>
+            </label>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-500 ml-6">
+              Les demandes urgentes attirent plus rapidement l'attention des experts
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Préférences supplémentaires -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          Préférences supplémentaires
+        </h2>
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Compétences requises</label>
+            <div class="flex items-center gap-2">
+              <input 
+                type="text" 
+                v-model="newSkill" 
+                @keyup.enter="addSkill"
+                placeholder="Ajouter une compétence et appuyez sur Entrée"
+                class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              />
               <button 
                 type="button"
-                class="text-primary-600 dark:text-primary-400 font-medium"
-                @click="$refs.fileInput.click()"
+                @click="addSkill"
+                class="p-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg"
               >
-                parcourez
+                <Plus class="h-5 w-5" />
               </button>
-            </p>
-            <p class="text-xs text-gray-500 dark:text-gray-500">
-              PNG, JPG, PDF jusqu'à 5MB
-            </p>
-            <input 
-              ref="fileInput"
-              type="file"
-              multiple
-              class="hidden"
-              accept="image/png,image/jpeg,application/pdf"
-              @change="handleFileInput"
-            />
-          </div>
-        </div>
-
-        <!-- Aperçu des fichiers -->
-        <div v-if="requestForm.files.length > 0" class="mt-3 space-y-2">
-          <div v-for="(file, index) in requestForm.files" :key="index" 
-            class="flex items-center justify-between bg-gray-50 dark:bg-gray-750 p-2 rounded-lg">
-            <div class="flex items-center">
-              <FileText class="h-5 w-5 text-gray-500 mr-2" />
-              <span class="text-sm text-gray-700 dark:text-gray-300 truncate max-w-xs">{{ file.name }}</span>
             </div>
-            <button type="button" @click="removeFile(index)" class="text-gray-500 hover:text-red-500">
-              <X class="h-5 w-5" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Aperçu de la demande -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-        <div class="bg-gray-50 dark:bg-gray-750 px-5 py-3 border-b border-gray-200 dark:border-gray-700">
-          <h3 class="font-medium text-gray-900 dark:text-white">Aperçu de votre demande</h3>
-        </div>
-        <div class="p-5">
-          <div class="flex items-start justify-between">
-            <div>
-              <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                {{ requestForm.title || 'Titre de votre demande' }}
-              </h4>
-              <div class="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400 mb-3">
-                <span class="flex items-center">
-                  <Calendar class="h-4 w-4 mr-1" />
-                  {{ requestForm.deadline ? formatDate(requestForm.deadline) : 'Date à définir' }}
-                </span>
-                <span class="flex items-center">
-                  <Tag class="h-4 w-4 mr-1" />
-                  {{ requestForm.category || 'Catégorie' }}
-                </span>
-                <span class="flex items-center">
-                  <MapPin class="h-4 w-4 mr-1" />
-                  {{ requestForm.isRemote ? 'À distance' : (requestForm.location || 'Lieu à définir') }}
-                </span>
+            
+            <div v-if="requestData.skills.length > 0" class="flex flex-wrap gap-2 mt-3">
+              <div 
+                v-for="(skill, index) in requestData.skills" 
+                :key="index"
+                class="flex items-center gap-1 px-3 py-1 bg-primary-100 dark:bg-primary-900/30 text-primary-800 dark:text-primary-400 rounded-full text-sm"
+              >
+                <span>{{ skill }}</span>
+                <button type="button" @click="removeSkill(skill)" class="focus:outline-none">
+                  <X class="h-3.5 w-3.5" />
+                </button>
               </div>
-              <p class="text-gray-700 dark:text-gray-300 line-clamp-3">
-                {{ requestForm.description || 'Votre description apparaîtra ici...' }}
-              </p>
             </div>
-            <div>
-              <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                {{ requestForm.budget ? `${requestForm.budget}€` : 'Budget' }}
-              </span>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Visibilité de la demande</label>
+            <div class="space-y-2">
+              <label class="flex items-center space-x-2">
+                <input 
+                  type="radio" 
+                  v-model="requestData.visibility" 
+                  value="public"
+                  class="h-4 w-4 border-gray-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span class="text-sm text-gray-700 dark:text-gray-300">Publique (visible par tous les experts)</span>
+              </label>
+              <label class="flex items-center space-x-2">
+                <input 
+                  type="radio" 
+                  v-model="requestData.visibility" 
+                  value="private"
+                  class="h-4 w-4 border-gray-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span class="text-sm text-gray-700 dark:text-gray-300">Privée (inviter des experts spécifiques uniquement)</span>
+              </label>
             </div>
           </div>
         </div>
       </div>
-
-      <!-- Bouton de soumission -->
-      <div class="mt-8">
+      
+      <!-- Boutons d'action -->
+      <div class="flex justify-end space-x-3">
         <button 
-          type="submit"
+          type="button" 
+          @click="saveAsDraft"
+          class="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium rounded-lg text-sm transition-colors"
           :disabled="isSubmitting"
-          class="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3.5 px-6 rounded-xl shadow-sm hover:shadow-md transition-all flex items-center justify-center"
+        >
+          Enregistrer comme brouillon
+        </button>
+        <button 
+          type="submit" 
+          class="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg text-sm transition-colors flex items-center"
+          :disabled="isSubmitting"
         >
           <span v-if="isSubmitting">
-            <span class="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
-            Publication en cours...
+            <span class="inline-block h-4 w-4 border-2 border-white/20 border-t-white rounded-full animate-spin mr-2"></span>
+            Publication...
           </span>
-          <span v-else>
-            Publier ma demande
-          </span>
+          <span v-else>Publier la demande</span>
         </button>
       </div>
     </form>
+    
+    <!-- Notification de succès -->
+    <div 
+      v-if="showSuccess" 
+      class="fixed bottom-6 right-6 bg-green-100 dark:bg-green-900/30 border-l-4 border-green-500 text-green-700 dark:text-green-400 p-4 rounded-lg shadow-lg max-w-sm animated fadeInUp"
+    >
+      <div class="flex">
+        <CheckCircle class="h-5 w-5 mt-0.5 mr-3" />
+        <div>
+          <p class="font-medium">Demande publiée avec succès!</p>
+          <p class="text-sm">Vous serez notifié dès qu'un expert proposera ses services.</p>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -271,202 +276,174 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSupabaseClient, useSupabaseUser } from '#imports'
-import {
-  MessageSquarePlus,
-  Calendar,
-  Tag,
-  MapPin,
-  FileText,
-  Upload,
-  X,
-  Euro
+import { 
+  UploadCloud, 
+  FileText, 
+  X, 
+  Plus, 
+  CheckCircle,
 } from 'lucide-vue-next'
 
-// Initialisation
 const router = useRouter()
-const user = useSupabaseUser()
 const supabase = useSupabaseClient()
+const user = useSupabaseUser()
 
-// État du formulaire
-const requestForm = ref({
+// État local
+const isSubmitting = ref(false)
+const showSuccess = ref(false)
+const newSkill = ref('')
+
+// Données de la demande
+const requestData = ref({
   title: '',
-  description: '',
   category: '',
-  budget: '',
-  isRemote: true,
-  location: '',
+  description: '',
+  budget_min: 15000,
+  budget_max: 100000,
   deadline: '',
-  files: []
+  is_urgent: false,
+  files: [],
+  skills: [],
+  visibility: 'public'
 })
 
-// États UI
-const errors = ref({})
-const isSubmitting = ref(false)
-const isDragging = ref(false)
-
-// Données de référence
+// Catégories (à remplacer par des données de l'API)
 const categories = ref([
   { id: 1, name: 'Développement web' },
-  { id: 2, name: 'Design graphique' },
-  { id: 3, name: 'Marketing digital' },
-  { id: 4, name: 'Rédaction de contenu' },
-  { id: 5, name: 'Traduction' },
-  { id: 6, name: 'Support administratif' },
-  { id: 7, name: 'Coaching' },
-  { id: 8, name: 'Photographie' },
-  { id: 9, name: 'Montage vidéo' },
-  { id: 10, name: 'Conseil juridique' },
-  { id: 11, name: 'Conseil financier' },
-  { id: 12, name: 'Assistance informatique' }
+  { id: 2, name: 'Développement mobile' },
+  { id: 3, name: 'Design graphique' },
+  { id: 4, name: 'Référencement SEO' },
+  { id: 5, name: 'Rédaction web' },
+  { id: 6, name: 'Traduction' },
+  { id: 7, name: 'Marketing digital' },
+  { id: 8, name: 'Gestion de projets' },
+  { id: 9, name: 'Assistance administrative' },
+  { id: 10, name: 'Autre' }
 ])
 
-// Date de demain (pour la date minimale)
-const tomorrow = computed(() => {
-  const date = new Date()
-  date.setDate(date.getDate() + 1)
-  return date.toISOString().split('T')[0]
+// Computed
+const minDate = computed(() => {
+  const today = new Date()
+  today.setDate(today.getDate() + 1)
+  return today.toISOString().split('T')[0]
 })
 
-// Méthodes pour la gestion des fichiers
-const handleFileInput = (event) => {
-  const newFiles = Array.from(event.target.files)
-  addFiles(newFiles)
-  event.target.value = null // Réinitialise l'input
-}
-
-const handleFileDrop = (event) => {
-  isDragging.value = false
-  const newFiles = Array.from(event.dataTransfer.files)
-  addFiles(newFiles)
-}
-
-const addFiles = (newFiles) => {
-  // Filtrer les types de fichiers autorisés
-  const validFiles = newFiles.filter(file => 
-    ['image/jpeg', 'image/png', 'application/pdf'].includes(file.type) && file.size <= 5 * 1024 * 1024
-  )
+// Méthodes
+const handleFileUpload = (event) => {
+  const files = Array.from(event.target.files)
   
-  // Limiter à 3 fichiers maximum
-  const remainingSlots = 3 - requestForm.value.files.length
-  const filesToAdd = validFiles.slice(0, remainingSlots)
+  files.forEach(file => {
+    // Vérifier la taille du fichier (10 MB max)
+    if (file.size <= 10 * 1024 * 1024) {
+      requestData.value.files.push(file)
+    } else {
+      alert(`Le fichier ${file.name} dépasse la taille maximale autorisée (10 MB)`)
+    }
+  })
   
-  requestForm.value.files = [...requestForm.value.files, ...filesToAdd]
+  // Réinitialiser l'input file pour permettre de sélectionner le même fichier à nouveau
+  event.target.value = null
 }
 
 const removeFile = (index) => {
-  requestForm.value.files.splice(index, 1)
+  requestData.value.files.splice(index, 1)
 }
 
-// Validation du formulaire
-const validateForm = () => {
-  const newErrors = {}
-  
-  if (!requestForm.value.title.trim()) {
-    newErrors.title = 'Veuillez saisir un titre'
-  } else if (requestForm.value.title.length > 100) {
-    newErrors.title = 'Le titre ne doit pas dépasser 100 caractères'
+const formatFileSize = (size) => {
+  if (size < 1024) {
+    return size + ' B'
+  } else if (size < 1024 * 1024) {
+    return (size / 1024).toFixed(1) + ' KB'
+  } else {
+    return (size / (1024 * 1024)).toFixed(1) + ' MB'
   }
-  
-  if (!requestForm.value.description.trim()) {
-    newErrors.description = 'Veuillez détailler votre demande'
-  } else if (requestForm.value.description.length < 50) {
-    newErrors.description = 'La description doit contenir au moins 50 caractères'
-  } else if (requestForm.value.description.length > 1000) {
-    newErrors.description = 'La description ne doit pas dépasser 1000 caractères'
-  }
-  
-  if (!requestForm.value.category) {
-    newErrors.category = 'Veuillez sélectionner une catégorie'
-  }
-  
-  if (!requestForm.value.budget) {
-    newErrors.budget = 'Veuillez indiquer votre budget'
-  } else if (requestForm.value.budget < 10) {
-    newErrors.budget = 'Le budget minimum est de 10€'
-  }
-  
-  if (!requestForm.value.isRemote && !requestForm.value.location.trim()) {
-    newErrors.location = 'Veuillez indiquer votre localisation'
-  }
-  
-  if (!requestForm.value.deadline) {
-    newErrors.deadline = 'Veuillez indiquer une date souhaitée'
-  }
-  
-  errors.value = newErrors
-  return Object.keys(newErrors).length === 0
 }
 
-// Soumission du formulaire
-const submitRequest = async () => {
-  if (!validateForm()) {
-    // Scroll to first error
-    const firstError = document.querySelector('.border-red-500')
-    if (firstError) {
-      firstError.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    }
-    return
+const addSkill = () => {
+  if (newSkill.value.trim() && !requestData.value.skills.includes(newSkill.value.trim())) {
+    requestData.value.skills.push(newSkill.value.trim())
+    newSkill.value = ''
   }
-  
-  isSubmitting.value = true
-  
+}
+
+const removeSkill = (skill) => {
+  requestData.value.skills = requestData.value.skills.filter(s => s !== skill)
+}
+
+const saveAsDraft = async () => {
   try {
-    // Envoi des données à la base de données
-    const { data, error } = await supabase
+    isSubmitting.value = true
+    
+    // Simuler la sauvegarde comme brouillon
+    console.log('Saving as draft:', requestData.value)
+    
+    // Dans un environnement réel, nous sauvegarderions la demande dans Supabase
+    /*
+    const { error } = await supabase
       .from('requests')
       .insert({
-        user_id: user.value.id,
-        title: requestForm.value.title,
-        description: requestForm.value.description,
-        category: requestForm.value.category,
-        budget: parseFloat(requestForm.value.budget),
-        location: requestForm.value.isRemote ? 'À distance' : requestForm.value.location,
-        deadline: requestForm.value.deadline,
-        status: 'En attente',
-        created_at: new Date().toISOString()
+        ...requestData.value,
+        status: 'draft',
+        user_id: user.value.id
       })
-      .select()
-    
+
     if (error) throw error
+    */
     
-    // Upload des fichiers si nécessaire
-    if (requestForm.value.files.length > 0) {
-      const requestId = data[0].id
-      
-      for (const file of requestForm.value.files) {
-        const fileName = `${Date.now()}_${file.name}`
-        const filePath = `requests/${requestId}/${fileName}`
-        
-        const { error: uploadError } = await supabase.storage
-          .from('attachments')
-          .upload(filePath, file)
-        
-        if (uploadError) throw uploadError
-      }
-    }
-    
-    // Redirection vers la page des demandes avec un message de succès
-    router.push({ 
-      path: '/account/requests',
-      query: { success: 'created' }
-    })
+    // Simuler un délai
+    setTimeout(() => {
+      isSubmitting.value = false
+      router.push('/account/requests')
+    }, 1000)
   } catch (error) {
-    console.error('Erreur lors de la création de la demande:', error)
-    alert('Une erreur est survenue lors de la création de votre demande. Veuillez réessayer.')
-  } finally {
+    console.error('Erreur lors de la sauvegarde du brouillon:', error)
     isSubmitting.value = false
   }
 }
 
-// Format de date pour l'aperçu
-const formatDate = (dateString) => {
-  const date = new Date(dateString)
-  return new Intl.DateTimeFormat('fr-FR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  }).format(date)
+const submitRequest = async () => {
+  try {
+    isSubmitting.value = true
+    
+    // Simuler la publication de la demande
+    console.log('Publishing request:', requestData.value)
+    
+    // Dans un environnement réel, nous sauvegarderions la demande dans Supabase
+    /*
+    const { error } = await supabase
+      .from('requests')
+      .insert({
+        ...requestData.value,
+        status: 'open',
+        user_id: user.value.id
+      })
+
+    if (error) throw error
+    */
+    
+    // Simuler un délai
+    setTimeout(() => {
+      isSubmitting.value = false
+      showSuccess.value = true
+      
+      // Rediriger après 2 secondes
+      setTimeout(() => {
+        router.push('/account/requests')
+      }, 2000)
+    }, 1500)
+  } catch (error) {
+    console.error('Erreur lors de la publication de la demande:', error)
+    isSubmitting.value = false
+  }
 }
+
+// Initialisation
+onMounted(() => {
+  // Définir la date par défaut à 7 jours à partir d'aujourd'hui
+  const defaultDate = new Date()
+  defaultDate.setDate(defaultDate.getDate() + 7)
+  requestData.value.deadline = defaultDate.toISOString().split('T')[0]
+})
 
 definePageMeta({
   layout: 'default'
@@ -474,28 +451,23 @@ definePageMeta({
 </script>
 
 <style scoped>
-/* Animation des composants */
-.rounded-xl {
-  animation: fadeIn 0.4s ease;
+.animated {
+  animation-duration: 0.4s;
   animation-fill-mode: both;
 }
 
-/* Animation séquentielle pour chaque section */
-.space-y-6 > div:nth-child(1) { animation-delay: 0.05s; }
-.space-y-6 > div:nth-child(2) { animation-delay: 0.1s; }
-.space-y-6 > div:nth-child(3) { animation-delay: 0.15s; }
-.space-y-6 > div:nth-child(4) { animation-delay: 0.2s; }
-.space-y-6 > div:nth-child(5) { animation-delay: 0.25s; }
-.space-y-6 > div:nth-child(6) { animation-delay: 0.3s; }
-
-@keyframes fadeIn {
+@keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translate3d(0, 10px, 0);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
   }
+}
+
+.fadeInUp {
+  animation-name: fadeInUp;
 }
 </style>

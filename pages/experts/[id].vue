@@ -1,367 +1,342 @@
+// pages/experts/_id.vue
 <template>
-  <div class="min-h-screen bg-white">
-    <!-- En-tête avec bouton retour -->
-    <div class="border-b border-gray-200">
-      <div class="max-w-4xl mx-auto px-5 py-4 flex items-center">
-      <button 
-          @click="router.back()" 
-          class="p-1 -ml-1 text-black"
-      >
-          <ChevronLeft class="h-6 w-6" />
-      </button>
-        <h1 class="text-xl font-bold text-black ml-2">Profil de l'expert</h1>
+  <div>
+    <Header />
+    
+    <main v-if="expert">
+      <div class="profile-header">
+        <div class="back-button" @click="$router.back()">
+          <i class="fas fa-arrow-left"></i>
+        </div>
+        <h1>{{ expert.name }}</h1>
       </div>
+      
+      <div class="profile-hero">
+        <div class="avatar-large">
+          <img v-if="expert.avatar" :src="expert.avatar" :alt="expert.name">
+          <img v-else src="/images/default-avatar.png" :alt="expert.name">
+        </div>
+        
+        <div class="profile-info">
+          <div class="name-and-badge">
+            <h2>{{ expert.name }}</h2>
+            <i v-if="expert.isVerified" class="fas fa-check-circle verification-badge"></i>
+          </div>
+          
+          <div class="occupation">{{ expert.occupation }}</div>
+          
+          <div class="rating-large">
+            <i class="fas fa-star"></i>
+            <span class="rating-value">{{ formatRating(expert.rating) }}</span>
+            <span class="reviews-count">({{ expert.reviewsCount }} avis)</span>
+          </div>
+          
+          <div class="availability" :class="{ 'available': expert.isAvailable, 'busy': !expert.isAvailable }">
+            <i class="fas fa-circle"></i>
+            <span>{{ expert.isAvailable ? 'Disponible maintenant' : 'Actuellement occupé' }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="profile-section">
+        <h3>À propos</h3>
+        <p class="bio">{{ expert.bio }}</p>
+      </div>
+      
+      <div class="profile-section">
+        <h3>Compétences</h3>
+        <div class="skills-grid">
+          <div v-for="(skill, index) in expert.skills" :key="index" class="skill-item">
+            <div class="skill-name">{{ skill.name }}</div>
+            <div class="skill-level">
+              <div 
+                v-for="n in 5" 
+                :key="n" 
+                class="level-dot"
+                :class="{ 'filled': n <= skill.level }"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="profile-section">
+        <h3>Services</h3>
+        <div v-if="expert.services && expert.services.length > 0" class="services-list">
+          <div v-for="(service, index) in expert.services" :key="index" class="service-card">
+            <div class="service-title">{{ service.title }}</div>
+            <div class="service-description">{{ service.description }}</div>
+            <div class="service-price">{{ formatCurrency(service.price) }}</div>
+          </div>
+        </div>
+        <div v-else class="empty-services">
+          <p>Cet expert n'a pas encore listé ses services.</p>
+        </div>
+      </div>
+      
+      <div class="profile-section">
+        <h3>Avis ({{ expert.reviewsCount }})</h3>
+        <div v-if="reviews.length > 0" class="reviews-list">
+          <div v-for="review in reviews" :key="review.id" class="review-card">
+            <div class="review-header">
+              <div class="reviewer-info">
+                <div class="reviewer-avatar">
+                  <img :src="review.reviewer_avatar || '/images/default-avatar.png'" :alt="review.reviewer_name">
+                </div>
+                <div class="reviewer-name">{{ review.reviewer_name }}</div>
+              </div>
+              <div class="review-rating">
+                <i v-for="n in 5" :key="n" class="fas fa-star" :class="{ 'filled': n <= review.rating }"></i>
+              </div>
+            </div>
+            <div class="review-date">{{ formatDate(review.created_at) }}</div>
+            <div class="review-comment">{{ review.comment }}</div>
+          </div>
+        </div>
+        <div v-else class="empty-reviews">
+          <p>Cet expert n'a pas encore reçu d'avis.</p>
+        </div>
+      </div>
+    </main>
+    
+    <div v-else-if="loading" class="loading-container">
+      <span class="loading-text">Chargement du profil...</span>
     </div>
     
-    <!-- Contenu principal -->
-    <div class="max-w-4xl mx-auto px-5 pb-16">
-      <!-- État de chargement -->
-      <div v-if="loading" class="flex justify-center py-20">
-        <Loader2 class="h-8 w-8 text-gray-400 animate-spin" />
-      </div>
-      
-      <!-- Profil de l'expert -->
-      <div v-else-if="expert" class="space-y-8 pt-6">
-        <!-- Informations principales -->
-        <div class="flex flex-col md:flex-row gap-6 items-start">
-          <!-- Photo de profil -->
-          <div class="h-24 w-24 md:h-32 md:w-32 rounded-full bg-gray-100 overflow-hidden flex-shrink-0">
-            <img 
-              v-if="expert.profile_image_url" 
-              :src="expert.profile_image_url" 
-              alt="Photo de profil" 
-              class="w-full h-full object-cover"
-            />
-            <div v-else class="w-full h-full flex items-center justify-center bg-gray-200">
-              <User class="h-12 w-12 text-gray-400" />
-            </div>
-          </div>
-          
-          <!-- Infos de l'expert -->
-          <div class="flex-1">
-            <h2 class="text-2xl font-bold text-black">
-              {{ expert.first_name }} {{ expert.last_name }}
-            </h2>
-            
-            <div class="flex items-center gap-1 mt-2">
-              <Star class="h-5 w-5 text-yellow-400 fill-yellow-400" />
-              <span class="text-lg font-medium">{{ expert.rating || '4.8' }}</span>
-              <span class="text-gray-500">({{ expert.reviews_count || '12' }} avis)</span>
-          </div>
-          
-            <div class="flex flex-wrap gap-4 mt-3">
-              <div class="flex items-center text-gray-600">
-                <MapPin class="h-4 w-4 mr-1.5" />
-                <span>{{ expert.city || 'Paris' }}, {{ expert.postal_code || '75000' }}</span>
-                </div>
-              <div class="flex items-center text-gray-600">
-                <Calendar class="h-4 w-4 mr-1.5" />
-                <span>Membre depuis {{ formatDate(expert.created_at) }}</span>
-            </div>
-          </div>
-          
-            <!-- Tarifs -->
-            <div class="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
-              <div class="text-lg font-semibold text-black">
-                À partir de {{ expert.hourly_rate || '25' }}€/heure
-              </div>
-              <p class="text-gray-600 text-sm mt-1">
-                Les tarifs peuvent varier selon le type de service et la complexité
-              </p>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Call to action -->
-        <div class="flex flex-col sm:flex-row gap-4">
-          <button 
-            @click="contactExpert"
-            class="flex-1 py-3.5 bg-primary-600 text-white font-medium rounded-full hover:bg-primary-700 transition-colors flex items-center justify-center"
-          >
-            <MessageSquare class="h-5 w-5 mr-2" />
-            Contacter
-          </button>
-          
-          <button 
-            @click="showRequestForm = true"
-            class="flex-1 py-3.5 border border-gray-300 text-black font-medium rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center"
-          >
-            <CalendarPlus class="h-5 w-5 mr-2" />
-            Demander un service
-          </button>
-                </div>
-        
-        <!-- À propos / Bio -->
-                <div>
-          <h3 class="text-xl font-bold text-black mb-4">À propos</h3>
-          <p class="text-gray-700 whitespace-pre-line">
-            {{ expert.bio || 'Expert professionnel disponible pour tous vos besoins de services. N\'hésitez pas à me contacter pour discuter de votre projet.' }}
-          </p>
-            </div>
-            
-        <!-- Spécialités -->
-        <div>
-          <h3 class="text-xl font-bold text-black mb-4">Spécialités</h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div 
-              v-for="(specialty, index) in getExpertiseAreas(expert)" 
-              :key="index"
-              class="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-100"
-            >
-              <Check class="h-5 w-5 text-green-500 mr-2" />
-              <span>{{ specialty }}</span>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Avis -->
-        <div>
-          <h3 class="text-xl font-bold text-black mb-4">Avis clients</h3>
-          
-          <div v-if="reviews.length > 0" class="space-y-4">
-            <div 
-              v-for="review in reviews" 
-              :key="review.id"
-              class="p-4 border border-gray-200 rounded-xl"
-            >
-              <div class="flex justify-between">
-                <div class="flex items-center">
-                  <div class="h-10 w-10 rounded-full bg-gray-100 mr-3">
-                    <img 
-                      v-if="review.author_image"
-                      :src="review.author_image"
-                      class="h-full w-full object-cover rounded-full"
-                      alt="Photo de profil"
-                    />
-                    <div v-else class="h-full w-full flex items-center justify-center">
-                      <User class="h-5 w-5 text-gray-400" />
-                    </div>
-                  </div>
-                  <div>
-                    <div class="font-medium">{{ review.author_name }}</div>
-                    <div class="text-xs text-gray-500">{{ formatDate(review.created_at) }}</div>
-                  </div>
-                </div>
-                
-                <div class="flex items-center">
-                <div class="flex">
-                  <Star 
-                    v-for="i in 5" 
-                    :key="i"
-                      class="h-4 w-4"
-                      :class="i <= review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'"
-                  />
-                  </div>
-                </div>
-              </div>
-              
-              <p class="text-gray-700 text-sm mt-3">{{ review.comment }}</p>
-            </div>
-          </div>
-          
-          <div v-else class="p-6 text-center bg-gray-50 rounded-xl">
-            <MessageSquare class="h-10 w-10 text-gray-400 mx-auto mb-3" />
-            <p class="text-gray-600">Cet expert n'a pas encore reçu d'avis</p>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Modal de demande de service -->
-      <Modal v-if="showRequestForm" @close="showRequestForm = false">
-        <template #header>
-          <h2 class="text-xl font-bold">Demander un service</h2>
-        </template>
-        
-        <template #default>
-          <div class="space-y-4 py-2">
-            <p class="text-gray-600">
-              Vous allez faire une demande de service auprès de 
-              <span class="font-medium">{{ expert.first_name }} {{ expert.last_name }}</span>
-            </p>
-            
-            <NuxtLink 
-              to="/requests/new" 
-              class="block w-full py-3 mt-4 bg-primary-600 text-white font-medium rounded-full hover:bg-primary-700 transition-colors text-center"
-            >
-              Créer une nouvelle demande
-            </NuxtLink>
-            
-            <div class="text-center">
-              <button 
-                @click="showRequestForm = false"
-                class="text-gray-600 text-sm font-medium hover:text-black"
-              >
-                Annuler
-              </button>
-            </div>
-          </div>
-        </template>
-      </Modal>
+    <div v-else class="error-container">
+      <p>Expert introuvable.</p>
+      <button class="btn-primary" @click="$router.push('/experts')">Retour à la liste des experts</button>
+    </div>
+    
+    <div v-if="expert" class="contact-fab">
+      <button class="contact-btn-large" @click="contactExpert">Contacter</button>
     </div>
   </div>
 </template>
 
-<script setup>
-import { ref, computed, onMounted } from 'vue'
-import { 
-  ChevronLeft, Loader2, Star, User, MapPin, Calendar, 
-  MessageSquare, CalendarPlus, Check 
-} from 'lucide-vue-next'
-
-const route = useRoute()
-const router = useRouter()
-const client = useSupabaseClient()
-
-// États
-const loading = ref(true)
-const expert = ref(null)
-const categories = ref([])
-const reviews = ref([])
-const showRequestForm = ref(false)
-
-// Obtenir les domaines d'expertise d'un expert
-const getExpertiseAreas = (expert) => {
-  if (!expert.expertise_areas) return []
-  
-  return expert.expertise_areas.map(area => {
-    const category = categories.value.find(c => c.id === area.category_id)
-    return area.service_name || (category ? category.name : 'Service')
-  })
-}
-
-// Formater la date
-const formatDate = (dateString) => {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  return date.toLocaleDateString('fr-FR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  })
-}
-
-// Actions
-const contactExpert = () => {
-  alert('Fonctionnalité de messagerie en cours de développement')
-  // TODO: Rediriger vers la messagerie ou ouvrir un modal de contact
-}
-
-// Charger les données
-const fetchExpertData = async () => {
-  try {
-    loading.value = true
-    
-    // Récupérer les catégories
-    const { data: categoriesData, error: categoriesError } = await client
-      .from('service_categories')
-      .select('id, name')
-    
-    if (categoriesError) throw categoriesError
-    categories.value = categoriesData || []
-    
-    // Récupérer les infos de l'expert
-    const { data: expertData, error: expertError } = await client
-      .from('profiles')
-      .select(`
-        *
-      `)
-      .eq('id', route.params.id)
-      .eq('role', 'expert')
-      .single()
-    
-    if (expertError) throw expertError
-    
-    if (!expertData) {
-      // Rediriger si l'expert n'existe pas
-      router.push('/experts')
-      return
+<script>
+export default {
+  data() {
+    return {
+      expert: null,
+      reviews: [],
+      loading: true,
+      error: null
     }
-    
-    expert.value = expertData
-    
-    // Récupérer les avis (pour l'exemple, des avis générés)
-    reviews.value = [
-    {
-      id: 1,
-        author_name: 'Sophie Martin',
-      rating: 5,
-        comment: 'Excellent service, rapide et professionnel. Je recommande vivement !',
-        created_at: '2023-09-15'
-    },
-    {
-      id: 2,
-        author_name: 'Julien Dupont',
-        rating: 4,
-        comment: 'Très satisfait du travail effectué. Ponctuel et efficace.',
-        created_at: '2023-08-22'
-    },
-    {
-      id: 3,
-        author_name: 'Marie Leclerc',
-        rating: 5,
-        comment: 'Service impeccable, je n\'hésiterai pas à faire appel à nouveau à cet expert.',
-        created_at: '2023-07-10'
+  },
+  
+  async fetch() {
+    try {
+      const expertId = this.$route.params.id
+      await this.fetchExpertProfile(expertId)
+      await this.fetchExpertReviews(expertId)
+    } catch (error) {
+      console.error('Error fetching expert profile:', error)
+      this.error = error.message
+    } finally {
+      this.loading = false
+    }
+  },
+  
+  methods: {
+    async fetchExpertProfile(expertId) {
+      const { data, error } = await this.$supabase
+        .from('profiles')
+        .select(`
+          id,
+          first_name,
+          last_name,
+          bio,
+          rating,
+          reviews_count,
+          hourly_rate,
+          availability_status,
+          is_available,
+          is_verified,
+          avatar_url,
+          user_skills (
+            skill_id,
+            level,
+            skills (
+              id,
+              name,
+              category_id
+            )
+          ),
+          services (
+            id,
+            title,
+            description,
+            price,
+            category_id,
+            is_active
+          )
+        `)
+        .eq('id', expertId)
+        .eq('is_expert', true)
+        .single()
+      
+      if (error) throw error
+      if (!data) throw new Error('Expert not found')
+      
+      // Process skills with level
+      const skills = data.user_skills
+        ? data.user_skills
+            .filter(userSkill => userSkill.skills) // Remove null values
+            .map(userSkill => ({
+              id: userSkill.skills.id,
+              name: userSkill.skills.name,
+              level: userSkill.level || 3 // Default level if not set
+            }))
+            .sort((a, b) => b.level - a.level) // Sort by skill level
+        : []
+      
+      // Process active services only
+      const services = data.services
+        ? data.services
+            .filter(service => service.is_active)
+        : []
+            
+      // Format the expert object
+      this.expert = {
+        id: data.id,
+        name: `${data.first_name} ${data.last_name.charAt(0)}.`,
+        fullName: `${data.first_name} ${data.last_name}`,
+        avatar: data.avatar_url || null,
+        occupation: services.length > 0 ? services[0].title : 'Expert',
+        bio: data.bio || 'Aucune biographie disponible.',
+        rating: data.rating || 0,
+        reviewsCount: data.reviews_count || 0,
+        hourlyRate: data.hourly_rate || 0,
+        isAvailable: data.is_available,
+        isVerified: data.is_verified,
+        availabilityStatus: data.availability_status,
+        skills: skills,
+        services: services
       }
-    ]
-  } catch (error) {
-    console.error('Erreur lors du chargement des données:', error)
-  } finally {
-    loading.value = false
+    },
+    
+    async fetchExpertReviews(expertId) {
+      const { data, error } = await this.$supabase
+        .from('reviews')
+        .select(`
+          id,
+          rating,
+          comment,
+          created_at,
+          reviewer_id,
+          profiles:reviewer_id (
+            first_name,
+            last_name,
+            avatar_url
+          )
+        `)
+        .eq('reviewee_id', expertId)
+        .order('created_at', { ascending: false })
+        .limit(5)
+      
+      if (error) throw error
+      
+      // Format the reviews
+      this.reviews = data.map(review => ({
+        id: review.id,
+        rating: review.rating,
+        comment: review.comment || 'Aucun commentaire',
+        created_at: review.created_at,
+        reviewer_id: review.reviewer_id,
+        reviewer_name: review.profiles 
+          ? `${review.profiles.first_name} ${review.profiles.last_name.charAt(0)}.`
+          : 'Utilisateur',
+        reviewer_avatar: review.profiles ? review.profiles.avatar_url : null
+      }))
+    },
+    
+    formatRating(rating) {
+      return rating ? rating.toFixed(1) : '0.0'
+    },
+    
+    formatCurrency(amount) {
+      return amount ? `${amount.toLocaleString()} FCFA` : 'Prix non défini'
+    },
+    
+    formatDate(dateString) {
+      const date = new Date(dateString)
+      return new Intl.DateTimeFormat('fr-FR', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      }).format(date)
+    },
+    
+    contactExpert() {
+      // Navigate to contact page or open chat
+      this.$router.push(`/experts/${this.expert.id}/contact`)
+    }
   }
 }
-
-// Composant modal simple
-const Modal = defineComponent({
-  emits: ['close'],
-  setup(_, { emit, slots }) {
-    return () => h('div', {
-      class: 'fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50',
-      onClick: (e) => {
-        if (e.target === e.currentTarget) emit('close')
-      }
-    }, [
-      h('div', {
-        class: 'bg-white rounded-2xl max-w-md w-full p-5 max-h-[90vh] overflow-auto'
-      }, [
-        h('div', { class: 'flex justify-between items-center mb-4' }, [
-          slots.header?.(),
-          h('button', {
-            onClick: () => emit('close'),
-            class: 'text-gray-500 hover:text-black'
-          }, [
-            h('svg', {
-              xmlns: 'http://www.w3.org/2000/svg',
-              class: 'h-6 w-6',
-              fill: 'none',
-              viewBox: '0 0 24 24',
-              stroke: 'currentColor'
-            }, [
-              h('path', {
-                'stroke-linecap': 'round',
-                'stroke-linejoin': 'round',
-                'stroke-width': '2',
-                d: 'M6 18L18 6M6 6l12 12'
-              })
-            ])
-          ])
-        ]),
-        slots.default?.()
-      ])
-    ])
-  }
-})
-
-// Charger les données lors du montage du composant
-onMounted(fetchExpertData)
-
-definePageMeta({
-  layout: 'default'
-})
-</script> 
+</script>
 
 <style scoped>
-/* Animation des étoiles */
-.fill-yellow-400 {
-  fill: #facc15;
+main {
+  max-width: 600px;
+  margin: 0 auto;
+  padding-bottom: 80px;
 }
-</style> 
+
+.profile-header {
+  padding: var(--space-md);
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.back-button {
+  margin-right: var(--space-md);
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-button:hover {
+  background-color: var(--bg-secondary);
+}
+
+.profile-hero {
+  display: flex;
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.avatar-large {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: var(--space-lg);
+  flex-shrink: 0;
+}
+
+.avatar-large img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-info {
+  flex: 1;
+}
+
+.name-and-badge {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--space-xs);
+}
+
+.verification-badge {
+  color: var(--accent-color);
+}
+</style>

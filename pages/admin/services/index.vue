@@ -675,7 +675,7 @@ const fetchData = async () => {
   try {
     // Récupérer les catégories
     const { data: categoriesData, error: categoriesError } = await supabase
-      .from('services_categories')
+      .from('categories')
       .select('*')
       .order('name')
     
@@ -837,7 +837,7 @@ async function fetchServices() {
   try {
     // Récupérer les catégories
     const { data: categoriesData, error: categoriesError } = await supabase
-      .from('services_categories')
+      .from('categories')
       .select('*')
       .order('name')
     

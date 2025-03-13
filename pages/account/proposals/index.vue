@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-4xl mx-auto px-4 pt-5 pb-16">
+  <div class="max-w-4xl mx-auto px-4 pt-5 pb-16  h">
     <!-- Ajout du header avec bouton de retour au profil -->
     <AccountHeader 
       title="Mes propositions" 
@@ -154,7 +154,7 @@
                 </div>
               </div>
               <div class="text-right">
-                <div class="text-lg font-semibold text-gray-900 dark:text-white">{{ proposal.amount }}€</div>
+                <div class="text-lg font-semibold text-gray-900 dark:text-white">{{ proposal.formatted_price }}</div>
                 <div class="text-xs text-gray-500 dark:text-gray-400">
                   Proposé le {{ formatDate(proposal.created_at) }}
                 </div>
@@ -276,15 +276,35 @@ const fetchProposals = async () => {
   isLoading.value = true
   
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('proposals')
-      .select('*')
-      .eq('expert_id', user.value.id)
-      .order('created_at', { ascending: false })
+      .select(`
+        *,
+        request:request_id(
+          id, 
+          title, 
+          description,
+          client:client_id(first_name, last_name, avatar_url)
+        )
+      `)
+    
+    // L'expert ne voit que ses propres propositions
+    query = query.eq('expert_id', user.value.id)
+    
+    // Trier par date
+    query = query.order('created_at', { ascending: false })
+    
+    const { data, error } = await query
     
     if (error) throw error
     
-    proposals.value = data || []
+    proposals.value = data.map(proposal => ({
+      ...proposal,
+      request_title: proposal.request.title,
+      client_name: `${proposal.request.client.first_name} ${proposal.request.client.last_name}`,
+      client_avatar: proposal.request.client.avatar_url,
+      formatted_price: new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(proposal.price)
+    }))
   } catch (error) {
     console.error('Erreur lors de la récupération des propositions:', error)
   } finally {

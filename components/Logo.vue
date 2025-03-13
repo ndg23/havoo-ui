@@ -5,22 +5,57 @@
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
   >
-    <!-- Logo Icon with GAFAM influence - more rounded corners like Google/Apple, 
-         simplicity like Microsoft, gradient like Instagram -->
+    <!-- Logo Icon - Design moderne pour Havoo -->
     <div class="logo-icon-container">
       <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" class="logo-icon">
-        <!-- Base background with softer gradient (Airbnb red tones) -->
-        <rect width="32" height="32" rx="8" fill="url(#paint0_linear)" />
+        <!-- Fond avec dégradé moderne -->
+        <rect width="32" height="32" rx="10" fill="url(#paint0_linear)" />
         
-        <!-- Simplified icon shape (similar to Airbnb's house concept, but for Havoo) -->
-        <path d="M16 8C18.2091 8 20 9.79086 20 12C20 13.0252 19.5892 13.9615 18.9171 14.6578C20.7762 15.6483 22 17.6945 22 20V24C22 24.5523 21.5523 25 21 25C20.4477 25 20 24.5523 20 24V20C20 17.7909 18.2091 16 16 16C13.7909 16 12 17.7909 12 20V24C12 24.5523 11.5523 25 11 25C10.4477 25 10 24.5523 10 24V20C10 17.6945 11.2238 15.6483 13.0829 14.6578C12.4108 13.9615 12 13.0252 12 12C12 9.79086 13.7909 8 16 8Z" fill="white"/>
+        <!-- Toit en V au-dessus du H -->
+        <path 
+          d="M16 7L9 14" 
+          stroke="white" 
+          stroke-width="2.5" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"
+        />
+        <path 
+          d="M16 7L23 14" 
+          stroke="white" 
+          stroke-width="2.5" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"
+        />
         
-        <!-- Animation effect - subtle pulse circle (inspired by Google Assistant) -->
+        <!-- H clairement visible -->
+        <path 
+          d="M11 14V25" 
+          stroke="white" 
+          stroke-width="2.5" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"
+        />
+        <path 
+          d="M21 14V25" 
+          stroke="white" 
+          stroke-width="2.5" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"
+        />
+        <path 
+          d="M11 19.5H21" 
+          stroke="white" 
+          stroke-width="2.5" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"
+        />
+        
+        <!-- Effet de survol subtil -->
         <circle 
           cx="16" 
           cy="16" 
           r="14" 
-          :stroke="isHovered ? 'rgba(255, 255, 255, 0.3)' : 'rgba(255, 255, 255, 0)'" 
+          :stroke="isHovered ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 0)'" 
           stroke-width="1.5"
           fill="none"
           class="pulse-circle"
@@ -28,23 +63,22 @@
         
         <defs>
           <linearGradient id="paint0_linear" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#FF5A5F" /> <!-- Airbnb primary red -->
-            <stop offset="1" stop-color="#FF385C" /> <!-- Airbnb darker red -->
+            <stop stop-color="#FF5A5F" /> <!-- Rouge Airbnb -->
+            <stop offset="1" stop-color="#FF385C" /> <!-- Rouge Airbnb foncé -->
           </linearGradient>
         </defs>
       </svg>
     </div>
     
-    <!-- Logo Text - with Airbnb-style typography and cleaner GAFAM-inspired approach -->
+    <!-- Texte du logo avec séparation visuelle pour Havoo Services -->
     <div v-if="!iconOnly" class="logo-text" :class="{ 'logo-text-hovered': isHovered }">
-      <span class="brand-name">Havoo</span>
-      <span class="service-text">Services</span>
+      <span class="brand-name">havoo</span>
+      <span class="service-text">services</span>
     </div>
   </div>
 </template>
 
 <script setup>
-
 const isHovered = ref(false);
 
 defineProps({
@@ -63,7 +97,7 @@ defineProps({
 .logo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   cursor: pointer;
   transition: transform 0.3s ease;
 }
@@ -73,55 +107,58 @@ defineProps({
   transform-origin: left center;
 }
 
-/* Icon container with subtle effects */
+/* Container de l'icône avec effets subtils */
 .logo-icon-container {
   position: relative;
   flex-shrink: 0;
 }
 
 .logo-icon {
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.15));
   transition: transform 0.3s ease;
 }
 
 .logo:hover .logo-icon {
-  transform: scale(1.05);
+  transform: scale(1.05) translateY(-1px);
 }
 
-/* Animation for pulse circle (Google-inspired) */
+/* Animation pour le cercle pulsant */
 .pulse-circle {
-  transition: stroke 0.3s ease, stroke-width 0.3s ease;
+  transition: stroke 0.4s ease, stroke-dasharray 1.2s ease;
 }
 
-/* Text styling - Airbnb-inspired typography */
+/* Style du texte - Approche Trivago/Airbnb */
 .logo-text {
   display: flex;
   flex-direction: column;
-  font-family: 'Circular', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif; /* Airbnb-like font stack */
+  font-family: 'Cereal', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;
   line-height: 1;
-  transition: transform 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .logo-text-hovered {
-  transform: translateX(2px);
+  transform: translateX(3px);
 }
 
 .brand-name {
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-  color: #222222; /* Airbnb dark text */
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  color: #222222; /* Havoo texte foncé */
+  transition: color 0.4s ease;
 }
 
 .service-text {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
-  letter-spacing: -0.2px;
-  color: #FF385C; /* Airbnb red */
+  letter-spacing: 0.2px;
+  text-transform: lowercase;
+  margin-top: 1px;
+  color: #FF385C; /* Havoo rouge */
   transition: color 0.3s ease, transform 0.3s ease;
 }
 
-/* Dark mode support */
+/* Support du mode sombre */
 @media (prefers-color-scheme: dark) {
   .brand-name {
     color: #ffffff;
@@ -129,7 +166,7 @@ defineProps({
 }
 
 .logo:hover .service-text {
-  background: linear-gradient(90deg, #FF385C 0%, #FF5A5F 100%); /* Airbnb reds */
+  background: linear-gradient(90deg, #FF385C 0%, #FF7779 100%); /* Dégradé amélioré */
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
