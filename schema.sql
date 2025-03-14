@@ -154,18 +154,6 @@ CREATE TABLE deliverables (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Table des milestones de paiement
-CREATE TABLE milestones (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  contract_id UUID NOT NULL REFERENCES contracts(id) ON DELETE CASCADE,
-  title VARCHAR(255) NOT NULL,
-  amount DECIMAL(10, 2) NOT NULL,
-  due_date DATE,
-  is_paid BOOLEAN DEFAULT FALSE,
-  paid_at TIMESTAMPTZ,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
 -- Table des conversations
 CREATE TABLE conversations (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -469,7 +457,6 @@ ALTER TABLE request_files ENABLE ROW LEVEL SECURITY;
 ALTER TABLE proposals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contracts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE deliverables ENABLE ROW LEVEL SECURITY;
-ALTER TABLE milestones ENABLE ROW LEVEL SECURITY;
 ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE conversation_participants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
@@ -514,3 +501,17 @@ INSERT INTO categories (name, description, icon) VALUES
 ('Marketing Digital', 'SEO, réseaux sociaux et publicité en ligne', 'trending-up'),
 ('Audio & Vidéo', 'Production et édition audiovisuelle', 'film'),
 ('Business & Conseil', 'Stratégie, finance et développement d''affaires', 'briefcase');
+
+-- Supprimer la table des milestones si elle existe
+DROP TABLE IF EXISTS contract_milestones;
+
+-- Modifier la table des contrats pour retirer les références aux milestones
+ALTER TABLE contracts
+DROP COLUMN IF EXISTS has_milestones,
+DROP COLUMN IF EXISTS milestones_count,
+DROP COLUMN IF EXISTS current_milestone;
+
+-- Si vous avez des contraintes de clé étrangère liées aux milestones, les supprimer
+-- Par exemple:
+ALTER TABLE payments
+DROP CONSTRAINT IF EXISTS fk_payment_milestone;

@@ -1,161 +1,179 @@
-
--- Fonction pour mettre à jour les timestamps
-CREATE OR REPLACE FUNCTION update_timestamp()
+CREATE OR REPLACE FUNCTION update_request_status_on_proposal_acceptance()
 RETURNS TRIGGER AS $$
 BEGIN
-   NEW.updated_at = NOW();
-   RETURN NEW;
+  IF NEW.status = 'accepted' THEN
+    UPDATE requests
+    SET status = 'assigned'
+    WHERE id = NEW.request_id;
+  END IF;
+  RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-CREATE TRIGGER update_proposals_timestamp
-BEFORE UPDATE ON proposals
-FOR EACH ROW EXECUTE PROCEDURE update_timestamp();
 
-CREATE TRIGGER update_contracts_timestamp
-BEFORE UPDATE ON contracts
-FOR EACH ROW EXECUTE PROCEDURE update_timestamp();
-
-CREATE TRIGGER update_services_timestamp
-BEFORE UPDATE ON services
-FOR EACH ROW EXECUTE PROCEDURE update_timestamp();
-
-CREATE TRIGGER update_payments_timestamp
-BEFORE UPDATE ON payments
-FOR EACH ROW EXECUTE PROCEDURE update_timestamp();
+CREATE TRIGGER proposal_accepted_trigger
+AFTER UPDATE OF status ON proposals
+FOR EACH ROW
+WHEN (NEW.status = 'accepted' AND OLD.status <> 'accepted')
+EXECUTE FUNCTION update_request_status_on_proposal_acceptance();
 
 
+CREATE OR REPLACE FUNCTION create_contract_on_proposal_acceptance()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.status = 'accepted' THEN
+    INSERT INTO contracts (request_id, proposal_id, client_id, expert_id, title, description, price, start_date, end_date)
+    SELECT r.id, NEW.id, r.client_id, NEW.expert_id, r.title, r.description, NEW.price, NULL, NULL -- Vous pouvez ajouter des dates de début/fin par défaut ou les laisser NULL
+    FROM requests r
+    WHERE r.id = NEW.request_id;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
--- Application des triggers pour les timestamps
-CREATE TRIGGER update_profiles_timestamp
+CREATE TRIGGER contract_creation_trigger
+AFTER UPDATE OF status ON proposals
+FOR EACH ROW
+WHEN (NEW.status = 'accepted' AND OLD.status <> 'accepted')
+EXECUTE FUNCTION create_contract_on_proposal_acceptance();
+
+
+
+CREATE OR REPLACE FUNCTION update_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Appliquez ce trigger à toutes les tables pertinentes
+CREATE TRIGGER profiles_updated_at_trigger
 BEFORE UPDATE ON profiles
-FOR EACH ROW EXECUTE PROCEDURE update_timestamp();
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at();
 
-CREATE TRIGGER update_requests_timestamp
+CREATE TRIGGER requests_updated_at_trigger
 BEFORE UPDATE ON requests
-FOR EACH ROW EXECUTE PROCEDURE update_timestamp();
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at();
 
--- Trigger pour notifier quand une proposition est reçue
-CREATE OR REPLACE FUNCTION notify_new_proposal()
+CREATE TRIGGER proposals_updated_at_trigger
+BEFORE UPDATE ON proposals
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at();
+
+CREATE TRIGGER contracts_updated_at_trigger
+BEFORE UPDATE ON contracts
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at();
+
+CREATE TRIGGER categories_updated_at_trigger
+BEFORE UPDATE ON categories
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at();
+
+CREATE TRIGGER skills_updated_at_trigger
+BEFORE UPDATE ON skills
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at();
+
+
+
+CREATE OR REPLACE FUNCTION check_unique_proposal()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO notifications (user_id, title, content, type, reference_id, reference_type)
-  SELECT 
-    r.client_id, 
-    'Nouvelle proposition', 
-    'Vous avez reçu une nouvelle proposition sur votre demande: ' || r.title,
-    'proposal',
-    NEW.id,
-    'proposal'
-  FROM requests r
-  WHERE r.id = NEW.request_id;
-  
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER on_new_proposal
-AFTER INSERT ON proposals
-FOR EACH ROW EXECUTE PROCEDURE notify_new_proposal();
-
-
--- Pour notification d'acceptation de proposition
-CREATE OR REPLACE FUNCTION notify_proposal_status_change()
-RETURNS TRIGGER AS $$
-BEGIN
-  IF NEW.status != OLD.status THEN
-    INSERT INTO notifications (user_id, title, content, type, reference_id, reference_type)
-    VALUES (
-      NEW.expert_id,
-      CASE 
-        WHEN NEW.status = 'accepted' THEN 'Proposition acceptée'
-        WHEN NEW.status = 'rejected' THEN 'Proposition refusée'
-        ELSE 'Statut de proposition mis à jour'
-      END,
-      'Le statut de votre proposition a été mis à jour.',
-      'proposal_status',
-      NEW.id,
-      'proposal'
-    );
+  IF EXISTS (SELECT 1 FROM proposals WHERE request_id = NEW.request_id AND expert_id = NEW.expert_id) THEN
+    RAISE EXCEPTION 'Une proposition existe déjà pour cette demande et cet expert.';
   END IF;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER on_proposal_status_change
-AFTER UPDATE ON proposals
+CREATE TRIGGER unique_proposal_trigger
+BEFORE INSERT ON proposals
 FOR EACH ROW
-WHEN (OLD.status IS DISTINCT FROM NEW.status)
-EXECUTE PROCEDURE notify_proposal_status_change();
+EXECUTE FUNCTION check_unique_proposal();
 
 
 
--- Fonction pour mettre à jour le statut d'expert sur le profil
-CREATE OR REPLACE FUNCTION update_expert_status()
-RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION search_experts(
+  search_term TEXT DEFAULT NULL,
+  category_id_filter INTEGER DEFAULT NULL,
+  skill_ids_filter INTEGER[] DEFAULT NULL
+)
+RETURNS TABLE (
+  id UUID,
+  first_name VARCHAR,
+  last_name VARCHAR,
+  bio TEXT,
+  avatar_url TEXT
+) AS $$
 BEGIN
-  IF NEW.status = 'approved' AND OLD.status != 'approved' THEN
-    -- Mettre à jour le profil pour marquer l'utilisateur comme expert vérifié
-    UPDATE profiles 
-    SET is_expert = TRUE, 
-        is_verified = TRUE, 
-        expert_status = 'approved',
-        updated_at = NOW()
-    WHERE id = NEW.user_id;
-    
-    -- Ajouter une notification pour l'utilisateur
-    INSERT INTO notifications (
-      user_id, 
-      title, 
-      content, 
-      type, 
-      reference_id, 
-      reference_type
-    ) VALUES (
-      NEW.user_id,
-      'Félicitations ! Votre statut d''expert a été approuvé',
-      'Votre demande de vérification a été approuvée. Vous pouvez maintenant proposer vos services sur la plateforme.',
-      'expert_verification',
-      NEW.id,
-      'expert_verification'
-    );
-  
-  ELSIF NEW.status = 'rejected' AND OLD.status != 'rejected' THEN
-    -- Mettre à jour le profil pour indiquer le rejet
-    UPDATE profiles 
-    SET expert_status = 'rejected',
-        updated_at = NOW()
-    WHERE id = NEW.user_id;
-    
-    -- Ajouter une notification pour l'utilisateur
-    INSERT INTO notifications (
-      user_id, 
-      title, 
-      content, 
-      type, 
-      reference_id, 
-      reference_type
-    ) VALUES (
-      NEW.user_id,
-      'Votre demande de vérification a été refusée',
-      'Votre demande de vérification a été refusée. Raison: ' || COALESCE(NEW.rejection_reason, 'Non spécifiée'),
-      'expert_verification',
-      NEW.id,
-      'expert_verification'
-    );
-  END IF;
-  
-  RETURN NEW;
+  RETURN QUERY
+  SELECT
+    p.id,
+    p.first_name,
+    p.last_name,
+    p.bio,
+    p.avatar_url
+  FROM profiles p
+  WHERE p.is_expert = TRUE
+    AND (search_term IS NULL OR
+      p.first_name ILIKE '%' || search_term || '%' OR
+      p.last_name ILIKE '%' || search_term || '%' OR
+      p.bio ILIKE '%' || search_term || '%')
+    AND (category_id_filter IS NULL OR EXISTS (
+      SELECT 1
+      FROM skills s
+      WHERE s.category_id = category_id_filter
+        AND EXISTS (
+          SELECT 1
+          FROM user_skills us
+          WHERE us.user_id = p.id
+            AND us.skill_id = s.id
+        )
+    ))
+    AND (skill_ids_filter IS NULL OR EXISTS (
+      SELECT 1
+      FROM user_skills us
+      WHERE us.user_id = p.id
+        AND us.skill_id = ANY(skill_ids_filter)
+    ));
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger pour mettre à jour le statut d'expert
-CREATE TRIGGER on_expert_verification_update
-AFTER UPDATE ON expert_verifications
-FOR EACH ROW
-WHEN (OLD.status IS DISTINCT FROM NEW.status)
-EXECUTE PROCEDURE update_expert_status();
 
--- Trigger pour mettre à jour le timestamp de la table expert_verifications
-CREATE TRIGGER update_expert_verifications_timestamp
-BEFORE UPDATE ON expert_verifications
-FOR EACH ROW EXECUTE PROCEDURE update_timestamp();
+CREATE OR REPLACE FUNCTION search_services(
+  search_term TEXT DEFAULT NULL,
+  category_id_filter INTEGER DEFAULT NULL,
+  skill_ids_filter INTEGER[] DEFAULT NULL
+)
+RETURNS TABLE (
+  id INTEGER,
+  title VARCHAR,
+  description TEXT,
+  price DECIMAL,
+  expert_id UUID
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    s.id,
+    s.title,
+    s.description,
+    s.price,
+    s.expert_id
+  FROM services s
+  WHERE s.is_active = TRUE
+    AND (search_term IS NULL OR
+      s.title ILIKE '%' || search_term || '%' OR
+      s.description ILIKE '%' || search_term || '%')
+    AND (category_id_filter IS NULL OR s.category_id = category_id_filter)
+    AND (skill_ids_filter IS NULL OR EXISTS (
+      SELECT 1
+      FROM user_skills us
+      WHERE us.user_id = s.expert_id
+        AND us.skill_id = ANY(skill_ids_filter)
+    ));
+END;
+$$ LANGUAGE plpgsql;

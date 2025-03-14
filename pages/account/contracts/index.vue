@@ -1,9 +1,6 @@
 <template>
   <div class="max-w-4xl mx-auto">
-    <AccountHeader 
-      title="Mes contrats" 
-      subtitle="Gérez vos contrats et missions en cours" 
-    />
+  
 
     <!-- Notification de succès après finalisation d'un contrat -->
     <div 
@@ -337,6 +334,6 @@ onMounted(() => {
 })
 
 definePageMeta({
-  layout: 'default'
+  layout: 'account'
 })
 </script> 

@@ -1,36 +1,13 @@
 <template>
-    <div class="max-w-3xl mx-auto px-4 pt-5 pb-16">
-      <!-- En-tête -->
-      <AccountHeader 
-        title="Paramètres du compte" 
-        subtitle="Gérez vos préférences et informations personnelles" 
-      />
-  
-      <!-- Onglets -->
-      <div class="mb-7 overflow-x-auto bg-white dark:bg-gray-800 rounded-xl shadow-sm">
-        <div class="flex space-x-1 px-2">
-          <button 
-            v-for="tab in tabs" 
-            :key="tab.id"
-            @click="activeTab = tab.id"
-            class="px-5 py-3 text-sm font-medium whitespace-nowrap transition-colors"
-            :class="activeTab === tab.id 
-              ? 'border-b-2 border-primary-500 text-gray-800 dark:text-gray-200' 
-              : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'"
-          >
-            <component :is="tab.icon" class="h-4 w-4 mr-1.5 inline-block" />
-            {{ tab.name }}
-          </button>
-        </div>
-      </div>
+    <div class="max-w-5xl mx-auto  pt-5 pb-16">
+     
   
       <!-- Sections selon l'onglet actif -->
       <div class="space-y-6">
         <!-- Profil -->
-        <div v-if="activeTab === 'profile'" class="space-y-6">
           <!-- Informations personnelles -->
-          <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 transition-shadow hover:shadow-sm">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          <div class="bg-white dark:bg-gray-800 rounded-xl dark:border-gray-700 p-5 transition-shadow hover:shadow-sm">
+            <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">
               Informations personnelles
             </h2>
             <div class="space-y-4">
@@ -276,7 +253,6 @@
                 Les compétences vous permettent d'être plus facilement trouvé par les clients à la recherche de vos services.
               </p>
             </div>
-        </div>
   
           <!-- Mot de passe -->
           <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 transition-shadow hover:shadow-sm">
@@ -357,223 +333,6 @@
           </div>
         </div>
   
-        <!-- Notifications -->
-        <div v-if="activeTab === 'notifications'" class="space-y-6">
-          <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 transition-shadow hover:shadow-sm">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Préférences de notification
-            </h2>
-            <div class="space-y-4">
-              <div class="flex items-center justify-between py-2">
-                <div>
-                  <h3 class="text-sm font-medium text-gray-900 dark:text-white">Notifications par e-mail</h3>
-                  <p class="text-xs text-gray-500 dark:text-gray-400">Recevoir des notifications par e-mail</p>
-                </div>
-                <Switch v-model="notifs.email" />
-              </div>
-              
-              <div class="border-t border-gray-200 dark:border-gray-700"></div>
-              
-              <div class="flex items-center justify-between py-2">
-                <div>
-                  <h3 class="text-sm font-medium text-gray-900 dark:text-white">Notifications par SMS</h3>
-                  <p class="text-xs text-gray-500 dark:text-gray-400">Recevoir des alertes par SMS</p>
-                </div>
-                <Switch v-model="notifs.sms" />
-              </div>
-              
-              <div class="border-t border-gray-200 dark:border-gray-700"></div>
-              
-              <div class="flex items-center justify-between py-2">
-                <div>
-                  <h3 class="text-sm font-medium text-gray-900 dark:text-white">Notifications sur le site</h3>
-                  <p class="text-xs text-gray-500 dark:text-gray-400">Afficher des notifications dans l'application</p>
-                </div>
-                <Switch v-model="notifs.app" />
-              </div>
-            </div>
-            
-            <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
-              <h3 class="text-sm font-medium text-gray-900 dark:text-white mb-3">Types de notifications</h3>
-              
-              <div class="space-y-3">
-                <div class="flex items-center">
-                  <input 
-                    id="notif-messages" 
-                    v-model="notifs.messages" 
-                    type="checkbox" 
-                    class="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                  />
-                  <label for="notif-messages" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                    Nouveaux messages
-                  </label>
-                </div>
-                
-                <div class="flex items-center">
-                  <input 
-                    id="notif-proposals" 
-                    v-model="notifs.proposals" 
-                    type="checkbox" 
-                    class="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                  />
-                  <label for="notif-proposals" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                    Nouvelles propositions
-                  </label>
-                </div>
-                
-                <div class="flex items-center">
-                  <input 
-                    id="notif-contracts" 
-                    v-model="notifs.contracts" 
-                    type="checkbox" 
-                    class="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                  />
-                  <label for="notif-contracts" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                    Mises à jour des contrats
-                  </label>
-                </div>
-                
-                <div class="flex items-center">
-                  <input 
-                    id="notif-payments" 
-                    v-model="notifs.payments" 
-                    type="checkbox" 
-                    class="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                  />
-                  <label for="notif-payments" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                    Paiements et transactions
-                  </label>
-                </div>
-              </div>
-              
-              <div class="pt-4 mt-2">
-                <button 
-                  @click="saveNotifications"
-                  class="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-full shadow-sm inline-flex items-center transition-colors"
-                  :disabled="isSavingNotifs"
-                >
-                  <span v-if="isSavingNotifs" class="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
-                  <Save v-else class="h-4 w-4 mr-2" />
-                  Enregistrer les préférences
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-  
-        <!-- Sécurité et Vie privée -->
-        <div v-if="activeTab === 'privacy'" class="space-y-6">
-          <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 transition-shadow hover:shadow-sm">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Visibilité du profil
-            </h2>
-            <div class="space-y-4">
-              <div class="flex items-center justify-between py-2">
-                <div>
-                  <h3 class="text-sm font-medium text-gray-900 dark:text-white">Profil public</h3>
-                  <p class="text-xs text-gray-500 dark:text-gray-400">Votre profil est visible par tous les utilisateurs</p>
-                </div>
-                <Switch v-model="privacy.publicProfile" />
-              </div>
-              
-              <div class="border-t border-gray-200 dark:border-gray-700"></div>
-              
-              <div class="flex items-center justify-between py-2">
-                <div>
-                  <h3 class="text-sm font-medium text-gray-900 dark:text-white">Afficher le numéro de téléphone</h3>
-                  <p class="text-xs text-gray-500 dark:text-gray-400">Votre numéro est visible sur votre profil</p>
-                </div>
-                <Switch v-model="privacy.showPhone" />
-              </div>
-              
-              <div class="border-t border-gray-200 dark:border-gray-700"></div>
-              
-              <div class="flex items-center justify-between py-2">
-                <div>
-                  <h3 class="text-sm font-medium text-gray-900 dark:text-white">Indexation par les moteurs de recherche</h3>
-                  <p class="text-xs text-gray-500 dark:text-gray-400">Votre profil apparaît dans les résultats de recherche</p>
-                </div>
-                <Switch v-model="privacy.allowIndexing" />
-              </div>
-            </div>
-            
-            <div class="pt-4 mt-2">
-              <button 
-                @click="savePrivacy"
-                class="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-full shadow-sm inline-flex items-center transition-colors"
-                :disabled="isSavingPrivacy"
-              >
-                <span v-if="isSavingPrivacy" class="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
-                <Save v-else class="h-4 w-4 mr-2" />
-                Enregistrer les paramètres
-              </button>
-            </div>
-          </div>
-          
-          <!-- Sessions actives -->
-          <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 transition-shadow hover:shadow-sm">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Sessions actives
-            </h2>
-            <div class="space-y-4">
-              <div class="flex items-start justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-                <div>
-                  <h3 class="text-sm font-medium text-gray-900 dark:text-white">Chrome sur MacBook Pro</h3>
-                  <p class="text-xs text-gray-500 dark:text-gray-400">Paris, France • Actif maintenant</p>
-                </div>
-                <span class="px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 text-xs rounded-full">
-                  Actuelle
-                </span>
-              </div>
-              
-              <div class="flex items-start justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-                <div>
-                  <h3 class="text-sm font-medium text-gray-900 dark:text-white">Safari sur iPhone 13</h3>
-                  <p class="text-xs text-gray-500 dark:text-gray-400">Paris, France • Il y a 2 heures</p>
-                </div>
-                <button class="text-xs text-red-600 dark:text-red-400 hover:underline">
-                  Déconnecter
-                </button>
-              </div>
-              
-              <div class="flex items-start justify-between py-2">
-                <div>
-                  <h3 class="text-sm font-medium text-gray-900 dark:text-white">Firefox sur Windows 10</h3>
-                  <p class="text-xs text-gray-500 dark:text-gray-400">Lyon, France • Il y a 3 jours</p>
-                </div>
-                <button class="text-xs text-red-600 dark:text-red-400 hover:underline">
-                  Déconnecter
-                </button>
-              </div>
-            </div>
-            
-            <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
-              <button class="px-5 py-2 bg-red-50 hover:bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 text-sm font-medium rounded-lg inline-flex items-center transition-colors">
-                <LogOut class="h-4 w-4 mr-2" />
-                Se déconnecter de toutes les sessions
-              </button>
-            </div>
-          </div>
-          
-          <!-- Supprimer le compte -->
-          <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 transition-shadow hover:shadow-sm">
-            <h2 class="text-lg font-semibold text-red-600 dark:text-red-400 mb-4">
-              Danger zone
-            </h2>
-            
-            <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">
-              La suppression de votre compte est une action permanente et ne peut pas être annulée. Toutes vos données personnelles seront définitivement effacées.
-            </p>
-            
-            <button 
-              @click="showDeleteModal = true"
-              class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg inline-flex items-center transition-colors"
-            >
-              <Trash2 class="h-4 w-4 mr-2" />
-              Supprimer mon compte
-            </button>
-          </div>
-        </div>
       </div>
   
       <!-- Modal de confirmation pour la suppression du compte -->

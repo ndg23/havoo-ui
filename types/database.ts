@@ -1,3 +1,11 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
 export interface Database {
   public: {
     Tables: {
@@ -15,6 +23,7 @@ export interface Database {
           is_expert: boolean;
           is_available: boolean;
           is_verified: boolean;
+          hourly_rate: number | null;
           created_at: string;
           updated_at: string;
           notification_preferences?: {
@@ -40,8 +49,12 @@ export interface Database {
           is_expert?: boolean;
           is_available?: boolean;
           is_verified?: boolean;
+          hourly_rate?: number | null;
+          created_at?: string;
+          updated_at?: string;
         }
         Update: {
+          id?: string;
           first_name?: string;
           last_name?: string;
           email?: string;
@@ -53,6 +66,9 @@ export interface Database {
           is_expert?: boolean;
           is_available?: boolean;
           is_verified?: boolean;
+          hourly_rate?: number | null;
+          created_at?: string;
+          updated_at?: string;
           notification_preferences?: object;
         }
       }
@@ -200,4 +216,31 @@ export interface Database {
       }
     }
   }
+}
+
+export interface Contract {
+  id: string;
+  created_at: string;
+  client_id: string;
+  expert_id: string;
+  request_id: string;
+  proposal_id: string;
+  title: string;
+  description: string;
+  status: 'draft' | 'active' | 'completed' | 'cancelled';
+  amount: number;
+  start_date: string | null;
+  end_date: string | null;
+  deliverable_description: string | null;
+  deliverable_files: string[] | null;
+}
+
+export interface Payment {
+  id: string;
+  contract_id: string;
+  amount: number;
+  status: 'pending' | 'completed' | 'failed' | 'refunded';
+  payment_method: string | null;
+  payment_date: string | null;
+  transaction_id: string | null;
 } 

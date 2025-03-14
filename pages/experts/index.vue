@@ -6,7 +6,11 @@
     </div>
 
     <!-- Filtres par catégorie style pills coloré -->
-    <div class="sticky top-0 z-10 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm py-3 -mx-4 px-4 mb-4">
+    <div 
+      ref="stickyMenu" 
+      class="sticky top-16 z-30 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 transition-all duration-300 py-4"
+      :class="isSticky ? 'shadow-md' : ''"
+    >
       <div class="flex overflow-x-auto pb-2 no-scrollbar gap-2">
         <button
           v-for="category in categories"
@@ -123,9 +127,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSupabaseClient } from '#imports'
+import { useExpertService } from '~/services/expertService'
 import {
   Search,
   Star,
@@ -135,135 +140,92 @@ import {
 const router = useRouter()
 const supabase = useSupabaseClient()
 
-// État réactif
+// États réactifs
 const experts = ref([])
-const categories = ref([
-  { id: null, name: 'Tous' },
-  { id: 1, name: 'Développement web' },
-  { id: 2, name: 'Design' },
-  { id: 3, name: 'Marketing' },
-  { id: 4, name: 'Traduction' },
-  { id: 5, name: 'Rédaction' },
-  { id: 6, name: 'Conseil' },
-  { id: 7, name: 'Comptabilité' }
-])
+const categories = ref([])
 const selectedCategory = ref(null)
 const loading = ref(true)
+const errorMessage = ref('')
 const searchQuery = ref('')
 
-// Charger les données au montage du composant
-onMounted(async () => {
+// Référence au menu sticky
+const stickyMenu = ref(null)
+const isSticky = ref(false)
+
+// Service pour les experts
+const expertService = useExpertService()
+
+// Charger les données
+const fetchData = async () => {
+  loading.value = true
+  errorMessage.value = ''
+  
   try {
-    // Simule le chargement des données depuis la base de données
-    await new Promise(resolve => setTimeout(resolve, 800))
+    // Charger les experts selon le filtre de catégorie
+    experts.value = await expertService.getExperts(selectedCategory.value)
     
-    // Données simulées des experts
-    experts.value = [
-      {
-        id: 1,
-        firstName: 'Aminata',
-        lastName: 'Diallo',
-        profile_image: '/img/avatars/expert1.jpg',
-        specialty: 'Développement web',
-        bio: 'Développeuse Full Stack avec 5 ans d\'expérience. Spécialisée en React, Node.js et bases de données.',
-        skills: ['JavaScript', 'React', 'Node.js', 'MongoDB'],
-        rating: 4.9,
-        reviewCount: 27,
-        hourlyRate: '15 000 FCFA',
-        isVerified: true,
-        categoryId: 1
-      },
-      {
-        id: 2,
-        firstName: 'Ousmane',
-        lastName: 'Ndiaye',
-        profile_image: '/img/avatars/expert2.jpg',
-        specialty: 'Design graphique',
-        bio: 'Designer graphique avec une passion pour les interfaces utilisateur modernes et l\'identité de marque.',
-        skills: ['Photoshop', 'Illustrator', 'UI/UX', 'Figma'],
-        rating: 4.7,
-        reviewCount: 19,
-        hourlyRate: '12 000 FCFA',
-        isVerified: true,
-        categoryId: 2
-      },
-      {
-        id: 3,
-        firstName: 'Fatou',
-        lastName: 'Seck',
-        profile_image: '/img/avatars/expert3.jpg',
-        specialty: 'Marketing digital',
-        bio: 'Spécialiste en marketing digital avec expérience en SEO, publicités Google et réseaux sociaux.',
-        skills: ['SEO', 'Google Ads', 'Facebook Ads', 'Email Marketing'],
-        rating: 4.8,
-        reviewCount: 32,
-        hourlyRate: '14 000 FCFA',
-        isVerified: true,
-        categoryId: 3
-      },
-      {
-        id: 4,
-        firstName: 'Ibrahim',
-        lastName: 'Barry',
-        profile_image: '/img/avatars/expert4.jpg',
-        specialty: 'Traduction',
-        bio: 'Traducteur professionnel anglais-français avec 8 ans d\'expérience dans divers domaines techniques.',
-        skills: ['Anglais', 'Français', 'Traduction technique', 'Localisation'],
-        rating: 4.9,
-        reviewCount: 41,
-        hourlyRate: '10 000 FCFA',
-        isVerified: true,
-        categoryId: 4
-      },
-      {
-        id: 5,
-        firstName: 'Aïssatou',
-        lastName: 'Diop',
-        profile_image: '/img/avatars/expert5.jpg',
-        specialty: 'Rédaction web',
-        bio: 'Rédactrice web SEO avec expérience en création de contenu pour divers secteurs d\'activité.',
-        skills: ['Rédaction SEO', 'Copywriting', 'Blogging', 'Correction'],
-        rating: 4.6,
-        reviewCount: 23,
-        hourlyRate: '8 000 FCFA',
-        isVerified: false,
-        categoryId: 5
-      }
-    ]
-    
-    // Simuler le chargement des catégories depuis la base de données
-    // Dans un environnement réel, nous le ferions avec Supabase
-    /*
-    const { data: categoriesData, error } = await supabase
+    // Simuler un délai pour montrer le chargement
+    // await new Promise(resolve => setTimeout(resolve, 500))
+  } catch (error) {
+    console.error('Error loading experts:', error)
+    errorMessage.value = 'Erreur lors du chargement des experts. Veuillez réessayer.'
+  } finally {
+    loading.value = false
+  }
+}
+
+// Charger les catégories
+const fetchCategories = async () => {
+  try {
+    const { data, error } = await supabase
       .from('categories')
       .select('id, name')
       .eq('is_active', true)
       .order('name')
     
     if (error) throw error
-    categories.value = [{ id: null, name: 'Tous' }, ...categoriesData]
-    */
+    
+    // Ajouter l'option "Tous" en premier
+    categories.value = [{ id: null, name: 'Tous' }, ...data]
   } catch (error) {
-    console.error('Error fetching data:', error)
-  } finally {
-    loading.value = false
+    console.error('Error loading categories:', error)
+    // Utiliser des catégories par défaut en cas d'erreur
+    categories.value = [
+      { id: null, name: 'Tous' },
+      { id: 1, name: 'Développement web' },
+      { id: 2, name: 'Design' },
+      { id: 3, name: 'Marketing' },
+      // ...autres catégories par défaut
+    ]
   }
+}
+
+// Filtrer par catégorie
+const filterByCategory = async (categoryId) => {
+  selectedCategory.value = categoryId
+  await fetchData()
+}
+
+// Gestion du menu sticky
+const handleScroll = () => {
+  if (!stickyMenu.value) return
+  
+  const rect = stickyMenu.value.getBoundingClientRect()
+  const menuTop = rect.top + window.scrollY
+  
+  isSticky.value = window.scrollY > menuTop
+}
+
+onMounted(async () => {
+  window.addEventListener('scroll', handleScroll)
+  await Promise.all([fetchCategories(), fetchData()])
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
 })
 
 // Méthodes
-const filterByCategory = (categoryId) => {
-  selectedCategory.value = categoryId
-  
-  // Réinitialiser la recherche quand on change de catégorie
-  searchQuery.value = ''
-  
-  // Simuler le chargement
-  loading.value = true
-  setTimeout(() => {
-    loading.value = false
-  }, 300)
-}
-
 const openSearch = () => {
   // Ouvrir la recherche avancée, peut-être avec une modale ou un drawer
   console.log('Opening advanced search')
@@ -326,5 +288,15 @@ div > div:nth-child(5) { animation-delay: 0.25s; }
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Masquer la barre de défilement pour les éléments avec défilement horizontal */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 </style>

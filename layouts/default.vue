@@ -4,7 +4,7 @@
     <Navbar />
 
     <!-- Contenu principal -->
-    <main class="mx-auto min-h-screen pt-20 pb-24">
+    <main class="mx-auto min-h-screen ">
       <slot />
     </main>
 
@@ -80,6 +80,8 @@
 import Logo from '~/components/Logo.vue';
 // import { Footer } from 'lucide-vue-next'
 import Navbar from '~/components/Navbar.vue'
+import AppHeader from '~/components/layout/AppHeader.vue'
+import AppFooter from '~/components/layout/AppFooter.vue'
 // Pas besoin de logique particulière ici
 </script> 
 <style scoped>

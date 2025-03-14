@@ -1,269 +1,295 @@
 <template>
-  <nav class="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50">
-    <div class="max-w-7xl mx-auto px-4">
-      <div class="flex justify-between items-center h-16">
-        <!-- Logo -->
-        <div class="flex items-center">
-          <NuxtLink to="/" class="text-xl font-bold text-black dark:text-white">
-            <Logo />
-          </NuxtLink>
-        </div>
-
-        <!-- Navigation -->
-        <nav class="hidden md:flex items-center space-x-4">
-          <NuxtLink 
-            to="/requests" 
-            class="px-4 py-2 text-sm font-medium transition-colors" 
-            :class="$route.path.includes('/requests') ? 'text-blue-500' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'"
-          >
-            Demandes
-          </NuxtLink>
+  <header class="fixed top-0 z-40 w-full bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-b border-gray-200/80 dark:border-gray-800/80">
+    <!-- Légère lueur subtile sur la bordure -->
+    <div class="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-primary-500/30 to-transparent"></div>
+    
+    <div class="mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+      <div class="flex h-16 items-center justify-between">
+        <!-- Logo avec effet hover -->
+        <NuxtLink to="/" class="flex-shrink-0 group transition-transform duration-300 hover:scale-105">
+          <Logo class="h-8 w-auto" />
+        </NuxtLink>
+        
+        <!-- Navigation principale (desktop) -->
+        <nav class="hidden md:flex items-center space-x-8">
           <NuxtLink 
             v-for="item in navItems" 
-            :key="item.path"
-            :to="item.path"
-            class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium px-3 py-2 rounded-full transition-colors relative group"
-            active-class="text-primary-600 dark:text-primary-400"
+            :key="item.name"
+            :to="item.href" 
+            class="group flex items-center text-sm font-medium py-2 relative transition-colors duration-200"
+            :class="[
+              item.current 
+                ? 'text-primary-600 dark:text-primary-400' 
+                : 'text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400'
+            ]"
           >
-            {{ item.label }}
-            <span class="absolute inset-x-0 -bottom-0.5 h-0.5 bg-primary-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left rounded-full"></span>
+            <component 
+              :is="item.icon" 
+              class="h-5 w-5 mr-1.5 transition-transform duration-300 group-hover:scale-110" 
+              :class="item.current ? 'text-primary-500' : 'text-gray-500 dark:text-gray-400'"
+            />
+            {{ item.name }}
+            
+            <!-- Indicateur animé -->
+            <span 
+              class="absolute -bottom-1 left-0 w-full h-0.5 bg-primary-500 dark:bg-primary-400 transform origin-left transition-transform duration-300"
+              :class="item.current ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'"
+            ></span>
           </NuxtLink>
         </nav>
-
+        
         <!-- Actions -->
-        <div class="flex items-center gap-3">
-          <!-- Recherche -->
-          <button class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-            <LucideIcon :icon="Search" size="20" />
-          </button>
-          
+        <div class="flex items-center gap-2 md:gap-4">
           <!-- Thème -->
           <button 
-            @click="toggleDarkMode" 
-            class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            @click="toggleTheme"
+            class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors relative overflow-hidden"
+            aria-label="Changer de thème"
           >
-            <LucideIcon v-if="isDarkMode" :icon="Sun" size="20" />
-            <LucideIcon v-else :icon="Moon" size="20" />
+            <div class="relative">
+              <Sun 
+                class="h-5 w-5 transition-all duration-500 ease-out"
+                :class="isDark ? 'opacity-0 rotate-90 scale-0' : 'opacity-100 rotate-0 scale-100'"
+              />
+              <Moon 
+                class="h-5 w-5 absolute top-0 left-0 transition-all duration-500 ease-out"
+                :class="isDark ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-0'"
+              />
+            </div>
           </button>
-
-          <template v-if="!user">
+          
+          <!-- Profil utilisateur (connecté) -->
+          <div v-if="isAuthenticated" class="relative">
+            <button 
+              @click="isProfileOpen = !isProfileOpen"
+              class="flex rounded-full overflow-hidden border-2 border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 hover:border-primary-200 dark:hover:border-primary-700 transition-colors duration-200"
+              data-profile="true"
+            >
+              <img 
+                :src="user.avatarUrl || '/img/default-avatar.png'" 
+                alt="Avatar" 
+                class="h-8 w-8 object-cover"
+              />
+            </button>
+            
+            <!-- Menu profil -->
+            <transition
+              enter-active-class="transition ease-out duration-200"
+              enter-from-class="transform opacity-0 scale-95"
+              enter-to-class="transform opacity-100 scale-100"
+              leave-active-class="transition ease-in duration-150"
+              leave-from-class="transform opacity-100 scale-100"
+              leave-to-class="transform opacity-0 scale-95"
+            >
+              <div 
+                v-if="isProfileOpen"
+                class="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700"
+                data-profile="true"
+              >
+                <!-- En-tête -->
+                <div class="p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+                  <div class="font-medium text-gray-900 dark:text-white">{{ user.name }}</div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400">{{ user.email }}</div>
+                </div>
+                
+                <!-- Liens -->
+                <div class="py-1">
+                  <NuxtLink 
+                    v-for="item in userMenuItems" 
+                    :key="item.name"
+                    :to="item.href"
+                    class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150"
+                  >
+                    <component :is="item.icon" class="h-4 w-4 mr-3 text-gray-500 dark:text-gray-400" />
+                    {{ item.name }}
+                  </NuxtLink>
+                  
+                  <div class="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+                  
+                  <button 
+                    @click="logout"
+                    class="flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150 text-left"
+                  >
+                    <LogOut class="h-4 w-4 mr-3 text-gray-500 dark:text-gray-400" />
+                    Déconnexion
+                  </button>
+                </div>
+              </div>
+            </transition>
+          </div>
+          
+          <!-- Boutons d'authentification (non connecté) -->
+          <div v-else class="flex items-center gap-3">
             <NuxtLink 
-              to="/auth/login" 
-              class="px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium transition-colors"
+              to="/login"
+              class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200"
             >
               Connexion
             </NuxtLink>
-            <NuxtLink 
-              to="/auth/register" 
-              class="px-4 py-2 bg-primary-600 text-white rounded-full hover:bg-primary-700 transition-all shadow-sm hover:shadow btn-gafam"
-            >
-              Inscription
-            </NuxtLink>
-          </template>
-
-          <!-- Menu utilisateur -->
-          <Menu v-else as="div" class="relative">
-            <MenuButton class="flex items-center gap-2 p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
-              <div class="w-8 h-8 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 flex-shrink-0">
-                <img 
-                  v-if="user.user_metadata?.avatar_url || user.user_metadata?.picture"
-                  :src="user.user_metadata?.avatar_url || user.user_metadata?.picture" 
-                  :alt="user.user_metadata?.name || user.user_metadata?.full_name || user.email"
-                  class="w-full h-full object-cover"
-                  @error="handleAvatarError"
-                />
-                <LucideIcon v-else :icon="UserCircle" size="32" class="text-gray-500 dark:text-gray-400 w-full h-full" />
-              </div>
-              <LucideIcon :icon="ChevronDown" size="16" class="text-gray-500 dark:text-gray-400" />
-            </MenuButton>
             
-            <transition
-              enter-active-class="transition duration-200 ease-out"
-              enter-from-class="opacity-0 scale-95"
-              enter-to-class="opacity-100 scale-100"
-              leave-active-class="transition duration-150 ease-in"
-              leave-from-class="opacity-100 scale-100"
-              leave-to-class="opacity-0 scale-95"
+            <NuxtLink 
+              to="/signup"
+              class="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-500 active:bg-primary-700 rounded-lg shadow-sm hover:shadow transition-all duration-200"
             >
-              <MenuItems class="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden z-50">
-                <div class="p-3 border-b border-gray-100 dark:border-gray-700">
-                  <div class="font-medium text-gray-900 dark:text-white">
-                    {{ userDisplayName }}
-                  </div>
-                  <div class="text-sm text-gray-500 dark:text-gray-400 truncate">
-                    {{ user.email }}
-                  </div>
-                </div>
-                <div class="py-1">
-                  <MenuItem v-slot="{ active }" v-for="item in userMenuItems" :key="item.label">
-                    <NuxtLink 
-                      :to="item.path"
-                      :class="[
-                        active ? 'bg-gray-50 dark:bg-gray-700' : '',
-                        'flex items-center px-4 py-2 text-gray-700 dark:text-gray-300'
-                      ]"
-                    >
-                      <LucideIcon :icon="item.icon" size="18" class="mr-2 text-gray-500 dark:text-gray-400" />
-                      {{ item.label }}
-                    </NuxtLink>
-                  </MenuItem>
-                  
-                  <div class="border-t border-gray-100 dark:border-gray-700 my-1"></div>
-                
-                  <MenuItem v-slot="{ active }">
-                    <button
-                      @click="handleLogout"
-                      :class="[
-                        active ? 'bg-gray-50 dark:bg-gray-700' : '',
-                        'flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 w-full'
-                      ]"
-                    >
-                      <LucideIcon :icon="LogOut" size="18" class="mr-2 text-gray-500 dark:text-gray-400" />
-                      Déconnexion
-                    </button>
-                  </MenuItem>
-                </div>
-              </MenuItems>
-            </transition>
-          </Menu>
-
-          <!-- Menu mobile -->
+              S'inscrire
+            </NuxtLink>
+          </div>
+          
+          <!-- Menu hamburger (mobile) -->
           <button 
-            @click="mobileMenuOpen = !mobileMenuOpen"
-            class="md:hidden p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            @click="isMobileMenuOpen = !isMobileMenuOpen"
+            class="md:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            aria-label="Menu"
           >
-            <LucideIcon v-if="mobileMenuOpen" :icon="X" size="20" />
-            <LucideIcon v-else :icon="MenuIcon" size="20" />
+            <div class="w-6 h-5 flex flex-col justify-between relative">
+              <!-- Lignes animées du hamburger -->
+              <span 
+                class="w-full h-0.5 bg-gray-600 dark:bg-gray-300 rounded-full transform transition-all duration-300"
+                :class="isMobileMenuOpen ? 'rotate-45 translate-y-2' : ''"
+              ></span>
+              <span 
+                class="w-full h-0.5 bg-gray-600 dark:bg-gray-300 rounded-full transition-opacity duration-300"
+                :class="isMobileMenuOpen ? 'opacity-0' : 'opacity-100'"
+              ></span>
+              <span 
+                class="w-full h-0.5 bg-gray-600 dark:bg-gray-300 rounded-full transform transition-all duration-300"
+                :class="isMobileMenuOpen ? '-rotate-45 -translate-y-2' : ''"
+              ></span>
+            </div>
           </button>
         </div>
       </div>
-    </div>
-
-    <!-- Menu mobile -->
-    <transition
-      enter-active-class="transition duration-300 ease-out"
-      enter-from-class="opacity-0 -translate-y-4"
-      enter-to-class="opacity-100 translate-y-0"
-      leave-active-class="transition duration-200 ease-in"
-      leave-from-class="opacity-100 translate-y-0"
-      leave-to-class="opacity-0 -translate-y-4"
-    >
-      <div v-if="mobileMenuOpen" class="md:hidden absolute inset-x-0 top-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-lg">
-        <div class="px-4 py-3 space-y-1">
-          <NuxtLink 
-            v-for="item in navItems" 
-            :key="item.path"
-            :to="item.path"
-            class="block px-4 py-2 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            @click="mobileMenuOpen = false"
-          >
-            {{ item.label }}
-          </NuxtLink>
+      
+      <!-- Menu mobile -->
+      <transition
+        enter-active-class="transition-all duration-300 ease-out"
+        enter-from-class="opacity-0 -translate-y-4"
+        enter-to-class="opacity-100 translate-y-0"
+        leave-active-class="transition-all duration-200 ease-in"
+        leave-from-class="opacity-100 translate-y-0"
+        leave-to-class="opacity-0 -translate-y-4"
+      >
+        <div 
+          v-if="isMobileMenuOpen"
+          class="md:hidden py-3 border-t border-gray-200 dark:border-gray-700"
+        >
+          <div class="space-y-1 px-2">
+            <NuxtLink 
+              v-for="item in navItems" 
+              :key="item.name"
+              :to="item.href" 
+              class="flex items-center py-2 px-3 text-base rounded-lg transition-colors duration-200"
+              :class="[
+                item.current 
+                  ? 'bg-gray-100 dark:bg-gray-800 text-primary-600 dark:text-primary-400' 
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+              ]"
+              @click="isMobileMenuOpen = false"
+            >
+              <component :is="item.icon" class="h-5 w-5 mr-3" />
+              {{ item.name }}
+            </NuxtLink>
+          </div>
         </div>
-      </div>
-    </transition>
-  </nav>
+      </transition>
+    </div>
+  </header>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
-import Logo from '~/components/shared/Logo.vue'
-import LucideIcon from '~/components/LucideIcon.vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
 import { 
-  Search, Moon, Sun, UserCircle, Settings, LogOut, User, Bell, 
-  Calendar, ChevronDown, X,  MenuIcon, Shield, Home, FileText
+  User, Menu, X, LogOut,
+  Home, Briefcase, MessageSquare, FileText,
+  Settings, Moon, Sun
 } from 'lucide-vue-next'
 
-// État UI
-const mobileMenuOpen = ref(false)
-const avatarError = ref(false)
+const router = useRouter()
 
-// Dark mode
-const isDarkMode = ref(false)
+// États
+const isAuthenticated = ref(true) // À connecter avec votre système d'auth
+const isMobileMenuOpen = ref(false)
+const isProfileOpen = ref(false)
+const isDark = ref(false)
 
-const toggleDarkMode = () => {
-  isDarkMode.value = !isDarkMode.value
-  localStorage.setItem('theme', isDarkMode.value ? 'dark' : 'light')
-  
-  if (isDarkMode.value) {
-    document.documentElement.classList.add('dark')
-  } else {
-    document.documentElement.classList.remove('dark')
-  }
-}
+// Données utilisateur
+const user = ref({
+  name: 'John Doe',
+  email: 'john@example.com',
+  avatarUrl: null
+})
 
-// Éléments de navigation
+// Navigation principale - Élements clés
 const navItems = [
-  { path: '/experts', label: 'Experts' },
-  { path: '/requests', label: 'Demandes' },
-  { path: '/pricing', label: 'Tarifs' },
-  { path: '/about', label: 'À propos' }
+  { name: 'Accueil', href: '/', current: true, icon: Home },
+  { name: 'Experts', href: '/experts', current: false, icon: Briefcase },
+  { name: 'Demandes', href: '/requests', current: false, icon: MessageSquare },
+  { name: 'Contrats', href: '/contracts', current: false, icon: FileText },
 ]
 
-// Menu utilisateur
-const userMenuItems = computed(() => {
-  const items = [
-    { path: '/account', label: 'Mon profil', icon: User },
-    { path: '/account/', label: 'Tableau de bord', icon: Home }
-  ]
-  
-  // Ajouter des éléments selon le rôle de l'utilisateur
-  if (user.value?.user_metadata?.role === 'admin') {
-    items.push({ path: '/admin', label: 'Administration', icon: Shield })
-  }
-  
-  items.push({ path: '/account/settings', label: 'Paramètres', icon: Settings })
-  
-  return items
-})
+// Menu utilisateur - Focus sur l'essentiel
+const userMenuItems = [
+  { name: 'Mon profil', href: '/profile', icon: User },
+  { name: 'Messages', href: '/messages', icon: MessageSquare },
+  { name: 'Paramètres', href: '/settings', icon: Settings },
+]
 
-// Connexion Supabase
-const supabase = useSupabaseClient()
-const user = useSupabaseUser()
-
-const userDisplayName = computed(() => {
-  if (!user.value) return ''
+// Fonctions
+const toggleTheme = () => {
+  isDark.value = !isDark.value
   
-  const metadata = user.value.user_metadata || {}
-  return metadata.name || 
-         metadata.full_name || 
-         metadata.first_name ? `${metadata.first_name} ${metadata.last_name || ''}` : 
-         user.value.email.split('@')[0]
-})
-
-const handleAvatarError = () => {
-  avatarError.value = true
-}
-
-const handleLogout = async () => {
-  try {
-    const { error } = await supabase.auth.signOut()
-    if (error) throw error
-    
-    // Rediriger vers la page d'accueil
-    navigateTo('/')
-  } catch (error) {
-    console.error('Erreur lors de la déconnexion:', error)
+  if (isDark.value) {
+    document.documentElement.classList.add('dark')
+    localStorage.setItem('theme', 'dark')
+  } else {
+    document.documentElement.classList.remove('dark')
+    localStorage.setItem('theme', 'light')
   }
 }
 
-// Initialisation
+const logout = () => {
+  isAuthenticated.value = false
+  isProfileOpen.value = false
+  router.push('/login')
+}
+
+// Fermer les menus au clic à l'extérieur
+const handleClickOutside = (event) => {
+  const target = event.target
+  const isClickInsideProfile = target.closest('[data-profile]')
+  
+  if (isProfileOpen.value && !isClickInsideProfile) {
+    isProfileOpen.value = false
+  }
+}
+
+// Cycle de vie
 onMounted(() => {
-  // Récupérer le thème des préférences
-  const savedTheme = localStorage.getItem('theme')
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+  // Initialiser le thème
+  isDark.value = localStorage.getItem('theme') === 'dark' || 
+    (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)
   
-  isDarkMode.value = savedTheme === 'dark' || (!savedTheme && prefersDark)
-  
-  // Appliquer le thème
-  if (isDarkMode.value) {
+  if (isDark.value) {
     document.documentElement.classList.add('dark')
   }
+  
+  document.addEventListener('click', handleClickOutside)
+  
+  // Fermer le menu mobile au changement de route
+  router.afterEach(() => {
+    isMobileMenuOpen.value = false
+  })
 })
 
-// Fermer le menu mobile lors du changement de route
-watch(() => useRoute().fullPath, () => {
-  mobileMenuOpen.value = false
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside)
 })
-</script> 
+</script>
+
+<style scoped>
+/* Espacement en haut pour compenser la navbar fixe */
+:deep(main) {
+  padding-top: 64px;
+}
+</style> 

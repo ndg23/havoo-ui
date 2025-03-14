@@ -253,7 +253,7 @@ onMounted(() => {
 })
 
 definePageMeta({
-  layout: 'default'
+  layout: 'account'
 })
 </script>
 

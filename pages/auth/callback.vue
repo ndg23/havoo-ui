@@ -95,10 +95,30 @@ const handleAuthRedirect = async () => {
       clearInterval(stepInterval)
       status.value = 'success'
       
-      // Rediriger après un court délai pour permettre à l'utilisateur de voir le succès
-      setTimeout(() => {
-        router.push('/account')
-      }, 1500)
+      // Vérifier si l'utilisateur a un rôle défini
+      const { provider } = session.user.app_metadata
+      const isNewUser = session.user.app_metadata.created_at === session.user.app_metadata.updated_at
+      const hasRole = session.user.user_metadata.role || session.user.user_metadata.is_expert !== undefined
+      
+      // Vérifier si l'utilisateur a un profil dans la base de données
+      const { data: profile } = await client
+        .from('profiles')
+        .select('is_expert')
+        .eq('id', session.user.id)
+        .single()
+      
+      // Si l'utilisateur s'est connecté avec un fournisseur OAuth et n'a pas de rôle défini
+      if ((provider === 'google' || provider === 'facebook') && !hasRole && !profile) {
+        // Rediriger vers la page de sélection de rôle
+        setTimeout(() => {
+          router.push('/auth/select-role')
+        }, 1500)
+      } else {
+        // Rediriger vers la page d'accueil ou le tableau de bord
+        setTimeout(() => {
+          router.push('/account')
+        }, 1500)
+      }
     } else {
       // Pas de session, vérifier la présence d'un access_token dans l'URL
       const accessToken = params.get('access_token')
@@ -115,10 +135,30 @@ const handleAuthRedirect = async () => {
         clearInterval(stepInterval)
         status.value = 'success'
         
-        // Rediriger
-        setTimeout(() => {
-          router.push('/account')
-        }, 1500)
+        // Vérifier si l'utilisateur a un rôle défini
+        const { provider } = data.user.app_metadata
+        const isNewUser = data.user.app_metadata.created_at === data.user.app_metadata.updated_at
+        const hasRole = data.user.user_metadata.role || data.user.user_metadata.is_expert !== undefined
+        
+        // Vérifier si l'utilisateur a un profil dans la base de données
+        const { data: profile } = await client
+          .from('profiles')
+          .select('is_expert')
+          .eq('id', data.user.id)
+          .single()
+        
+        // Si l'utilisateur s'est connecté avec un fournisseur OAuth et n'a pas de rôle défini
+        if ((provider === 'google' || provider === 'facebook') && !hasRole && !profile) {
+          // Rediriger vers la page de sélection de rôle
+          setTimeout(() => {
+            router.push('/auth/select-role')
+          }, 1500)
+        } else {
+          // Rediriger vers la page d'accueil ou le tableau de bord
+          setTimeout(() => {
+            router.push('/account')
+          }, 1500)
+        }
       } else {
         throw new Error('Aucune session ou token trouvé')
       }

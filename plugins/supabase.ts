@@ -1,4 +1,4 @@
-import type { Database } from '~/types/database.types'
+import type { Database } from '~/types/database'
 
 // Ajouter le type à useSupabaseClient
 declare module '#app' {
@@ -13,8 +13,8 @@ export default defineNuxtPlugin(() => {
   
   return {
     provide: {
-      // Ne pas redéfinir supabase
-      supabaseTyped: client
+      // Vous pouvez soit étendre les fonctionnalités soit utiliser un nom différent
+      supabaseTyped: client // OU supabaseClient, supabaseDB, etc.
     }
   }
 }) 

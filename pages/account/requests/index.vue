@@ -1,15 +1,7 @@
 <template>
-  <div class="max-w-4xl mx-auto px-4 pt-5 pb-16">
+  <div class="max-w-4xl mx-auto pt-5 pb-16">
     <!-- En-tête de la page -->
-    <div class="mb-7 bg-white dark:bg-gray-800 rounded-xl p-5 border-l-4 border-primary-500 shadow-sm">
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-        <FileText class="h-6 w-6 mr-3 text-primary-600 dark:text-primary-400" />
-        Mes demandes de service
-      </h1>
-      <p class="text-gray-600 dark:text-gray-400 mt-1">
-        Consultez et gérez vos demandes de services actuelles et passées
-      </p>
-    </div>
+   
 
     <!-- Filtres et recherche -->
     <div class="mb-7 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -244,7 +236,7 @@ onMounted(() => {
 })
 
 definePageMeta({
-  layout: 'default'
+  layout: 'account'
 })
 </script>
 

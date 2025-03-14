@@ -1,129 +1,169 @@
 <template>
-  <div class="max-w-md mx-auto px-6 py-1">
-    <!-- En-tête -->
-    <div class="mb-14 text-center">
-      <h1 class="text-3xl font-semibold text-gray-900">
-        Connexion à votre compte
-      </h1>
-      <p class="mt-3 text-gray-600">
-        Bienvenue ! Connectez-vous pour continuer.
-      </p>
-    </div>
-    <ErrorAlert 
-      :message="error" 
-      @dismiss="error = null"
-      type="error"
-      v-if="error"
-      class="mt-6"
-    />
-    <!-- Social Buttons -->
-    <div class="space-y-4 mb-8">
-      <button
-        @click="signInWithGoogle"
-        class="w-full flex items-center justify-center gap-3 px-4 py-4 rounded-full
-          border border-gray-300 bg-white hover:bg-gray-50 transition-colors
-          focus:outline-none focus:ring-2 focus:ring-blue-500"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 256 262">
-          <path fill="#4285F4" d="M255.878 133.451c0-10.734-.871-18.567-2.756-26.69H130.55v48.448h71.947c-1.45 12.04-9.283 30.172-26.69 42.356l-.244 1.622l38.755 30.023l2.685.268c24.659-22.774 38.875-56.282 38.875-96.027"></path>
-          <path fill="#34A853" d="M130.55 261.1c35.248 0 64.839-11.605 86.453-31.622l-41.196-31.913c-11.024 7.688-25.82 13.055-45.257 13.055c-34.523 0-63.824-22.773-74.269-54.25l-1.531.13l-40.298 31.187l-.527 1.465C35.393 231.798 79.49 261.1 130.55 261.1"></path>
-          <path fill="#FBBC05" d="M56.281 156.37c-2.756-8.123-4.351-16.827-4.351-25.82c0-8.994 1.595-17.697 4.206-25.82l-.073-1.73L15.26 71.312l-1.335.635C5.077 89.644 0 109.517 0 130.55s5.077 40.905 13.925 58.602z"></path>
-          <path fill="#EB4335" d="M130.55 50.479c24.514 0 41.05 10.589 50.479 19.438l36.844-35.974C195.245 12.91 165.798 0 130.55 0C79.49 0 35.393 29.301 13.925 71.947l42.211 32.783c10.59-31.477 39.891-54.251 74.414-54.251"></path>
-        </svg>
-        <span class="text-base font-medium text-gray-700">Continuer avec Google</span>
-      </button>
-
-      <button
-        @click="signInWithFacebook"
-        class="w-full flex items-center justify-center gap-3 px-4 py-4 rounded-full
-          border border-gray-300 bg-white hover:bg-gray-50 transition-colors
-          focus:outline-none focus:ring-2 focus:ring-blue-500"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 256 256">
-          <path fill="#1877F2" d="M256 128C256 57.308 198.692 0 128 0S0 57.308 0 128c0 63.888 46.808 116.843 108 126.445V165H75.5v-37H108V99.8c0-32.08 19.11-49.8 48.348-49.8C170.352 50 185 52.5 185 52.5V84h-16.14C152.959 84 148 93.867 148 103.99V128h35.5l-5.675 37H148v89.445c61.192-9.602 108-62.556 108-126.445"></path>
-          <path fill="#FFF" d="m177.825 165l5.675-37H148v-24.01C148 93.866 152.959 84 168.86 84H185V52.5S170.352 50 156.347 50C127.11 50 108 67.72 108 99.8V128H75.5v37H108v89.445A129 129 0 0 0 128 256a129 129 0 0 0 20-1.555V165z"></path>
-        </svg>
-        <span class="text-base font-medium text-gray-700">Continuer avec Facebook</span>
-      </button>
-    </div>
-
-    <!-- Divider -->
-    <div class="relative my-8">
-      <div class="absolute inset-0 flex items-center">
-        <div class="w-full border-t border-gray-200"></div>
-      </div>
-      <div class="relative flex justify-center">
-        <span class="px-4 bg-white text-sm text-gray-500">ou</span>
-      </div>
-    </div>
-
-    <!-- Login Form -->
-    <form @submit.prevent="handleEmailLogin" class="space-y-8">
-      <!-- Email Input -->
-      <div class="space-y-2">
-        <input
-          v-model="email"
-          id="email"
-          type="email"
-          placeholder="Adresse e-mail"
-          required
-          class="w-full p-4 text-xl border-b-2 border-gray-200 focus:border-blue-500 focus:outline-none transition-colors"
-        />
+  <div class="min-h-screen bg-white flex">
+    <!-- Formulaire de connexion -->
+    <div class="w-full lg:w-1/2 flex mx-auto flex-col justify-center p-6 sm:p-12">
+      <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        <!-- Logo mobile uniquement -->
+        <div class="flex justify-center lg:hidden mb-6">
+          <div class="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+              <path d="M2 17l10 5 10-5"></path>
+              <path d="M2 12l10 5 10-5"></path>
+            </svg>
+          </div>
+        </div>
+        
+        <h2 class="text-2xl font-bold text-gray-900">Connexion</h2>
+        <p class="mt-2 text-sm text-gray-600">
+          Accédez à votre compte
+        </p>
       </div>
 
-      <!-- Password Input -->
-      <div class="space-y-2">
-        <div class="relative">
-          <input
-            v-model="password"
-            id="password"
-            :type="showPassword ? 'text' : 'password'"
-            placeholder="Mot de passe"
-            required
-            class="w-full p-4 text-xl border-b-2 border-gray-200 focus:border-blue-500 focus:outline-none transition-colors"
-          />
-          <button 
+      <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <!-- Error message display -->
+        <div v-if="error" class="mb-4 p-3 rounded-lg bg-red-50 border border-red-200">
+          <div class="flex items-start">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm text-red-700">{{ error }}</p>
+            </div>
+            <div class="ml-auto pl-3">
+              <div class="-mx-1.5 -my-1.5">
+                <button 
+                  @click="error = null" 
+                  type="button" 
+                  class="inline-flex rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                >
+                  <span class="sr-only">Fermer</span>
+                  <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <form @submit.prevent="handleEmailLogin" class="space-y-5">
+          <!-- Email input -->
+          <div>
+            <input 
+              id="email" 
+              v-model="email" 
+              type="email" 
+              required 
+              class="block w-full px-4 py-3 border border-gray-300 rounded-full placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              placeholder="Email"
+            />
+          </div>
+          
+          <!-- Password input -->
+          <div>
+            <input 
+              id="password" 
+              v-model="password" 
+              type="password" 
+              required 
+              class="block w-full px-4 py-3 border border-gray-300 rounded-full placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              placeholder="Mot de passe"
+            />
+          </div>
+          
+          <!-- Se souvenir de moi & mot de passe oublié -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <input 
+                id="remember-me" 
+                v-model="rememberMe" 
+                type="checkbox" 
+                class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+              />
+              <label for="remember-me" class="ml-2 block text-sm text-gray-700">
+                Se souvenir de moi
+              </label>
+            </div>
+            
+            <div class="text-sm">
+              <NuxtLink to="/forgot-password" class="font-medium text-primary-600 hover:underline">
+                Mot de passe oublié ?
+              </NuxtLink>
+            </div>
+          </div>
+          
+          <!-- Bouton de connexion style Twitter -->
+          <div>
+            <button 
+              type="submit" 
+              class="w-full flex justify-center py-3 px-4 border border-transparent rounded-full text-base font-medium text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black transition-colors"
+              :disabled="loading"
+            >
+              <span v-if="loading" class="flex items-center">
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Connexion en cours...
+              </span>
+              <span v-else>Se connecter</span>
+            </button>
+          </div>
+        </form>
+
+        <!-- Séparateur -->
+        <div class="mt-6">
+          <div class="relative">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-gray-200"></div>
+            </div>
+            <div class="relative flex justify-center text-sm">
+              <span class="px-2 bg-white text-gray-500">
+                ou
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bouton Google style Twitter -->
+        <div class="mt-6">
+          <button
             type="button"
-            @click="showPassword = !showPassword"
-            class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            @click="signInWithGoogle"
+            class="w-full inline-flex justify-center py-3 px-4 border border-gray-300 rounded-full shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
           >
-            <Eye v-if="!showPassword" class="h-5 w-5" />
-            <EyeOff v-else class="h-5 w-5" />
+            <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
+            Continuer avec Google
           </button>
         </div>
-        <div class="flex justify-end">
-          <NuxtLink
-            to="/auth/forgot-password"
-            class="text-sm text-blue-600 hover:underline"
-          >
-            Mot de passe oublié ?
-          </NuxtLink>
+        
+        <!-- Lien vers inscription -->
+        <div class="mt-6 text-center">
+          <p class="text-sm text-gray-600">
+            Vous n'avez pas de compte ? 
+            <NuxtLink to="/signup" class="font-medium text-primary-600 hover:underline">
+              Créer un compte
+            </NuxtLink>
+          </p>
         </div>
       </div>
-
-      <!-- Sign In Button -->
-      <button
-        type="submit"
-        :disabled="loading"
-        class="w-full py-4 bg-blue-600 text-white font-medium rounded-full
-          hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed
-          transition-colors shadow-md flex items-center justify-center mt-10"
-      >
-        <Loader2 v-if="loading" class="animate-spin -ml-1 mr-2 h-5 w-5" />
-        {{ loading ? 'Connexion en cours...' : 'Se connecter' }}
-      </button>
-    </form>
-
-    <!-- Error Alert -->
- 
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { Eye, EyeOff, Loader2 } from 'lucide-vue-next'
-import ErrorAlert from '~/components/ErrorAlert.vue'
+import { ref, onMounted } from 'vue';
 
+// État du formulaire
+const rememberMe = ref(false);
 const client = useSupabaseClient()
 const router = useRouter()
 const route = useRoute()
@@ -184,6 +224,7 @@ const handleOAuthLogin = async (provider) => {
     if (error) throw error
   } catch (e) {
     console.error(`Error ${provider}:`, e.message)
+    error.value = `Erreur lors de la connexion avec ${provider}`
   }
 }
 
@@ -211,6 +252,21 @@ onMounted(() => {
 
 definePageMeta({
   auth: false,
-  layout: 'auth'
+  layout: 'default'
 })
 </script>
+
+<style scoped>
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+</style>

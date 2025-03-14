@@ -5,31 +5,72 @@
       <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Explorer les demandes</h1>
     </div>
 
-    <!-- Filtres et recherche en style pills avec plus de couleur -->
-    <div class="sticky top-0 z-10 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm py-3 -mx-4 px-4 mb-4">
-      <div class="flex items-center justify-between gap-4 overflow-x-auto pb-2 no-scrollbar">
-        <div class="flex gap-2">
-          <button 
-            v-for="filter in filters" 
-            :key="filter"
-            class="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors"
-            :class="activeFilter === filter ? 
-              'bg-primary-600 text-white dark:bg-primary-500' : 
-              'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700'"
-            @click="setActiveFilter(filter)"
-          >
-            {{ filter }}
-          </button>
+    <!-- Menu sticky -->
+    <div 
+      ref="stickyMenu" 
+      class="sticky top-16 z-30 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 transition-all duration-300 py-4"
+      :class="isSticky ? 'shadow-md' : ''"
+    >
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Recherche et filtres rapides -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-4">
+          <!-- Barre de recherche -->
+          <div class="relative flex-grow">
+            <input 
+              v-model="searchQuery" 
+              type="text" 
+              placeholder="Rechercher des demandes..." 
+              class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent"
+            />
+            <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          </div>
+          
+          <!-- Filtres par statut -->
+          <div class="flex flex-wrap gap-2">
+            <button 
+              v-for="status in ['all', 'open', 'urgent']" 
+              :key="status"
+              @click="currentStatusFilter = status"
+              class="px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
+              :class="currentStatusFilter === status 
+                ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400' 
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'"
+            >
+              {{ getStatusFilterText(status) }}
+            </button>
+          </div>
         </div>
-
-        <div class="relative">
-          <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <input 
-            type="text" 
-            placeholder="Rechercher..."
-            v-model="searchQuery"
-            class="pl-10 pr-4 py-2 w-44 rounded-full border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-          />
+        
+        <!-- Filtres avancés -->
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <!-- Filtres par catégorie -->
+          <div class="flex items-center gap-2 overflow-x-auto py-1 scrollbar-hide">
+            <button 
+              v-for="category in categories" 
+              :key="category.id"
+              @click="toggleCategoryFilter(category.id)"
+              class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap"
+              :class="selectedCategories.includes(category.id) 
+                ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400' 
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'"
+            >
+              {{ category.name }}
+            </button>
+          </div>
+          
+          <!-- Tri -->
+          <div class="flex items-center">
+            <span class="text-sm text-gray-500 dark:text-gray-400 mr-2">Trier par:</span>
+            <select 
+              v-model="sortOption"
+              class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-sm px-3 py-1.5 text-gray-700 dark:text-gray-300"
+            >
+              <option value="newest">Plus récentes</option>
+              <option value="oldest">Plus anciennes</option>
+              <option value="budget_high">Budget (élevé → bas)</option>
+              <option value="budget_low">Budget (bas → élevé)</option>
+            </select>
+          </div>
         </div>
       </div>
     </div>
@@ -126,163 +167,174 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { useRequests } from '~/composables/useRequests'
+import { useSupabaseClient } from '#imports'
 import {
   Search,
   SearchX,
-  Plus,
-  MessageSquare,
-  Clock
-} from 'lucide-vue-next';
+  UserCircle,
+  Calendar,
+  Banknote,
+  Tag,
+  PlusCircle
+} from 'lucide-vue-next'
 
-const router = useRouter();
-const isLoading = ref(false);
-const searchQuery = ref('');
+const router = useRouter()
+const supabase = useSupabaseClient()
 
-// Catégories/Filtres
-const filters = ['Tous', 'Bricolage', 'Informatique', 'Transport', 'Ménage', 'Cours', 'Beauté', 'Événementiel'];
-const activeFilter = ref('Tous');
+// Référence pour le menu sticky
+const stickyMenu = ref(null)
+const isSticky = ref(false)
 
-// Données simulées des demandes
-const requests = ref([
-  {
-    id: 1,
-    avatar: '/img/avatars/user1.jpg',
-    clientName: 'Amadou D.',
-    isVerified: true,
-    postedTime: 'Il y a 2h',
-    title: 'Réparation fuite robinet cuisine',
-    description: 'Je recherche un plombier pour réparer une fuite au niveau du robinet de ma cuisine. Disponibilité souhaitée ce weekend.',
-    tags: ['Plomberie', 'Réparation'],
-    proposalCount: 3,
-    budget: '25 000 FCFA',
-    deadline: '3 jours',
-    isUrgent: true,
-    category: 'Bricolage'
-  },
-  {
-    id: 2,
-    avatar: '/img/avatars/user2.jpg',
-    clientName: 'Sophie M.',
-    isVerified: true,
-    postedTime: 'Il y a 1j',
-    title: 'Développement site web vitrine',
-    description: 'Je souhaite créer un site vitrine pour mon entreprise de produits locaux. Design simple et moderne.',
-    tags: ['WordPress', 'Développement web'],
-    proposalCount: 1,
-    budget: '350 000 FCFA',
-    deadline: '30 jours',
-    isUrgent: false,
-    category: 'Informatique'
-  },
-  {
-    id: 3,
-    avatar: '/img/avatars/user3.jpg',
-    clientName: 'Rama S.',
-    isVerified: true,
-    postedTime: 'Il y a 2j',
-    title: "Cours d'anglais niveau intermédiaire",
-    description: "Je cherche un professeur pour améliorer mon niveau d'anglais. 2 heures par semaine pendant 3 mois.",
-    tags: ['Anglais', 'Cours'],
-    proposalCount: 3,
-    budget: '120 000 FCFA',
-    deadline: 'Long terme',
-    isUrgent: false,
-    category: 'Cours'
-  },
-  {
-    id: 4,
-    avatar: '/img/avatars/user4.jpg',
-    clientName: 'Fatou D.',
-    isVerified: true,
-    postedTime: 'Il y a 3j',
-    title: 'Ménage complet appartement',
-    description: 'Appartement 3 pièces à nettoyer entièrement, y compris vitres et balcon.',
-    tags: ['Ménage', 'Nettoyage vitres'],
-    proposalCount: 2,
-    budget: '35 000 FCFA',
-    deadline: '2 jours',
-    isUrgent: true,
-    category: 'Ménage'
-  },
-  {
-    id: 5,
-    avatar: '/img/avatars/user5.jpg',
-    clientName: 'Abdoulaye T.',
-    isVerified: true,
-    postedTime: 'Il y a 4j',
-    title: 'Réparation ordinateur portable',
-    description: 'Mon ordinateur portable est très lent et crash régulièrement. Besoin d\'un diagnostic et réparation.',
-    tags: ['Informatique', 'Réparation PC'],
-    proposalCount: 1,
-    budget: '30 000 FCFA',
-    deadline: '1 jour',
-    isUrgent: true,
-    category: 'Informatique'
+// Filtres
+const searchQuery = ref('')
+const currentStatusFilter = ref('all')
+const selectedCategories = ref([])
+const sortOption = ref('newest')
+
+// Récupération des catégories
+const categories = ref([])
+const fetchCategories = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('id, name')
+      .eq('is_active', true)
+      .order('name')
+    
+    if (error) throw error
+    
+    categories.value = data
+  } catch (error) {
+    console.error('Error fetching categories:', error)
+    // Fallback à des catégories par défaut
+    categories.value = [
+      { id: 1, name: 'Développement web' },
+      { id: 2, name: 'Design graphique' },
+      { id: 3, name: 'Marketing digital' },
+      { id: 4, name: 'Rédaction' },
+      { id: 5, name: 'Traduction' },
+      { id: 6, name: 'SEO' },
+    ]
   }
-]);
+}
 
-// Computed property pour filtrer les demandes
+// Utilisation du composable
+const { requests, isLoading, error, fetchRequests } = useRequests()
+
+// Calculer les demandes filtrées
 const filteredRequests = computed(() => {
-  let filtered = requests.value;
+  let filtered = [...requests.value]
   
-  // Filtrer par catégorie
-  if (activeFilter.value !== 'Tous') {
-    filtered = filtered.filter(request => request.category === activeFilter.value);
-  }
-  
-  // Filtrer par recherche
-  if (searchQuery.value.trim()) {
-    const query = searchQuery.value.toLowerCase();
+  // On applique les filtres côté client pour éviter trop de requêtes API
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(request => 
       request.title.toLowerCase().includes(query) || 
-      request.description.toLowerCase().includes(query) ||
-      request.tags.some(tag => tag.toLowerCase().includes(query))
-    );
+      request.description.toLowerCase().includes(query)
+    )
   }
   
-  return filtered;
-});
+  if (selectedCategories.value.length > 0) {
+    filtered = filtered.filter(request => {
+      return request.categories.some(category => 
+        selectedCategories.value.includes(category.id)
+      )
+    })
+  }
+  
+  // Tri
+  switch (sortOption.value) {
+    case 'newest':
+      filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      break
+    case 'oldest':
+      filtered.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+      break
+    case 'budget_high':
+      filtered.sort((a, b) => (b.budget || 0) - (a.budget || 0))
+      break
+    case 'budget_low':
+      filtered.sort((a, b) => (a.budget || 0) - (b.budget || 0))
+      break
+  }
+  
+  return filtered
+})
+
+// Chargement des données
+const loadData = async () => {
+  const filters = {
+    status: currentStatusFilter.value === 'all' ? null : currentStatusFilter.value,
+    urgent: currentStatusFilter.value === 'urgent',
+    search: searchQuery.value
+  }
+  
+  await fetchRequests(filters)
+}
+
+// Observer les changements de filtres
+watch([currentStatusFilter, searchQuery], () => {
+  loadData()
+})
+
+// Gestion du menu sticky
+const handleScroll = () => {
+  if (!stickyMenu.value) return
+  
+  const rect = stickyMenu.value.getBoundingClientRect()
+  const menuTop = rect.top + window.scrollY
+  
+  isSticky.value = window.scrollY > menuTop
+}
 
 // Méthodes
-const setActiveFilter = (filter) => {
-  activeFilter.value = filter;
-};
+const getStatusFilterText = (status) => {
+  const statusMap = {
+    'all': 'Toutes',
+    'open': 'Ouvertes',
+    'urgent': 'Urgentes'
+  }
+  return statusMap[status] || status
+}
 
-const navigateToNewRequest = () => {
-  router.push('/requests/new');
-};
+const toggleCategoryFilter = (categoryId) => {
+  if (selectedCategories.value.includes(categoryId)) {
+    selectedCategories.value = selectedCategories.value.filter(id => id !== categoryId)
+  } else {
+    selectedCategories.value.push(categoryId)
+  }
+}
 
-const viewRequestDetails = (id) => {
-  router.push(`/requests/${id}`);
-};
+const resetFilters = () => {
+  searchQuery.value = ''
+  currentStatusFilter.value = 'all'
+  selectedCategories.value = []
+  sortOption.value = 'newest'
+}
 
-// Fonction pour obtenir une couleur aléatoire mais cohérente pour les tags
-const getTagColor = (index) => {
-  const colors = [
-    'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-    'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-    'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-    'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-    'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400',
-    'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400'
-  ];
-  
-  return colors[index % colors.length];
-};
+const viewRequest = (requestId) => {
+  router.push(`/requests/${requestId}`)
+}
 
-// Simuler un chargement initial
-onMounted(() => {
-  isLoading.value = true;
-  setTimeout(() => {
-    isLoading.value = false;
-  }, 800);
-});
+const createNewRequest = () => {
+  router.push('/requests/new')
+}
+
+onMounted(async () => {
+  window.addEventListener('scroll', handleScroll)
+  await Promise.all([fetchCategories(), loadData()])
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+})
 
 definePageMeta({
   layout: 'default'
-});
+})
 </script>
 
 <style scoped>
@@ -317,5 +369,14 @@ div > div:nth-child(5) { animation-delay: 0.25s; }
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Pour Internet Explorer et Edge */
+  scrollbar-width: none;  /* Pour Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Pour Chrome, Safari et Opera */
 }
 </style>

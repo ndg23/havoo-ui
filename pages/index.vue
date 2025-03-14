@@ -23,56 +23,65 @@
             Rejoignez plus de <span class="font-bold text-primary-600">10 000</span> clients satisfaits et <span class="font-bold text-blue-600">2 500</span> experts qualifiés 
           </p>
 
-          <!-- Options principales - version GAFAM pure -->
-          <div class="mt-10 grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
-            <!-- Chercher un expert - simplifié -->
-            <div class="relative group overflow-hidden rounded-2xl border border-gray-100 transform transition-transform duration-300">
-              <NuxtLink 
-                to="/experts"
-                class="w-full h-full flex flex-col items-center p-8 bg-blue-50 transition-colors duration-300 relative z-10 overflow-hidden group-hover:bg-blue-100"
-              >
-                <!-- Icône pure -->
-                <div class="w-20 h-20 bg-blue-100 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-blue-200 transition-colors">
-                  <Search class="w-10 h-10 text-blue-600" />
+          <!-- Nouvelle barre de recherche impactante -->
+          <div class="mt-12 max-w-2xl mx-auto">
+            <div class="bg-white  rounded-full border border-gray-200 p-1.5   duration-300">
+              <!-- Input avec dropdown -->
+              <div class="relative">
+                <input 
+                  v-model="searchQuery" 
+                  type="text" 
+                  placeholder="Que recherchez-vous ?" 
+                  class="pl-14 pr-5 py-4 w-full rounded-full border-0 bg-transparent focus:ring-0 outline-none text-lg"
+                  @focus="showCategoryDropdown = true"
+                />
+                <div class="absolute left-5 top-1/2 transform -translate-y-1/2">
+                  <Search class="h-6 w-6 text-primary-500 dark:text-primary-400" />
                 </div>
-                <h2 class="text-2xl font-bold text-gray-900 mb-3">Chercher un expert</h2>
-                <p class="text-gray-600 text-base mb-6 max-w-xs">
-                  Trouvez le professionnel idéal en quelques clics
-                </p>
                 
-                <!-- Bouton plus impactant -->
-                <div class="mt-auto w-full">
-                  <span class="w-full py-3 bg-blue-600 text-white font-medium rounded-xl inline-flex items-center justify-center group-hover:bg-blue-700 transition-colors text-base">
-                    Commencer
-                    <ArrowRight class="w-4 h-4 ml-2" />
-                  </span>
+                <!-- Category Dropdown -->
+                <div 
+                  v-if="showCategoryDropdown" 
+                  class="absolute top-full left-0 right-0 mt-1 bg-white shadow-md rounded-xl py-1 z-20"
+                  @mouseleave="showCategoryDropdown = false"
+                >
+                  <div class="px-3 py-1.5 text-xs uppercase tracking-wider font-medium text-gray-400 border-b border-gray-100">
+                    Catégories
+                  </div>
+                  <div 
+                    v-for="service in services" 
+                    :key="service.id"
+                    @click="selectService(service)"
+                    class="px-3 py-2 hover:bg-gray-50 cursor-pointer flex items-center text-gray-800 transition-colors"
+                  >
+                    <span class="mr-2 w-6 text-center">{{ service.icon }}</span>
+                    <span>{{ service.name }}</span>
+                  </div>
                 </div>
-              </NuxtLink>
+              </div>
             </div>
-
-            <!-- Publier une demande - simplifié -->
-            <div class="relative group overflow-hidden rounded-2xl border border-gray-100 transform transition-transform duration-300">
-              <NuxtLink 
-                to="/requests/new"
-                class="w-full h-full flex flex-col items-center p-8 bg-primary-50 transition-colors duration-300 relative z-10 overflow-hidden group-hover:bg-primary-100"
+            
+            <!-- Bouton de recherche -->
+            <button 
+              @click="search" 
+              class="mt-4 bg-gray-50 mx-auto hover:bg-gray-100 text-gray-800 font-normal rounded-full text-sm px-6 py-2.5 mx-1 transition-colors border border-gray-200 flex items-center justify-center gap-2"
+            >
+              <Search class="w-5 h-5 relative z-10" />
+              <span>Rechercher</span>
+            </button>
+            
+            <!-- Recherches populaires -->
+            <div class="mt-5 flex flex-wrap justify-center gap-2 text-sm">
+              <span class="text-gray-500">Populaires:</span>
+              <a 
+                v-for="tag in popularSearches" 
+                :key="tag"
+                href="#" 
+                @click.prevent="quickSearch(tag)"
+                class="text-primary-600 hover:text-primary-800 hover:underline"
               >
-                <!-- Icône pure -->
-                <div class="w-20 h-20 bg-primary-100 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-primary-200 transition-colors">
-                  <FileText class="w-10 h-10 text-primary-600" />
-                </div>
-                <h2 class="text-2xl font-bold text-gray-900 mb-3">Publier une demande</h2>
-                <p class="text-gray-600 text-base mb-6 max-w-xs">
-                  Décrivez votre besoin et recevez des propositions
-                </p>
-                
-                <!-- Bouton plus impactant -->
-                <div class="mt-auto w-full">
-                  <span class="w-full py-3 bg-primary-600 text-white font-medium rounded-xl inline-flex items-center justify-center group-hover:bg-primary-700 transition-colors text-base">
-                    Commencer
-                    <ArrowRight class="w-4 h-4 ml-2" />
-                  </span>
-                </div>
-              </NuxtLink>
+                {{ tag }}
+              </a>
             </div>
           </div>
 
@@ -304,6 +313,12 @@ import {
   Users as UsersIcon
 } from 'lucide-vue-next'
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+const searchQuery = ref('')
+const selectedService = ref(null)
+const showCategoryDropdown = ref(false)
 
 // Données de service améliorées
 const services = [
@@ -350,6 +365,38 @@ const services = [
     description: 'Assistance au déménagement'
   }
 ]
+
+// Recherches populaires
+const popularSearches = [
+  'Ménage hebdomadaire', 
+  'Réparation plomberie', 
+  'Cours de maths', 
+  'Jardinage'
+]
+
+// Sélectionner un service
+const selectService = (service) => {
+  selectedService.value = service
+  searchQuery.value = service.name
+  showCategoryDropdown.value = false
+}
+
+// Recherche
+const search = () => {
+  router.push({
+    path: '/experts',
+    query: { 
+      q: searchQuery.value,
+      service: selectedService.value?.id
+    }
+  })
+}
+
+// Recherche rapide
+const quickSearch = (term) => {
+  searchQuery.value = term
+  search()
+}
 
 // Les fonctions pour les modales ne sont plus nécessaires car nous utilisons des liens directs
 </script>

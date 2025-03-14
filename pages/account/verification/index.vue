@@ -173,6 +173,6 @@ function verifyIdentity() {
 }
 
 definePageMeta({
-  layout: 'default'
+  layout: 'account'
 })
 </script> 
