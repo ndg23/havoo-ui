@@ -1,504 +1,320 @@
 <template>
-  <div class="max-w-4xl mx-auto px-4 py-6">
-    <div class="flex justify-between items-center mb-5">
-      <h1 class="text-xl font-bold">Mes Propositions</h1>
-      <NuxtLink 
-        to="/requests" 
-        class="px-4 py-2 bg-primary-600 text-white rounded-full text-sm font-medium inline-flex items-center"
-      >
-        <SearchIcon class="h-4 w-4 mr-1.5" />
-        Explorer
-      </NuxtLink>
-    </div>
+  <div class="min-h-screen bg-white">
+    <!-- Header -->
+    <header class="sticky top-0 z-10 bg-white/80 backdrop-blur-sm border-b border-gray-100">
+      <div class="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+        <h1 class="text-xl font-bold">Mes propositions</h1>
+      </div>
+    </header>
 
-    <!-- Stats cards -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-      <div class="border border-gray-200 dark:border-gray-700 rounded-xl p-3">
-        <div class="text-sm text-gray-500 dark:text-gray-400">Total</div>
-        <div class="text-xl font-semibold mt-1">{{ stats.total }}</div>
+    <!-- Main content -->
+    <main class="max-w-2xl mx-auto px-4 py-6">
+      <!-- Loading state -->
+      <div v-if="isLoading" class="flex flex-col items-center justify-center py-12">
+        <svg class="animate-spin h-8 w-8 text-gray-400 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p class="text-gray-500">Chargement de vos propositions...</p>
       </div>
-      <div class="border border-gray-200 dark:border-gray-700 rounded-xl p-3">
-        <div class="text-sm text-gray-500 dark:text-gray-400">En attente</div>
-        <div class="text-xl font-semibold mt-1">{{ stats.pending }}</div>
-      </div>
-      <div class="border border-gray-200 dark:border-gray-700 rounded-xl p-3">
-        <div class="text-sm text-gray-500 dark:text-gray-400">Acceptées</div>
-        <div class="text-xl font-semibold mt-1">{{ stats.accepted }}</div>
-      </div>
-      <div class="border border-gray-200 dark:border-gray-700 rounded-xl p-3">
-        <div class="text-sm text-gray-500 dark:text-gray-400">Taux de conversion</div>
-        <div class="text-xl font-semibold mt-1">{{ stats.conversion }}%</div>
-      </div>
-    </div>
 
-    <!-- Filters and search -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-      <div class="flex items-center gap-2 flex-wrap">
+      <!-- Error state -->
+      <div v-else-if="error" class="bg-red-50 p-4 rounded-lg text-red-700 my-6">
+        <div class="flex">
+          <svg class="h-5 w-5 text-red-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p>{{ error }}</p>
+        </div>
         <button 
-          @click="activeFilter = 'all'"
-          class="px-3 py-1.5 rounded-full text-sm transition-colors"
-          :class="activeFilter === 'all' ? 'bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400'"
+          @click="fetchProposals" 
+          class="mt-3 text-sm font-medium text-red-600 hover:text-red-500"
         >
-          Toutes
-        </button>
-        <button 
-          @click="activeFilter = 'pending'"
-          class="px-3 py-1.5 rounded-full text-sm transition-colors"
-          :class="activeFilter === 'pending' ? 'bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400'"
-        >
-          En attente
-        </button>
-        <button 
-          @click="activeFilter = 'accepted'"
-          class="px-3 py-1.5 rounded-full text-sm transition-colors"
-          :class="activeFilter === 'accepted' ? 'bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400'"
-        >
-          Acceptées
-        </button>
-        <button 
-          @click="activeFilter = 'declined'"
-          class="px-3 py-1.5 rounded-full text-sm transition-colors"
-          :class="activeFilter === 'declined' ? 'bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400'"
-        >
-          Refusées
+          Réessayer
         </button>
       </div>
 
-      <div class="relative">
-        <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-        <input 
-          type="text" 
-          placeholder="Rechercher..."
-          v-model="searchQuery"
-          class="pl-9 pr-3 py-2 w-full sm:w-60 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
-        />
+      <!-- Not an expert -->
+      <div v-else-if="!isExpert" class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+        <h3 class="mt-2 text-lg font-medium text-gray-900">Devenez expert</h3>
+        <p class="mt-1 text-gray-500">Vous devez être un expert pour faire des propositions.</p>
+        <div class="mt-6">
+          <NuxtLink 
+            to="/account/" 
+            class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium text-white bg-black hover:bg-gray-800 transition-colors"
+          >
+            Devenir expert
+          </NuxtLink>
+        </div>
       </div>
-    </div>
 
-    <!-- Loading state -->
-    <div v-if="isLoading" class="py-10 flex justify-center">
-      <svg class="animate-spin h-6 w-6 text-primary-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
-    </div>
-
-    <!-- Empty state -->
-    <div v-else-if="filteredProposals.length === 0" class="border border-gray-200 dark:border-gray-700 rounded-xl p-5 text-center">
-      <div class="inline-flex items-center justify-center p-3 bg-gray-100 dark:bg-gray-800 rounded-full mb-3">
-        <ClipboardIcon class="h-5 w-5 text-gray-500" />
+      <!-- Empty state -->
+      <div v-else-if="proposals.length === 0" class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+        </svg>
+        <h3 class="mt-2 text-lg font-medium text-gray-900">Aucune proposition</h3>
+        <p class="mt-1 text-gray-500">Vous n'avez pas encore fait de propositions.</p>
+        <div class="mt-6">
+          <NuxtLink 
+            to="/requests" 
+            class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium text-white bg-black hover:bg-gray-800 transition-colors"
+          >
+            <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            Explorer les demandes
+          </NuxtLink>
+        </div>
       </div>
-      <h3 class="text-lg font-medium mb-1">Aucune proposition trouvée</h3>
-      <p class="text-gray-500 text-sm mb-4">
-        {{ activeFilter === 'all' 
-          ? "Vous n'avez pas encore envoyé de proposition." 
-          : activeFilter === 'pending' 
-          ? "Vous n'avez aucune proposition en attente."
-          : activeFilter === 'accepted'
-          ? "Aucune proposition acceptée pour le moment."
-          : "Aucune proposition refusée."
-        }}
-      </p>
-      <NuxtLink to="/requests" class="px-4 py-2 bg-primary-600 text-white rounded-full text-sm font-medium inline-flex items-center">
-        <SearchIcon class="h-4 w-4 mr-1.5" />
-        Explorer les demandes
-      </NuxtLink>
-    </div>
 
-    <!-- Proposals list -->
-    <div v-else class="space-y-3">
-      <div 
-        v-for="proposal in filteredProposals" 
-        :key="proposal.id" 
-        class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden"
-      >
-        <!-- Main content -->
-        <div class="p-4">
-          <div class="flex justify-between">
-            <div>
-              <h3 class="font-medium">{{ proposal.request_title }}</h3>
-              <div class="flex flex-wrap gap-1.5 mt-1.5">
-                <span 
-                  class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
-                  :class="getStatusClass(proposal.status)"
-                >
-                  {{ getStatusLabel(proposal.status) }}
-                </span>
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300">
-                  {{ proposal.category }}
-                </span>
-                <span v-if="proposal.is_urgent" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
-                  Urgent
-                </span>
-              </div>
-            </div>
-            <div class="text-right">
-              <div class="font-semibold">{{ proposal.formatted_price }}</div>
-              <div class="text-xs text-gray-500 mt-1">
-                {{ formatDate(proposal.created_at) }}
-              </div>
-            </div>
-          </div>
-          
-          <!-- Message preview -->
-          <div class="text-sm text-gray-600 dark:text-gray-400 mt-3 line-clamp-2">
-            {{ proposal.message }}
-          </div>
-          
-          <!-- Details -->
-          <div class="flex flex-wrap justify-between items-center text-sm mt-3 text-gray-600 dark:text-gray-400">
-            <div class="flex items-center">
-              <CalendarIcon class="h-4 w-4 mr-1" />
-              <span>{{ proposal.estimated_days }} jours</span>
-            </div>
-            <div class="flex items-center">
-              <UserIcon class="h-4 w-4 mr-1" />
-              <span>{{ proposal.client_name }}</span>
-            </div>
-          </div>
+      <!-- Proposal list -->
+      <div v-else class="space-y-4">
+        <!-- Tabs -->
+        <div class="border-b border-gray-200">
+          <nav class="-mb-px flex space-x-6">
+            <button 
+              v-for="tab in tabs" 
+              :key="tab.value"
+              @click="activeTab = tab.value"
+              class="py-2 px-1 text-sm font-medium border-b-2 transition-colors"
+              :class="activeTab === tab.value 
+                ? 'border-black text-black' 
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+            >
+              {{ tab.label }}
+              <span 
+                v-if="getFilteredProposals(tab.value).length > 0"
+                class="ml-1 text-xs rounded-full bg-gray-100 px-2 py-0.5"
+              >
+                {{ getFilteredProposals(tab.value).length }}
+              </span>
+            </button>
+          </nav>
+        </div>
+
+        <!-- Proposal cards -->
+        <div v-if="getFilteredProposals(activeTab).length === 0" class="text-center py-8">
+          <p class="text-gray-500">Aucune proposition {{ getTabLabel(activeTab).toLowerCase() }}</p>
         </div>
         
-        <!-- Actions -->
-        <div class="bg-gray-50 dark:bg-gray-800/50 px-4 py-3 flex justify-between items-center border-t border-gray-200 dark:border-gray-700">
-          <NuxtLink 
-            :to="`/requests/${proposal.request_id}`"
-            class="text-sm text-primary-600 dark:text-primary-400 hover:underline"
+        <div v-else class="space-y-4">
+          <div
+            v-for="proposal in getFilteredProposals(activeTab)"
+            :key="proposal.id"
+            class="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-sm transition-shadow"
           >
-            Voir la demande
-          </NuxtLink>
-          
-          <div class="flex gap-2">
-            <button 
-              v-if="proposal.status === 'pending'"
-              @click="showEditProposalModal(proposal)"
-              class="px-3 py-1.5 text-sm rounded-full border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-            >
-              Modifier
-            </button>
-            
-            <button 
-              v-if="proposal.status === 'accepted'"
-              class="px-3 py-1.5 bg-primary-600 text-white text-sm rounded-full inline-flex items-center"
-            >
-              <MessageCircle class="h-4 w-4 mr-1" />
-              Contacter
-            </button>
-            
-            <button 
-              v-if="proposal.status === 'pending'"
-              @click="confirmCancelProposal(proposal.id)"
-              class="px-3 py-1.5 text-sm text-red-600 dark:text-red-400 rounded-full border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-            >
-              Annuler
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Edit Proposal Modal (simplified Twitter-style) -->
-    <Teleport to="body">
-      <div v-if="showEditModal" class="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center" @click.self="closeEditModal">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-lg w-full mx-4">
-          <!-- Modal header -->
-          <div class="flex justify-between items-center px-5 py-4 border-b border-gray-200 dark:border-gray-700">
-            <h3 class="text-lg font-medium">Modifier la proposition</h3>
-            <button @click="closeEditModal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          
-          <!-- Modal content -->
-          <div class="p-5">
-            <form @submit.prevent="updateProposal" class="space-y-4">
-              <div>
-                <input
-                  v-model.number="editForm.price"
-                  type="number"
-                  min="0"
-                  step="1000"
-                  placeholder="Prix (XAF)"
-                  required
-                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                />
+            <div class="p-4">
+              <div class="flex justify-between items-start">
+                <div>
+                  <div class="flex items-center space-x-2 mb-1">
+                    <span 
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                      :class="getStatusClass(proposal.status)"
+                    >
+                      {{ getStatusLabel(proposal.status) }}
+                    </span>
+                    <span 
+                      v-if="proposal.request?.category" 
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                    >
+                      {{ proposal.request.category.name }}
+                    </span>
+                  </div>
+                  <h3 class="text-lg font-medium text-gray-900 line-clamp-1">
+                    {{ proposal.request?.title || 'Demande sans titre' }}
+                  </h3>
+                  <p class="mt-1 text-sm text-gray-500 line-clamp-2">{{ proposal.message }}</p>
+                </div>
+                
+                <div class="text-right flex-shrink-0">
+                  <div class="text-base font-bold text-gray-900">
+                    {{ formatPrice(proposal.price) }}
+                  </div>
+                  <div class="text-xs text-gray-500 mt-1">
+                    {{ proposal.duration }} jour{{ proposal.duration > 1 ? 's' : '' }}
+                  </div>
+                </div>
               </div>
               
-              <div>
-                <input
-                  v-model.number="editForm.estimated_days"
-                  type="number"
-                  min="1"
-                  max="365"
-                  placeholder="Délai de livraison (jours)"
-                  required
-                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                />
-              </div>
-              
-              <div>
-                <textarea
-                  v-model="editForm.message"
-                  rows="5"
-                  placeholder="Votre message au client"
-                  required
-                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                ></textarea>
-              </div>
-              
-              <div class="flex justify-end">
-                <button
-                  type="submit"
-                  class="px-4 py-2 bg-primary-600 text-white rounded-full text-sm font-medium"
-                  :disabled="isSubmitting"
+              <div class="mt-4 flex items-center justify-between">
+                <NuxtLink 
+                  :to="`/requests/${proposal.request_id}`"
+                  class="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
                 >
-                  <span v-if="isSubmitting" class="flex items-center">
-                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Enregistrement...
-                  </span>
-                  <span v-else>Mettre à jour</span>
-                </button>
+                  <svg class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  Voir la demande
+                </NuxtLink>
+                <div class="text-xs text-gray-500">
+                  {{ formatRelativeDate(proposal.created_at) }}
+                </div>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       </div>
-    </Teleport>
+    </main>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import { Search, ClipboardIcon, CalendarIcon, UserIcon, MessageCircle, SearchIcon } from 'lucide-vue-next'
+import { ref, computed, onMounted } from 'vue';
+import { useSupabaseClient, useSupabaseUser } from '#imports';
 
-const supabase = useSupabaseClient()
-const user = useSupabaseUser()
-const toast = useToast()
+const supabase = useSupabaseClient();
+const user = useSupabaseUser();
 
-const isLoading = ref(true)
-const proposals = ref([])
-const activeFilter = ref('all')
-const searchQuery = ref('')
+// État
+const proposals = ref([]);
+const profile = ref(null);
+const isLoading = ref(true);
+const error = ref(null);
+const activeTab = ref('all');
 
-// Edit modal
-const showEditModal = ref(false)
-const editingProposal = ref(null)
-const isSubmitting = ref(false)
-const editForm = ref({
-  price: 0,
-  estimated_days: 1,
-  message: ''
-})
+// Computed
+const isExpert = computed(() => {
+  return profile.value?.is_expert || false;
+});
 
-// Statistiques
-const stats = computed(() => {
-  const total = proposals.value.length
-  const accepted = proposals.value.filter(p => p.status === 'accepted').length
-  const pending = proposals.value.filter(p => p.status === 'pending').length
-  
-  return {
-    total,
-    accepted,
-    pending,
-    declined: total - accepted - pending,
-    conversion: total > 0 ? Math.round((accepted / total) * 100) : 0
-  }
-})
+// Tabs
+const tabs = [
+  { label: 'Toutes', value: 'all' },
+  { label: 'En attente', value: 'pending' },
+  { label: 'Acceptées', value: 'accepted' },
+  { label: 'Refusées', value: 'rejected' }
+];
 
-// Filtrage des propositions
-const filteredProposals = computed(() => {
-  return proposals.value.filter(proposal => {
-    // Filtre par statut
-    const statusMatch = 
-      activeFilter.value === 'all' || 
-      (activeFilter.value === 'pending' && proposal.status === 'pending') ||
-      (activeFilter.value === 'accepted' && proposal.status === 'accepted') ||
-      (activeFilter.value === 'declined' && proposal.status === 'declined')
-    
-    // Filtre par recherche
-    const searchMatch = 
-      searchQuery.value === '' || 
-      proposal.request_title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      proposal.message.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      proposal.client_name.toLowerCase().includes(searchQuery.value.toLowerCase())
-    
-    return statusMatch && searchMatch
-  })
-})
-
-// Récupérer les propositions
-const fetchProposals = async () => {
-  isLoading.value = true
+// Récupérer le profil de l'utilisateur
+const fetchProfile = async () => {
+  if (!user.value) return;
   
   try {
-    let query = supabase
+    const { data, error: profileError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.value.id)
+      .single();
+    
+    if (profileError) throw profileError;
+    
+    profile.value = data;
+  } catch (err) {
+    console.error('Error fetching profile:', err);
+  }
+};
+
+// Récupérer les propositions de l'expert
+const fetchProposals = async () => {
+  if (!user.value) return;
+  
+  isLoading.value = true;
+  error.value = null;
+  
+  try {
+    const { data, error: proposalError } = await supabase
       .from('proposals')
       .select(`
         *,
-        request:request_id(
-          id, 
-          title, 
-          description,
-          client:client_id(first_name, last_name, avatar_url)
+        request:request_id (
+          *,
+          category:category_id (*)
         )
       `)
+      .eq('expert_id', user.value.id)
+      .order('created_at', { ascending: false });
     
-    // L'expert ne voit que ses propres propositions
-    query = query.eq('expert_id', user.value.id)
+    if (proposalError) throw proposalError;
     
-    // Trier par date
-    query = query.order('created_at', { ascending: false })
-    
-    const { data, error } = await query
-    
-    if (error) throw error
-    
-    proposals.value = data.map(proposal => ({
-      ...proposal,
-      request_title: proposal.request.title,
-      client_name: `${proposal.request.client.first_name} ${proposal.request.client.last_name}`,
-      client_avatar: proposal.request.client.avatar_url,
-      formatted_price: new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(proposal.price)
-    }))
-  } catch (error) {
-    console.error('Erreur lors de la récupération des propositions:', error)
-    toast.error('Erreur lors du chargement des propositions')
+    proposals.value = data || [];
+  } catch (err) {
+    console.error('Error fetching proposals:', err);
+    error.value = "Une erreur est survenue lors du chargement de vos propositions";
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 
-// Formater la date
-const formatDate = (dateString) => {
-  const date = new Date(dateString)
-  return new Intl.DateTimeFormat('fr-FR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  }).format(date)
-}
+// Filtrer les propositions selon l'onglet actif
+const getFilteredProposals = (tab) => {
+  if (tab === 'all') return proposals.value;
+  return proposals.value.filter(proposal => proposal.status === tab);
+};
+
+// Obtenir le libellé de l'onglet
+const getTabLabel = (tabValue) => {
+  const tab = tabs.find(t => t.value === tabValue);
+  return tab ? tab.label : '';
+};
+
+// Formater le prix
+const formatPrice = (price) => {
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'EUR'
+  }).format(price);
+};
+
+// Formater la date relative
+const formatRelativeDate = (dateString) => {
+  if (!dateString) return '';
+  
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffTime = Math.abs(now - date);
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) {
+    return "Aujourd'hui";
+  } else if (diffDays === 1) {
+    return "Hier";
+  } else if (diffDays < 7) {
+    return `Il y a ${diffDays} jours`;
+  } else {
+    const options = { day: 'numeric', month: 'long' };
+    return new Intl.DateTimeFormat('fr-FR', options).format(date);
+  }
+};
 
 // Obtenir la classe CSS pour le statut
 const getStatusClass = (status) => {
   switch (status) {
     case 'pending':
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+      return 'bg-yellow-100 text-yellow-800';
     case 'accepted':
-      return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-    case 'declined':
-      return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+      return 'bg-green-100 text-green-800';
+    case 'rejected':
+      return 'bg-red-100 text-red-800';
     default:
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+      return 'bg-gray-100 text-gray-800';
   }
-}
+};
 
-// Obtenir le libellé du statut
+// Obtenir le libellé pour le statut
 const getStatusLabel = (status) => {
   switch (status) {
     case 'pending':
-      return 'En attente'
+      return 'En attente';
     case 'accepted':
-      return 'Acceptée'
-    case 'declined':
-      return 'Refusée'
+      return 'Acceptée';
+    case 'rejected':
+      return 'Refusée';
     default:
-      return status
+      return 'Statut inconnu';
   }
-}
+};
 
-// Annuler une proposition
-const confirmCancelProposal = async (proposalId) => {
-  if (confirm('Êtes-vous sûr de vouloir annuler cette proposition ? Cette action est irréversible.')) {
-    try {
-      const { error } = await supabase
-        .from('proposals')
-        .delete()
-        .eq('id', proposalId)
-      
-      if (error) throw error
-      
-      // Mettre à jour la liste
-      proposals.value = proposals.value.filter(p => p.id !== proposalId)
-      
-      toast.success('Proposition annulée avec succès')
-    } catch (error) {
-      console.error('Erreur lors de l\'annulation de la proposition:', error)
-      toast.error('Une erreur est survenue')
-    }
-  }
-}
+// Cycle de vie
+onMounted(async () => {
+  await fetchProfile();
+  await fetchProposals();
+});
 
-// Ouvrir le modal d'édition
-const showEditProposalModal = (proposal) => {
-  editingProposal.value = proposal
-  editForm.value = {
-    price: proposal.price,
-    estimated_days: proposal.estimated_days,
-    message: proposal.message
-  }
-  showEditModal.value = true
-}
-
-// Fermer le modal d'édition
-const closeEditModal = () => {
-  showEditModal.value = false
-  editingProposal.value = null
-}
-
-// Mettre à jour une proposition
-const updateProposal = async () => {
-  if (!editingProposal.value) return
-  
-  isSubmitting.value = true
-  
-  try {
-    const { error } = await supabase
-      .from('proposals')
-      .update({
-        price: editForm.value.price,
-        estimated_days: editForm.value.estimated_days,
-        message: editForm.value.message
-      })
-      .eq('id', editingProposal.value.id)
-    
-    if (error) throw error
-    
-    // Mettre à jour la liste locale
-    const index = proposals.value.findIndex(p => p.id === editingProposal.value.id)
-    if (index !== -1) {
-      proposals.value[index] = {
-        ...proposals.value[index],
-        price: editForm.value.price,
-        estimated_days: editForm.value.estimated_days,
-        message: editForm.value.message,
-        formatted_price: new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(editForm.value.price)
-      }
-    }
-    
-    toast.success('Proposition mise à jour avec succès')
-    closeEditModal()
-  } catch (error) {
-    console.error('Erreur lors de la mise à jour de la proposition:', error)
-    toast.error('Une erreur est survenue')
-  } finally {
-    isSubmitting.value = false
-  }
-}
-
-// Initialisation
-onMounted(() => {
-  fetchProposals()
-})
-
-function resetForm() {
-  editForm.price = 0
-  editForm.estimated_days = 1
-  editForm.message = ''
-}
 definePageMeta({
   middleware: ['auth'],
   layout: 'account'
@@ -506,6 +322,13 @@ definePageMeta({
 </script>
 
 <style scoped>
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;

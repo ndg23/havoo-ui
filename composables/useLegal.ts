@@ -13,7 +13,7 @@ export const useLegal = () => {
         },
         {
           label: 'Capital social',
-          value: '10 000 €'
+          value: '10 000 FCFA'
         },
         {
           label: 'RCS',

@@ -41,16 +41,13 @@
         <!-- Title input -->
         <div class="relative">
           <div class="floating-input-container">
-            <input
+            <FloatingLabelInput
               id="title"
+              label="Titre de la demande"
               v-model="requestData.title"
-              type="text"
               required
-              maxlength="100"
-              class="floating-input rounded-full"
-              :class="{ 'has-value': requestData.title }"
+              placeholder="Décrivez brièvement votre besoin"
             />
-            <label for="title" class="floating-label">Titre de votre demande</label>
           </div>
           <div class="mt-1 text-xs text-gray-500 flex justify-between px-3">
             <span>Soyez précis et concis</span>
@@ -58,50 +55,80 @@
           </div>
         </div>
 
-        <!-- Category selection -->
-        <div>
-          <div class="text-base font-medium mb-2">Catégorie</div>
-          <div class="relative">
-            <button
-              type="button"
-              @click="showCategoryDropdown = !showCategoryDropdown"
-              class="w-full flex items-center justify-between px-4 py-3 border border-gray-300 rounded-full bg-white text-left focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+        <!-- Category selection with cleaner style -->
+        <div class="relative dropdown-container">
+          <div class="floating-input-container">
+            <div 
+              class="w-full border border-gray-300 rounded-lg px-4 py-3.5 bg-white transition-all focus-within:outline-none focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-opacity-30 relative"
+              :class="{'border-primary-500 ring-2 ring-primary-500 ring-opacity-30': showCategoryDropdown}"
             >
-              <span class="text-base" :class="selectedCategory ? 'text-black' : 'text-gray-500'">
-                {{ selectedCategory ? selectedCategory.name : 'Sélectionnez une catégorie' }}
-              </span>
-              <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
+              <label 
+                for="category" 
+                class="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-4 z-10 origin-[0] left-4 peer-focus:text-primary-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4 bg-white px-1"
+                :class="{'text-primary-600': selectedCategory || showCategoryDropdown}"
+              >
+                Catégorie
+              </label>
+              
+              <button
+                id="category"
+                type="button"
+                @click="showCategoryDropdown = !showCategoryDropdown"
+                class="w-full text-left focus:outline-none flex items-center justify-between h-full"
+              >
+                <span class="text-base" :class="selectedCategory ? 'text-black' : 'text-gray-400'">
+                  {{ selectedCategory ? selectedCategory.name : 'Sélectionnez une catégorie' }}
+                </span>
+                <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </div>
             
-            <!-- Dropdown -->
-            <div v-if="showCategoryDropdown" class="absolute mt-2 w-full bg-white rounded-2xl shadow-lg border border-gray-200 z-10 py-1 max-h-60 overflow-y-auto">
+            <!-- Dropdown with simplified design -->
+            <div 
+              v-if="showCategoryDropdown"
+              class="absolute mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 z-10 py-1 max-h-60 overflow-y-auto"
+            >
+              <div v-if="isLoadingCategories" class="px-4 py-3 text-center text-gray-500">
+                <svg class="animate-spin h-5 w-5 mx-auto mb-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Chargement...
+              </div>
+              
+              <div v-else-if="categories.length === 0" class="px-4 py-3 text-center text-gray-500">
+                Aucune catégorie disponible
+              </div>
+              
               <div 
+                v-else
                 v-for="category in categories" 
                 :key="category.id"
                 @click="selectCategory(category); showCategoryDropdown = false"
-                class="px-4 py-2.5 hover:bg-gray-50 cursor-pointer flex items-center transition-colors"
+                class="px-4 py-2 hover:bg-gray-50 cursor-pointer transition-colors"
               >
-                <div class="w-5 h-5 rounded-full mr-3" :style="`background-color: ${category.color}`"></div>
                 <span>{{ category.name }}</span>
               </div>
             </div>
+          </div>
+          <div class="mt-1 text-xs text-gray-500 px-3">
+            <span>Choisissez la catégorie qui correspond le mieux à votre demande</span>
           </div>
         </div>
 
         <!-- Description textarea -->
         <div class="relative">
           <div class="floating-input-container">
-            <textarea
+            <FloatingLabelInput
               id="description"
+              label="Description"
               v-model="requestData.description"
-              rows="5"
               required
-              class="floating-textarea rounded-3xl"
-              :class="{ 'has-value': requestData.description }"
-            ></textarea>
-            <label for="description" class="floating-label">Description détaillée</label>
+              placeholder="Décrivez en détail votre besoin..."
+              rows="5"
+            />
           </div>
           <div class="mt-1 text-xs text-gray-500 flex px-3">
             <span>Décrivez précisément votre besoin</span>
@@ -111,15 +138,15 @@
         <!-- Budget field -->
         <div class="relative">
           <div class="floating-input-container">
-            <input
+            <FloatingLabelInput
               id="budget"
-              v-model="requestData.budget"
+              label="Budget (FCFA)"
               type="number"
+              v-model="requestData.budget"
               min="0"
-              class="floating-input rounded-full"
-              :class="{ 'has-value': requestData.budget }"
+              step="10"
+              required
             />
-            <label for="budget" class="floating-label">Budget (€)</label>
           </div>
           <div class="mt-1 text-xs text-gray-500 px-3">
             <span>Optionnel - Indiquez votre budget approximatif</span>
@@ -129,14 +156,14 @@
         <!-- Deadline field -->
         <div class="relative">
           <div class="floating-input-container">
-            <input
+            <FloatingLabelInput
               id="deadline"
-              v-model="requestData.deadline"
+              label="Date limite"
               type="date"
-              class="floating-input rounded-full"
-              :class="{ 'has-value': requestData.deadline }"
+              v-model="requestData.deadline"
+              :min="minDate"
+              required
             />
-            <label for="deadline" class="floating-label">Date limite</label>
           </div>
           <div class="mt-1 text-xs text-gray-500 px-3">
             <span>Optionnel - Date souhaitée pour la réalisation</span>
@@ -216,14 +243,24 @@
           </button>
         </div>
       </form>
+
+      <!-- Bouton de débogage temporaire -->
+      <button 
+        type="button" 
+        @click="debugCategories" 
+        class="mt-2 text-xs text-gray-500 underline"
+      >
+        Debug catégories
+      </button>
     </main>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 import { useRouter } from 'vue-router';
 // import { useSupabaseClient } from '@supabase/auth-helpers-vue';
+import FloatingLabelInput from '~/components/ui/FloatingLabelInput.vue'
 
 const router = useRouter();
 const supabase = useSupabaseClient();
@@ -245,15 +282,66 @@ const selectedCategory = ref(null);
 const showCategoryDropdown = ref(false);
 const files = ref([]);
 
-// Mock categories
-const categories = ref([
-  { id: 1, name: 'Développement web', color: '#3B82F6' },
-  { id: 2, name: 'Design graphique', color: '#EC4899' },
-  { id: 3, name: 'Marketing digital', color: '#10B981' },
-  { id: 4, name: 'Rédaction', color: '#F59E0B' },
-  { id: 5, name: 'Traduction', color: '#8B5CF6' },
-  { id: 6, name: 'SEO', color: '#EF4444' },
-]);
+// Categories from Supabase
+const categories = ref([]);
+const isLoadingCategories = ref(true);
+
+// Fetch categories from Supabase
+const fetchCategories = async () => {
+  isLoadingCategories.value = true;
+  categories.value = []; // Réinitialiser les catégories
+  
+  try {
+    console.log('Fetching categories...');
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .order('name');
+      
+    if (error) {
+      console.error('Error fetching categories:', error);
+      throw error;
+    }
+    
+    console.log('Categories data:', data);
+    
+    if (data && data.length > 0) {
+      categories.value = data;
+      console.log('Categories loaded:', categories.value);
+    } else {
+      console.log('No categories found, using fallback');
+      // Fallback to default categories if none found
+      categories.value = [
+        { id: 1, name: 'Développement web', color: '#3B82F6' },
+        { id: 2, name: 'Design graphique', color: '#EC4899' },
+        { id: 3, name: 'Marketing digital', color: '#10B981' },
+        { id: 4, name: 'Rédaction', color: '#F59E0B' },
+        { id: 5, name: 'Traduction', color: '#8B5CF6' },
+        { id: 6, name: 'SEO', color: '#EF4444' },
+      ];
+    }
+  } catch (error) {
+    console.error('Error in fetchCategories:', error);
+    // Fallback to default categories
+    categories.value = [
+      { id: 1, name: 'Développement web', color: '#3B82F6' },
+      { id: 2, name: 'Design graphique', color: '#EC4899' },
+      { id: 3, name: 'Marketing digital', color: '#10B981' },
+      { id: 4, name: 'Rédaction', color: '#F59E0B' },
+      { id: 5, name: 'Traduction', color: '#8B5CF6' },
+      { id: 6, name: 'SEO', color: '#EF4444' },
+    ];
+  } finally {
+    isLoadingCategories.value = false;
+    console.log('Categories loading complete. Count:', categories.value.length);
+  }
+};
+
+// Date minimum (aujourd'hui)
+const minDate = computed(() => {
+  const today = new Date()
+  return today.toISOString().split('T')[0]
+})
 
 // Functions
 const selectCategory = (category) => {
@@ -335,7 +423,7 @@ const submitRequest = async () => {
         category_id: requestData.value.categoryId,
         budget: requestData.value.budget || null,
         deadline: requestData.value.deadline || null,
-        user_id: user.id,
+        client_id: user.id,
       })
       .select()
       .single();
@@ -373,13 +461,39 @@ const submitRequest = async () => {
 
 // Close dropdown when clicking outside
 const handleClickOutside = (event) => {
-  if (showCategoryDropdown.value && !event.target.closest('.dropdown-container')) {
+  const dropdownContainer = document.querySelector('.dropdown-container');
+  if (showCategoryDropdown.value && dropdownContainer && !dropdownContainer.contains(event.target)) {
     showCategoryDropdown.value = false;
   }
 };
 
+// Fonction pour générer une couleur aléatoire basée sur l'ID de la catégorie
+const getRandomColor = (id) => {
+  const colors = [
+    '#3B82F6', // blue
+    '#EC4899', // pink
+    '#10B981', // green
+    '#F59E0B', // amber
+    '#8B5CF6', // purple
+    '#EF4444', // red
+    '#06B6D4', // cyan
+    '#F97316', // orange
+  ];
+  
+  // Utiliser l'ID comme seed pour choisir une couleur
+  return colors[id % colors.length];
+};
+
+// Fonction de débogage temporaire
+const debugCategories = () => {
+  console.log('Current categories:', categories.value);
+  console.log('Loading state:', isLoadingCategories.value);
+  console.log('Dropdown visible:', showCategoryDropdown.value);
+};
+
 onMounted(() => {
   document.addEventListener('click', handleClickOutside);
+  fetchCategories(); // Fetch categories on component mount
 });
 
 onBeforeUnmount(() => {

@@ -92,10 +92,10 @@
                      hover:border-blue-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white"
             >
               <option value="">Prix max/jour</option>
-              <option value="10">Jusqu'à 10€</option>
-              <option value="25">Jusqu'à 25€</option>
-              <option value="50">Jusqu'à 50€</option>
-              <option value="100">Jusqu'à 100€</option>
+              <option value="10">Jusqu'à 10FCFA</option>
+              <option value="25">Jusqu'à 25FCFA</option>
+              <option value="50">Jusqu'à 50FCFA</option>
+              <option value="100">Jusqu'à 100FCFA</option>
             </select>
             <AdjustmentsHorizontalIcon class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <ChevronDownIcon class="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2" />

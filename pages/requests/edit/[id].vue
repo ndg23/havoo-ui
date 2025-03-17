@@ -4,15 +4,15 @@
     <header class="sticky top-0 z-10 bg-white/80 backdrop-blur-sm border-b border-gray-100">
       <div class="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
         <div class="flex items-center">
-          <NuxtLink 
-            to="/account/services" 
+          <button 
+            @click="$router.back()" 
             class="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors"
           >
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 19l-7-7 7-7" />
             </svg>
-          </NuxtLink>
-          <h1 class="ml-6 text-xl font-bold">Nouveau service</h1>
+          </button>
+          <h1 class="ml-6 text-xl font-bold">Modifier la demande</h1>
         </div>
       </div>
     </header>
@@ -25,7 +25,7 @@
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        <p class="text-gray-500">Chargement...</p>
+        <p class="text-gray-500">Chargement de la demande...</p>
       </div>
 
       <!-- Error state -->
@@ -36,64 +36,32 @@
           </svg>
           <p>{{ error }}</p>
         </div>
+        <button 
+          @click="fetchRequest" 
+          class="mt-3 text-sm font-medium text-red-600 hover:text-red-500"
+        >
+          Réessayer
+        </button>
       </div>
 
-      <!-- Not verified warning -->
-      <div v-else-if="!isVerified" class="bg-yellow-50 p-4 rounded-lg mb-6">
-        <div class="flex">
-          <svg class="h-5 w-5 text-yellow-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-          <div>
-            <p class="text-sm text-yellow-700 font-medium">Votre compte n'est pas encore vérifié</p>
-            <p class="text-sm text-yellow-600 mt-1">
-              Vous pouvez créer des services, mais ils ne seront visibles qu'après vérification de votre identité.
-            </p>
-            <NuxtLink 
-              to="/account/verify" 
-              class="mt-2 inline-flex items-center text-sm font-medium text-yellow-600 hover:text-yellow-500"
-            >
-              Vérifier mon identité
-              <svg class="ml-1 w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </NuxtLink>
-          </div>
-        </div>
-      </div>
-
-      <!-- Service form -->
-      <form @submit.prevent="submitService" class="space-y-6">
-        <!-- Titre -->
-        <div>
+      <!-- Request form -->
+      <form v-else @submit.prevent="updateRequest" class="space-y-6">
+        <!-- Title input -->
+        <div class="relative">
           <FloatingLabelInput
             id="title"
-            label="Titre du service"
-            v-model="service.title"
-            placeholder="Ex: Cours de guitare pour débutants"
+            label="Titre de la demande"
+            v-model="requestData.title"
             required
+            placeholder="Décrivez brièvement votre besoin"
           />
-          <p class="mt-1 text-xs text-gray-500 px-1">
-            Soyez précis et concis pour attirer plus de clients.
-          </p>
+          <div class="mt-1 text-xs text-gray-500 flex justify-between px-1">
+            <span>Soyez précis et concis</span>
+            <span>{{ requestData.title.length }}/100</span>
+          </div>
         </div>
 
-        <!-- Description -->
-        <div>
-          <FloatingLabelInput
-            id="description"
-            label="Description"
-            v-model="service.description"
-            placeholder="Décrivez votre service en détail..."
-            required
-            rows="4"
-          />
-          <p class="mt-1 text-xs text-gray-500 px-1">
-            Soyez précis et détaillé pour attirer plus de clients.
-          </p>
-        </div>
-
-        <!-- Catégorie -->
+        <!-- Category selection -->
         <div class="relative dropdown-container">
           <div class="floating-input-container">
             <div 
@@ -103,7 +71,7 @@
               <label 
                 for="category" 
                 class="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-4 z-10 origin-[0] left-4 peer-focus:text-primary-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4 bg-white px-1"
-                :class="{'text-primary-600': service.category_id || showCategoryDropdown}"
+                :class="{'text-primary-600': requestData.category_id || showCategoryDropdown}"
               >
                 Catégorie
               </label>
@@ -114,7 +82,7 @@
                 @click="showCategoryDropdown = !showCategoryDropdown"
                 class="w-full text-left focus:outline-none flex items-center justify-between h-full"
               >
-                <span class="text-base" :class="service.category_id ? 'text-black' : 'text-gray-400'">
+                <span class="text-base" :class="requestData.category_id ? 'text-black' : 'text-gray-400'">
                   {{ selectedCategoryName || 'Sélectionnez une catégorie' }}
                 </span>
                 <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -128,8 +96,17 @@
               v-if="showCategoryDropdown"
               class="absolute mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 z-10 py-1 max-h-60 overflow-y-auto"
             >
+              <div class="px-3 py-2 sticky top-0 bg-white border-b border-gray-100">
+                <input 
+                  type="text" 
+                  v-model="categorySearch" 
+                  placeholder="Rechercher une catégorie..." 
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  @click.stop
+                />
+              </div>
               <div 
-                v-for="category in categories" 
+                v-for="category in filteredCategories" 
                 :key="category.id"
                 @click="selectCategory(category.id); showCategoryDropdown = false"
                 class="px-4 py-2 hover:bg-gray-50 cursor-pointer transition-colors"
@@ -138,50 +115,58 @@
               </div>
             </div>
           </div>
-          <p class="mt-1 text-xs text-gray-500 px-1">
-            Choisissez la catégorie qui correspond le mieux à votre service.
-          </p>
         </div>
 
-        <!-- Prix -->
+        <!-- Description -->
+        <div class="relative">
+          <FloatingLabelInput
+            id="description"
+            label="Description détaillée"
+            v-model="requestData.description"
+            required
+            rows="4"
+            placeholder="Décrivez votre besoin en détail..."
+          />
+          <div class="mt-1 text-xs text-gray-500 px-1">
+            Plus votre description est détaillée, plus les experts pourront vous proposer des solutions adaptées.
+          </div>
+        </div>
+
+        <!-- Budget -->
         <div>
           <FloatingLabelInput
-            id="price"
-            label="Prix"
+            id="budget"
+            label="Budget"
             type="number"
-            v-model="service.price"
-            placeholder="0.00"
+            v-model="requestData.budget"
+            placeholder="0"
             :min="0"
-            :step="0.01"
-            :precision="2"
+            :step="1000"
+            :precision="0"
             currency="FCFA"
             required
           />
           <p class="mt-1 text-xs text-gray-500 px-1">
-            Prix de votre service en FCFA.
+            Indiquez votre budget approximatif pour ce projet.
           </p>
         </div>
 
-        <!-- Durée -->
+        <!-- Deadline -->
         <div>
           <FloatingLabelInput
-            id="duration"
-            label="Durée"
-            type="number"
-            v-model="service.duration"
-            placeholder="1.5"
-            :min="0.5"
-            :step="0.5"
-            :precision="1"
-            suffix="h"
+            id="deadline"
+            label="Date limite"
+            type="date"
+            v-model="requestData.deadline"
+            :min="minDate"
             required
           />
           <p class="mt-1 text-xs text-gray-500 px-1">
-            Durée moyenne pour réaliser ce service (en heures).
+            Date à laquelle vous souhaitez que le service soit terminé.
           </p>
         </div>
 
-        <!-- Localisation -->
+        <!-- Location -->
         <div class="relative dropdown-container">
           <div class="floating-input-container">
             <div 
@@ -189,21 +174,21 @@
               :class="{'border-primary-500 ring-2 ring-primary-500 ring-opacity-30': showLocationDropdown}"
             >
               <label 
-                for="location" 
+                for="location_type" 
                 class="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-4 z-10 origin-[0] left-4 peer-focus:text-primary-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4 bg-white px-1"
-                :class="{'text-primary-600': service.location_type || showLocationDropdown}"
+                :class="{'text-primary-600': requestData.location_type || showLocationDropdown}"
               >
-                Localisation
+                Type de localisation
               </label>
               
               <button
-                id="location"
+                id="location_type"
                 type="button"
                 @click="showLocationDropdown = !showLocationDropdown"
                 class="w-full text-left focus:outline-none flex items-center justify-between h-full"
               >
-                <span class="text-base" :class="service.location_type ? 'text-black' : 'text-gray-400'">
-                  {{ locationTypeLabel || 'Sélectionnez une option' }}
+                <span class="text-base" :class="requestData.location_type ? 'text-black' : 'text-gray-400'">
+                  {{ getLocationTypeLabel(requestData.location_type) || 'Sélectionnez un type de localisation' }}
                 </span>
                 <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -219,7 +204,7 @@
               <div 
                 v-for="option in locationOptions" 
                 :key="option.value"
-                @click="selectLocationType(option.value); showLocationDropdown = false"
+                @click="requestData.location_type = option.value; showLocationDropdown = false"
                 class="px-4 py-2 hover:bg-gray-50 cursor-pointer transition-colors"
               >
                 <span>{{ option.label }}</span>
@@ -227,57 +212,57 @@
             </div>
           </div>
           <p class="mt-1 text-xs text-gray-500 px-1">
-            Indiquez où vous pouvez réaliser ce service.
+            Indiquez si le service peut être réalisé à distance, en personne, ou les deux.
           </p>
         </div>
 
-        <!-- Images -->
+        <!-- Attachments -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Images (optionnel)</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Pièces jointes (optionnel)</label>
           <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
             <div class="space-y-1 text-center">
               <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
                 <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
               <div class="flex text-sm text-gray-600">
-                <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-black hover:text-gray-700 focus-within:outline-none">
-                  <span>Télécharger des images</span>
+                <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500">
+                  <span>Télécharger un fichier</span>
                   <input 
                     id="file-upload" 
                     name="file-upload" 
                     type="file" 
                     class="sr-only" 
-                    accept="image/*" 
                     multiple 
                     @change="handleFileUpload"
-                  />
+                  >
                 </label>
                 <p class="pl-1">ou glisser-déposer</p>
               </div>
               <p class="text-xs text-gray-500">
-                PNG, JPG, GIF jusqu'à 5MB
+                PNG, JPG, PDF jusqu'à 10MB
               </p>
             </div>
           </div>
           
-          <!-- Prévisualisation des images -->
-          <div v-if="imageFiles.length > 0" class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
+          <!-- File list -->
+          <div v-if="attachments.length > 0" class="mt-4 space-y-2">
             <div 
-              v-for="(file, index) in imageFiles" 
-              :key="index" 
-              class="relative group rounded-lg overflow-hidden bg-gray-100 aspect-w-1 aspect-h-1"
+              v-for="(file, index) in attachments" 
+              :key="index"
+              class="flex items-center justify-between p-2 bg-gray-50 rounded-md"
             >
-              <img 
-                :src="getImagePreview(file)" 
-                alt="Prévisualisation" 
-                class="object-cover w-full h-full"
-              />
+              <div class="flex items-center">
+                <svg class="h-5 w-5 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                </svg>
+                <span class="text-sm truncate max-w-xs">{{ file.name }}</span>
+              </div>
               <button 
-                type="button"
-                @click="removeImage(index)"
-                class="absolute top-2 right-2 bg-white rounded-full p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                type="button" 
+                @click="removeFile(index)"
+                class="text-red-500 hover:text-red-700"
               >
-                <svg class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
@@ -285,30 +270,15 @@
           </div>
         </div>
 
-        <!-- Statut -->
-        <div class="flex items-start">
-          <div class="flex items-center h-5">
-            <input 
-              id="is_active" 
-              type="checkbox" 
-              v-model="service.is_active" 
-              class="focus:ring-black h-4 w-4 text-black border-gray-300 rounded"
-            />
-          </div>
-          <div class="ml-3 text-sm">
-            <label for="is_active" class="font-medium text-gray-700">Activer ce service</label>
-            <p class="text-gray-500">Le service sera visible et disponible pour les clients.</p>
-          </div>
-        </div>
-
-        <!-- Boutons d'action -->
+        <!-- Submit buttons -->
         <div class="flex justify-end space-x-3 pt-4">
-          <NuxtLink 
-            to="/account/services" 
+          <button 
+            type="button"
+            @click="$router.back()"
             class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
           >
             Annuler
-          </NuxtLink>
+          </button>
           <button 
             type="submit" 
             class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
@@ -318,7 +288,7 @@
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            {{ isSubmitting ? 'Création en cours...' : 'Créer le service' }}
+            {{ isSubmitting ? 'Mise à jour...' : 'Mettre à jour' }}
           </button>
         </div>
       </form>
@@ -328,33 +298,36 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useSupabaseClient, useSupabaseUser } from '#imports';
 import FloatingLabelInput from '~/components/ui/FloatingLabelInput.vue';
 
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
+const route = useRoute();
 const router = useRouter();
 
 // État
 const isLoading = ref(true);
 const isSubmitting = ref(false);
 const error = ref(null);
-const isVerified = ref(false);
 const categories = ref([]);
-const imageFiles = ref([]);
 const showCategoryDropdown = ref(false);
 const showLocationDropdown = ref(false);
+const categorySearch = ref('');
+const attachments = ref([]);
+const existingAttachments = ref([]);
+const attachmentsToDelete = ref([]);
 
-// Données du service
-const service = ref({
+// Données de la demande
+const requestData = ref({
   title: '',
   description: '',
   category_id: '',
-  price: null,
-  duration: null,
+  budget: null,
+  deadline: '',
   location_type: '',
-  is_active: true
+  attachments: []
 });
 
 // Options de localisation
@@ -364,27 +337,37 @@ const locationOptions = [
   { value: 'both', label: 'Les deux' }
 ];
 
-// Nom de la catégorie sélectionnée
-const selectedCategoryName = computed(() => {
-  const category = categories.value.find(c => c.id === service.value.category_id);
-  return category ? category.name : '';
+// Date minimum (aujourd'hui)
+const minDate = computed(() => {
+  const today = new Date();
+  return today.toISOString().split('T')[0];
 });
 
-// Label du type de localisation
-const locationTypeLabel = computed(() => {
-  const option = locationOptions.find(o => o.value === service.value.location_type);
-  return option ? option.label : '';
+// Catégories filtrées par recherche
+const filteredCategories = computed(() => {
+  if (!categorySearch.value) return categories.value;
+  
+  const search = categorySearch.value.toLowerCase();
+  return categories.value.filter(category => 
+    category.name.toLowerCase().includes(search)
+  );
+});
+
+// Nom de la catégorie sélectionnée
+const selectedCategoryName = computed(() => {
+  const category = categories.value.find(c => c.id === requestData.value.category_id);
+  return category ? category.name : '';
 });
 
 // Récupérer les catégories
 const fetchCategories = async () => {
   try {
-    const { data, error: fetchError } = await supabase
+    const { data, error } = await supabase
       .from('categories')
-      .select('id, name')
+      .select('*')
       .order('name');
     
-    if (fetchError) throw fetchError;
+    if (error) throw error;
     
     categories.value = data;
   } catch (err) {
@@ -393,101 +376,141 @@ const fetchCategories = async () => {
   }
 };
 
-// Vérifier si l'utilisateur est vérifié
-const checkVerificationStatus = async () => {
+// Récupérer la demande
+const fetchRequest = async () => {
+  isLoading.value = true;
+  error.value = null;
+  
   try {
-    const { data, error: fetchError } = await supabase
-      .from('verifications')
-      .select('status')
-      .eq('user_id', user.value.id)
-      .order('submitted_at', { ascending: false })
-      .limit(1)
+    const requestId = route.params.id;
+    
+    const { data, error: requestError } = await supabase
+      .from('requests')
+      .select('*')
+      .eq('id', requestId)
       .single();
     
-    if (fetchError && fetchError.code !== 'PGRST116') throw fetchError;
+    if (requestError) throw requestError;
     
-    isVerified.value = data?.status === 'approved';
+    // Vérifier que l'utilisateur est le propriétaire de la demande
+    if (data.user_id !== user.value.id) {
+      router.push('/requests');
+      return;
+    }
+    
+    // Formater la date
+    if (data.deadline) {
+      const date = new Date(data.deadline);
+      data.deadline = date.toISOString().split('T')[0];
+    }
+    
+    requestData.value = {
+      title: data.title,
+      description: data.description,
+      category_id: data.category_id,
+      budget: data.budget,
+      deadline: data.deadline,
+      location_type: data.location_type,
+      attachments: data.attachments || []
+    };
+    
+    // Récupérer les pièces jointes existantes
+    existingAttachments.value = data.attachments || [];
+    
   } catch (err) {
-    console.error('Error checking verification status:', err);
+    console.error('Error fetching request:', err);
+    error.value = "Impossible de charger la demande. Veuillez réessayer.";
+  } finally {
+    isLoading.value = false;
   }
 };
 
 // Sélectionner une catégorie
 const selectCategory = (categoryId) => {
-  service.value.category_id = categoryId;
+  requestData.value.category_id = categoryId;
 };
 
-// Sélectionner un type de localisation
-const selectLocationType = (locationType) => {
-  service.value.location_type = locationType;
+// Obtenir le libellé du type de localisation
+const getLocationTypeLabel = (type) => {
+  const option = locationOptions.find(opt => opt.value === type);
+  return option ? option.label : '';
 };
 
 // Gérer l'upload de fichiers
 const handleFileUpload = (event) => {
   const files = event.target.files;
-  if (!files || files.length === 0) return;
   
-  for (const file of files) {
-    // Vérifier la taille
-    if (file.size > 5 * 1024 * 1024) {
-      error.value = `Le fichier ${file.name} est trop volumineux. La taille maximale est de 5MB.`;
+  if (!files.length) return;
+  
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    
+    // Vérifier la taille du fichier (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
+      error.value = `Le fichier ${file.name} est trop volumineux. La taille maximale est de 10MB.`;
       continue;
     }
     
-    // Vérifier le type
-    if (!file.type.startsWith('image/')) {
-      error.value = `Le fichier ${file.name} n'est pas une image.`;
+    // Vérifier le type de fichier
+    const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      error.value = `Le type de fichier ${file.name} n'est pas pris en charge. Utilisez JPG, PNG ou PDF.`;
       continue;
     }
     
-    imageFiles.value.push(file);
+    attachments.value.push(file);
   }
+  
+  // Réinitialiser l'input file
+  event.target.value = '';
 };
 
-// Obtenir la prévisualisation d'une image
-const getImagePreview = (file) => {
-  return URL.createObjectURL(file);
+// Supprimer un fichier
+const removeFile = (index) => {
+  attachments.value.splice(index, 1);
 };
 
-// Supprimer une image
-const removeImage = (index) => {
-  imageFiles.value.splice(index, 1);
+// Supprimer une pièce jointe existante
+const removeExistingAttachment = (index) => {
+  const attachment = existingAttachments.value[index];
+  attachmentsToDelete.value.push(attachment);
+  existingAttachments.value.splice(index, 1);
 };
 
-// Soumettre le formulaire
-const submitService = async () => {
+// Mettre à jour la demande
+const updateRequest = async () => {
   isSubmitting.value = true;
   error.value = null;
   
   try {
-    // 1. Créer le service
-    const { data: serviceData, error: serviceError } = await supabase
-      .from('services')
-      .insert({
-        user_id: user.value.id,
-        title: service.value.title,
-        description: service.value.description,
-        category_id: service.value.category_id,
-        price: service.value.price,
-        duration: service.value.duration,
-        location_type: service.value.location_type,
-        is_active: service.value.is_active,
-        created_at: new Date().toISOString()
+    const requestId = route.params.id;
+    
+    // 1. Mettre à jour les informations de base de la demande
+    const { error: updateError } = await supabase
+      .from('requests')
+      .update({
+        title: requestData.value.title,
+        description: requestData.value.description,
+        category_id: requestData.value.category_id,
+        budget: requestData.value.budget,
+        deadline: requestData.value.deadline,
+        location_type: requestData.value.location_type,
+        updated_at: new Date().toISOString()
       })
-      .select()
-      .single();
+      .eq('id', requestId);
     
-    if (serviceError) throw serviceError;
+    if (updateError) throw updateError;
     
-    // 2. Upload des images si présentes
-    if (imageFiles.value.length > 0) {
-      const imageUrls = [];
+    // 2. Gérer les pièces jointes
+    if (attachments.value.length > 0) {
+      const newAttachmentUrls = [];
       
-      for (const file of imageFiles.value) {
-        const filePath = `services/${serviceData.id}/${Date.now()}_${file.name}`;
+      // Upload des nouvelles pièces jointes
+      for (const file of attachments.value) {
+        const filePath = `requests/${requestId}/${Date.now()}_${file.name}`;
         
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('service_images')
+        const { error: uploadError } = await supabase.storage
+          .from('request_attachments')
           .upload(filePath, file, {
             cacheControl: '3600',
             upsert: false
@@ -497,62 +520,65 @@ const submitService = async () => {
         
         // Obtenir l'URL publique
         const { data: { publicUrl } } = supabase.storage
-          .from('service_images')
+          .from('request_attachments')
           .getPublicUrl(filePath);
         
-        imageUrls.push(publicUrl);
+        newAttachmentUrls.push({
+          name: file.name,
+          url: publicUrl,
+          type: file.type
+        });
       }
       
-      // Mettre à jour le service avec les URLs des images
-      const { error: updateError } = await supabase
-        .from('services')
-        .update({ image_urls: imageUrls })
-        .eq('id', serviceData.id);
+      // Combiner les pièces jointes existantes et nouvelles
+      const updatedAttachments = [
+        ...existingAttachments.value,
+        ...newAttachmentUrls
+      ];
       
-      if (updateError) throw updateError;
+      // Mettre à jour la demande avec les nouvelles pièces jointes
+      const { error: attachmentError } = await supabase
+        .from('requests')
+        .update({ attachments: updatedAttachments })
+        .eq('id', requestId);
+      
+      if (attachmentError) throw attachmentError;
+    } else if (existingAttachments.value.length !== requestData.value.attachments.length) {
+      // Mettre à jour si des pièces jointes ont été supprimées
+      const { error: attachmentError } = await supabase
+        .from('requests')
+        .update({ attachments: existingAttachments.value })
+        .eq('id', requestId);
+      
+      if (attachmentError) throw attachmentError;
     }
     
-    // 3. Rediriger vers la liste des services
-    router.push('/account/services');
+    // 3. Rediriger vers la page de détail de la demande
+    router.push(`/requests/${requestId}`);
     
   } catch (err) {
-    console.error('Error creating service:', err);
-    error.value = "Une erreur est survenue lors de la création du service. Veuillez réessayer.";
+    console.error('Error updating request:', err);
+    error.value = "Une erreur est survenue lors de la mise à jour de la demande. Veuillez réessayer.";
   } finally {
     isSubmitting.value = false;
   }
 };
 
-// Fermer les dropdowns en cliquant ailleurs
-const handleClickOutside = (event) => {
-  if (showCategoryDropdown.value && !event.target.closest('.dropdown-container')) {
-    showCategoryDropdown.value = false;
-  }
-  if (showLocationDropdown.value && !event.target.closest('.dropdown-container')) {
-    showLocationDropdown.value = false;
-  }
-};
-
 // Initialisation
 onMounted(async () => {
-  document.addEventListener('click', handleClickOutside);
-  
   try {
     await Promise.all([
       fetchCategories(),
-      checkVerificationStatus()
+      fetchRequest()
     ]);
   } catch (err) {
     console.error('Error during initialization:', err);
     error.value = "Une erreur est survenue lors du chargement de la page.";
-  } finally {
-    isLoading.value = false;
   }
 });
 
 definePageMeta({
-  middleware: ['auth'],
-  layout: 'account'
+  middleware: ['auth']
 })
 </script>
 
@@ -561,4 +587,4 @@ definePageMeta({
 .dropdown-container {
   position: relative;
 }
-</style>
+</style> 

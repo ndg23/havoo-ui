@@ -616,7 +616,7 @@ const stats = ref([
   },
   { 
     label: 'Prix moyen', 
-    value: '0€', 
+    value: '0FCFA', 
     icon: AlertTriangle, 
     colorClass: 'bg-amber-500 dark:bg-amber-600' 
   }
@@ -716,7 +716,7 @@ const updateStats = () => {
     const avgPrice = totalPrice / services.value.length
     stats.value[3].value = formatPrice(avgPrice)
   } else {
-    stats.value[3].value = '0€'
+    stats.value[3].value = '0FCFA'
   }
 }
 

@@ -186,7 +186,7 @@
           <!-- Budget -->
           <div>
             <span class="inline-flex items-center px-2.5 py-1 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 rounded-full text-xs font-bold">
-              {{ request.budget ? `${request.budget}€` : 'Non défini' }}
+              {{ request.budget ? `${request.budget}FCFA` : 'Non défini' }}
             </span>
           </div>
           
@@ -300,7 +300,7 @@
             <span>{{ selectedRequest.location || 'Non spécifié' }}</span>
             <span class="mx-2">•</span>
             <DollarSign class="h-4 w-4" />
-            <span>{{ selectedRequest.budget ? `${selectedRequest.budget}€` : 'Non défini' }}</span>
+            <span>{{ selectedRequest.budget ? `${selectedRequest.budget}FCFA` : 'Non défini' }}</span>
           </div>
           
           <div class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 text-sm text-gray-600 dark:text-gray-400 mb-6">

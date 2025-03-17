@@ -1,379 +1,620 @@
 <template>
-    <header class="fixed inset-x-0 top-0 z-50">
-      <!-- Improved navbar with more refined aesthetics -->
-      <div class="bg-white shadow-sm border-b border-gray-50">
-        <div class="max-w-7xl mx-auto">
-          <div class="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
-            <!-- Refined logo and brand -->
-            <div class="flex items-center">
-              <nuxt-link to="/" class="flex items-center" aria-label="Accueil">
-                <div class="w-10 h-10 bg-primary-600 rounded flex items-center justify-center transition-transform hover:scale-105">
-                  <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M2 17l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                </div>
-                <span class="ml-3 text-lg font-bold text-gray-900">Nom App</span>
-              </nuxt-link>
-            </div>
-  
-            <!-- Streamlined navigation links (desktop) -->
-            <nav class="hidden md:flex items-center space-x-10 flex-1 mx-8 justify-center">
-              <nuxt-link to="/explore" class="nav-link" active-class="nav-link-active">
-                Explorer
-              </nuxt-link>
-              
-              <nuxt-link to="/requests" class="nav-link" active-class="nav-link-active">
-                Demandes
-              </nuxt-link>
-              
-              <nuxt-link to="/messages" class="nav-link flex items-center" active-class="nav-link-active">
-                Messages
-                <!-- More compact badge -->
-                <span v-if="unreadMessagesCount > 0" class="ml-1.5 bg-primary-500 text-white rounded-full h-5 min-w-5 inline-flex items-center justify-center text-xs font-medium px-1">
-                  {{ unreadMessagesCount > 9 ? '9+' : unreadMessagesCount }}
-                </span>
-              </nuxt-link>
-            </nav>
-            
-            <!-- Simplified right side actions -->
-            <div class="flex items-center">
-              <!-- Avatar and dropdown for authenticated users with cleaner design -->
-              <template v-if="user">
-                <div class="relative">
-                  <button 
-                    @click="showUserMenu = !showUserMenu" 
-                    type="button" 
-                    class="flex items-center justify-center rounded-full overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1"
-                    id="user-menu-button"
-                    aria-expanded="false"
-                    aria-haspopup="true"
-                  >
-                    <span class="sr-only">Open user menu</span>
-                    <div class="h-9 w-9 rounded-full bg-primary-100 flex items-center justify-center text-primary-800 text-sm font-medium">
-                      {{ user.first_name.charAt(0) + user.last_name.charAt(0) }}
-                    </div>
-                  </button>
-                  
-                  <!-- Cleaner dropdown menu -->
-                  <transition
-                    enter-active-class="transition ease-out duration-200"
-                    enter-from-class="transform opacity-0 scale-95"
-                    enter-to-class="transform opacity-100 scale-100"
-                    leave-active-class="transition ease-in duration-75"
-                    leave-from-class="transform opacity-100 scale-100"
-                    leave-to-class="transform opacity-0 scale-95"
-                  >
-                    <div 
-                      v-if="showUserMenu"
-                      class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-lg bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
-                      role="menu" 
-                      aria-orientation="vertical" 
-                      aria-labelledby="user-menu-button"
-                      tabindex="-1"
-                    >
-                      <div class="border-b border-gray-50 pb-2 mb-1">
-                        <div class="block px-4 py-2 text-sm">
-                          <div class="font-medium text-gray-800">{{ user.first_name }} {{ user.last_name }}</div>
-                          <div class="text-gray-500 truncate text-xs">{{ user.email }}</div>
-                        </div>
-                      </div>
-                      
-                      <nuxt-link to="/profile" class="menu-item" role="menuitem">
-                        Profil
-                      </nuxt-link>
-                      <nuxt-link to="/account" class="menu-item" role="menuitem">
-                        Paramètres
-                      </nuxt-link>
-                      <button 
-                        @click="logout"
-                        class="menu-item w-full text-left" 
-                        role="menuitem"
-                      >
-                        Déconnexion
-                      </button>
-                    </div>
-                  </transition>
-                </div>
-                
-                <!-- Enhanced create button -->
-                <button 
-                  @click="navigateToCreate"
-                  class="create-button ml-4 rounded-full bg-primary-600 text-white px-5 py-2 text-sm font-medium transition-all duration-200 ease-in-out"
-                >
-                  Créer
-                </button>
-              </template>
-              
-              <!-- Streamlined login/signup buttons -->
-              <template v-else>
-                <nuxt-link to="/login" class="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium">
-                  Connexion
-                </nuxt-link>
-                <nuxt-link to="/signup" class="ml-3 rounded-full bg-primary-600 text-white px-5 py-2 text-sm font-medium transition-all duration-200 ease-in-out hover:bg-primary-700">
-                  Inscription
-                </nuxt-link>
-              </template>
-            </div>
-            
-            <!-- Cleaner mobile menu button -->
-            <div class="flex md:hidden">
-              <button 
-                @click="showMobileMenu = !showMobileMenu"
-                type="button" 
-                class="p-2 rounded-md text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
-              >
-                <span class="sr-only">Open menu</span>
-                <svg v-if="!showMobileMenu" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-                <svg v-else class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
+  <nav class="bg-white border-b border-gray-100 sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4">
+      <div class="flex justify-between h-16">
+        <!-- Logo -->
+        <div class="flex-shrink-0 flex items-center">
+          <NuxtLink to="/" class="text-xl font-bold text-black">
+            ExpertConnect
+          </NuxtLink>
+        </div>
+        
+        <!-- Navigation principale (desktop) - Centrée -->
+        <div class="hidden md:flex items-center justify-center flex-1 px-2">
+          <div class="flex space-x-4">
+            <NuxtLink 
+              v-for="item in navigationItems" 
+              :key="item.name"
+              :to="item.href"
+              class="px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              :class="isActive(item.href) 
+                ? 'bg-gray-900 text-white' 
+                : 'text-gray-700 hover:bg-gray-100'"
+            >
+              {{ item.name }}
+            </NuxtLink>
           </div>
         </div>
-      </div>
-      
-      <!-- Improved mobile menu with smoother transitions -->
-      <transition
-        enter-active-class="transition ease-out duration-200"
-        enter-from-class="opacity-0 -translate-y-2"
-        enter-to-class="opacity-100 translate-y-0"
-        leave-active-class="transition ease-in duration-150"
-        leave-from-class="opacity-100 translate-y-0"
-        leave-to-class="opacity-0 -translate-y-2"
-      >
-        <div v-if="showMobileMenu" class="md:hidden bg-white border-b border-gray-50 shadow">
-          <div class="space-y-1 px-3 pt-2 pb-3">
-            <nuxt-link to="/explore" class="mobile-nav-link" active-class="mobile-nav-link-active">
-              Explorer
-            </nuxt-link>
-            <nuxt-link to="/requests" class="mobile-nav-link" active-class="mobile-nav-link-active">
-              Demandes
-            </nuxt-link>
-            <nuxt-link to="/messages" class="mobile-nav-link flex justify-between items-center" active-class="mobile-nav-link-active">
-              Messages
-              <span v-if="unreadMessagesCount > 0" class="bg-primary-500 text-white rounded-full h-5 min-w-5 inline-flex items-center justify-center text-xs font-medium px-1">
-                {{ unreadMessagesCount > 9 ? '9+' : unreadMessagesCount }}
-              </span>
-            </nuxt-link>
+        
+        <!-- Boutons d'action et menu utilisateur -->
+        <div class="flex items-center">
+          <!-- Bouton de recherche -->
+          <button 
+            class="p-2 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none"
+            @click="toggleSearch"
+          >
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </button>
+          
+          <!-- Bouton de notification -->
+          <button 
+            v-if="user"
+            class="ml-3 p-2 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none relative"
+          >
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+            <span 
+              v-if="notificationCount > 0"
+              class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full"
+            >
+              {{ notificationCount > 9 ? '9+' : notificationCount }}
+            </span>
+          </button>
+          
+          <!-- Boutons de connexion/inscription (non connecté) -->
+          <div v-if="!user" class="ml-4 flex items-center">
+            <NuxtLink 
+              to="/auth/login" 
+              class="text-sm font-medium text-gray-700 hover:text-gray-900 mr-4"
+            >
+              Connexion
+            </NuxtLink>
+            <NuxtLink 
+              to="/auth/register" 
+              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-black hover:bg-gray-800 shadow-sm"
+            >
+              Inscription
+            </NuxtLink>
+          </div>
+          
+          <!-- Menu utilisateur (connecté) -->
+          <div v-else class="ml-3 relative">
+            <div>
+              <button 
+                @click="isUserMenuOpen = !isUserMenuOpen" 
+                class="flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
+                id="user-menu-button"
+                aria-expanded="false"
+                aria-haspopup="true"
+              >
+                <span class="sr-only">Ouvrir le menu utilisateur</span>
+                <div v-if="profile?.avatar_url" class="h-8 w-8 rounded-full overflow-hidden border border-gray-200">
+                  <img 
+                    :src="profile.avatar_url" 
+                    alt="Avatar de l'utilisateur"
+                    class="h-full w-full object-cover"
+                  >
+                </div>
+                <div v-else class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 border border-gray-300">
+                  {{ userInitials }}
+                </div>
+              </button>
+            </div>
             
-            <!-- Cleaner user info in mobile menu -->
-            <div v-if="user" class="border-t border-gray-50 pt-4 pb-2 mt-2">
-              <div class="flex items-center px-3 py-1.5">
-                <div class="h-9 w-9 rounded-full bg-primary-100 flex items-center justify-center text-primary-800 text-sm font-medium">
-                  {{ user.first_name.charAt(0) + user.last_name.charAt(0) }}
-                </div>
-                <div class="ml-3">
-                  <div class="text-base font-medium text-gray-800">{{ user.first_name }} {{ user.last_name }}</div>
-                  <div class="text-xs font-medium text-gray-500 truncate max-w-[200px]">{{ user.email }}</div>
-                </div>
+            <!-- Menu déroulant utilisateur -->
+            <div 
+              v-if="isUserMenuOpen" 
+              class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 focus:outline-none z-50"
+              role="menu"
+              aria-orientation="vertical"
+              aria-labelledby="user-menu-button"
+              tabindex="-1"
+            >
+              <div class="px-4 py-3">
+                <p class="text-sm font-medium text-gray-900">{{ profile?.first_name }} {{ profile?.last_name }}</p>
+                <p class="text-xs text-gray-500 truncate mt-1">{{ user.email }}</p>
               </div>
-              <div class="mt-3 space-y-0.5">
-                <nuxt-link to="/profile" class="mobile-nav-link">
-                  Profil
-                </nuxt-link>
-                <nuxt-link to="/account" class="mobile-nav-link">
-                  Paramètres
-                </nuxt-link>
-                <button @click="logout" class="w-full text-left mobile-nav-link">
+              
+              <div class="py-1">
+                <!-- Profil et messages -->
+                <NuxtLink 
+                  to="/account/" 
+                  class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  role="menuitem"
+                  tabindex="-1"
+                  @click="isUserMenuOpen = false"
+                >
+                  <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  Mon profil
+                </NuxtLink>
+                
+                <NuxtLink 
+                  to="/account/messages" 
+                  class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  role="menuitem"
+                  tabindex="-1"
+                  @click="isUserMenuOpen = false"
+                >
+                  <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                  </svg>
+                  Mes messages
+                </NuxtLink>
+              </div>
+              
+              <!-- Section "Je cherche" -->
+              <div class="py-1">
+                <div class="px-4 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Je cherche
+                </div>
+                
+                <NuxtLink 
+                  to="/account/requests" 
+                  class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  role="menuitem"
+                  tabindex="-1"
+                  @click="isUserMenuOpen = false"
+                >
+                  <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                  Mes demandes
+                </NuxtLink>
+              </div>
+              
+              <!-- Section "Je propose" -->
+              <div class="py-1">
+                <div class="px-4 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Je propose
+                </div>
+                
+                <NuxtLink 
+                  to="/account/services" 
+                  class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  role="menuitem"
+                  tabindex="-1"
+                  @click="isUserMenuOpen = false"
+                >
+                  <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  Mes services
+                </NuxtLink>
+                
+                <NuxtLink 
+                  to="/account/proposals" 
+                  class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  role="menuitem"
+                  tabindex="-1"
+                  @click="isUserMenuOpen = false"
+                >
+                  <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Mes propositions
+                </NuxtLink>
+                
+                <NuxtLink 
+                  v-if="!isVerified"
+                  to="/account/verify" 
+                  class="flex items-center px-4 py-2 text-sm text-orange-600 hover:bg-orange-50"
+                  role="menuitem"
+                  tabindex="-1"
+                  @click="isUserMenuOpen = false"
+                >
+                  <svg class="mr-3 h-5 w-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                  Vérifier mon identité
+                </NuxtLink>
+              </div>
+              
+              <!-- Contrats et déconnexion -->
+              <div class="py-1">
+                <NuxtLink 
+                  to="/account/contracts" 
+                  class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  role="menuitem"
+                  tabindex="-1"
+                  @click="isUserMenuOpen = false"
+                >
+                  <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Mes contrats
+                </NuxtLink>
+                
+                <button 
+                  @click="logout" 
+                  class="flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                  role="menuitem"
+                  tabindex="-1"
+                >
+                  <svg class="mr-3 h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
                   Déconnexion
                 </button>
               </div>
             </div>
-            
-            <!-- Non-authenticated options in mobile menu -->
-            <template v-else>
-              <div class="border-t border-gray-50 pt-4 pb-2 mt-2">
-                <nuxt-link to="/login" class="mobile-nav-link">
-                  Connexion
-                </nuxt-link>
-                <nuxt-link to="/signup" class="mobile-nav-link">
-                  Créer un compte
-                </nuxt-link>
-              </div>
-            </template>
-            
-            <!-- Enhanced create button in mobile menu -->
-            <div v-if="user" class="px-5 py-4">
-              <button 
-                @click="navigateToCreate" 
-                class="w-full bg-primary-600 text-white rounded-full py-2.5 text-center font-medium transition-all hover:bg-primary-700 active:bg-primary-800"
+          </div>
+          
+          <!-- Bouton menu mobile -->
+          <div class="flex md:hidden ml-2">
+            <button
+              @click="isMobileMenuOpen = !isMobileMenuOpen"
+              class="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 focus:outline-none"
+            >
+              <svg
+                class="h-6 w-6"
+                :class="isMobileMenuOpen ? 'hidden' : 'block'"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
               >
-                Créer
-              </button>
-            </div>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              <svg
+                class="h-6 w-6"
+                :class="isMobileMenuOpen ? 'block' : 'hidden'"
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
         </div>
-      </transition>
-    </header>
-    
-    <!-- Spacer element to push the content below fixed header -->
-    <div class="h-16"></div>
-  </template>
-  
-  <script setup>
-  import { ref, onMounted, onBeforeUnmount } from 'vue';
-  import { useRouter } from 'vue-router';
-  import { useSupabaseClient } from '#imports';
-  
-  const router = useRouter();
-  const supabase = useSupabaseClient();
-  
-  // User state
-  const user = ref(null);
-  const unreadMessagesCount = ref(2); // Example count, should be from your actual state
-  
-  // UI state
-  const showUserMenu = ref(false);
-  const showMobileMenu = ref(false);
-  
-  // Close user menu when clicking outside
-  const closeUserMenu = (event) => {
-    if (showUserMenu.value && !event.target.closest('#user-menu-button')) {
-      showUserMenu.value = false;
-    }
-  };
-  
-  // Navigation functions
-  const navigateToCreate = () => {
-    router.push('/requests/new');
-    showMobileMenu.value = false;
-  };
-  
-  // Authentication functions
-  const logout = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      router.push('/login');
-    } catch (error) {
-      console.error('Error logging out:', error);
-    } finally {
-      showUserMenu.value = false;
-      showMobileMenu.value = false;
-    }
-  };
-  
-  // Get current user
-  const getCurrentUser = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
+      </div>
+    </div>
+
+    <!-- Menu mobile -->
+    <div 
+      v-if="isMobileMenuOpen" 
+      class="md:hidden bg-white border-b border-gray-200 shadow-lg"
+    >
+      <div class="pt-2 pb-3 space-y-1">
+        <NuxtLink 
+          v-for="item in navigationItems" 
+          :key="item.name"
+          :to="item.href"
+          class="block px-3 py-2 text-base font-medium"
+          :class="isActive(item.href) 
+            ? 'bg-gray-900 text-white' 
+            : 'text-gray-700 hover:bg-gray-100'"
+          @click="isMobileMenuOpen = false"
+        >
+          {{ item.name }}
+        </NuxtLink>
+      </div>
       
-      if (session) {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
+      <!-- Section utilisateur (si connecté) -->
+      <div v-if="user && profile" class="pt-4 pb-3 border-t border-gray-200">
+        <div class="flex items-center px-4">
+          <div class="flex-shrink-0">
+            <div v-if="profile?.avatar_url" class="h-10 w-10 rounded-full overflow-hidden border border-gray-200">
+              <img 
+                :src="profile.avatar_url" 
+                alt="Avatar de l'utilisateur"
+                class="h-full w-full object-cover"
+              >
+            </div>
+            <div v-else class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 border border-gray-300">
+              {{ userInitials }}
+            </div>
+          </div>
+          <div class="ml-3">
+            <div class="text-base font-medium text-gray-800">{{ profile?.first_name }} {{ profile?.last_name }}</div>
+            <div class="text-sm font-medium text-gray-500">{{ user.email }}</div>
+          </div>
+        </div>
+        
+        <div class="mt-3 space-y-1">
+          <!-- Profil et messages -->
+          <NuxtLink 
+            to="/account/" 
+            class="flex items-center px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+            @click="isMobileMenuOpen = false"
+          >
+            <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            Mon profil
+          </NuxtLink>
           
-        if (error) throw error;
-        user.value = data;
-      }
-    } catch (error) {
-      console.error('Error fetching user:', error);
+          <NuxtLink 
+            to="/account/messages" 
+            class="flex items-center px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+            @click="isMobileMenuOpen = false"
+          >
+            <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            </svg>
+            Mes messages
+          </NuxtLink>
+          
+          <!-- Séparateur avec titre "Je cherche" -->
+          <div class="border-t border-gray-200 pt-2 mt-2">
+            <div class="px-4 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Je cherche
+            </div>
+            
+            <NuxtLink 
+              to="/account/requests" 
+              class="flex items-center px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+              @click="isMobileMenuOpen = false"
+            >
+              <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              Mes demandes
+            </NuxtLink>
+          </div>
+          
+          <!-- Séparateur avec titre "Je propose" -->
+          <div class="border-t border-gray-200 pt-2 mt-2">
+            <div class="px-4 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Je propose
+            </div>
+            
+            <NuxtLink 
+              to="/account/services" 
+              class="flex items-center px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+              @click="isMobileMenuOpen = false"
+            >
+              <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              Mes services
+            </NuxtLink>
+            
+            <NuxtLink 
+              to="/account/proposals" 
+              class="flex items-center px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+              @click="isMobileMenuOpen = false"
+            >
+              <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Mes propositions
+            </NuxtLink>
+            
+            <NuxtLink 
+              v-if="!isVerified"
+              to="/account/verify" 
+              class="flex items-center px-4 py-2 text-base font-medium text-orange-600 hover:bg-orange-50"
+              @click="isMobileMenuOpen = false"
+            >
+              <svg class="mr-3 h-5 w-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+              Vérifier mon identité
+            </NuxtLink>
+          </div>
+          
+          <!-- Contrats et déconnexion -->
+          <div class="border-t border-gray-200 pt-2 mt-2">
+            <NuxtLink 
+              to="/account/contracts" 
+              class="flex items-center px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+              @click="isMobileMenuOpen = false"
+            >
+              <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Mes contrats
+            </NuxtLink>
+            
+            <button 
+              @click="logout" 
+              class="flex w-full items-center px-4 py-2 text-base font-medium text-red-600 hover:bg-red-50"
+            >
+              <svg class="mr-3 h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              Déconnexion
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overlay de recherche -->
+    <div 
+      v-if="isSearchOpen" 
+      class="absolute inset-0 z-50 bg-white"
+    >
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div class="flex items-center">
+          <div class="flex-1">
+            <input 
+              type="text" 
+              placeholder="Rechercher..." 
+              class="w-full border-0 focus:ring-0 text-lg"
+              v-model="searchQuery"
+              @keyup.enter="performSearch"
+              ref="searchInput"
+            >
+          </div>
+          <button 
+            @click="toggleSearch" 
+            class="p-2 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+          >
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+</template>
+
+<script setup>
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { useSupabaseClient, useSupabaseUser } from '#imports';
+
+const supabase = useSupabaseClient();
+const user = useSupabaseUser();
+const router = useRouter();
+const route = useRoute();
+
+// État
+const profile = ref(null);
+const isUserMenuOpen = ref(false);
+const isMobileMenuOpen = ref(false);
+const isSearchOpen = ref(false);
+const searchQuery = ref('');
+const notificationCount = ref(0);
+const isVerified = ref(false);
+
+// Computed properties
+const isExpert = computed(() => {
+  return profile.value?.role === 'expert' || profile.value?.is_expert === true;
+});
+
+// Éléments de navigation
+const navigationItems = [
+  { name: 'Accueil', href: '/' },
+  { name: 'Demandes', href: '/requests' },
+  { name: 'Experts', href: '/experts' },
+  { name: 'Comment ça marche', href: '/how-it-works' },
+];
+
+// Vérifier si un lien est actif
+const isActive = (href) => {
+  if (href === '/') {
+    return route.path === '/';
+  }
+  return route.path.startsWith(href);
+};
+
+// Obtenir les initiales de l'utilisateur
+const userInitials = computed(() => {
+  if (!profile.value) return '';
+  
+  const firstName = profile.value.first_name || '';
+  const lastName = profile.value.last_name || '';
+  
+  return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
+});
+
+// Récupérer le profil de l'utilisateur
+const fetchProfile = async () => {
+  if (!user.value) return;
+  
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.value.id)
+      .single();
+    
+    if (error) throw error;
+    
+    profile.value = data;
+    
+    // Vérifier si l'expert est vérifié
+    if (isExpert.value) {
+      await checkVerificationStatus();
     }
-  };
+  } catch (err) {
+    console.error('Error fetching profile:', err);
+  }
+};
+
+// Vérifier le statut de vérification de l'expert
+const checkVerificationStatus = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('verifications')
+      .select('status')
+      .eq('user_id', user.value.id)
+      .order('submitted_at', { ascending: false })
+      .limit(1)
+      .single();
+    
+    if (error && error.code !== 'PGRST116') throw error;
+    
+    isVerified.value = data?.status === 'approved';
+  } catch (err) {
+    console.error('Error checking verification status:', err);
+  }
+};
+
+// Récupérer le nombre de notifications
+const fetchNotifications = async () => {
+  if (!user.value) return;
   
-  // Lifecycle hooks
-  onMounted(() => {
-    document.addEventListener('click', closeUserMenu);
-    getCurrentUser();
+  try {
+    // Exemple : compter les messages non lus
+    const { count, error } = await supabase
+      .from('messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('recipient_id', user.value.id)
+      .eq('is_read', false);
     
-    // Close mobile menu on route change
-    router.afterEach(() => {
-      showMobileMenu.value = false;
-    });
+    if (error) throw error;
     
-    // Subscribe to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
-      if (event === 'SIGNED_IN') {
-        await getCurrentUser();
-      } else if (event === 'SIGNED_OUT') {
-        user.value = null;
+    notificationCount.value = count || 0;
+  } catch (err) {
+    console.error('Error fetching notifications:', err);
+  }
+};
+
+// Déconnexion
+const logout = async () => {
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    
+    router.push('/');
+  } catch (err) {
+    console.error('Error signing out:', err);
+  }
+};
+
+// Ouvrir/fermer la recherche
+const toggleSearch = () => {
+  isSearchOpen.value = !isSearchOpen.value;
+  
+  if (isSearchOpen.value) {
+    nextTick(() => {
+      if (document.activeElement) {
+        document.activeElement.blur();
+      }
+      if (document.querySelector('input[type="text"]')) {
+        document.querySelector('input[type="text"]').focus();
       }
     });
-    
-    // Clean up subscription
-    onBeforeUnmount(() => {
-      subscription.unsubscribe();
-    });
+  }
+};
+
+// Effectuer une recherche
+const performSearch = () => {
+  if (!searchQuery.value.trim()) return;
+  
+  router.push({
+    path: '/search',
+    query: { q: searchQuery.value }
   });
   
-  onBeforeUnmount(() => {
-    document.removeEventListener('click', closeUserMenu);
-  });
-  </script>
-  
-  <style scoped>
-  /* Desktop navigation styles - cleaner, more impactful */
-  .nav-link {
-    @apply relative font-medium text-gray-600 hover:text-gray-900 transition-colors duration-200;
-    padding-bottom: 2px;
+  isSearchOpen.value = false;
+  searchQuery.value = '';
+};
+
+// Fermer les menus en cliquant ailleurs
+const handleClickOutside = (event) => {
+  if (isUserMenuOpen.value && !event.target.closest('#user-menu-button')) {
+    isUserMenuOpen.value = false;
   }
-  
-  .nav-link-active {
-    @apply text-primary-600 font-medium;
-  }
-  
-  .nav-link-active::after {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 16px;
-    height: 2px;
-    background-color: rgb(79, 70, 229);
-    border-radius: 4px;
-  }
-  
-  /* Menu item styling */
-  .menu-item {
-    @apply block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50
-  }
-  
-  /* Desktop navigation styles - now with text only */
-.nav-link {
-  @apply relative font-medium text-gray-600 hover:text-gray-900;
-  padding-bottom: 3px;
-}
+};
 
-.nav-link-active {
-  @apply text-primary-600;
-}
+// Cycle de vie
+onMounted(() => {
+  fetchProfile();
+  fetchNotifications();
+  document.addEventListener('click', handleClickOutside);
+});
 
-.nav-link-active::after {
-  content: '';
-  position: absolute;
-  bottom: -8px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 16px;
-  height: 3px;
-  background-color: rgb(79, 70, 229);
-  border-radius: 3px 3px 0 0;
-}
-
-/* Mobile navigation styles */
-.mobile-nav-link {
-  @apply block px-3 py-2.5 text-base font-medium rounded-lg text-gray-700 hover:bg-gray-50;
-}
-
-.mobile-nav-link-active {
-  @apply bg-primary-50 text-primary-700;
-}
-
-/* Create button hover effect */
-.create-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.1), 0 2px 4px -1px rgba(79, 70, 229, 0.06);
-}
-
-.create-button:active {
-  transform: translateY(0);
-}
-</style> 
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside);
+});
+</script>

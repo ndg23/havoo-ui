@@ -116,7 +116,7 @@
         <h4 class="text-sm font-medium text-gray-700 mb-4">Tarification</h4>
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Prix par jour (€)</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Prix par jour (FCFA)</label>
             <input 
               type="number" 
               v-model="form.pricePerDay"
@@ -126,7 +126,7 @@
             >
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Caution (€)</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Caution (FCFA)</label>
             <input 
               type="number" 
               v-model="form.deposit"

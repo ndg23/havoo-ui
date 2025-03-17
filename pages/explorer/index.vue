@@ -90,9 +90,9 @@
             class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full accent-primary-500"
           />
           <div class="flex justify-between mt-1">
-            <span class="text-xs text-gray-500 dark:text-gray-400">0€</span>
-            <span class="text-xs text-gray-700 dark:text-gray-300">{{ maxPrice }}€</span>
-            <span class="text-xs text-gray-500 dark:text-gray-400">1000€+</span>
+            <span class="text-xs text-gray-500 dark:text-gray-400">0FCFA</span>
+            <span class="text-xs text-gray-700 dark:text-gray-300">{{ maxPrice }}FCFA</span>
+            <span class="text-xs text-gray-500 dark:text-gray-400">1000FCFA+</span>
           </div>
         </div>
       </div>

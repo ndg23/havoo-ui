@@ -143,7 +143,7 @@
                 </div>
                 <div class="flex items-center text-gray-600 dark:text-gray-400">
                   <DollarSign class="h-4 w-4 mr-1.5" />
-                  {{ proposal.price }}€
+                  {{ proposal.price }}FCFA
                 </div>
               </div>
             </div>
@@ -298,7 +298,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-b border-gray-200 dark:border-gray-700 py-6">
           <div>
             <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Prix proposé</h3>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ selectedProposal?.price || 0 }}€</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ selectedProposal?.price || 0 }}FCFA</p>
           </div>
           <div>
             <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Statut</h3>

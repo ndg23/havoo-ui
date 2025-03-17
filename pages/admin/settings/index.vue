@@ -264,7 +264,7 @@
                 v-model="settings.default_currency"
                 class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
               >
-                <option value="EUR">Euro (€)</option>
+                <option value="EUR">Euro (FCFA)</option>
                 <option value="USD">Dollar américain ($)</option>
                 <option value="GBP">Livre sterling (£)</option>
               </select>

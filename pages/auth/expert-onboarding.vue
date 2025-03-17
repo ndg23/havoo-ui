@@ -191,7 +191,7 @@
                 <div>
                   <div class="relative">
                     <div class="absolute inset-y-0 left-0 flex items-center pl-4">
-                      <span class="text-gray-600 text-xl">€</span>
+                      <span class="text-gray-600 text-xl">FCFA</span>
                     </div>
                     <input
                       v-model="form.hourlyRate"
@@ -205,7 +205,7 @@
                   </div>
                   <p class="mt-2 text-sm text-gray-500">
                     <TrendingUp class="inline-block h-4 w-4 mr-1 text-gray-400" />
-                    Prix suggéré: 35€ - 80€ selon votre expérience et votre secteur
+                    Prix suggéré: 35FCFA - 80FCFA selon votre expérience et votre secteur
                   </p>
                 </div>
               </div>
@@ -395,7 +395,7 @@
                     <p><span class="font-medium">Nom:</span> {{ form.firstName }} {{ form.lastName }}</p>
                     <p><span class="font-medium">Localisation:</span> {{ form.city }}, {{ getCountryName(form.country) }}</p>
                     <p><span class="font-medium">Expérience:</span> {{ getExperienceLabel(form.experience) }}</p>
-                    <p><span class="font-medium">Tarif horaire:</span> {{ form.hourlyRate }}€</p>
+                    <p><span class="font-medium">Tarif horaire:</span> {{ form.hourlyRate }}FCFA</p>
                   </div>
                 </div>
                 

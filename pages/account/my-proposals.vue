@@ -5,7 +5,7 @@
       <h2 class="text-xl font-bold text-gray-900 dark:text-white">Mes propositions</h2>
       
       <NuxtLink 
-        to="/experts/profile" 
+        to="/experts/" 
         class="inline-flex items-center px-4 py-2 bg-primary-600 rounded-full text-sm font-medium text-white hover:bg-primary-700"
       >
         <User class="h-4 w-4 mr-2" />
@@ -64,7 +64,7 @@
           </div>
           
           <div class="mb-3 px-3 py-1.5 inline-block rounded-full bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-medium text-sm">
-            {{ proposal.price || '120' }}€
+            {{ proposal.price || '120' }}FCFA
           </div>
           
           <div class="mt-2">

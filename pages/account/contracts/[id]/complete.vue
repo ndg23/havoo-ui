@@ -107,7 +107,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2 text-sm">
           <div>
             <span class="text-gray-600 dark:text-gray-400">Montant:</span>
-            <span class="font-medium text-gray-900 dark:text-white ml-1">{{ contract?.amount || 0 }}€</span>
+            <span class="font-medium text-gray-900 dark:text-white ml-1">{{ contract?.amount || 0 }}FCFA</span>
           </div>
           <div>
             <span class="text-gray-600 dark:text-gray-400">Service:</span>

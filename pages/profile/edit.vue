@@ -304,7 +304,7 @@
       <!-- Boutons de soumission -->
       <div class="flex justify-end gap-3 pt-2">
         <NuxtLink 
-          to="/profile" 
+          to="/" 
           class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg"
         >
           Annuler

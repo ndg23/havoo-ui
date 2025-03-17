@@ -80,7 +80,7 @@
               <div class="space-y-6">
                 <div class="relative">
                   <div class="absolute inset-y-0 left-0 flex items-center pl-4">
-                    <span class="text-gray-600 text-xl">€</span>
+                    <span class="text-gray-600 text-xl">FCFA</span>
                   </div>
                   <input
                     v-model="form.hourlyRate"

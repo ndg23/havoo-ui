@@ -52,10 +52,10 @@
               class="pl-3 pr-8 py-2 rounded-full border border-gray-300 bg-white text-sm"
             >
               <option value="">Prix</option>
-              <option value="0-50">Moins de 50€</option>
-              <option value="50-100">50€ - 100€</option>
-              <option value="100-200">100€ - 200€</option>
-              <option value="200+">Plus de 200€</option>
+              <option value="0-50">Moins de 50FCFA</option>
+              <option value="50-100">50FCFA - 100FCFA</option>
+              <option value="100-200">100FCFA - 200FCFA</option>
+              <option value="200+">Plus de 200FCFA</option>
             </select>
           </div>
           
@@ -371,10 +371,10 @@ const activeFilters = computed(() => {
   // Price filter
   if (filters.price) {
     let label
-    if (filters.price === '0-50') label = 'Moins de 50€'
-    else if (filters.price === '50-100') label = '50€ - 100€'
-    else if (filters.price === '100-200') label = '100€ - 200€'
-    else if (filters.price === '200+') label = 'Plus de 200€'
+    if (filters.price === '0-50') label = 'Moins de 50FCFA'
+    else if (filters.price === '50-100') label = '50FCFA - 100FCFA'
+    else if (filters.price === '100-200') label = '100FCFA - 200FCFA'
+    else if (filters.price === '200+') label = 'Plus de 200FCFA'
     
     result.push({ id: 'price', name: label })
   }

@@ -16,8 +16,8 @@
 
     <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-md">
       <!-- Message de succès/erreur -->
-      <div v-if="message" class="mb-6 rounded-lg p-4 text-sm" :class="messageType === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'">
-        {{ message }}
+      <div v-if="messageText" class="mb-6 rounded-lg p-4 text-sm" :class="messageType === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'">
+        {{ messageText }}
       </div>
 
       <!-- Boutons de connexion sociale -->
@@ -131,7 +131,7 @@ const showPassword = ref(false)
 
 // État
 const isLoading = ref(false)
-const message = ref('')
+const messageText = ref('')
 const messageType = ref('error')
 
 // Services
@@ -142,7 +142,7 @@ const supabase = useSupabaseClient()
 // Vérifier le message d'URL au chargement
 onMounted(() => {
   if (route.query.message) {
-    message.value = route.query.message
+    messageText.value = route.query.message
     messageType.value = 'success'
     
     // Nettoyer l'URL après quelques secondes
@@ -155,7 +155,7 @@ onMounted(() => {
 // Connexion avec email/password
 const login = async () => {
   isLoading.value = true
-  message.value = ''
+  messageText.value = ''
   
   try {
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -172,11 +172,11 @@ const login = async () => {
     console.error('Erreur de connexion:', error)
     
     if (error.message.includes('Invalid login credentials')) {
-      message.value = 'Email ou mot de passe incorrect'
+      messageText.value = 'Email ou mot de passe incorrect'
     } else if (error.message.includes('Email not confirmed')) {
-      message.value = 'Veuillez confirmer votre email avant de vous connecter'
+      messageText.value = 'Veuillez confirmer votre email avant de vous connecter'
     } else {
-      message.value = error.message || 'Une erreur est survenue lors de la connexion'
+      messageText.value = error.message || 'Une erreur est survenue lors de la connexion'
     }
     
     messageType.value = 'error'
@@ -198,7 +198,7 @@ const socialLogin = async (provider) => {
     if (error) throw error
   } catch (error) {
     console.error(`Erreur de connexion avec ${provider}:`, error)
-    message.value = `Erreur de connexion avec ${provider}`
+    messageText.value = `Erreur de connexion avec ${provider}`
     messageType.value = 'error'
   }
 }

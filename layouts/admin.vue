@@ -117,7 +117,7 @@
               class="absolute bottom-full left-0 mb-2 w-full bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 py-2 z-50"
             >
               <NuxtLink 
-                to="/admin/profile" 
+                to="/admin/" 
                 class="flex items-center w-full px-4 py-2.5 text-left hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <User class="h-5 w-5 mr-3 text-gray-500 dark:text-gray-400" />

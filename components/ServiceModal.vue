@@ -119,7 +119,7 @@
                           required
                         />
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <span class="text-gray-500 dark:text-gray-400">€</span>
+                          <span class="text-gray-500 dark:text-gray-400">FCFA</span>
                         </div>
                       </div>
                       <div class="mt-3 flex items-center space-x-3">

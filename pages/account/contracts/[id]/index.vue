@@ -106,7 +106,7 @@
               
               <div class="mt-1 flex items-center text-sm text-gray-600 dark:text-gray-400">
                 <CurrencyIcon class="h-4 w-4 mr-1.5" />
-                <span class="font-medium">{{ contract.amount }}€</span>
+                <span class="font-medium">{{ contract.amount }}FCFA</span>
               </div>
             </div>
           </div>

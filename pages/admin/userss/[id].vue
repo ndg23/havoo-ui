@@ -151,7 +151,7 @@
             <div class="space-y-4">
               <div class="flex">
                 <span class="text-sm font-medium text-gray-500 w-32">Tarif horaire</span>
-                <span class="text-sm text-gray-900">{{ user.hourly_rate ? `${user.hourly_rate}€/h` : '—' }}</span>
+                <span class="text-sm text-gray-900">{{ user.hourly_rate ? `${user.hourly_rate}FCFA/h` : '—' }}</span>
               </div>
               
               <div class="flex">

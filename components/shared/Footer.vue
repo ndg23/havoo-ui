@@ -119,7 +119,7 @@
             v-model="currency"
             class="text-sm text-gray-600 bg-transparent border-none focus:ring-0"
           >
-            <option value="eur">EUR €</option>
+            <option value="eur">EUR FCFA</option>
             <option value="usd">USD $</option>
           </select>
         </div>

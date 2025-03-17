@@ -110,7 +110,7 @@
             <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">Configuration Expert</h3>
             
             <div class="mb-4">
-              <label for="hourly_rate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tarif horaire (€/h)</label>
+              <label for="hourly_rate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tarif horaire (FCFA/h)</label>
               <div class="relative mt-1 rounded-md shadow-sm">
                 <input 
                   id="hourly_rate"
@@ -120,7 +120,7 @@
                   class="w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800 shadow-sm focus:border-primary-500 focus:ring-primary-500 pr-12"
                 />
                 <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                  <span class="text-gray-500 dark:text-gray-400">€/h</span>
+                  <span class="text-gray-500 dark:text-gray-400">FCFA/h</span>
                 </div>
               </div>
             </div>

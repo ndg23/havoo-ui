@@ -1,259 +1,309 @@
 <template>
-  <div class="max-w-4xl mx-auto pt-5 pb-16">
-    <!-- En-tête de la page -->
-   
+  <div class="min-h-screen bg-white">
+    <!-- Header -->
+    <header class="sticky top-0 z-10 bg-white/80 backdrop-blur-sm border-b border-gray-100">
+      <div class="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+        <h1 class="text-xl font-bold">Mes demandes</h1>
+        <NuxtLink 
+          to="/requests/new" 
+          class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium text-white bg-black hover:bg-gray-800 transition-colors"
+        >
+          <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Nouvelle demande
+        </NuxtLink>
+      </div>
+    </header>
 
-    <!-- Filtres et recherche -->
-    <div class="mb-7 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <div class="flex items-center gap-2">
+    <!-- Main content -->
+    <main class="max-w-2xl mx-auto px-4 py-6">
+      <!-- Loading state -->
+      <div v-if="isLoading" class="flex flex-col items-center justify-center py-12">
+        <svg class="animate-spin h-8 w-8 text-gray-400 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p class="text-gray-500">Chargement de vos demandes...</p>
+      </div>
+
+      <!-- Error state -->
+      <div v-else-if="error" class="bg-red-50 p-4 rounded-lg text-red-700 my-6">
+        <div class="flex">
+          <svg class="h-5 w-5 text-red-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p>{{ error }}</p>
+        </div>
         <button 
-          @click="activeFilter = 'all'"
-          class="px-4 py-2 rounded-full text-sm font-medium transition-all"
-          :class="activeFilter === 'all' ? 'bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200'"
+          @click="fetchRequests" 
+          class="mt-3 text-sm font-medium text-red-600 hover:text-red-500"
         >
-          Toutes
-        </button>
-        <button 
-          @click="activeFilter = 'active'"
-          class="px-4 py-2 rounded-full text-sm font-medium transition-all"
-          :class="activeFilter === 'active' ? 'bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200'"
-        >
-          En cours
-        </button>
-        <button 
-          @click="activeFilter = 'completed'"
-          class="px-4 py-2 rounded-full text-sm font-medium transition-all"
-          :class="activeFilter === 'completed' ? 'bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200'"
-        >
-          Terminées
+          Réessayer
         </button>
       </div>
 
-      <div class="relative">
-        <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-        <input 
-          type="text" 
-          placeholder="Rechercher dans mes demandes..."
-          v-model="searchQuery"
-          class="pl-10 pr-4 py-2 w-full sm:w-64 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:focus:ring-primary-600 dark:focus:border-primary-600"
-        />
-      </div>
-    </div>
-
-    <!-- Liste des demandes -->
-    <div v-if="isLoading" class="bg-white dark:bg-gray-800 rounded-xl p-12 flex flex-col items-center">
-      <div class="h-10 w-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
-      <p class="mt-4 text-gray-600 dark:text-gray-400">Chargement de vos demandes...</p>
-    </div>
-
-    <div v-else-if="filteredRequests.length === 0" class="bg-white dark:bg-gray-800 rounded-xl p-8 text-center border border-gray-200 dark:border-gray-700">
-      <div class="mb-4 flex justify-center">
-        <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-full">
-          <SearchX class="h-8 w-8 text-gray-500 dark:text-gray-400" />
+      <!-- Empty state -->
+      <div v-else-if="requests.length === 0" class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <h3 class="mt-2 text-lg font-medium text-gray-900">Aucune demande</h3>
+        <p class="mt-1 text-gray-500">Vous n'avez pas encore créé de demande.</p>
+        <div class="mt-6">
+          <NuxtLink 
+            to="/requests/new" 
+            class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium text-white bg-black hover:bg-gray-800 transition-colors"
+          >
+            <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Créer une demande
+          </NuxtLink>
         </div>
       </div>
-      <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Aucune demande trouvée</h3>
-      <p class="text-gray-600 dark:text-gray-400 mb-6">
-        {{ activeFilter === 'all' 
-          ? "Vous n'avez pas encore créé de demande de service." 
-          : activeFilter === 'active' 
-          ? "Vous n'avez aucune demande en cours actuellement."
-          : "Vous n'avez aucune demande terminée pour le moment." 
-        }}
-      </p>
-      <NuxtLink to="/requests/new" class="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-full shadow-sm inline-flex items-center">
-        <Plus class="h-4 w-4 mr-2" />
-        Créer une nouvelle demande
-      </NuxtLink>
-    </div>
 
-    <div v-else class="space-y-4">
-      <div v-for="request in filteredRequests" :key="request.id" 
-        class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-200">
-        <div class="p-5">
-          <div class="flex items-start justify-between">
-            <div>
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">{{ request.title }}</h3>
-              <div class="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400 mb-3">
-                <span class="flex items-center">
-                  <Calendar class="h-4 w-4 mr-1" />
-                  {{ formatDate(request.created_at) }}
-                </span>
-                <span class="flex items-center">
-                  <Tag class="h-4 w-4 mr-1" />
-                  {{ request.category }}
-                </span>
-                <span class="flex items-center">
-                  <MapPin class="h-4 w-4 mr-1" />
-                  {{ request.location }}
-                </span>
+      <!-- Request list -->
+      <div v-else class="space-y-4">
+        <!-- Tabs -->
+        <div class="border-b border-gray-200">
+          <nav class="-mb-px flex space-x-6">
+            <button 
+              v-for="tab in tabs" 
+              :key="tab.value"
+              @click="activeTab = tab.value"
+              class="py-2 px-1 text-sm font-medium border-b-2 transition-colors"
+              :class="activeTab === tab.value 
+                ? 'border-black text-black' 
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+            >
+              {{ tab.label }}
+              <span 
+                v-if="getFilteredRequests(tab.value).length > 0"
+                class="ml-1 text-xs rounded-full bg-gray-100 px-2 py-0.5"
+              >
+                {{ getFilteredRequests(tab.value).length }}
+              </span>
+            </button>
+          </nav>
+        </div>
+
+        <!-- Request cards -->
+        <div v-if="getFilteredRequests(activeTab).length === 0" class="text-center py-8">
+          <p class="text-gray-500">Aucune demande {{ getTabLabel(activeTab).toLowerCase() }}</p>
+        </div>
+        
+        <div v-else class="space-y-4">
+          <NuxtLink
+            v-for="request in getFilteredRequests(activeTab)"
+            :key="request.id"
+            :to="`/requests/${request.id}`"
+            class="block bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow"
+          >
+            <div class="flex justify-between items-start">
+              <div>
+                <div class="flex items-center space-x-2 mb-1">
+                  <span 
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                    :class="getStatusClass(request.status)"
+                  >
+                    {{ getStatusLabel(request.status) }}
+                  </span>
+                  <span 
+                    v-if="request.category" 
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                  >
+                    {{ request.category.name }}
+                  </span>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 line-clamp-1">{{ request.title }}</h3>
+                <p class="mt-1 text-sm text-gray-500 line-clamp-2">{{ request.description }}</p>
               </div>
-              <p class="text-gray-700 dark:text-gray-300 mb-4 line-clamp-2">
-                {{ request.description }}
-              </p>
-            </div>
-            <div>
-              <span class="px-3 py-1 rounded-full text-xs font-bold" 
-                :class="getStatusClass(request.status)">
-                {{ request.status }}
-              </span>
-            </div>
-          </div>
-
-          <div class="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <div class="flex-1">
-              <span class="text-sm text-gray-600 dark:text-gray-400">
-                {{ request.proposal_count }} proposition{{ request.proposal_count !== 1 ? 's' : '' }} reçue{{ request.proposal_count !== 1 ? 's' : '' }}
-              </span>
+              
+              <div class="text-right flex-shrink-0">
+                <div v-if="request.budget" class="text-base font-bold text-gray-900">
+                  {{ formatPrice(request.budget) }}
+                </div>
+                <div v-if="request.deadline" class="text-xs text-gray-500 mt-1">
+                  {{ formatDate(request.deadline) }}
+                </div>
+              </div>
             </div>
             
-            <NuxtLink :to="`/account/requests/${request.id}`" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-full shadow-sm">
-              Voir les détails
-            </NuxtLink>
-          </div>
+            <div class="mt-3 flex items-center justify-between text-sm">
+              <div class="text-gray-500">
+                {{ formatRelativeDate(request.created_at) }}
+              </div>
+              <div v-if="getProposalCount(request)" class="flex items-center text-primary-600">
+                <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                {{ getProposalCount(request) }} proposition{{ getProposalCount(request) > 1 ? 's' : '' }}
+              </div>
+            </div>
+          </NuxtLink>
         </div>
       </div>
-    </div>
+    </main>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useSupabaseClient, useSupabaseUser } from '#imports'
-import {
-  FileText,
-  Calendar,
-  Tag,
-  MapPin,
-  Search,
-  Plus,
-  SearchX
-} from 'lucide-vue-next'
+import { ref, computed, onMounted } from 'vue';
+import { useSupabaseClient, useSupabaseUser } from '#imports';
 
-// États
-const user = useSupabaseUser()
-const supabase = useSupabaseClient()
-const isLoading = ref(true)
-const requests = ref([])
-const activeFilter = ref('all')
-const searchQuery = ref('')
+const supabase = useSupabaseClient();
+const user = useSupabaseUser();
 
-// Filtrer les demandes selon les critères
-const filteredRequests = computed(() => {
-  let filtered = [...requests.value]
-  
-  // Filtrer par statut
-  if (activeFilter.value === 'active') {
-    filtered = filtered.filter(request => ['En attente', 'En cours'].includes(request.status))
-  } else if (activeFilter.value === 'completed') {
-    filtered = filtered.filter(request => ['Terminée', 'Annulée'].includes(request.status))
-  }
-  
-  // Recherche textuelle
-  if (searchQuery.value.trim()) {
-    const query = searchQuery.value.toLowerCase().trim()
-    filtered = filtered.filter(request => 
-      request.title.toLowerCase().includes(query) || 
-      request.description.toLowerCase().includes(query) ||
-      request.category.toLowerCase().includes(query)
-    )
-  }
-  
-  return filtered
-})
+// État
+const requests = ref([]);
+const isLoading = ref(true);
+const error = ref(null);
+const activeTab = ref('all');
+
+// Tabs
+const tabs = [
+  { label: 'Toutes', value: 'all' },
+  { label: 'Ouvertes', value: 'open' },
+  { label: 'En cours', value: 'in_progress' },
+  { label: 'Terminées', value: 'completed' }
+];
 
 // Récupérer les demandes de l'utilisateur
 const fetchRequests = async () => {
-  isLoading.value = true
+  if (!user.value) return;
+  
+  isLoading.value = true;
+  error.value = null;
   
   try {
-    let query = supabase
+    const { data, error: requestError } = await supabase
       .from('requests')
       .select(`
         *,
-        client:client_id(id, first_name, last_name, avatar_url),
-        proposals:proposals(id, status)
+        category:category_id (*),
+        proposals(count)
       `)
+      .eq('client_id', user.value.id)
+      .order('created_at', { ascending: false });
     
-    // Filtrer selon le mode
-    if (isExpert.value) {
-      // Expert voit les demandes publiques
-      query = query.eq('status', 'open')
-    } else {
-      // Client voit ses propres demandes
-      query = query.eq('client_id', user.value.id)
-    }
+    if (requestError) throw requestError;
     
-    // Trier par date
-    query = query.order('created_at', { ascending: false })
-    
-    const { data, error } = await query
-    
-    if (error) throw error
-    
-    requests.value = data.map(request => ({
-      ...request,
-      proposals_count: request.proposals ? request.proposals.length : 0,
-      client_name: `${request.client.first_name} ${request.client.last_name}`,
-      client_avatar: request.client.avatar_url
-    }))
-  } catch (error) {
-    console.error('Erreur lors du chargement des demandes:', error)
+    requests.value = data || [];
+  } catch (err) {
+    console.error('Error fetching requests:', err);
+    error.value = "Une erreur est survenue lors du chargement de vos demandes";
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 
-// Formater la date pour affichage
+// Filtrer les demandes selon l'onglet actif
+const getFilteredRequests = (tab) => {
+  if (tab === 'all') return requests.value;
+  return requests.value.filter(request => request.status === tab);
+};
+
+// Obtenir le libellé de l'onglet
+const getTabLabel = (tabValue) => {
+  const tab = tabs.find(t => t.value === tabValue);
+  return tab ? tab.label : '';
+};
+
+// Obtenir le nombre de propositions
+const getProposalCount = (request) => {
+  return request.proposals?.[0]?.count || 0;
+};
+
+// Formater le prix
+const formatPrice = (price) => {
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'EUR'
+  }).format(price);
+};
+
+// Formater la date
 const formatDate = (dateString) => {
-  const date = new Date(dateString)
+  if (!dateString) return '';
+  
+  const date = new Date(dateString);
   return new Intl.DateTimeFormat('fr-FR', {
     day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  }).format(date)
-}
+    month: 'long'
+  }).format(date);
+};
 
-// Définir la classe de couleur selon le statut
-const getStatusClass = (status) => {
-  switch(status) {
-    case 'En attente':
-      return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
-    case 'En cours':
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
-    case 'Terminée':
-      return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-    case 'Annulée':
-      return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-    default:
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+// Formater la date relative
+const formatRelativeDate = (dateString) => {
+  if (!dateString) return '';
+  
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffTime = Math.abs(now - date);
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) {
+    return "Aujourd'hui";
+  } else if (diffDays === 1) {
+    return "Hier";
+  } else if (diffDays < 7) {
+    return `Il y a ${diffDays} jours`;
+  } else {
+    return formatDate(dateString);
   }
-}
+};
 
-// Initialisation
+// Obtenir la classe CSS pour le statut
+const getStatusClass = (status) => {
+  switch (status) {
+    case 'open':
+      return 'bg-green-100 text-green-800';
+    case 'in_progress':
+      return 'bg-blue-100 text-blue-800';
+    case 'completed':
+      return 'bg-purple-100 text-purple-800';
+    case 'cancelled':
+      return 'bg-red-100 text-red-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+};
+
+// Obtenir le libellé pour le statut
+const getStatusLabel = (status) => {
+  switch (status) {
+    case 'open':
+      return 'Ouverte';
+    case 'in_progress':
+      return 'En cours';
+    case 'completed':
+      return 'Terminée';
+    case 'cancelled':
+      return 'Annulée';
+    default:
+      return 'Inconnue';
+  }
+};
+
+// Cycle de vie
 onMounted(() => {
-  fetchRequests()
-})
-
-definePageMeta({
-  layout: 'account'
-})
+  fetchRequests();
+});
 </script>
 
 <style scoped>
-/* Animation des composants */
-.rounded-xl {
-  animation: fadeIn 0.5s ease;
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 </style> 

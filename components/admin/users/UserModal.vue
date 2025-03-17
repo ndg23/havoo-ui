@@ -200,7 +200,7 @@
                 <div v-if="form.role === 'expert'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label for="hourly_rate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Tarif horaire (€)
+                      Tarif horaire (FCFA)
                     </label>
                     <input
                       v-model.number="form.hourly_rate"

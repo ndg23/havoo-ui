@@ -28,7 +28,7 @@
             class="absolute right-0 mt-2 w-48 bg-white rounded-lg -shadow-lg py-1"
           >
             <NuxtLink
-              to="/admin/profile"
+              to="/admin/"
               class="block px-4 py-2 text-gray-700 hover:bg-gray-100"
             >
               Profil

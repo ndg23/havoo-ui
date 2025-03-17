@@ -71,11 +71,11 @@
 
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-4">
-            <span class="text-2xl font-bold text-orange-500">{{ price }}€</span>
+            <span class="text-2xl font-bold text-orange-500">{{ price }}FCFA</span>
             <span class="text-sm text-gray-500">par jour</span>
           </div>
           <div class="text-sm text-gray-500">
-            Caution : {{ deposit }}€
+            Caution : {{ deposit }}FCFA
           </div>
         </div>
 

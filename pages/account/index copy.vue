@@ -71,7 +71,7 @@
         <div class="text-sm text-gray-500 dark:text-gray-400 font-medium">Note</div>
       </div>
       <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 text-center shadow-sm hover:shadow-md transition-shadow">
-        <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ isExpert ? stats.earnings || 0 : stats.spent || 0 }}€</div>
+        <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ isExpert ? stats.earnings || 0 : stats.spent || 0 }}FCFA</div>
         <div class="text-sm text-gray-500 dark:text-gray-400 font-medium">{{ isExpert ? 'Revenus' : 'Budget' }}</div>
       </div>
     </div>

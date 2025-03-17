@@ -261,7 +261,7 @@
             <div>
               <FloatingLabelInput
                 id="hourlyRate"
-                label="Tarif horaire (€/h)"
+                label="Tarif horaire (FCFA/h)"
                 type="number"
                 min="0"
                 step="0.01"

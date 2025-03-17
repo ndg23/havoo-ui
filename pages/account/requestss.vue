@@ -180,7 +180,7 @@
                 <div class="bg-primary-50 dark:bg-primary-900/20 px-4 py-2 rounded-full inline-flex items-center">
                   <DollarSign class="h-4 w-4 text-primary-600 dark:text-primary-400 mr-1" />
                   <span class="text-base font-bold text-primary-700 dark:text-primary-400">
-                    {{ request.budget ? `${request.budget}€` : 'Budget non spécifié' }}
+                    {{ request.budget ? `${request.budget}FCFA` : 'Budget non spécifié' }}
                   </span>
                 </div>
                 

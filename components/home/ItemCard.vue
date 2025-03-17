@@ -8,7 +8,7 @@
         class="absolute top-4 right-4 z-10 bg-white rounded-lg -shadow-lg px-3 py-2
                flex flex-col items-center"
       >
-        <span class="text-lg font-bold text-blue-600">{{ item.price }}€</span>
+        <span class="text-lg font-bold text-blue-600">{{ item.price }}FCFA</span>
         <span class="text-xs text-gray-500">/jour</span>
         
         <!-- Price Indicator -->

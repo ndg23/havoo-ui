@@ -21,7 +21,7 @@
       
       <div class="mt-2 flex items-center justify-between">
         <p class="text-lg font-semibold text-gray-900">
-          {{ formatPrice(item.price.daily) }}€ <span class="text-sm text-gray-500">/jour</span>
+          {{ formatPrice(item.price.daily) }}FCFA <span class="text-sm text-gray-500">/jour</span>
         </p>
         <div class="flex items-center text-sm text-gray-500">
           <StarIcon class="w-4 h-4 text-yellow-400" />

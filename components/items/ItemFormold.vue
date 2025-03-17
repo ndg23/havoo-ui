@@ -46,7 +46,7 @@
               id="price"
               v-model="form.price"
               type="number"
-              label="Prix par jour (€)"
+              label="Prix par jour (FCFA)"
               min="1"
               step="0.5"
               required
@@ -180,7 +180,7 @@
               id="deposit"
               v-model="form.deposit"
               type="number"
-              label="Caution (€)"
+              label="Caution (FCFA)"
               min="0"
               required
               :error="hasFieldError('deposit')"

@@ -74,7 +74,7 @@
             v-model="preferences.currency"
             class="mt-1 block w-full rounded-xl border-gray-300 -shadow-sm focus:border-blue-500 focus:ring-blue-500"
           >
-            <option value="EUR">EUR (€)</option>
+            <option value="EUR">EUR (FCFA)</option>
             <option value="USD">USD ($)</option>
             <option value="GBP">GBP (£)</option>
           </select>

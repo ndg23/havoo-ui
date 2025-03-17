@@ -30,7 +30,7 @@
       <SharedUiInput
         v-model="form.price"
         type="number"
-        label="Prix par jour (€)"
+        label="Prix par jour (FCFA)"
         min="0"
         step="0.01"
         required

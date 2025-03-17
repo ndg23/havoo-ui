@@ -75,9 +75,9 @@ const filters = computed({
 })
 
 const priceRanges = [
-  { value: '0-25', label: 'Moins de 25€' },
-  { value: '25-50', label: '25€ - 50€' },
-  { value: '50+', label: 'Plus de 50€' }
+  { value: '0-25', label: 'Moins de 25FCFA' },
+  { value: '25-50', label: '25FCFA - 50FCFA' },
+  { value: '50+', label: 'Plus de 50FCFA' }
 ]
 
 const categories = [

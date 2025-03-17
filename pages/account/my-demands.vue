@@ -77,7 +77,7 @@
           <!-- Budget -->
           <div class="flex items-center justify-between">
             <div class="text-primary-600 dark:text-primary-400 font-bold">
-              {{ demand.budget || '120' }}€
+              {{ demand.budget || '120' }}FCFA
             </div>
             
             <NuxtLink 

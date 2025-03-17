@@ -52,10 +52,10 @@
               class="pl-3 pr-8 py-2 rounded-full border border-gray-300 bg-white text-sm"
             >
               <option value="">Budget</option>
-              <option value="0-100">Moins de 100€</option>
-              <option value="100-500">100€ - 500€</option>
-              <option value="500-1000">500€ - 1000€</option>
-              <option value="1000+">Plus de 1000€</option>
+              <option value="0-100">Moins de 100FCFA</option>
+              <option value="100-500">100FCFA - 500FCFA</option>
+              <option value="500-1000">500FCFA - 1000FCFA</option>
+              <option value="1000+">Plus de 1000FCFA</option>
             </select>
           </div>
           
@@ -144,7 +144,6 @@
                 >
                   <input 
                     type="checkbox"
-                    :checked="isSkillSelected(skill)"
                     class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                   />
                   <span class="ml-2 text-sm">{{ skill.name }}</span>
@@ -161,132 +160,119 @@
     </div>
 
     <!-- Loading state -->
-    <div v-if="isLoading" class="py-10 flex justify-center">
-      <svg class="animate-spin h-6 w-6 text-primary-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
+    <div v-if="isLoading" class="flex justify-center items-center py-12">
+      <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600"></div>
     </div>
 
-    <!-- Empty state -->
-    <div v-else-if="filteredRequests.length === 0" class="bg-white rounded-xl border border-gray-200 p-8 text-center shadow-sm">
-      <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100 mb-4">
-        <svg class="h-6 w-6 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    <!-- Error state -->
+    <div v-else-if="error" class="bg-red-50 p-4 rounded-lg text-red-700 my-6">
+      <div class="flex">
+        <svg class="h-5 w-5 text-red-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
+        <p>{{ error }}</p>
       </div>
-      <h3 class="text-lg font-medium text-gray-900 mb-1">Aucune demande trouvée</h3>
-      <p class="text-gray-500">
-        Essayez d'ajuster vos filtres ou votre recherche
-      </p>
-    </div>
-    
-    <!-- Requests grid -->
-    <div v-else class="space-y-4">
-      <div 
-        v-for="request in filteredRequests" 
-        :key="request.id"
-        class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-      >
-        <div class="p-4">
-          <div class="flex justify-between mb-2">
-            <h3 class="font-medium text-lg">{{ request.title }}</h3>
-            <div class="text-primary-600 font-semibold">{{ request.budget }}€</div>
-          </div>
-          
-          <p class="text-gray-600 text-sm line-clamp-2 mb-4">
-            {{ request.description }}
-          </p>
-          
-          <div class="flex flex-wrap gap-2 mb-3">
-            <span 
-              v-for="skill in request.skills" 
-              :key="skill.id"
-              class="inline-block px-2.5 py-0.5 text-xs rounded-full bg-gray-100 text-gray-800"
-            >
-              {{ skill.name }}
-            </span>
-            <span class="inline-block px-2.5 py-0.5 text-xs rounded-full bg-blue-100 text-blue-800">
-              {{ request.category_name }}
-            </span>
-          </div>
-          
-          <div class="flex items-center justify-between border-t border-gray-200 pt-3 mt-1">
-            <div class="flex items-center">
-              <div class="h-6 w-6 rounded-full bg-gray-200 overflow-hidden mr-2">
-                <img 
-                  v-if="request.client_avatar" 
-                  :src="request.client_avatar" 
-                  alt="Client" 
-                  class="h-full w-full object-cover"
-                />
-                <svg v-else class="h-3 w-3 m-1.5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-                </svg>
-              </div>
-              <span class="text-sm text-gray-600">{{ request.client_name }}</span>
-            </div>
-            
-            <div class="flex items-center gap-2 text-sm text-gray-500">
-              <span>{{ formatTimeframe(request.delivery_time) }}</span>
-              <span>•</span>
-              <span>{{ formatDate(request.created_at) }}</span>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Action buttons -->
-        <div class="bg-gray-50 px-4 py-3 flex justify-between items-center border-t border-gray-200">
-          <div class="text-sm text-gray-500">
-            {{ request.proposal_count }} proposition{{ request.proposal_count !== 1 ? 's' : '' }}
-          </div>
-          
-          <div>
-            <button 
-              v-if="isExpert && !hasUserSubmittedProposal(request.id)"
-              @click="showProposalModal(request)"
-              class="px-4 py-1.5 bg-primary-600 text-white rounded-full text-sm font-medium inline-flex items-center"
-            >
-              <svg class="h-4 w-4 mr-1.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-                <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-              </svg>
-              Proposer
-            </button>
-            
-            <NuxtLink
-              v-else-if="isExpert && hasUserSubmittedProposal(request.id)"
-              to="/account/proposals"
-              class="px-4 py-1.5 text-sm rounded-full border border-gray-300 hover:bg-gray-100"
-            >
-              Déjà proposé
-            </NuxtLink>
-            
-            <NuxtLink 
-              :to="`/requests/${request.id}`"
-              class="px-4 py-1.5 rounded-full text-sm border border-gray-300 hover:bg-gray-100"
-            >
-              Détails
-            </NuxtLink>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Load more -->
-    <div v-if="hasMoreRequests && !isLoading" class="mt-6 flex justify-center">
       <button 
-        @click="loadMoreRequests" 
-        class="px-4 py-2 text-sm text-primary-600 hover:text-primary-700 flex items-center"
+        @click="fetchRequests" 
+        class="mt-3 text-sm font-medium text-red-600 hover:text-red-500"
       >
-        Voir plus de demandes
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-        </svg>
+        Réessayer
       </button>
     </div>
 
-    <!-- Submit Proposal Modal -->
+    <!-- Empty state -->
+    <div v-else-if="filteredRequests.length === 0" class="text-center py-12">
+      <div class="mx-auto h-12 w-12 text-gray-400">
+        <Search class="h-12 w-12" />
+      </div>
+      <h3 class="mt-2 text-sm font-medium text-gray-900">Aucune demande trouvée</h3>
+      <p class="mt-1 text-sm text-gray-500">
+        Essayez de modifier vos filtres ou revenez plus tard.
+      </p>
+    </div>
+
+    <!-- Requests list -->
+    <div v-else class="grid grid-cols-1 gap-4">
+      <div 
+        v-for="request in filteredRequests" 
+        :key="request.id"
+        class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
+      >
+        <div class="flex justify-between items-start">
+          <div>
+            <div class="flex items-center space-x-2 mb-2">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                {{ request.categories?.name || 'Catégorie inconnue' }}
+              </span>
+              <span class="text-xs text-gray-500">{{ formatDate(request.created_at) }}</span>
+            </div>
+            <NuxtLink :to="`/requests/${request.id}`" class="block">
+              <h3 class="text-lg font-medium text-gray-900 hover:text-primary-600 transition-colors mb-2">
+                {{ request.title }}
+              </h3>
+            </NuxtLink>
+            <p class="text-sm text-gray-500 mb-4 line-clamp-2">{{ request.description }}</p>
+          </div>
+          <div class="text-right">
+            <p class="text-lg font-medium text-gray-900">{{ formatPrice(request.budget) }}</p>
+            <p class="text-xs text-gray-500">Date limite: {{ formatDate(request.deadline) }}</p>
+          </div>
+        </div>
+        
+        <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+          <div class="flex items-center">
+            <div v-if="request.profiles?.avatar_url" class="h-8 w-8 rounded-full overflow-hidden">
+              <img :src="request.profiles.avatar_url" alt="Avatar" class="h-full w-full object-cover" />
+            </div>
+            <div v-else class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-medium">
+              {{ getInitials(request.profiles?.first_name, request.profiles?.last_name) }}
+            </div>
+            <span class="ml-2 text-sm text-gray-700">
+              {{ request.profiles?.first_name }} {{ request.profiles?.last_name }}
+            </span>
+          </div>
+          
+          <div>
+            <NuxtLink 
+              v-if="isExpert && !hasUserSubmittedProposal(request.id)" 
+              :to="`/requests/${request.id}`"
+              class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-full shadow-sm text-white bg-primary-600 hover:bg-primary-700"
+            >
+              Faire une proposition
+            </NuxtLink>
+            <span 
+              v-else-if="isExpert && hasUserSubmittedProposal(request.id)"
+              class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-full text-primary-700 bg-primary-100"
+            >
+              <CheckCircleIcon class="h-3.5 w-3.5 mr-1" />
+              Proposition envoyée
+            </span>
+            <NuxtLink 
+              v-else
+              :to="`/requests/${request.id}`"
+              class="inline-flex items-center text-sm font-medium text-primary-600 hover:text-primary-500"
+            >
+              Voir les détails
+              <svg class="ml-1 w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </NuxtLink>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Load more button -->
+    <div v-if="hasMoreRequests && !isLoading" class="mt-6 text-center">
+      <button 
+        @click="loadMoreRequests" 
+        class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+      >
+        Charger plus de demandes
+      </button>
+    </div>
+
+    <!-- Proposal modal -->
     <Teleport to="body">
       <div 
         v-if="showingProposalModal" 
@@ -306,7 +292,7 @@
           <div class="mb-5">
             <div class="mb-4 text-sm">
               <div class="font-medium">Demande: {{ selectedRequest?.title }}</div>
-              <div class="text-gray-500">Budget: {{ selectedRequest?.budget }}€</div>
+              <div class="text-gray-500">Budget: {{ selectedRequest?.budget }}FCFA</div>
             </div>
             
             <div class="space-y-4">
@@ -314,7 +300,7 @@
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Votre tarif</label>
                 <div class="relative">
                   <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span class="text-gray-500">€</span>
+                    <span class="text-gray-500">FCFA</span>
                   </div>
                   <input
                     v-model.number="proposalForm.price"
@@ -374,7 +360,7 @@
       </div>
     </Teleport>
 
-    <!-- Create Request Modal for clients -->
+    <!-- Create request modal for clients -->
     <Teleport to="body">
       <div 
         v-if="showCreateRequestModal" 
@@ -415,10 +401,10 @@
             </div>
             
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Budget (€)</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Budget (FCFA)</label>
               <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span class="text-gray-500">€</span>
+                  <span class="text-gray-500">FCFA</span>
                 </div>
                 <input
                   v-model.number="requestForm.budget"
@@ -531,7 +517,7 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, reactive, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useSupabaseClient, useSupabaseUser } from '#imports'
 // import { useToast } from 'vue-toastification'
 import { Search, CheckCircleIcon, UserIcon, BoxIcon, ClipboardIcon } from 'lucide-vue-next'
@@ -543,6 +529,7 @@ const toast = useToast()
 // States
 const isLoading = ref(true)
 const isSubmitting = ref(false)
+const error = ref(null)
 const requests = ref([])
 const categories = ref([])
 const skills = ref([])
@@ -586,6 +573,7 @@ const requestForm = reactive({
 })
 const requestSkillSearch = ref('')
 const showRequestSkillResults = ref(false)
+// const filteredRequestSkills = ref([])
 
 // Computed
 const filteredRequests = computed(() => {
@@ -669,10 +657,10 @@ const activeFilters = computed(() => {
   // Budget filter
   if (filters.budget) {
     let label
-    if (filters.budget === '0-100') label = 'Moins de 100€'
-    else if (filters.budget === '100-500') label = '100€ - 500€'
-    else if (filters.budget === '500-1000') label = '500€ - 1000€'
-    else if (filters.budget === '1000+') label = 'Plus de 1000€'
+    if (filters.budget === '0-100') label = 'Moins de 100FCFA'
+    else if (filters.budget === '100-500') label = '100FCFA - 500FCFA'
+    else if (filters.budget === '500-1000') label = '500FCFA - 1000FCFA'
+    else if (filters.budget === '1000+') label = 'Plus de 1000FCFA'
     
     result.push({ id: 'budget', name: label })
   }
@@ -707,62 +695,48 @@ const activeFilters = computed(() => {
 // Methods
 const fetchRequests = async () => {
   isLoading.value = true
+  error.value = null
   
   try {
-    let query = supabase
+    // Récupérer les demandes avec les informations du client et de la catégorie
+    const { data, error: requestsError } = await supabase
       .from('requests')
       .select(`
-        id, 
-        title, 
-        description, 
-        budget, 
-        delivery_time,
-        status,
-        created_at,
-        category_id,
-        categories(name),
-        request_skills(skills(id, name))
+        *,
+        profiles:client_id (
+          first_name,
+          last_name,
+          avatar_url
+        ),
+        categories:category_id (
+          name
+        )
       `)
       .eq('status', 'open')
       .order('created_at', { ascending: false })
       .range((currentPage.value - 1) * pageSize, currentPage.value * pageSize)
     
-    const { data, error } = await query
+    if (requestsError) throw requestsError
     
-    if (error) throw error
-    
-    // Format requests
-    requests.value = data.map(request => ({
-      id: request.id,
-      title: request.title,
-      description: request.description,
-      budget: request.budget,
-      delivery_time: request.delivery_time,
-      status: request.status,
-      created_at: request.created_at,
-      category_id: request.category_id,
-      category_name: request.categories?.name || 'Non catégorisé',
-      skills: request.request_skills.map(rs => rs.skills),
-      formatted_budget: new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(request.budget),
-      formatted_date: formatDate(request.created_at)
-    }))
+    requests.value = data
     
     // Check for more requests
-    const { count } = await supabase
+    const { count, error: countError } = await supabase
       .from('requests')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'open')
     
+    if (countError) throw countError
+    
     hasMoreRequests.value = count > currentPage.value * pageSize
     
-    // If expert, fetch proposals to check which requests user has already proposed on
-    if (isExpert.value && user.value) {
+    // Get user proposals if logged in
+    if (user.value) {
       await fetchUserProposals()
     }
-    
-  } catch (error) {
-    console.error('Error fetching requests:', error)
-    toast.error('Erreur lors du chargement des demandes')
+  } catch (err) {
+    console.error('Error fetching requests:', err)
+    error.value = "Une erreur est survenue lors du chargement des demandes. Veuillez réessayer."
   } finally {
     isLoading.value = false
   }
@@ -772,7 +746,7 @@ const fetchCategories = async () => {
   try {
     const { data, error } = await supabase
       .from('categories')
-      .select('id, name')
+      .select('*')
       .order('name')
     
     if (error) throw error
@@ -787,7 +761,7 @@ const fetchSkills = async () => {
   try {
     const { data, error } = await supabase
       .from('skills')
-      .select('id, name')
+      .select('*')
       .order('name')
     
     if (error) throw error
@@ -821,12 +795,59 @@ const loadMoreRequests = async () => {
 }
 
 const formatDate = (dateString) => {
-  const date = new Date(dateString)
-  return new Intl.DateTimeFormat('fr-FR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  }).format(date)
+  if (!dateString) return '';
+  
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffTime = Math.abs(now - date);
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays <= 1) {
+    return "Aujourd'hui";
+  } else if (diffDays <= 2) {
+    return "Hier";
+  } else if (diffDays <= 7) {
+    return `Il y a ${diffDays} jours`;
+  } else {
+    return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+  }
+}
+
+const formatTimeframe = (days) => {
+  if (!days) return 'Non spécifié';
+  
+  if (days === 1) {
+    return '1 jour';
+  } else if (days < 7) {
+    return `${days} jours`;
+  } else if (days === 7) {
+    return '1 semaine';
+  } else if (days < 30) {
+    const weeks = Math.floor(days / 7);
+    return `${weeks} semaine${weeks > 1 ? 's' : ''}`;
+  } else {
+    const months = Math.floor(days / 30);
+    return `${months} mois`;
+  }
+}
+
+const formatPrice = (price) => {
+  if (price === null || price === undefined) return 'Prix non défini';
+  
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'XOF',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(price);
+}
+
+const getInitials = (firstName, lastName) => {
+  if (!firstName && !lastName) return '';
+  if (!firstName) return lastName.charAt(0).toUpperCase();
+  if (!lastName) return firstName.charAt(0).toUpperCase();
+  
+  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
 }
 
 const removeFilter = (filter) => {
@@ -865,8 +886,8 @@ const removeSkillFilter = (skill) => {
   )
 }
 
-const hasProposed = (requestId) => {
-  return userProposals.value.includes(requestId)
+const hasUserSubmittedProposal = (requestId) => {
+  return userProposals.value.includes(requestId);
 }
 
 // Proposal modal
@@ -969,20 +990,6 @@ const submitRequest = async () => {
     
     if (error) throw error
     
-    // Insert skills
-    if (requestForm.skills.length > 0) {
-      const skillMappings = requestForm.skills.map(skill => ({
-        request_id: request.id,
-        skill_id: skill.id
-      }))
-      
-      const { error: skillError } = await supabase
-        .from('request_skills')
-        .insert(skillMappings)
-      
-      if (skillError) throw skillError
-    }
-    
     toast.success('Demande publiée avec succès')
     closeCreateRequestModal()
     
@@ -1018,6 +1025,44 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside)
 })
+
+// Watch for changes in skillSearchQuery
+watch(skillSearchQuery, (newQuery) => {
+  if (!newQuery.trim()) {
+    filteredSkills.value = skills.value
+    return
+  }
+  
+  const query = newQuery.toLowerCase()
+  filteredSkills.value = skills.value.filter(skill => 
+    skill.name.toLowerCase().includes(query)
+  )
+})
+
+// Watch for changes in requestSkillSearch
+watch(requestSkillSearch, (newQuery) => {
+  if (!newQuery.trim()) {
+    filteredRequestSkills.value = []
+    showRequestSkillResults.value = false
+    return
+  }
+  
+  const query = newQuery.toLowerCase()
+  filteredRequestSkills.value = skills.value.filter(skill => 
+    skill.name.toLowerCase().includes(query) && 
+    !requestForm.skills.some(s => s.id === skill.id)
+  )
+  
+  showRequestSkillResults.value = filteredRequestSkills.value.length > 0
+})
+
+// Apply filters
+const applyFilters = () => {
+  // Implement filter logic here
+  console.log('Applying filters:', filters)
+  console.log('Selected skills:', selectedSkillFilters.value)
+  console.log('Search query:', searchQuery.value)
+}
 </script>
 
 <style scoped>

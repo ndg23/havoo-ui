@@ -90,7 +90,7 @@
 
             <div class="relative">
               <div class="flex items-center">
-                <span class="absolute left-6 text-gray-500">€</span>
+                <span class="absolute left-6 text-gray-500">FCFA</span>
                 <input
                   v-model="form.price"
                   type="number"

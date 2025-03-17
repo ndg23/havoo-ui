@@ -180,7 +180,7 @@
           id="deposit"
           v-model="form.deposit"
           type="number"
-          label="Caution (€)"
+          label="Caution (FCFA)"
           min="0"
           required
               :error="hasFieldError('deposit')"

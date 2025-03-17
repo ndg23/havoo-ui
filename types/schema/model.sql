@@ -9,6 +9,11 @@ CREATE TABLE profiles (
   avatar_url TEXT,
   role VARCHAR(20) DEFAULT 'client' NOT NULL, -- 'client' or 'expert'
   is_expert BOOLEAN DEFAULT FALSE,
+  city VARCHAR(255),
+  zip_code VARCHAR(255),
+  country VARCHAR(255),
+  address TEXT,
+
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   profile_completion_percentage INTEGER DEFAULT 20
@@ -129,6 +134,90 @@ CREATE TABLE messages (
   is_read BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Table pour les vérifications d'identité des experts
+CREATE TABLE public.verifications (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+    id_document_url TEXT,
+    selfie_url TEXT,
+    rejection_reason TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    reviewed_by UUID REFERENCES public.profiles(id),
+    reviewed_at TIMESTAMP WITH TIME ZONE
+);
+
+-- Index pour accélérer les recherches par user_id
+CREATE INDEX idx_verifications_user_id ON public.verifications(user_id);
+
+-- Index pour filtrer par statut
+CREATE INDEX idx_verifications_status ON public.verifications(status);
+
+-- Politique RLS pour les vérifications
+-- Les utilisateurs peuvent voir uniquement leur propre vérification
+CREATE POLICY "Users can view their own verification" 
+    ON public.verifications 
+    FOR SELECT 
+    USING (auth.uid() = user_id);
+
+-- Les utilisateurs peuvent créer leur propre vérification
+CREATE POLICY "Users can create their own verification" 
+    ON public.verifications 
+    FOR INSERT 
+    WITH CHECK (auth.uid() = user_id);
+
+-- Les utilisateurs peuvent mettre à jour uniquement leur propre vérification
+CREATE POLICY "Users can update their own verification" 
+    ON public.verifications 
+    FOR UPDATE 
+    USING (auth.uid() = user_id);
+ALTER TABLE public.profiles ADD COLUMN is_admin BOOLEAN DEFAULT FALSE;
+
+-- Seuls les administrateurs peuvent approuver/rejeter les vérifications
+CREATE POLICY "Admins can manage all verifications" 
+    ON public.verifications 
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.profiles
+            WHERE id = auth.uid() AND is_admin = true
+        )
+    );
+
+-- Activer RLS sur la table
+ALTER TABLE public.verifications ENABLE ROW LEVEL SECURITY;
+-- Trigger pour mettre à jour le champ updated_at
+CREATE OR REPLACE FUNCTION public.handle_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER set_updated_at
+BEFORE UPDATE ON public.verifications
+FOR EACH ROW
+EXECUTE FUNCTION public.handle_updated_at();
+
+-- Trigger pour mettre à jour le statut expert dans profiles
+CREATE OR REPLACE FUNCTION public.update_expert_status()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.status = 'approved' AND OLD.status != 'approved' THEN
+        UPDATE public.profiles
+        SET is_expert = true
+        WHERE id = NEW.user_id;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_expert_status_on_verification
+AFTER UPDATE ON public.verifications
+FOR EACH ROW
+EXECUTE FUNCTION public.update_expert_status();
 
 -- Basic indices for performance
 CREATE INDEX idx_requests_client_id ON requests (client_id);

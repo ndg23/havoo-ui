@@ -230,7 +230,7 @@
                 <div class="border-t border-gray-100" />
                 <MenuItem v-slot="{ active }">
                   <NuxtLink 
-                    to="/profile"
+                    to="/"
                     :class="[
                       'block px-4 py-2 text-sm',
                       active ? 'bg-gray-50 text-gray-900' : 'text-gray-700'
