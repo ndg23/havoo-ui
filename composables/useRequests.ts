@@ -79,19 +79,7 @@ export function useRequests() {
       let query = supabase
         .from('requests')
         .select(`
-          id,
-          client_id,
-          title,
-          description,
-          budget,
-          deadline,
-          status,
-          skills_required,
-          created_at,
-          updated_at,
-          profiles!requests_client_id_fkey(id, first_name, last_name, avatar_url),
-          categories(id, name),
-          proposals(id)
+         *
         `)
         .order('created_at', { ascending: false })
       

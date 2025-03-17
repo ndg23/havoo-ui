@@ -1,283 +1,275 @@
 <template>
-  <DefaultLayout>
-    <template #default>
-      <div class="max-w-4xl mx-auto px-4 py-0 relative">
-        <main>
-          <div class="max-w-4xl mx-auto">
-            <!-- Avertissement profil désactivé style Instagram -->
-            <div 
-              v-if="!profileActive" 
-              class="mb-4 bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 p-3 flex items-center gap-3"
-            >
-              <AlertTriangle class="h-5 w-5 text-yellow-500 flex-shrink-0" />
-              <div>
-                <p class="font-medium text-sm">Votre profil est actuellement désactivé</p>
-                <p class="text-neutral-500 text-xs mt-0.5">Vous n'apparaissez pas dans les recherches.</p>
+  <div class="bg-white min-h-screen">
+    <!-- Navbar component -->
+    <NavbarMain />
+    
+    <!-- Account layout container -->
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-8">
+      <!-- Header section -->
+      <div class="mb-8">
+        <h1 class="text-2xl font-medium text-gray-800">{{ pageTitle }}</h1>
+        <p class="mt-2 text-gray-500 max-w-2xl">
+          {{ pageDescription }}
+        </p>
+      </div>
+
+      <!-- Loading state -->
+      <div v-if="isLoading" class="flex justify-center py-12">
+        <svg class="animate-spin h-8 w-8 text-primary-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      </div>
+
+      <div v-else class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <!-- Left column - Profile and navigation -->
+        <div class="lg:col-span-1">
+          <!-- Profile card -->
+          <div class="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden mb-6">
+            <div class="bg-primary-50 p-6 flex flex-col items-center">
+              <!-- Profile picture or default avatar -->
+              <div v-if="profile.avatar_url" class="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-sm mb-3">
+                <img :src="profile.avatar_url" alt="Photo de profil" class="w-full h-full object-cover" />
               </div>
-              <button 
-                @click="toggleProfileStatus" 
-                class="ml-auto text-primary-500 hover:text-primary-600 text-sm font-medium"
-              >
-                Activer
-              </button>
-            </div>
-            
-            <!-- Header style Instagram -->
-            <div class="mb-6 border-b border-neutral-200 dark:border-neutral-800 pb-8">
-              <div class="flex flex-col md:flex-row items-start md:items-center gap-6 pt-6">
-                <!-- Avatar style Instagram -->
-                <div class="flex-shrink-0">
-                  <div class="relative">
-                    <div class="w-20 h-20 md:w-24 md:h-24 rounded-full border border-neutral-200 dark:border-neutral-700 p-0.5">
-                      <img 
-                        :src="profile?.avatar || '/api/placeholder/120/120'" 
-                        alt="Photo de profil"
-                        class="w-full h-full rounded-full object-cover"
-                      />
-                    </div>
-                    <div 
-                      class="absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-white dark:border-neutral-900"
-                      :class="isOnline ? 'bg-green-500' : 'bg-neutral-400'"
-                    ></div>
-                  </div>
-                </div>
-                
-                <!-- Informations utilisateur style Instagram -->
-                <div class="flex-1">
-                  <div class="flex flex-wrap items-center gap-4 mb-3">
-                    <h2 class="text-base font-medium text-neutral-900 dark:text-white">
-                      {{ profile?.fullName || 'Votre nom' }}
-                    </h2>
-                    
-                    <!-- Statut du profil -->
-                    <button 
-                      @click="toggleProfileStatus"
-                      class="text-xs font-medium py-1 px-2 border border-neutral-200 dark:border-neutral-700 rounded"
-                      :class="profileActive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"
-                    >
-                      {{ profileActive ? 'Profil actif' : 'Profil inactif' }}
-                    </button>
-                    
-                    <!-- Statut en ligne -->
-                    <button 
-                      @click="toggleOnlineStatus"
-                      class="text-xs font-medium py-1 px-2 border border-neutral-200 dark:border-neutral-700 rounded"
-                    >
-                      {{ isOnline ? 'En ligne' : 'Hors ligne' }}
-                    </button>
-                  </div>
-                  
-                  <!-- Informations supplémentaires -->
-                  <div class="flex items-center gap-6 mb-3">
-                    <div class="flex flex-col items-center">
-                      <span class="font-semibold text-sm">{{ profile?.contractsCount || '0' }}</span>
-                      <span class="text-neutral-500 text-xs">contrats</span>
-                    </div>
-                    <div class="flex flex-col items-center">
-                      <span class="font-semibold text-sm">{{ profile?.messagesCount || '0' }}</span>
-                      <span class="text-neutral-500 text-xs">messages</span>
-                    </div>
-                    <div class="flex flex-col items-center">
-                      <span class="font-semibold text-sm">{{ profile?.requestsCount || '0' }}</span>
-                      <span class="text-neutral-500 text-xs">demandes</span>
-                    </div>
-                  </div>
-                  
-                  <!-- Type de compte -->
-                  <div class="flex items-center gap-2">
-                    <span 
-                      class="text-xs font-medium"
-                      :class="profile?.isExpert ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'"
-                    >
-                      {{ profile?.isExpert ? 'Expert' : 'Client' }}
-                    </span>
-                    <span class="text-neutral-300 dark:text-neutral-600">•</span>
-                    <span class="text-xs text-neutral-500">
-                      Membre depuis {{ profile?.memberSince || 'Janvier 2023' }}
-                    </span>
-                  </div>
-                  
-                  <!-- Bio utilisateur (optionnel) -->
-                  <p v-if="profile?.bio" class="mt-3 text-sm text-neutral-800 dark:text-neutral-200">
-                    {{ profile.bio }}
-                  </p>
-                </div>
+              <div v-else class="w-24 h-24 rounded-full bg-white flex items-center justify-center text-2xl font-medium text-primary-600 border-4 border-white shadow-sm mb-3">
+                {{ getInitials(profile.first_name, profile.last_name) }}
+              </div>
+              
+              <!-- User name and status -->
+              <h2 class="text-lg font-medium text-gray-800">{{ profile.first_name }} {{ profile.last_name }}</h2>
+              <p class="text-gray-500 text-sm">{{ profile.email }}</p>
+              
+              <!-- Expert badge if applicable -->
+              <div v-if="profile.is_expert" class="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
+                Expert
               </div>
             </div>
             
-            <!-- Navigation style Instagram -->
-            <div class="mb-6">
-              <nav class="flex overflow-x-auto scrollbar-hide border-b border-neutral-200 dark:border-neutral-800">
-                <div class="flex min-w-full">
-                  <NuxtLink
-                    v-for="item in accountNavItems" 
-                    :key="item.name"
-                    :to="item.href"
-                    class="py-3 px-4 whitespace-nowrap transition-all duration-200 flex items-center gap-1.5 relative uppercase text-xs font-medium"
-                    :class="[
-                      isActive(item.href)
-                      ? 'text-neutral-900 dark:text-white'
-                      : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'
-                    ]"
-                  >
-                    <component :is="getNavIcon(item.name)" 
-                      class="w-4 h-4 transition-colors" 
-                      :class="isActive(item.href) ? 'text-neutral-900 dark:text-white' : 'text-neutral-500'" 
-                    />
-                    {{ item.name }}
-                    <div v-if="getNotificationCount(item.name) > 0" 
-                      class="ml-1 flex items-center justify-center min-w-[16px] h-[16px] rounded-full bg-red-500 text-white text-[10px] font-bold px-1"
-                    >
-                      {{ getNotificationCount(item.name) }}
-                    </div>
-                    
-                    <!-- Indicateur de sélection style Instagram -->
-                    <div 
-                      v-if="isActive(item.href)" 
-                      class="absolute top-0 left-0 right-0 mx-auto w-full h-[1px] bg-neutral-900 dark:bg-white"
-                    ></div>
-                  </NuxtLink>
-                </div>
-              </nav>
-            </div>
-            
-            <!-- Contenu principal -->
-            <div class="bg-white dark:bg-neutral-900 mb-8">
-              <div class="py-4">
-                <slot />
+            <!-- Profile completion -->
+            <div class="p-6">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-medium text-gray-700">Profil complété</span>
+                <span class="text-sm font-medium text-primary-600">{{ profileCompletionPercent }}%</span>
+              </div>
+              <div class="w-full bg-gray-100 rounded-full h-2">
+                <div 
+                  class="bg-primary-500 h-2 rounded-full" 
+                  :style="{ width: `${profileCompletionPercent}%` }"
+                ></div>
+              </div>
+              
+              <!-- Missing profile items -->
+              <div v-if="profileCompletionPercent < 100" class="mt-3">
+                <p class="text-xs text-gray-500 mb-2">Pour compléter votre profil :</p>
+                <ul class="space-y-1">
+                  <li v-if="!profile.phone" class="text-xs text-gray-600 flex items-center">
+                    <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Ajouter un numéro de téléphone
+                  </li>
+                  <li v-if="!profile.avatar_url" class="text-xs text-gray-600 flex items-center">
+                    <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Ajouter une photo de profil
+                  </li>
+                  <li v-if="!profile.bio" class="text-xs text-gray-600 flex items-center">
+                    <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Ajouter une bio
+                  </li>
+                </ul>
+              </div>
+              
+              <!-- Edit profile button -->
+              <div class="mt-4">
+                <NuxtLink 
+                  to="/account/edit-profile" 
+                  class="w-full inline-flex justify-center items-center px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  Modifier mon profil
+                </NuxtLink>
               </div>
             </div>
           </div>
-        </main>
+          
+          <!-- Account navigation -->
+          <div class="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100">
+              <h3 class="text-sm font-medium text-gray-700">Navigation</h3>
+            </div>
+            <div class="divide-y divide-gray-100">
+              <NuxtLink 
+                v-for="(link, index) in accountLinks" 
+                :key="index"
+                :to="link.path"
+                class="flex items-center px-5 py-3.5 hover:bg-gray-50 transition-colors"
+                :class="{ 'bg-primary-50': isActiveRoute(link.path) }"
+              >
+                <span class="w-8 h-8 rounded-lg flex items-center justify-center"
+                      :class="isActiveRoute(link.path) ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-500'"
+                >
+                  <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path :d="link.icon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                  </svg>
+                </span>
+                <span class="ml-3 text-sm font-medium" 
+                      :class="isActiveRoute(link.path) ? 'text-primary-700' : 'text-gray-700'"
+                >
+                  {{ link.name }}
+                </span>
+                <svg v-if="isActiveRoute(link.path)" class="ml-auto w-5 h-5 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </NuxtLink>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Right column - Page content -->
+        <div class="lg:col-span-3">
+          <slot />
+        </div>
       </div>
-    </template>
-  </DefaultLayout>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { useRoute } from 'vue-router';
-import {
-  Bell, User, Menu, X, ChevronDown, 
-  LogOut, Settings, Home, MessageSquare,
-  FileText, CreditCard, Briefcase, Star,
-  Heart, PlusCircle, ShoppingBag, Send,
-  Calendar, CheckCircle, XCircle, AlertTriangle
-} from 'lucide-vue-next';
-import { useProfile } from '~/composables/useProfile';
-import DefaultLayout from './default.vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { useSupabaseClient, useRoute, useRouter } from '#imports'
 
-const route = useRoute();
-const { profile } = useProfile();
-const mobileMenuOpen = ref(false);
-const profileDropdownOpen = ref(false);
-const isOnline = ref(true);
-const profileActive = ref(true);
-
-const toggleOnlineStatus = () => {
-  isOnline.value = !isOnline.value;
-};
-
-// Fonction pour activer/désactiver le profil
-const toggleProfileStatus = async () => {
-  profileActive.value = !profileActive.value;
-  
-  // Notification de changement d'état
-  const message = profileActive.value ? 
-    'Votre profil est maintenant visible par les autres utilisateurs' : 
-    'Votre profil est maintenant masqué aux autres utilisateurs';
-  
-  // Ici, vous pourriez ajouter une logique pour sauvegarder l'état dans la base de données
-  // await updateProfileStatus(profileActive.value);
-  
-  // Afficher une notification (si vous avez un système de notification)
-  // showNotification({ message, type: profileActive.value ? 'success' : 'warning' });
-};
-
-// Navigation principale
-const mainNavItems = [
-  { name: 'Accueil', href: '/' },
-  { name: 'Explorer', href: '/experts' },
-  { name: 'Demandes', href: '/requests' },
-  { name: 'Mon compte', href: '/account' },
-];
-
-// Navigation du compte - items communs
-const commonNavItems = [
-  { name: 'Profil', href: '/account' },
-  { name: 'Messages', href: '/account/messages' },
-  { name: 'Contrats', href: '/account/contracts' },
-  { name: 'Paramètres', href: '/account/settings' },
-];
-
-// Items spécifiques aux clients
-const clientNavItems = [
-  { name: 'Mes demandes', href: '/account/requests' },
-];
-
-// Items spécifiques aux experts
-const expertNavItems = [
-  { name: 'Mes services', href: '/account/services' },
-  { name: 'Propositions', href: '/account/proposals' },
-];
-
-// Construire le menu selon le type d'utilisateur
-const accountNavItems = computed(() => {
-  const navItems = [...commonNavItems];
-  
-  if (profile.value?.isExpert) {
-    navItems.splice(1, 0, ...expertNavItems);
-  } else {
-    navItems.splice(1, 0, ...clientNavItems);
+// Props for page metadata
+const props = defineProps({
+  title: {
+    type: String,
+    default: 'Mon compte'
+  },
+  description: {
+    type: String,
+    default: 'Gérez votre profil, suivez vos demandes et consultez vos statistiques'
   }
+})
+
+// State variables
+const isLoading = ref(true)
+const profile = ref({
+  first_name: '',
+  last_name: '',
+  email: '',
+  avatar_url: null,
+  phone: null,
+  bio: null,
+  is_expert: false,
+  skills: []
+})
+
+// Supabase client
+const supabase = useSupabaseClient()
+const route = useRoute()
+const router = useRouter()
+
+// Computed properties
+const pageTitle = computed(() => props.title)
+const pageDescription = computed(() => props.description)
+
+const profileCompletionPercent = computed(() => {
+  let completed = 0
+  let total = 3 // Base fields: name, email are assumed to be completed
   
-  return navItems;
-});
+  if (profile.value.avatar_url) completed++
+  if (profile.value.phone) completed++
+  if (profile.value.bio) completed++
+  
+  return Math.round((completed / total) * 100)
+})
 
-// Fonction pour obtenir l'icône correspondant à chaque élément de navigation
-const getNavIcon = (name) => {
-  switch (name) {
-    case 'Profil': return User;
-    case 'Mes demandes': return FileText;
-    case 'Messages': return MessageSquare;
-    case 'Contrats': return ShoppingBag;
-    case 'Mes services': return Briefcase;
-    case 'Propositions': return Send;
-    case 'Paramètres': return Settings;
-    default: return Home;
+// Account navigation links
+const accountLinks = [
+  {
+    name: 'Tableau de bord',
+    path: '/account',
+    icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'
+  },
+  {
+    name: 'Mes demandes',
+    path: '/account/requests',
+    icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
+  },
+  {
+    name: 'Mes services',
+    path: '/account/services',
+    icon: 'M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'
+  },
+  {
+    name: 'Messages',
+    path: '/account/messages',
+    icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z'
+  },
+  {
+    name: 'Paramètres',
+    path: '/account/settings',
+    icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z'
   }
-};
+]
 
-// Fonction pour simuler des notifications
-const getNotificationCount = (name) => {
-  if (name === 'Messages') return 3;
-  if (name === 'Mes demandes') return 1;
-  if (name === 'Propositions') return 2;
-  return 0;
-};
+// Check if current route is active
+const isActiveRoute = (path) => {
+  if (path === '/account') {
+    return route.path === '/account'
+  }
+  return route.path.startsWith(path)
+}
 
-// Fonction pour vérifier si un lien est actif
-const isActive = (href) => {
-  return route.path.startsWith(href);
-};
+// Methods
+const getInitials = (firstName, lastName) => {
+  return (firstName?.[0] || '') + (lastName?.[0] || '')
+}
 
-// Fonction de déconnexion
-const logout = async () => {
-  profileDropdownOpen.value = false;
-  navigateTo('/');
-};
+// Fetch user profile data
+const fetchUserProfile = async () => {
+  try {
+    isLoading.value = true
+    
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      // Redirect to login if not authenticated
+      return router.push('/login')
+    }
+    
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*, user_skills(skill_id, skills(name))')
+      .eq('id', session.user.id)
+      .single()
+      
+    if (error) throw error
+    
+    // Format skills array
+    let skills = []
+    if (data.user_skills && data.user_skills.length > 0) {
+      skills = data.user_skills.map(us => us.skills.name)
+    }
+    
+    profile.value = {
+      ...data,
+      email: session.user.email,
+      skills
+    }
+  } catch (error) {
+    console.error('Error fetching profile:', error)
+  } finally {
+    isLoading.value = false
+  }
+}
 
-definePageMeta({
-  layout: 'default'
-});
+// Lifecycle hooks
+onMounted(() => {
+  fetchUserProfile()
+})
 </script>
-
-<style scoped>
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-</style>

@@ -14,7 +14,7 @@
       <div class="profile-hero">
         <div class="avatar-large">
           <img v-if="expert.avatar" :src="expert.avatar" :alt="expert.name">
-          <img v-else src="/images/default-avatar.png" :alt="expert.name">
+          <!-- <img v-else src="/images/default-avatar.png" :alt="expert.name"> -->
         </div>
         
         <div class="profile-info">

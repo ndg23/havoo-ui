@@ -177,3 +177,110 @@ BEGIN
     ));
 END;
 $$ LANGUAGE plpgsql;
+
+   CREATE OR REPLACE FUNCTION update_expert_rating_on_review()
+   RETURNS TRIGGER AS $$
+   BEGIN
+     UPDATE profiles 
+     SET rating = (
+       SELECT AVG(rating) 
+       FROM reviews 
+       WHERE reviewee_id = NEW.reviewee_id
+     )
+     WHERE id = NEW.reviewee_id;
+     RETURN NEW;
+   END;
+   $$ LANGUAGE plpgsql;
+   
+   CREATE TRIGGER expert_rating_update_trigger
+   AFTER INSERT OR UPDATE ON reviews
+   FOR EACH ROW
+   EXECUTE FUNCTION update_expert_rating_on_review();
+
+
+
+      CREATE OR REPLACE FUNCTION create_notification_on_proposal()
+   RETURNS TRIGGER AS $$
+   BEGIN
+     INSERT INTO notifications (profile_id, title, content, type, action_url)
+     SELECT 
+       r.client_id, 
+       'Nouvelle proposition', 
+       'Un expert a fait une proposition sur votre demande "' || r.title || '"',
+       'proposal',
+       '/requests/' || r.id
+     FROM requests r
+     WHERE r.id = NEW.request_id;
+     RETURN NEW;
+   END;
+   $$ LANGUAGE plpgsql;
+   
+   CREATE TRIGGER proposal_notification_trigger
+   AFTER INSERT ON proposals
+   FOR EACH ROW
+   EXECUTE FUNCTION create_notification_on_proposal();
+
+
+
+
+      CREATE OR REPLACE FUNCTION update_expert_completed_projects()
+   RETURNS TRIGGER AS $$
+   BEGIN
+     IF NEW.status = 'completed' AND OLD.status <> 'completed' THEN
+       UPDATE profiles
+       SET completed_projects = COALESCE(completed_projects, 0) + 1
+       WHERE id = NEW.expert_id;
+     END IF;
+     RETURN NEW;
+   END;
+   $$ LANGUAGE plpgsql;
+   
+   CREATE TRIGGER contract_completion_trigger
+   AFTER UPDATE OF status ON contracts
+   FOR EACH ROW
+   WHEN (NEW.status = 'completed' AND OLD.status <> 'completed')
+   EXECUTE FUNCTION update_expert_completed_projects();
+
+
+
+      CREATE OR REPLACE FUNCTION create_payment_on_contract_completion()
+   RETURNS TRIGGER AS $$
+   BEGIN
+     IF NEW.status = 'completed' AND OLD.status <> 'completed' THEN
+       INSERT INTO payments (contract_id, payer_id, payee_id, amount, status)
+       VALUES (NEW.id, NEW.client_id, NEW.expert_id, NEW.price, 'completed');
+     END IF;
+     RETURN NEW;
+   END;
+   $$ LANGUAGE plpgsql;
+   
+   CREATE TRIGGER payment_on_completion_trigger
+   AFTER UPDATE OF status ON contracts
+   FOR EACH ROW
+   WHEN (NEW.status = 'completed' AND OLD.status <> 'completed')
+   EXECUTE FUNCTION create_payment_on_contract_completion();
+
+
+      CREATE OR REPLACE FUNCTION check_approaching_deadlines()
+   RETURNS TRIGGER AS $$
+   BEGIN
+     -- Crée une notification pour les contrats qui approchent de leur date d'échéance
+     IF NEW.end_date IS NOT NULL AND NEW.end_date - CURRENT_DATE <= 3 THEN
+       -- Notification pour l'expert
+       INSERT INTO notifications (profile_id, title, content, type, action_url)
+       VALUES (
+         NEW.expert_id, 
+         'Deadline approchant', 
+         'Un contrat approche de sa date d''échéance dans 3 jours ou moins',
+         'deadline',
+         '/account/contracts/' || NEW.id
+       );
+     END IF;
+     RETURN NEW;
+   END;
+   $$ LANGUAGE plpgsql;
+   
+   CREATE TRIGGER deadline_notification_trigger
+   AFTER INSERT OR UPDATE OF end_date ON contracts
+   FOR EACH ROW
+   EXECUTE FUNCTION check_approaching_deadlines();

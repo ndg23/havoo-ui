@@ -104,77 +104,68 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Prénom -->
             <div>
-              <label for="firstName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Prénom</label>
-              <input
+              <FloatingLabelInput
+                id="first_name"
+                label="Prénom"
                 v-model="form.firstName"
-                type="text"
-                id="firstName"
-                class="w-full px-4 py-2.5 rounded-full border border-gray-300 dark:border-gray-600 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                placeholder="Prénom"
+                required
               />
             </div>
             
             <!-- Nom -->
             <div>
-              <label for="lastName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Nom</label>
-              <input
+              <FloatingLabelInput
+                id="last_name"
+                label="Nom"
                 v-model="form.lastName"
-                type="text"
-                id="lastName"
-                class="w-full px-4 py-2.5 rounded-full border border-gray-300 dark:border-gray-600 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                placeholder="Nom"
+                required
               />
             </div>
             
             <!-- Email -->
             <div>
-              <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Email</label>
-              <input
-                v-model="form.email"
-                type="email"
+              <FloatingLabelInput
                 id="email"
+                label="Email"
+                type="email"
+                v-model="form.email"
                 disabled
-                class="w-full px-4 py-2.5 rounded-full border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed"
-                placeholder="email@exemple.com"
               />
               <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">L'email ne peut pas être modifié</p>
             </div>
             
             <!-- Date de naissance -->
             <div>
-              <label for="birthdate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Date de naissance</label>
-              <input
-                v-model="form.birthdate"
-                type="date"
+              <FloatingLabelInput
                 id="birthdate"
-                class="w-full px-4 py-2.5 rounded-full border border-gray-300 dark:border-gray-600 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                label="Date de naissance"
+                type="date"
+                v-model="form.birthdate"
               />
             </div>
             
             <!-- Genre -->
             <div>
-              <label for="gender" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Genre</label>
-              <select
-                v-model="form.gender"
+              <FloatingLabelInput
                 id="gender"
-                class="w-full px-4 py-2.5 rounded-full border border-gray-300 dark:border-gray-600 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white appearance-none bg-no-repeat"
+                label="Genre"
+                v-model="form.gender"
+                as="select"
               >
                 <option value="male">Homme</option>
                 <option value="female">Femme</option>
                 <option value="other">Autre</option>
                 <option value="prefer_not_to_say">Préfère ne pas préciser</option>
-              </select>
+              </FloatingLabelInput>
             </div>
             
             <!-- Téléphone -->
             <div>
-              <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Téléphone</label>
-              <input
-                v-model="form.phone"
-                type="tel"
+              <FloatingLabelInput
                 id="phone"
-                class="w-full px-4 py-2.5 rounded-full border border-gray-300 dark:border-gray-600 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                placeholder="+221 xx xxx xx xx"
+                label="Téléphone"
+                type="tel"
+                v-model="form.phone"
               />
             </div>
           </div>
@@ -194,49 +185,38 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Adresse -->
             <div class="md:col-span-2">
-              <label for="address" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Adresse</label>
-              <input
-                v-model="form.address"
-                type="text"
+              <FloatingLabelInput
                 id="address"
-                class="w-full px-4 py-2.5 rounded-full border border-gray-300 dark:border-gray-600 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                placeholder="Adresse"
+                label="Adresse"
+                v-model="form.address"
               />
             </div>
             
             <!-- Ville -->
             <div>
-              <label for="city" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Ville</label>
-              <input
-                v-model="form.city"
-                type="text"
+              <FloatingLabelInput
                 id="city"
-                class="w-full px-4 py-2.5 rounded-full border border-gray-300 dark:border-gray-600 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                placeholder="Ville"
+                label="Ville"
+                v-model="form.city"
               />
             </div>
             
             <!-- Pays -->
             <div>
-              <label for="country" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Pays</label>
-              <input
-                v-model="form.country"
-                type="text"
+              <FloatingLabelInput
                 id="country"
-                class="w-full px-4 py-2.5 rounded-full border border-gray-300 dark:border-gray-600 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                placeholder="Pays"
+                label="Pays"
+                v-model="form.country"
               />
             </div>
             
             <!-- Site web -->
             <div class="md:col-span-2">
-              <label for="website" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Site web</label>
-              <input
-                v-model="form.website"
-                type="url"
+              <FloatingLabelInput
                 id="website"
-                class="w-full px-4 py-2.5 rounded-full border border-gray-300 dark:border-gray-600 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                placeholder="https://exemple.com"
+                label="Site web"
+                type="url"
+                v-model="form.website"
               />
             </div>
           </div>
@@ -253,14 +233,13 @@
         </div>
         
         <div class="p-6">
-          <label for="bio" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Parlez-nous de vous</label>
-          <textarea
-            v-model="form.bio"
+          <FloatingLabelInput
             id="bio"
+            label="Parlez-nous de vous"
+            v-model="form.bio"
+            as="textarea"
             rows="5"
-            class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-            placeholder="Partagez quelques informations sur vous, votre parcours, vos intérêts..."
-          ></textarea>
+          />
           <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
             Votre biographie permettra aux autres utilisateurs de mieux vous connaître
           </p>
@@ -280,22 +259,14 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Tarif horaire -->
             <div>
-              <label for="hourlyRate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                Tarif horaire (€/h)
-              </label>
-              <div class="relative">
-                <input
-                  v-model="form.hourlyRate"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  id="hourlyRate"
-                  class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-full shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                />
-                <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-                  <span class="text-gray-500 dark:text-gray-400">€</span>
-                </div>
-              </div>
+              <FloatingLabelInput
+                id="hourlyRate"
+                label="Tarif horaire (€/h)"
+                type="number"
+                min="0"
+                step="0.01"
+                v-model="form.hourlyRate"
+              />
               <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                 Votre tarif horaire indicatif pour les clients.
               </p>
@@ -303,19 +274,17 @@
             
             <!-- Statut de disponibilité -->
             <div>
-              <label for="availabilityStatus" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                Statut de disponibilité
-              </label>
-              <select
-                v-model="form.availabilityStatus"
+              <FloatingLabelInput
                 id="availabilityStatus"
-                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-full shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white appearance-none bg-no-repeat"
+                label="Statut de disponibilité"
+                v-model="form.availabilityStatus"
+                as="select"
               >
                 <option value="available">Disponible maintenant</option>
                 <option value="limited">Disponibilité limitée</option>
                 <option value="busy">Occupé(e)</option>
                 <option value="unavailable">Non disponible</option>
-              </select>
+              </FloatingLabelInput>
               <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                 Indiquez votre disponibilité actuelle aux clients potentiels.
               </p>
@@ -346,11 +315,10 @@
             </div>
             
             <div class="flex">
-              <input
+              <FloatingLabelInput
+                id="newSkill"
+                label="Ajouter une compétence..."
                 v-model="newSkill"
-                type="text"
-                placeholder="Ajouter une compétence..."
-                class="flex-grow px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-l-full shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
                 @keyup.enter="addSkill"
               />
               <button 
@@ -511,6 +479,7 @@ import {
   X, 
   Plus 
 } from 'lucide-vue-next'
+import FloatingLabelInput from '~/components/ui/FloatingLabelInput.vue'
 
 // État
 const user = useSupabaseUser()

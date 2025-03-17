@@ -126,14 +126,14 @@
           <!-- Boutons de connexion (si non connecté) -->
           <div v-if="!user" class="flex items-center space-x-4">
             <NuxtLink
-              to="/login"
+              to="/auth/login"
               class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400"
             >
               Connexion
             </NuxtLink>
             
             <NuxtLink
-              to="/register"
+              to="/auth/signup"
               class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-md transition-colors"
             >
               S'inscrire

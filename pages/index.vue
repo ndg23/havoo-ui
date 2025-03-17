@@ -109,61 +109,76 @@
       </div>
     </section>
 
-    <!-- Comment ça marche - Style GAFAM -->
-    <section class="py-20 bg-white dark:bg-black relative overflow-hidden">
+    <!-- Comment ça marche - Style Apple -->
+    <section class="py-28 bg-white relative overflow-hidden">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- En-tête de section -->
-        <div class="text-center mb-16">
-          <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
-            Comment ça fonctionne
+        <div class="text-center mb-24">
+          <h2 class="text-4xl font-light text-gray-900">
+            L'efficacité en trois étapes
           </h2>
-          <p class="mt-4 text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-            Un processus simple en trois étapes pour obtenir l'aide dont vous avez besoin
-          </p>
         </div>
 
-        <!-- Étapes avec illustrations de style GAFAM -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
+        <!-- Étapes avec approche narrative et images -->
+        <div class="space-y-32">
           <!-- Étape 1 -->
-          <div class="bg-gray-50 dark:bg-gray-900 rounded-3xl p-8 text-center card-gafam relative">
-            <div class="absolute top-0 right-0 -mt-4 -mr-4 bg-primary-500 text-white h-12 w-12 rounded-full flex items-center justify-center font-bold text-xl shadow-lg">1</div>
-            <div class="h-32 flex items-center justify-center mb-6">
-              <SearchIcon class="h-20 w-20 text-primary-500" />
+          <div class="grid grid-cols-1 lg:grid-cols-5 gap-10 items-center">
+            <div class="lg:col-span-2">
+              <div class="text-8xl font-thin text-primary-500 mb-6">01</div>
+              <h3 class="text-2xl font-medium text-gray-900 mb-4">
+                Décrivez votre besoin
+              </h3>
+              <p class="text-gray-600 text-lg leading-relaxed">
+                Précisez simplement ce dont vous avez besoin. Notre interface intuitive vous guide à chaque étape.
+              </p>
             </div>
-            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">
-              Décrivez votre besoin
-            </h3>
-            <p class="text-gray-600 dark:text-gray-300">
-              Publiez votre demande en détaillant votre problème et vos attentes. Notre système intelligent vous guide.
-            </p>
+            <div class="lg:col-span-3">
+              <img 
+                src="https://images.pexels.com/photos/6615722/pexels-photo-6615722.jpeg" 
+                alt="Étape 1" 
+                class="w-full rounded-xl shadow-md"
+              />
+            </div>
           </div>
-
+          
           <!-- Étape 2 -->
-          <div class="bg-gray-50 dark:bg-gray-900 rounded-3xl p-8 text-center card-gafam relative">
-            <div class="absolute top-0 right-0 -mt-4 -mr-4 bg-primary-500 text-white h-12 w-12 rounded-full flex items-center justify-center font-bold text-xl shadow-lg">2</div>
-            <div class="h-32 flex items-center justify-center mb-6">
-              <UsersIcon class="h-20 w-20 text-primary-500" />
+          <div class="grid grid-cols-1 lg:grid-cols-5 gap-10 items-center">
+            <div class="lg:col-span-3 order-2 lg:order-1">
+              <img 
+                src="https://images.pexels.com/photos/3184405/pexels-photo-3184405.jpeg" 
+                alt="Étape 2" 
+                class="w-full rounded-xl shadow-md"
+              />
             </div>
-            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">
-              Connectez avec des experts
-            </h3>
-            <p class="text-gray-600 dark:text-gray-300">
-              Recevez des propositions d'experts qualifiés et vérifiés. Consultez leurs profils et évaluations.
-            </p>
+            <div class="lg:col-span-2 order-1 lg:order-2">
+              <div class="text-8xl font-thin text-primary-500 mb-6">02</div>
+              <h3 class="text-2xl font-medium text-gray-900 mb-4">
+                Connectez avec des experts
+              </h3>
+              <p class="text-gray-600 text-lg leading-relaxed">
+                Notre algorithme intelligent trouve les meilleurs experts pour votre besoin spécifique.
+              </p>
+            </div>
           </div>
-
+          
           <!-- Étape 3 -->
-          <div class="bg-gray-50 dark:bg-gray-900 rounded-3xl p-8 text-center card-gafam relative">
-            <div class="absolute top-0 right-0 -mt-4 -mr-4 bg-primary-500 text-white h-12 w-12 rounded-full flex items-center justify-center font-bold text-xl shadow-lg">3</div>
-            <div class="h-32 flex items-center justify-center mb-6">
-              <CheckCircleIcon class="h-20 w-20 text-primary-500" />
+          <div class="grid grid-cols-1 lg:grid-cols-5 gap-10 items-center">
+            <div class="lg:col-span-2">
+              <div class="text-8xl font-thin text-primary-500 mb-6">03</div>
+              <h3 class="text-2xl font-medium text-gray-900 mb-4">
+                Problème résolu
+              </h3>
+              <p class="text-gray-600 text-lg leading-relaxed">
+                Profitez d'un service de qualité et d'une résolution efficace de votre problème.
+              </p>
             </div>
-            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">
-              Problème résolu
-            </h3>
-            <p class="text-gray-600 dark:text-gray-300">
-              Collaborez efficacement via notre plateforme sécurisée et obtenez des résultats garantis.
-            </p>
+            <div class="lg:col-span-3">
+              <img 
+                src="https://images.pexels.com/photos/7415061/pexels-photo-7415061.jpeg" 
+                alt="Étape 3" 
+                class="w-full rounded-xl shadow-md"
+              />
+            </div>
           </div>
         </div>
 
@@ -171,19 +186,106 @@
         <div class="mt-16 text-center">
           <NuxtLink 
             to="/requests/new" 
-            class="btn-gafam inline-flex items-center px-8 py-4 bg-primary-600 text-white font-medium rounded-full hover:bg-primary-700 shadow-md hover:shadow-lg transition-all duration-300"
+            class="inline-flex items-center px-8 py-4 bg-primary-600 text-white font-medium rounded-full hover:bg-primary-700 shadow-md hover:shadow-lg transition-all duration-300"
           >
             Créer une demande
             <ArrowRight class="ml-2 h-5 w-5" />
           </NuxtLink>
         </div>
       </div>
-
-      <!-- Formes décoratives de style GAFAM -->
-      <div class="absolute top-1/4 left-0 w-64 h-64 rounded-full bg-primary-100 dark:bg-primary-900/20 -translate-x-1/2 blur-3xl opacity-50"></div>
-      <div class="absolute bottom-1/3 right-0 w-96 h-96 rounded-full bg-blue-100 dark:bg-blue-900/20 translate-x-1/2 blur-3xl opacity-40"></div>
     </section>
 
+    <!-- CTA Section - version améliorée -->
+    <section class="py-20 bg-white">
+      <div class="max-w-7xl mx-auto px-4">
+        <div class="grid lg:grid-cols-2 gap-12 items-center">
+          <!-- Texte -->
+          <div class="space-y-6">
+            <h2 class="text-4xl font-bold text-gray-900 tracking-tight">
+              La qualité au service 
+              <span class="block text-primary-600">de votre quotidien</span>
+            </h2>
+            <div class="space-y-4 text-lg text-gray-600">
+              <p class="flex items-start gap-3">
+                <Shield class="w-6 h-6 text-primary-600 shrink-0 mt-1" />
+                <span>Tous nos experts sont vérifiés et évalués par notre communauté</span>
+              </p>
+              <p class="flex items-start gap-3">
+                <BadgeCheck class="w-6 h-6 text-primary-600 shrink-0 mt-1" />
+                <span>Satisfaction garantie ou remboursé sous 24h</span>
+              </p>
+              <p class="flex items-start gap-3">
+                <Clock class="w-6 h-6 text-primary-600 shrink-0 mt-1" />
+                <span>Réponse rapide et intervention dans les 24-48h</span>
+              </p>
+            </div>
+            <div class="pt-2">
+              <div class="flex items-center gap-4">
+                <div class="flex -space-x-2">
+                  <img 
+                    v-for="i in 4" 
+                    :key="i"
+                    :src="`https://randomuser.me/api/portraits/${i % 2 ? 'women' : 'men'}/${i}.jpg`"
+                    class="w-10 h-10 rounded-full border-2 border-white"
+                    alt="User avatar"
+                  />
+                </div>
+                <div class="text-sm">
+                  <div class="font-medium text-gray-900">Plus de 10 000 clients satisfaits</div>
+                  <div class="text-gray-500">Rejoignez une communauté de confiance</div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Boutons d'action - NOUVEAU -->
+            <div class="pt-4 flex flex-col sm:flex-row gap-4">
+              <button @click="openRequestModal" class="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center">
+                <FileText class="w-5 h-5 mr-2" />
+                Publier une demande
+              </button>
+              <button @click="openSearchModal" class="border border-primary-500 text-primary-600 hover:bg-primary-50 px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center">
+                <Search class="w-5 h-5 mr-2" />
+                Chercher un expert
+              </button>
+            </div>
+          </div>
+
+          <!-- Image avec badges flottants -->
+          <div class="relative lg:h-[500px]">
+            <img 
+              src="https://images.pexels.com/photos/3760263/pexels-photo-3760263.jpeg"
+              alt="Service professionnel"
+              class="w-full h-full object-cover rounded-2xl shadow-2xl"
+            />
+            <!-- Overlay gradient -->
+            <div class="absolute inset-0 rounded-2xl bg-gradient-to-tr from-primary-600/20 to-transparent"></div>
+            
+            <!-- Badge flottant - note -->
+            <div class="absolute -top-6 -right-6 bg-white rounded-2xl shadow-xl p-4 flex items-center gap-3">
+              <Star class="w-8 h-8 text-yellow-400 fill-current" />
+              <div>
+                <div class="font-medium text-gray-900">Note moyenne</div>
+                <div class="text-2xl font-bold text-primary-600">4.9/5</div>
+              </div>
+            </div>
+            
+            <!-- Badge flottant - experts -->
+            <div class="absolute bottom-6 -left-6 bg-white rounded-2xl shadow-xl p-4">
+              <div class="font-medium text-gray-900">Experts disponibles</div>
+              <div class="text-2xl font-bold text-primary-600">2,500+</div>
+            </div>
+            
+            <!-- Badge flottant - interventions -->
+            <div class="absolute -bottom-6 right-12 bg-white rounded-2xl shadow-xl p-4">
+              <div class="font-medium text-gray-900">Interventions</div>
+              <div class="text-2xl font-bold text-primary-600">24/7</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Devenir expert - NOUVEAU -->
     <!-- CTA Section - version améliorée -->
     <section class="py-20 bg-white">
       <div class="max-w-7xl mx-auto px-4">
@@ -403,7 +505,6 @@ const quickSearch = (term) => {
 
 <style scoped>
 .bg-grid-pattern {
-  background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23000' fill-opacity='0.1' fill-rule='evenodd'%3E%3Ccircle cx='2' cy='2' r='1'/%3E%3C/g%3E%3C/svg%3E");
 }
 
 /* Animation de brillance GAFAM */

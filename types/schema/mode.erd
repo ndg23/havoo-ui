@@ -1,0 +1,162 @@
+erDiagram
+    PROFILES {
+        uuid id PK
+        varchar first_name
+        varchar last_name
+        varchar email
+        varchar phone
+        text bio
+        text avatar_url
+        varchar role
+        boolean is_expert
+        varchar expert_status
+        boolean is_verified
+        int profile_completion_percentage
+        timestamp created_at
+    }
+    
+    CATEGORIES {
+        serial id PK
+        varchar name
+        text description
+        int parent_id FK
+        varchar slug
+        boolean is_active
+    }
+    
+    SKILLS {
+        serial id PK
+        varchar name
+        int category_id FK
+        text description
+        boolean is_active
+    }
+    
+    REQUESTS {
+        serial id PK
+        uuid client_id FK
+        varchar title
+        text description
+        decimal budget
+        varchar budget_type
+        date deadline
+        varchar status
+        text[] skills_required
+        int category_id FK
+    }
+    
+    PROPOSALS {
+        serial id PK
+        int request_id FK
+        uuid expert_id FK
+        decimal price
+        varchar price_type
+        int duration
+        text message
+        varchar status
+    }
+    
+    CONTRACTS {
+        serial id PK
+        int request_id FK
+        int proposal_id FK
+        uuid client_id FK
+        uuid expert_id FK
+        varchar title
+        decimal price
+        varchar status
+        jsonb milestones
+    }
+    
+    SERVICES {
+        serial id PK
+        uuid expert_id FK
+        int category_id FK
+        varchar title
+        text description
+        decimal price
+        varchar price_type
+        int delivery_time
+        boolean is_active
+    }
+    
+    REVIEWS {
+        serial id PK
+        int contract_id FK
+        uuid reviewer_id FK
+        uuid reviewee_id FK
+        int rating
+        text comment
+        boolean is_public
+    }
+    
+    CONVERSATIONS {
+        serial id PK
+        varchar title
+        int request_id FK
+        int contract_id FK
+        timestamp last_message_at
+    }
+    
+    MESSAGES {
+        serial id PK
+        uuid sender_id FK
+        uuid receiver_id FK
+        int conversation_id FK
+        text content
+        boolean is_read
+        jsonb attachments
+    }
+    
+    USER_SKILLS {
+        uuid user_id FK
+        int skill_id FK
+        int years_experience
+        varchar proficiency_level
+        boolean is_verified
+    }
+    
+    SERVICE_SKILLS {
+        uuid id PK
+        uuid service_id FK
+        uuid skill_id FK
+    }
+    
+    PAYMENTS {
+        serial id PK
+        int contract_id FK
+        uuid payer_id FK
+        uuid payee_id FK
+        decimal amount
+        varchar status
+    }
+    
+    NOTIFICATIONS {
+        serial id PK
+        uuid profile_id FK
+        varchar title
+        text content
+        varchar type
+        boolean is_read
+        text action_url
+    }
+    
+    PROFILES ||--o{ REQUESTS : "publie"
+    PROFILES ||--o{ PROPOSALS : "propose"
+    PROFILES ||--o{ SERVICES : "offre"
+    PROFILES ||--o{ USER_SKILLS : "possède"
+    REQUESTS ||--o{ PROPOSALS : "reçoit"
+    REQUESTS ||--o| CONTRACTS : "devient"
+    PROPOSALS ||--o| CONTRACTS : "devient"
+    CONTRACTS ||--o{ REVIEWS : "génère"
+    CONTRACTS ||--o{ PAYMENTS : "implique"
+    SERVICES ||--o{ SERVICE_SKILLS : "requiert"
+    SKILLS ||--o{ USER_SKILLS : "attribuée à"
+    SKILLS ||--o{ SERVICE_SKILLS : "associée à"
+    CATEGORIES ||--o{ SKILLS : "contient"
+    CATEGORIES ||--o{ SERVICES : "catégorise"
+    CATEGORIES ||--o{ REQUESTS : "catégorise"
+    PROFILES ||--o{ MESSAGES : "envoie"
+    PROFILES ||--o{ MESSAGES : "reçoit"
+    CONVERSATIONS ||--o{ MESSAGES : "contient"
+    PROFILES ||--o{ NOTIFICATIONS : "reçoit"

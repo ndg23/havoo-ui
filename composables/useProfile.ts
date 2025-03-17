@@ -35,6 +35,7 @@ interface UserProfile {
   notificationPreferences: NotificationPreferences;
   expertDetails?: ExpertDetails;
   createdAt: string;
+  isActive: boolean;
 }
 
 interface ProfileUpdateData {
@@ -64,24 +65,37 @@ export function useProfile() {
   const error = ref<string | null>(null)
   
   /**
+   * Récupère l'ID de l'utilisateur connecté ou lance une erreur
+   */
+  const getUserId = (): string => {
+    if (!user.value) {
+      throw new Error('Utilisateur non connecté')
+    }
+    
+    const userId = user.value.id
+    if (!userId) {
+      throw new Error('ID utilisateur non disponible')
+    }
+    
+    return userId
+  }
+  
+  /**
    * Récupère le profil de l'utilisateur connecté
    */
   const fetchUserProfile = async (): Promise<UserProfile | null> => {
-    if (!user.value?.id) {
-      error.value = 'Utilisateur non connecté'
-      return null
-    }
-    
-    isLoading.value = true
-    error.value = null
-    
     try {
+      const userId = getUserId()
+      
+      isLoading.value = true
+      error.value = null
+      
       const { data, error: apiError } = await supabase
         .from('profiles')
         .select(`
           *
         `)
-        .eq('id', user.value.id)
+        .eq('id', userId)
         .single()
       
       if (apiError) throw apiError
@@ -104,7 +118,8 @@ export function useProfile() {
           contracts: true,
           payments: true
         },
-        createdAt: data.created_at
+        createdAt: data.created_at,
+        isActive: data.is_active
       }
       
       // Ajouter les détails d'expert si l'utilisateur est un expert
@@ -156,7 +171,7 @@ export function useProfile() {
       const { error: apiError } = await supabase
         .from('profiles')
         .update(updateData)
-        .eq('id', user.value.id)
+        .eq('id', getUserId())
       
       if (apiError) throw apiError
       
@@ -206,7 +221,7 @@ export function useProfile() {
       
       // Nom du fichier unique
       const fileExt = file.name.split('.').pop()
-      const fileName = `${user.value.id}-${Date.now()}.${fileExt}`
+      const fileName = `${getUserId()}-${Date.now()}.${fileExt}`
       const filePath = `avatars/${fileName}`
       
       // Upload vers Supabase Storage
@@ -227,7 +242,7 @@ export function useProfile() {
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: publicUrl })
-        .eq('id', user.value.id)
+        .eq('id', getUserId())
       
       if (updateError) throw updateError
       
@@ -269,7 +284,7 @@ export function useProfile() {
       const { error: apiError } = await supabase
         .from('profiles')
         .update({ notification_preferences: updatedPreferences })
-        .eq('id', user.value.id)
+        .eq('id', getUserId())
       
       if (apiError) throw apiError
       
@@ -303,7 +318,7 @@ export function useProfile() {
       const { error: apiError } = await supabase
         .from('profiles')
         .update({ is_expert: becomeExpert })
-        .eq('id', user.value.id)
+        .eq('id', getUserId())
       
       if (apiError) throw apiError
       
@@ -362,7 +377,7 @@ export function useProfile() {
       const { error: apiError } = await supabase
         .from('profiles')
         .update(updateData)
-        .eq('id', user.value.id)
+        .eq('id', getUserId())
       
       if (apiError) throw apiError
       
@@ -372,11 +387,11 @@ export function useProfile() {
         await supabase
           .from('profile_skills')
           .delete()
-          .eq('profile_id', user.value.id)
+          .eq('profile_id', getUserId())
         
         // Puis ajouter les nouvelles
         const skillsToInsert = expertData.skills.map(skillId => ({
-          profile_id: user.value.id,
+          profile_id: getUserId(),
           skill_id: skillId
         }))
         
@@ -393,11 +408,11 @@ export function useProfile() {
         await supabase
           .from('profile_categories')
           .delete()
-          .eq('profile_id', user.value.id)
+          .eq('profile_id', getUserId())
         
         // Puis ajouter les nouvelles
         const categoriesToInsert = expertData.categories.map(categoryId => ({
-          profile_id: user.value.id,
+          profile_id: getUserId(),
           category_id: categoryId
         }))
         
@@ -442,6 +457,42 @@ export function useProfile() {
     return `${profile.value.firstName} ${profile.value.lastName}`
   })
   
+  /**
+   * Met à jour le statut d'activation du profil
+   */
+  const updateProfileStatus = async (isActive: boolean): Promise<boolean> => {
+    try {
+      const userId = getUserId()
+      
+      isLoading.value = true
+      error.value = null
+      
+      const { error: apiError } = await supabase
+        .from('profiles')
+        .update({ is_active: isActive, updated_at: new Date().toISOString() })
+        .eq('id', userId)
+      
+      if (apiError) throw apiError
+      
+      // Mettre à jour le profil en mémoire
+      if (profile.value) {
+        profile.value = {
+          ...profile.value,
+          isActive
+        }
+      }
+      
+      return true
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : 'Erreur inconnue'
+      console.error('Error updating profile status:', e)
+      error.value = errorMessage || 'Erreur lors de la mise à jour du statut du profil'
+      return false
+    } finally {
+      isLoading.value = false
+    }
+  }
+  
   return {
     profile,
     isLoading,
@@ -452,6 +503,7 @@ export function useProfile() {
     updateNotificationPreferences,
     toggleExpertStatus,
     updateExpertProfile,
-    getFullName
+    getFullName,
+    updateProfileStatus
   }
 } 

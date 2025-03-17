@@ -1,239 +1,298 @@
 <template>
-  <div class="max-w-4xl mx-auto px-4 pt-5 pb-16  h">
-    <!-- Ajout du header avec bouton de retour au profil -->
-    <AccountHeader 
-      title="Mes propositions" 
-      subtitle="Gérez les demandes auxquelles vous avez répondu" 
-    />
-
-    <!-- En-tête de la page -->
-    <div class="mb-7 bg-white dark:bg-gray-800 rounded-xl p-5 border-l-4 border-primary-500 shadow-sm">
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-        <SendIcon class="h-6 w-6 mr-3 text-primary-600 dark:text-primary-400" />
-        Mes propositions
-      </h1>
-      <p class="text-gray-600 dark:text-gray-400 mt-1">
-        Suivez l'état de vos propositions envoyées aux clients
-      </p>
-    </div>
-
-    <!-- Redirection si non expert -->
-    <div v-if="!isExpert" class="bg-white dark:bg-gray-800 rounded-xl p-8 text-center border border-gray-200 dark:border-gray-700 mb-7">
-      <div class="mb-4 flex justify-center">
-        <div class="bg-amber-100 dark:bg-amber-900/30 p-4 rounded-full">
-          <AlertTriangle class="h-8 w-8 text-amber-600 dark:text-amber-400" />
-        </div>
-      </div>
-      <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Mode Expert nécessaire</h3>
-      <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-        Cette section est réservée aux experts. Activez le mode expert dans votre profil pour proposer vos services.
-      </p>
-      <NuxtLink to="/account" class="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-full shadow-sm">
-        Retour au profil
+  <div class="max-w-4xl mx-auto px-4 py-6">
+    <div class="flex justify-between items-center mb-5">
+      <h1 class="text-xl font-bold">Mes Propositions</h1>
+      <NuxtLink 
+        to="/requests" 
+        class="px-4 py-2 bg-primary-600 text-white rounded-full text-sm font-medium inline-flex items-center"
+      >
+        <SearchIcon class="h-4 w-4 mr-1.5" />
+        Explorer
       </NuxtLink>
     </div>
 
-    <template v-else>
-      <!-- Stats et aperçu rapide -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-7">
-        <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 text-center">
-          <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ stats.total }}</div>
-          <div class="text-xs font-medium text-gray-600 dark:text-gray-400">Total propositions</div>
-        </div>
-        <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 text-center">
-          <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ stats.accepted }}</div>
-          <div class="text-xs font-medium text-gray-600 dark:text-gray-400">Acceptées</div>
-        </div>
-        <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 text-center">
-          <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ stats.pending }}</div>
-          <div class="text-xs font-medium text-gray-600 dark:text-gray-400">En attente</div>
-        </div>
-        <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 text-center">
-          <div class="text-2xl font-bold text-amber-600 dark:text-amber-400">{{ stats.conversion }}%</div>
-          <div class="text-xs font-medium text-gray-600 dark:text-gray-400">Taux de conversion</div>
-        </div>
+    <!-- Stats cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <div class="border border-gray-200 dark:border-gray-700 rounded-xl p-3">
+        <div class="text-sm text-gray-500 dark:text-gray-400">Total</div>
+        <div class="text-xl font-semibold mt-1">{{ stats.total }}</div>
+      </div>
+      <div class="border border-gray-200 dark:border-gray-700 rounded-xl p-3">
+        <div class="text-sm text-gray-500 dark:text-gray-400">En attente</div>
+        <div class="text-xl font-semibold mt-1">{{ stats.pending }}</div>
+      </div>
+      <div class="border border-gray-200 dark:border-gray-700 rounded-xl p-3">
+        <div class="text-sm text-gray-500 dark:text-gray-400">Acceptées</div>
+        <div class="text-xl font-semibold mt-1">{{ stats.accepted }}</div>
+      </div>
+      <div class="border border-gray-200 dark:border-gray-700 rounded-xl p-3">
+        <div class="text-sm text-gray-500 dark:text-gray-400">Taux de conversion</div>
+        <div class="text-xl font-semibold mt-1">{{ stats.conversion }}%</div>
+      </div>
+    </div>
+
+    <!-- Filters and search -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+      <div class="flex items-center gap-2 flex-wrap">
+        <button 
+          @click="activeFilter = 'all'"
+          class="px-3 py-1.5 rounded-full text-sm transition-colors"
+          :class="activeFilter === 'all' ? 'bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400'"
+        >
+          Toutes
+        </button>
+        <button 
+          @click="activeFilter = 'pending'"
+          class="px-3 py-1.5 rounded-full text-sm transition-colors"
+          :class="activeFilter === 'pending' ? 'bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400'"
+        >
+          En attente
+        </button>
+        <button 
+          @click="activeFilter = 'accepted'"
+          class="px-3 py-1.5 rounded-full text-sm transition-colors"
+          :class="activeFilter === 'accepted' ? 'bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400'"
+        >
+          Acceptées
+        </button>
+        <button 
+          @click="activeFilter = 'declined'"
+          class="px-3 py-1.5 rounded-full text-sm transition-colors"
+          :class="activeFilter === 'declined' ? 'bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400'"
+        >
+          Refusées
+        </button>
       </div>
 
-      <!-- Filtres et recherche -->
-      <div class="mb-7 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div class="flex items-center gap-2 flex-wrap">
-          <button 
-            @click="activeFilter = 'all'"
-            class="px-4 py-2 rounded-full text-sm font-medium transition-all"
-            :class="activeFilter === 'all' ? 'bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200'"
-          >
-            Toutes
-          </button>
-          <button 
-            @click="activeFilter = 'pending'"
-            class="px-4 py-2 rounded-full text-sm font-medium transition-all"
-            :class="activeFilter === 'pending' ? 'bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200'"
-          >
-            En attente
-          </button>
-          <button 
-            @click="activeFilter = 'accepted'"
-            class="px-4 py-2 rounded-full text-sm font-medium transition-all"
-            :class="activeFilter === 'accepted' ? 'bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200'"
-          >
-            Acceptées
-          </button>
-          <button 
-            @click="activeFilter = 'declined'"
-            class="px-4 py-2 rounded-full text-sm font-medium transition-all"
-            :class="activeFilter === 'declined' ? 'bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200'"
-          >
-            Refusées
-          </button>
-        </div>
-
-        <div class="relative">
-          <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <input 
-            type="text" 
-            placeholder="Rechercher dans mes propositions..."
-            v-model="searchQuery"
-            class="pl-10 pr-4 py-2 w-full sm:w-64 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:focus:ring-primary-600 dark:focus:border-primary-600"
-          />
-        </div>
+      <div class="relative">
+        <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <input 
+          type="text" 
+          placeholder="Rechercher..."
+          v-model="searchQuery"
+          class="pl-9 pr-3 py-2 w-full sm:w-60 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
+        />
       </div>
+    </div>
 
-      <!-- Chargement -->
-      <div v-if="isLoading" class="bg-white dark:bg-gray-800 rounded-xl p-12 flex flex-col items-center">
-        <div class="h-10 w-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
-        <p class="mt-4 text-gray-600 dark:text-gray-400">Chargement de vos propositions...</p>
+    <!-- Loading state -->
+    <div v-if="isLoading" class="py-10 flex justify-center">
+      <svg class="animate-spin h-6 w-6 text-primary-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+    </div>
+
+    <!-- Empty state -->
+    <div v-else-if="filteredProposals.length === 0" class="border border-gray-200 dark:border-gray-700 rounded-xl p-5 text-center">
+      <div class="inline-flex items-center justify-center p-3 bg-gray-100 dark:bg-gray-800 rounded-full mb-3">
+        <ClipboardIcon class="h-5 w-5 text-gray-500" />
       </div>
+      <h3 class="text-lg font-medium mb-1">Aucune proposition trouvée</h3>
+      <p class="text-gray-500 text-sm mb-4">
+        {{ activeFilter === 'all' 
+          ? "Vous n'avez pas encore envoyé de proposition." 
+          : activeFilter === 'pending' 
+          ? "Vous n'avez aucune proposition en attente."
+          : activeFilter === 'accepted'
+          ? "Aucune proposition acceptée pour le moment."
+          : "Aucune proposition refusée."
+        }}
+      </p>
+      <NuxtLink to="/requests" class="px-4 py-2 bg-primary-600 text-white rounded-full text-sm font-medium inline-flex items-center">
+        <SearchIcon class="h-4 w-4 mr-1.5" />
+        Explorer les demandes
+      </NuxtLink>
+    </div>
 
-      <!-- Aucune proposition -->
-      <div v-else-if="filteredProposals.length === 0" class="bg-white dark:bg-gray-800 rounded-xl p-8 text-center border border-gray-200 dark:border-gray-700">
-        <div class="mb-4 flex justify-center">
-          <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-full">
-            <ClipboardIcon class="h-8 w-8 text-gray-500 dark:text-gray-400" />
-          </div>
-        </div>
-        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Aucune proposition trouvée</h3>
-        <p class="text-gray-600 dark:text-gray-400 mb-6">
-          {{ activeFilter === 'all' 
-            ? "Vous n'avez pas encore envoyé de proposition. Parcourez les demandes disponibles pour démarrer." 
-            : activeFilter === 'pending' 
-            ? "Vous n'avez aucune proposition en attente actuellement."
-            : activeFilter === 'accepted'
-            ? "Aucune de vos propositions n'a encore été acceptée."
-            : "Aucune de vos propositions n'a été refusée."
-          }}
-        </p>
-        <NuxtLink to="/requests" class="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-full shadow-sm inline-flex items-center">
-          <SearchIcon class="h-4 w-4 mr-2" />
-          Explorer les demandes
-        </NuxtLink>
-      </div>
-
-      <!-- Liste des propositions -->
-      <div v-else class="space-y-4">
-        <div v-for="proposal in filteredProposals" :key="proposal.id" 
-          class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-200">
-          
-          <!-- Informations principales -->
-          <div class="p-5">
-            <div class="flex justify-between items-start mb-3">
-              <div>
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white">{{ proposal.request_title }}</h3>
-                <div class="flex flex-wrap gap-2 mt-1">
-                  <span 
-                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                    :class="getStatusClass(proposal.status)"
-                  >
-                    {{ getStatusLabel(proposal.status) }}
-                  </span>
-                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
-                    {{ proposal.category }}
-                  </span>
-                  <span v-if="proposal.is_urgent" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
-                    Urgent
-                  </span>
-                </div>
-              </div>
-              <div class="text-right">
-                <div class="text-lg font-semibold text-gray-900 dark:text-white">{{ proposal.formatted_price }}</div>
-                <div class="text-xs text-gray-500 dark:text-gray-400">
-                  Proposé le {{ formatDate(proposal.created_at) }}
-                </div>
-              </div>
-            </div>
-            
-            <!-- Aperçu du message -->
-            <div class="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
-              {{ proposal.message }}
-            </div>
-            
-            <!-- Délai et client -->
-            <div class="flex flex-wrap justify-between items-center text-sm">
-              <div class="flex items-center text-gray-600 dark:text-gray-400">
-                <CalendarIcon class="h-4 w-4 mr-1.5" />
-                <span>Délai: <span class="font-medium">{{ proposal.estimated_days }} jours</span></span>
-              </div>
-              <div class="flex items-center text-gray-600 dark:text-gray-400">
-                <UserIcon class="h-4 w-4 mr-1.5" />
-                <span>Client: <span class="font-medium">{{ proposal.client_name }}</span></span>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Actions -->
-          <div class="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-5 py-3 flex justify-between items-center">
+    <!-- Proposals list -->
+    <div v-else class="space-y-3">
+      <div 
+        v-for="proposal in filteredProposals" 
+        :key="proposal.id" 
+        class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden"
+      >
+        <!-- Main content -->
+        <div class="p-4">
+          <div class="flex justify-between">
             <div>
-              <NuxtLink 
-                :to="`/requests/${proposal.request_id}`"
-                class="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium"
-              >
-                Voir la demande
-              </NuxtLink>
+              <h3 class="font-medium">{{ proposal.request_title }}</h3>
+              <div class="flex flex-wrap gap-1.5 mt-1.5">
+                <span 
+                  class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+                  :class="getStatusClass(proposal.status)"
+                >
+                  {{ getStatusLabel(proposal.status) }}
+                </span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300">
+                  {{ proposal.category }}
+                </span>
+                <span v-if="proposal.is_urgent" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
+                  Urgent
+                </span>
+              </div>
             </div>
-            
-            <div class="flex gap-2">
-              <button 
-                v-if="proposal.status === 'pending'"
-                @click="showEditProposalModal(proposal)"
-                class="px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-md border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-              >
-                Modifier
-              </button>
-              
-              <button 
-                v-if="proposal.status === 'accepted'"
-                class="px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-md transition-colors"
-              >
-                <MessageCircle class="h-4 w-4 inline-block mr-1" />
-                Contacter
-              </button>
-              
-              <button 
-                v-if="proposal.status === 'pending'"
-                @click="confirmCancelProposal(proposal.id)"
-                class="px-3 py-1.5 bg-white dark:bg-gray-700 text-red-600 dark:text-red-400 text-sm font-medium rounded-md border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-              >
-                Annuler
-              </button>
+            <div class="text-right">
+              <div class="font-semibold">{{ proposal.formatted_price }}</div>
+              <div class="text-xs text-gray-500 mt-1">
+                {{ formatDate(proposal.created_at) }}
+              </div>
+            </div>
+          </div>
+          
+          <!-- Message preview -->
+          <div class="text-sm text-gray-600 dark:text-gray-400 mt-3 line-clamp-2">
+            {{ proposal.message }}
+          </div>
+          
+          <!-- Details -->
+          <div class="flex flex-wrap justify-between items-center text-sm mt-3 text-gray-600 dark:text-gray-400">
+            <div class="flex items-center">
+              <CalendarIcon class="h-4 w-4 mr-1" />
+              <span>{{ proposal.estimated_days }} jours</span>
+            </div>
+            <div class="flex items-center">
+              <UserIcon class="h-4 w-4 mr-1" />
+              <span>{{ proposal.client_name }}</span>
             </div>
           </div>
         </div>
+        
+        <!-- Actions -->
+        <div class="bg-gray-50 dark:bg-gray-800/50 px-4 py-3 flex justify-between items-center border-t border-gray-200 dark:border-gray-700">
+          <NuxtLink 
+            :to="`/requests/${proposal.request_id}`"
+            class="text-sm text-primary-600 dark:text-primary-400 hover:underline"
+          >
+            Voir la demande
+          </NuxtLink>
+          
+          <div class="flex gap-2">
+            <button 
+              v-if="proposal.status === 'pending'"
+              @click="showEditProposalModal(proposal)"
+              class="px-3 py-1.5 text-sm rounded-full border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              Modifier
+            </button>
+            
+            <button 
+              v-if="proposal.status === 'accepted'"
+              class="px-3 py-1.5 bg-primary-600 text-white text-sm rounded-full inline-flex items-center"
+            >
+              <MessageCircle class="h-4 w-4 mr-1" />
+              Contacter
+            </button>
+            
+            <button 
+              v-if="proposal.status === 'pending'"
+              @click="confirmCancelProposal(proposal.id)"
+              class="px-3 py-1.5 text-sm text-red-600 dark:text-red-400 rounded-full border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              Annuler
+            </button>
+          </div>
+        </div>
       </div>
-    </template>
+    </div>
+
+    <!-- Edit Proposal Modal (simplified Twitter-style) -->
+    <Teleport to="body">
+      <div v-if="showEditModal" class="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center" @click.self="closeEditModal">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-lg w-full mx-4">
+          <!-- Modal header -->
+          <div class="flex justify-between items-center px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-medium">Modifier la proposition</h3>
+            <button @click="closeEditModal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          
+          <!-- Modal content -->
+          <div class="p-5">
+            <form @submit.prevent="updateProposal" class="space-y-4">
+              <div>
+                <input
+                  v-model.number="editForm.price"
+                  type="number"
+                  min="0"
+                  step="1000"
+                  placeholder="Prix (XAF)"
+                  required
+                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+              
+              <div>
+                <input
+                  v-model.number="editForm.estimated_days"
+                  type="number"
+                  min="1"
+                  max="365"
+                  placeholder="Délai de livraison (jours)"
+                  required
+                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+              
+              <div>
+                <textarea
+                  v-model="editForm.message"
+                  rows="5"
+                  placeholder="Votre message au client"
+                  required
+                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+                ></textarea>
+              </div>
+              
+              <div class="flex justify-end">
+                <button
+                  type="submit"
+                  class="px-4 py-2 bg-primary-600 text-white rounded-full text-sm font-medium"
+                  :disabled="isSubmitting"
+                >
+                  <span v-if="isSubmitting" class="flex items-center">
+                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Enregistrement...
+                  </span>
+                  <span v-else>Mettre à jour</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { SendIcon, AlertTriangle, Search, ClipboardIcon, CalendarIcon, UserIcon, MessageCircle, SearchIcon } from 'lucide-vue-next'
-import AccountHeader from '~/components/account/AccountHeader.vue'
+import { Search, ClipboardIcon, CalendarIcon, UserIcon, MessageCircle, SearchIcon } from 'lucide-vue-next'
 
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
-const isExpert = ref(true)
+const toast = useToast()
+
 const isLoading = ref(true)
 const proposals = ref([])
 const activeFilter = ref('all')
 const searchQuery = ref('')
+
+// Edit modal
+const showEditModal = ref(false)
+const editingProposal = ref(null)
+const isSubmitting = ref(false)
+const editForm = ref({
+  price: 0,
+  estimated_days: 1,
+  message: ''
+})
 
 // Statistiques
 const stats = computed(() => {
@@ -307,6 +366,7 @@ const fetchProposals = async () => {
     }))
   } catch (error) {
     console.error('Erreur lors de la récupération des propositions:', error)
+    toast.error('Erreur lors du chargement des propositions')
   } finally {
     isLoading.value = false
   }
@@ -364,58 +424,88 @@ const confirmCancelProposal = async (proposalId) => {
       // Mettre à jour la liste
       proposals.value = proposals.value.filter(p => p.id !== proposalId)
       
+      toast.success('Proposition annulée avec succès')
     } catch (error) {
       console.error('Erreur lors de l\'annulation de la proposition:', error)
-      alert('Une erreur est survenue lors de l\'annulation de la proposition')
+      toast.error('Une erreur est survenue')
     }
   }
 }
 
-// Surveiller les changements du filtre actif ou de la requête de recherche
-watch([activeFilter, searchQuery], () => {
-  // Le calcul est fait automatiquement via le computed
-})
+// Ouvrir le modal d'édition
+const showEditProposalModal = (proposal) => {
+  editingProposal.value = proposal
+  editForm.value = {
+    price: proposal.price,
+    estimated_days: proposal.estimated_days,
+    message: proposal.message
+  }
+  showEditModal.value = true
+}
+
+// Fermer le modal d'édition
+const closeEditModal = () => {
+  showEditModal.value = false
+  editingProposal.value = null
+}
+
+// Mettre à jour une proposition
+const updateProposal = async () => {
+  if (!editingProposal.value) return
+  
+  isSubmitting.value = true
+  
+  try {
+    const { error } = await supabase
+      .from('proposals')
+      .update({
+        price: editForm.value.price,
+        estimated_days: editForm.value.estimated_days,
+        message: editForm.value.message
+      })
+      .eq('id', editingProposal.value.id)
+    
+    if (error) throw error
+    
+    // Mettre à jour la liste locale
+    const index = proposals.value.findIndex(p => p.id === editingProposal.value.id)
+    if (index !== -1) {
+      proposals.value[index] = {
+        ...proposals.value[index],
+        price: editForm.value.price,
+        estimated_days: editForm.value.estimated_days,
+        message: editForm.value.message,
+        formatted_price: new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(editForm.value.price)
+      }
+    }
+    
+    toast.success('Proposition mise à jour avec succès')
+    closeEditModal()
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour de la proposition:', error)
+    toast.error('Une erreur est survenue')
+  } finally {
+    isSubmitting.value = false
+  }
+}
 
 // Initialisation
 onMounted(() => {
   fetchProposals()
 })
 
+function resetForm() {
+  editForm.price = 0
+  editForm.estimated_days = 1
+  editForm.message = ''
+}
 definePageMeta({
+  middleware: ['auth'],
   layout: 'account'
 })
 </script>
 
 <style scoped>
-/* Animation des composants */
-.rounded-xl {
-  animation: fadeIn 0.4s ease;
-  animation-fill-mode: both;
-}
-
-.space-y-4 > div {
-  animation: fadeIn 0.4s ease;
-  animation-fill-mode: both;
-}
-
-.space-y-4 > div:nth-child(1) { animation-delay: 0.05s; }
-.space-y-4 > div:nth-child(2) { animation-delay: 0.1s; }
-.space-y-4 > div:nth-child(3) { animation-delay: 0.15s; }
-.space-y-4 > div:nth-child(4) { animation-delay: 0.2s; }
-.space-y-4 > div:nth-child(5) { animation-delay: 0.25s; }
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Style limitant le nombre de lignes (line-clamp) */
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;

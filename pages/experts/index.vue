@@ -1,302 +1,531 @@
 <template>
-  <div class="max-w-3xl mx-auto px-4 pt-5 pb-16">
-    <!-- En-tête minimaliste style Twitter -->
-    <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Trouver un expert</h1>
+  <div class="max-w-4xl mx-auto px-4 py-6 bg-white">
+    <div class="flex justify-between items-center mb-5">
+      <h1 class="text-xl font-bold text-gray-900">Trouver un expert</h1>
     </div>
 
-    <!-- Filtres par catégorie style pills coloré -->
-    <div 
-      ref="stickyMenu" 
-      class="sticky top-16 z-30 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 transition-all duration-300 py-4"
-      :class="isSticky ? 'shadow-md' : ''"
-    >
-      <div class="flex overflow-x-auto pb-2 no-scrollbar gap-2">
-        <button
-          v-for="category in categories"
-          :key="category.id"
-          class="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors"
-          :class="selectedCategory === category.id ? 
-            'bg-primary-600 text-white dark:bg-primary-500' : 
-            'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700'"
-          @click="filterByCategory(category.id)"
+    <!-- Active filters display -->
+    <div v-if="activeFilters.length > 0" class="mb-4">
+      <div class="flex items-center flex-wrap gap-2">
+        <div class="text-sm text-gray-500 mr-1">Filtres actifs:</div>
+        <span 
+          v-for="filter in activeFilters" 
+          :key="filter.id"
+          class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800"
         >
-          {{ category.name }}
+          {{ filter.name }}
+          <button 
+            @click="removeFilter(filter)"
+            class="ml-1.5 h-4 w-4 rounded-full inline-flex items-center justify-center text-primary-600 hover:bg-primary-200"
+          >
+            <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+            </svg>
+          </button>
+        </span>
+        <button 
+          @click="clearFilters"
+          class="text-xs text-gray-500 hover:text-gray-700 ml-1"
+        >
+          Effacer tous
         </button>
       </div>
     </div>
-    
-    <!-- État de chargement -->
-    <div v-if="loading" class="flex justify-center items-center py-20">
-      <div class="h-10 w-10 border-4 border-gray-200 dark:border-gray-700 border-t-primary-500 dark:border-t-primary-400 rounded-full animate-spin"></div>
-      <span class="ml-3 text-gray-600 dark:text-gray-400">Chargement des experts...</span>
-    </div>
-    
-    <!-- Aucun expert trouvé -->
-    <div v-else-if="experts.length === 0" class="py-16 text-center">
-      <div class="mb-4 flex justify-center">
-        <div class="bg-primary-50 dark:bg-primary-900/20 p-4 rounded-full">
-          <UserX class="h-8 w-8 text-primary-500 dark:text-primary-400" />
+
+    <!-- Search and filters -->
+    <div class="bg-white rounded-xl border border-gray-200 mb-5 shadow-sm">
+      <div class="p-4">
+        <!-- Search and categories -->
+        <div class="flex flex-col sm:flex-row gap-3 mb-3">
+          <div class="relative flex-grow">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg class="h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <input 
+              v-model="searchQuery" 
+              type="text" 
+              placeholder="Rechercher un expert..." 
+              class="w-full pl-10 pr-3 py-2 rounded-full border border-gray-300 bg-white text-sm"
+            />
+          </div>
+          
+          <!-- Category filter -->
+          <div class="relative">
+            <select 
+              v-model="filters.categoryId" 
+              class="pl-3 pr-8 py-2 rounded-full border border-gray-300 bg-white text-sm appearance-none"
+            >
+              <option value="">Toutes catégories</option>
+              <option v-for="category in categories" :key="category.id" :value="category.id">
+                {{ category.name }}
+              </option>
+            </select>
+            <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+              <svg class="h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Skills filter -->
+        <div class="relative" data-skills-dropdown>
+          <div class="flex items-center">
+            <button 
+              @click="showSkillsDropdown = !showSkillsDropdown"
+              class="px-4 py-2 rounded-full border border-gray-300 bg-white text-sm flex items-center"
+            >
+              Compétences
+              <svg 
+                class="ml-1 h-4 w-4 text-gray-400" 
+                :class="{ 'transform rotate-180': showSkillsDropdown }"
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 20 20" 
+                fill="currentColor"
+              >
+                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+              </svg>
+            </button>
+            
+            <!-- Selected skills display -->
+            <div v-if="selectedSkillFilters.length > 0" class="ml-2 flex flex-wrap gap-1">
+              <span 
+                v-for="(skill, index) in selectedSkillFilters.slice(0, 2)" 
+                :key="skill.id"
+                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800"
+              >
+                {{ skill.name }}
+              </span>
+              <span 
+                v-if="selectedSkillFilters.length > 2" 
+                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700"
+              >
+                +{{ selectedSkillFilters.length - 2 }}
+              </span>
+            </div>
+          </div>
+          
+          <!-- Skills dropdown -->
+          <div 
+            v-show="showSkillsDropdown" 
+            class="absolute z-10 mt-1 w-64 bg-white shadow-lg rounded-lg border border-gray-200"
+          >
+            <div class="p-2">
+              <input 
+                v-model="skillSearchQuery" 
+                type="text" 
+                placeholder="Rechercher une compétence..."
+                class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm bg-white"
+              />
+            </div>
+            <div class="max-h-60 overflow-y-auto p-2">
+              <div 
+                v-for="skill in filteredSkills" 
+                :key="skill.id"
+                @click="toggleSkillFilter(skill)"
+                class="flex items-center px-3 py-2 hover:bg-gray-100 rounded-lg cursor-pointer"
+              >
+                <input 
+                  type="checkbox" 
+                  :checked="selectedSkillFilters.some(s => s.id === skill.id)" 
+                  class="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                />
+                <span class="ml-2 text-sm">{{ skill.name }}</span>
+              </div>
+            </div>
+            <div v-if="selectedSkillFilters.length > 0" class="p-2 flex justify-between border-t border-gray-200">
+              <span class="text-xs text-gray-500">{{ selectedSkillFilters.length }} sélectionnée(s)</span>
+              <button 
+                @click="clearSkillFilters" 
+                class="text-xs text-primary-600 hover:text-primary-700"
+              >
+                Effacer
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-      <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Aucun expert trouvé</h3>
-      <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-sm mx-auto">
-        Aucun expert ne correspond à cette catégorie pour le moment
+    </div>
+
+    <!-- Loading state -->
+    <div v-if="isLoading" class="py-10 flex justify-center">
+      <svg class="animate-spin h-6 w-6 text-primary-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+    </div>
+
+    <!-- Empty state -->
+    <div v-else-if="filteredExperts.length === 0" class="bg-white rounded-xl border border-gray-200 p-8 text-center shadow-sm">
+      <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100 mb-4">
+        <svg class="h-6 w-6 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </div>
+      <h3 class="text-lg font-medium text-gray-900 mb-1">Aucun expert trouvé</h3>
+      <p class="text-gray-500">
+        Essayez d'ajuster vos filtres ou votre recherche
       </p>
     </div>
     
-    <!-- Liste des experts avec séparations horizontales -->
-    <div v-else>
+    <!-- Experts grid -->
+    <div v-else class="grid grid-cols-1 gap-4">
       <div 
-        v-for="(expert, index) in experts" 
+        v-for="expert in filteredExperts" 
         :key="expert.id"
-        class="py-5 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all"
-        :class="{ 'border-b border-gray-200 dark:border-gray-700': index !== experts.length - 1 }"
+        class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
       >
-        <!-- En-tête avec avatar et nom -->
-        <div class="flex items-start">
-          <img 
-            :src="expert.profile_image || '/img/default-avatar.png'" 
-            :alt="expert.firstName + ' ' + expert.lastName"
-            class="w-12 h-12 rounded-full object-cover border border-gray-100 dark:border-gray-700"
-          />
-          <div class="ml-3 flex-1">
-            <div class="flex items-center">
-              <h3 class="font-semibold text-gray-900 dark:text-white">{{ expert.firstName }} {{ expert.lastName }}</h3>
-              <div v-if="expert.isVerified" class="ml-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs px-2 py-0.5 rounded-full font-medium">
-                Vérifié
+        <!-- Expert card -->
+        <div class="px-5 py-4 flex flex-col sm:flex-row sm:items-center">
+          <!-- Avatar and name -->
+          <div class="flex items-center mb-4 sm:mb-0">
+            <img 
+              :src="expert.avatar_url || '/images/default-avatar.png'" 
+              :alt="expert.name" 
+              class="h-12 w-12 rounded-full object-cover border border-gray-200"
+            />
+            <div class="ml-4">
+              <div class="font-medium text-gray-900">{{ expert.name }}</div>
+              <!-- Rating -->
+              <div class="flex items-center mt-0.5">
+                <div class="flex items-center">
+                  <svg v-for="i in 5" :key="i" class="h-4 w-4" :class="i <= Math.round(expert.avg_rating) ? 'text-yellow-400' : 'text-gray-300'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                </div>
+                <span class="ml-1 text-xs text-gray-500">
+                  {{ expert.avg_rating.toFixed(1) }} ({{ expert.reviews_count }} avis)
+                </span>
               </div>
             </div>
-            
-            <!-- Spécialité/catégorie et note -->
-            <div class="flex items-center mt-1 text-sm">
-              <span class="text-primary-600 dark:text-primary-400 font-medium">{{ expert.specialty }}</span>
-              <span class="mx-1.5 text-gray-400">•</span>
-              <div class="flex items-center">
-                <Star class="h-3.5 w-3.5 text-amber-400 fill-amber-400" />
-                <span class="ml-1 text-gray-700 dark:text-gray-300">{{ expert.rating }}</span>
-                <span class="ml-1 text-gray-500 dark:text-gray-400">({{ expert.reviewCount }})</span>
-              </div>
+          </div>
+          
+          <!-- Skills and category -->
+          <div class="sm:ml-auto text-right flex flex-col items-start sm:items-end">
+            <div class="text-sm text-gray-600 mb-1">
+              {{ expert.category_name }}
             </div>
-            
-            <!-- Bio -->
-            <p class="mt-2 text-gray-700 dark:text-gray-300 line-clamp-2 text-sm">
-              {{ expert.bio }}
-            </p>
-            
-            <!-- Tags/compétences avec couleurs -->
-            <div class="flex flex-wrap gap-1.5 mt-3">
+            <div class="flex flex-wrap gap-1.5 mt-1 justify-end">
               <span 
-                v-for="(skill, skillIndex) in expert.skills" 
-                :key="skillIndex" 
-                class="rounded-full px-3 py-1 text-xs font-medium"
-                :class="getSkillColor(skillIndex)"
+                v-for="skill in expert.skills.slice(0, 3)" 
+                :key="skill.id"
+                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700"
               >
-                {{ skill }}
+                {{ skill.name }}
+              </span>
+              <span 
+                v-if="expert.skills.length > 3" 
+                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700"
+              >
+                +{{ expert.skills.length - 3 }}
               </span>
             </div>
           </div>
         </div>
         
-        <!-- Prix et bouton de contact -->
-        <div class="flex items-center justify-between mt-4 ml-14">
-          <div>
-            <div class="font-bold text-lg text-primary-600 dark:text-primary-400">
-              {{ expert.hourlyRate }}
+        <!-- About and actions -->
+        <div class="px-5 py-3 border-t border-gray-200">
+          <p class="text-sm text-gray-600 line-clamp-2 mb-3">
+            {{ expert.bio || "Cet expert n'a pas encore ajouté de bio." }}
+          </p>
+          
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div class="flex items-center text-gray-700">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+              </svg>
+              <span class="text-xs">Membre depuis {{ formatDate(expert.created_at) }}</span>
             </div>
-            <div class="text-xs text-gray-500 dark:text-gray-400">
-              par heure
+            
+            <div class="flex gap-2">
+              <NuxtLink 
+                :to="`/experts/${expert.id}`"
+                class="px-4 py-1.5 text-sm border border-gray-300 rounded-full hover:bg-gray-50"
+              >
+                Voir le profil
+              </NuxtLink>
+              <NuxtLink 
+                :to="`/messages/new?expertId=${expert.id}`"
+                class="px-4 py-1.5 text-sm bg-primary-600 text-white rounded-full hover:bg-primary-700"
+              >
+                Contacter
+              </NuxtLink>
             </div>
           </div>
-          
-          <button 
-            @click="contactExpert(expert)"
-            class="px-4 py-2 bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 text-white rounded-full text-sm font-medium transition-transform hover:scale-105"
-          >
-            Contacter
-          </button>
         </div>
       </div>
     </div>
     
-    <!-- Bouton flottant pour la recherche -->
-    <button @click="openSearch" class="fixed bottom-6 right-6 w-14 h-14 bg-primary-600 hover:bg-primary-700 text-white rounded-full shadow-lg flex items-center justify-center hover:scale-105 transition-transform">
-      <Search class="h-6 w-6" />
-    </button>
+    <!-- Load more -->
+    <div v-if="hasMoreExperts && !isLoading" class="mt-6 flex justify-center">
+      <button 
+        @click="loadMoreExperts" 
+        class="px-4 py-2 text-sm text-primary-600 hover:text-primary-700 flex items-center"
+      >
+        Voir plus d'experts
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+        </svg>
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onUnmounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, reactive, onMounted, onBeforeUnmount } from 'vue'
 import { useSupabaseClient } from '#imports'
-import { useExpertService } from '~/services/expertService'
-import {
-  Search,
-  Star,
-  UserX
-} from 'lucide-vue-next'
+// import { useToast } from 'vue-toastification'
 
-const router = useRouter()
 const supabase = useSupabaseClient()
+const toast = useToast()
 
-// États réactifs
+// States
+const isLoading = ref(true)
 const experts = ref([])
 const categories = ref([])
-const selectedCategory = ref(null)
-const loading = ref(true)
-const errorMessage = ref('')
+const skills = ref([])
 const searchQuery = ref('')
+const hasMoreExperts = ref(false)
+const currentPage = ref(1)
+const pageSize = 12
 
-// Référence au menu sticky
-const stickyMenu = ref(null)
-const isSticky = ref(false)
+// Filters
+const filters = reactive({
+  categoryId: ''
+})
+const skillSearchQuery = ref('')
+const selectedSkillFilters = ref([])
+const showSkillsDropdown = ref(false)
 
-// Service pour les experts
-const expertService = useExpertService()
+// Computed
+const filteredExperts = computed(() => {
+  let result = [...experts.value]
+  
+  // Search
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    result = result.filter(expert => 
+      expert.name.toLowerCase().includes(query) || 
+      (expert.bio && expert.bio.toLowerCase().includes(query))
+    )
+  }
+  
+  // Category filter
+  if (filters.categoryId) {
+    result = result.filter(expert => expert.category_id === filters.categoryId)
+  }
+  
+  // Skills filter
+  if (selectedSkillFilters.value.length > 0) {
+    result = result.filter(expert => {
+      // Check if any of the selected skills exist in this expert's skills
+      return selectedSkillFilters.value.some(selectedSkill => 
+        expert.skills.some(expertSkill => expertSkill.id === selectedSkill.id)
+      )
+    })
+  }
+  
+  return result
+})
 
-// Charger les données
-const fetchData = async () => {
-  loading.value = true
-  errorMessage.value = ''
+const filteredSkills = computed(() => {
+  if (!skillSearchQuery.value) return skills.value
+  
+  const query = skillSearchQuery.value.toLowerCase()
+  return skills.value.filter(skill => 
+    skill.name.toLowerCase().includes(query)
+  )
+})
+
+const activeFilters = computed(() => {
+  const result = []
+  
+  // Category filter
+  if (filters.categoryId) {
+    const category = categories.value.find(c => c.id === filters.categoryId)
+    if (category) {
+      result.push({ id: 'category', name: category.name })
+    }
+  }
+  
+  // Skills filters
+  selectedSkillFilters.value.forEach(skill => {
+    result.push({ id: `skill-${skill.id}`, name: skill.name, skillId: skill.id })
+  })
+  
+  return result
+})
+
+// Methods
+const fetchExperts = async () => {
+  isLoading.value = true
   
   try {
-    // Charger les experts selon le filtre de catégorie
-    experts.value = await expertService.getExperts(selectedCategory.value)
+    let query = supabase
+      .from('profiles')
+      .select(`
+        id, 
+        first_name,
+        last_name,
+        bio,
+        avatar_url,
+        created_at,
+        is_expert,
+        category_id,
+        categories(name),
+        user_skills(skills(id, name)),
+        reviews(rating)
+      `)
+      .eq('is_expert', true)
+      .order('created_at', { ascending: false })
+      .range((currentPage.value - 1) * pageSize, currentPage.value * pageSize)
     
-    // Simuler un délai pour montrer le chargement
-    // await new Promise(resolve => setTimeout(resolve, 500))
+    const { data, error } = await query
+    
+    if (error) throw error
+    
+    // Format experts
+    experts.value = data.map(expert => {
+      // Calculate average rating
+      let avgRating = 0
+      if (expert.reviews && expert.reviews.length > 0) {
+        avgRating = expert.reviews.reduce((acc, review) => acc + review.rating, 0) / expert.reviews.length
+      }
+      
+      return {
+        id: expert.id,
+        name: `${expert.first_name} ${expert.last_name}`,
+        bio: expert.bio,
+        avatar_url: expert.avatar_url,
+        created_at: expert.created_at,
+        category_id: expert.category_id,
+        category_name: expert.categories?.name || 'Non catégorisé',
+        skills: expert.user_skills.map(us => us.skills),
+        avg_rating: avgRating || 0,
+        reviews_count: expert.reviews?.length || 0
+      }
+    })
+    
+    // Check for more experts
+    const { count } = await supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_expert', true)
+    
+    hasMoreExperts.value = count > currentPage.value * pageSize
+    
   } catch (error) {
-    console.error('Error loading experts:', error)
-    errorMessage.value = 'Erreur lors du chargement des experts. Veuillez réessayer.'
+    console.error('Error fetching experts:', error)
+    toast.error('Erreur lors du chargement des experts')
   } finally {
-    loading.value = false
+    isLoading.value = false
   }
 }
 
-// Charger les catégories
 const fetchCategories = async () => {
   try {
     const { data, error } = await supabase
       .from('categories')
       .select('id, name')
-      .eq('is_active', true)
       .order('name')
     
     if (error) throw error
     
-    // Ajouter l'option "Tous" en premier
-    categories.value = [{ id: null, name: 'Tous' }, ...data]
+    categories.value = data
   } catch (error) {
-    console.error('Error loading categories:', error)
-    // Utiliser des catégories par défaut en cas d'erreur
-    categories.value = [
-      { id: null, name: 'Tous' },
-      { id: 1, name: 'Développement web' },
-      { id: 2, name: 'Design' },
-      { id: 3, name: 'Marketing' },
-      // ...autres catégories par défaut
-    ]
+    console.error('Error fetching categories:', error)
   }
 }
 
-// Filtrer par catégorie
-const filterByCategory = async (categoryId) => {
-  selectedCategory.value = categoryId
-  await fetchData()
+const fetchSkills = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('skills')
+      .select('id, name')
+      .order('name')
+    
+    if (error) throw error
+    
+    skills.value = data
+  } catch (error) {
+    console.error('Error fetching skills:', error)
+  }
 }
 
-// Gestion du menu sticky
-const handleScroll = () => {
-  if (!stickyMenu.value) return
+const loadMoreExperts = async () => {
+  if (!hasMoreExperts.value) return
   
-  const rect = stickyMenu.value.getBoundingClientRect()
-  const menuTop = rect.top + window.scrollY
-  
-  isSticky.value = window.scrollY > menuTop
+  currentPage.value++
+  await fetchExperts()
 }
 
+const formatDate = (dateString) => {
+  const date = new Date(dateString)
+  return new Intl.DateTimeFormat('fr-FR', {
+    month: 'long',
+    year: 'numeric'
+  }).format(date)
+}
+
+const removeFilter = (filter) => {
+  if (filter.id === 'category') {
+    filters.categoryId = ''
+  } else if (filter.skillId) {
+    selectedSkillFilters.value = selectedSkillFilters.value.filter(
+      skill => skill.id !== filter.skillId
+    )
+  }
+}
+
+const clearFilters = () => {
+  filters.categoryId = ''
+  selectedSkillFilters.value = []
+  searchQuery.value = ''
+}
+
+const toggleSkillFilter = (skill) => {
+  const index = selectedSkillFilters.value.findIndex(s => s.id === skill.id)
+  if (index === -1) {
+    selectedSkillFilters.value.push(skill)
+  } else {
+    selectedSkillFilters.value.splice(index, 1)
+  }
+}
+
+const clearSkillFilters = () => {
+  selectedSkillFilters.value = []
+}
+
+// Click outside for dropdowns
+const handleClickOutside = (event) => {
+  if (showSkillsDropdown.value && !event.target.closest('[data-skills-dropdown]')) {
+    showSkillsDropdown.value = false
+  }
+}
+
+// Lifecycle hooks
 onMounted(async () => {
-  window.addEventListener('scroll', handleScroll)
-  await Promise.all([fetchCategories(), fetchData()])
-})
-
-onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll)
-})
-
-// Méthodes
-const openSearch = () => {
-  // Ouvrir la recherche avancée, peut-être avec une modale ou un drawer
-  console.log('Opening advanced search')
-}
-
-const contactExpert = (expert) => {
-  // Rediriger vers la page de chat ou ouvrir une modale de contact
-  console.log('Contacting expert:', expert.firstName)
-  router.push(`/chat/${expert.id}`)
-}
-
-// Fonction pour obtenir une couleur cohérente pour les compétences
-const getSkillColor = (index) => {
-  const colors = [
-    'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-    'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-    'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-    'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-    'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400',
-    'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400'
-  ]
+  document.addEventListener('click', handleClickOutside)
   
-  return colors[index % colors.length]
-}
+  await Promise.all([
+    fetchExperts(),
+    fetchCategories(),
+    fetchSkills()
+  ])
+})
 
-definePageMeta({
-  layout: 'default'
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside)
 })
 </script>
 
 <style scoped>
-/* Masquer la barre de défilement tout en gardant la fonctionnalité */
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-/* Animation pour l'apparition des composants */
-.py-5 {
-  animation: fadeIn 0.3s ease-out;
-  animation-fill-mode: both;
-}
-
-/* Animation séquentielle pour les experts */
-div > div:nth-child(1) { animation-delay: 0.05s; }
-div > div:nth-child(2) { animation-delay: 0.1s; }
-div > div:nth-child(3) { animation-delay: 0.15s; }
-div > div:nth-child(4) { animation-delay: 0.2s; }
-div > div:nth-child(5) { animation-delay: 0.25s; }
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Masquer la barre de défilement pour les éléments avec défilement horizontal */
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 </style>

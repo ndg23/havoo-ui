@@ -1,1019 +1,526 @@
 <template>
-    <div class="max-w-5xl mx-auto  pt-5 pb-16">
-     
-  
-      <!-- Sections selon l'onglet actif -->
-      <div class="space-y-6">
-        <!-- Profil -->
-          <!-- Informations personnelles -->
-          <div class="bg-white dark:bg-gray-800 rounded-xl dark:border-gray-700 p-5 transition-shadow hover:shadow-sm">
-            <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">
-              Informations personnelles
-            </h2>
-            <div class="space-y-4">
-              <div class="flex flex-col md:flex-row items-start md:items-center gap-4 pb-4">
-                <div class="relative">
-                  <div class="h-20 w-20 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
-                    <img 
-                      v-if="profile.avatar_url" 
-                      :src="profile.avatar_url" 
-                      alt="Photo de profil"
-                      class="h-full w-full object-cover" 
-                    />
-                    <User v-else class="h-full w-full p-5 text-gray-400" />
-                  </div>
-                  <button 
-                    @click="uploadAvatar"
-                    class="absolute bottom-0 right-0 bg-white dark:bg-gray-800 p-1.5 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700"
-                  >
-                    <Camera class="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                  </button>
-                </div>
-  
-                <div class="flex-1">
-                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                    Votre profil public
-                  </label>
-                  <div class="flex flex-wrap gap-2">
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
-                      {{ isExpert ? 'Profil Expert' : 'Profil Client' }}
-                    </span>
-                    <span v-if="profile.is_verified" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                      <CheckCircle class="h-3 w-3 mr-1" />
-                      Vérifié
-                    </span>
-                    <NuxtLink to="/account" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400">
-                      <Eye class="h-3 w-3 mr-1" />
-                      Voir mon profil
-                    </NuxtLink>
-                  </div>
-                </div>
-              </div>
-  
-              <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                  Type de compte
-                </label>
-                <div class="flex items-center space-x-4">
-                  <div class="inline-flex items-center">
-                    <input 
-                      id="roleClient" 
-                      type="radio" 
-                      v-model="profile.role" 
-                      value="client"
-                      class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
-                      :disabled="!canChangeRole"
-                    />
-                    <label for="roleClient" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-                      Client
-                    </label>
-                  </div>
-                  <div class="inline-flex items-center">
-                    <input 
-                      id="roleExpert" 
-                      type="radio" 
-                      v-model="profile.role" 
-                      value="expert"
-                      class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
-                      :disabled="!canChangeRole"
-                    />
-                    <label for="roleExpert" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-                      Expert
-                    </label>
-                  </div>
-                </div>
-                <p v-if="!canChangeRole" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Vous ne pouvez pas changer de rôle car vous avez déjà des transactions en cours.
-                </p>
-              </div>
-  
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label for="firstName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                    Prénom
-                  </label>
-                  <input 
-                    id="firstName"
-                    v-model="form.firstName"
-                    type="text"
-                    class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  />
-                </div>
-                <div>
-                  <label for="lastName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                    Nom
-                  </label>
-                  <input 
-                    id="lastName"
-                    v-model="form.lastName"
-                    type="text"
-                    class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  />
-                </div>
-              </div>
-  
-              <div>
-                <label for="bio" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                  Biographie
-                </label>
-                <textarea 
-                  id="bio"
-                  v-model="form.bio"
-                  rows="3"
-                  placeholder="Décrivez-vous en quelques mots..."
-                  class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                ></textarea>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  {{ form.bio ? form.bio.length : 0 }}/150 caractères
-                </p>
-              </div>
-  
-              <div>
-                <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                  Adresse e-mail
-                </label>
-                <input 
-                  id="email"
-                  v-model="form.email"
-                  type="email"
-                  disabled
-                  class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-400 cursor-not-allowed"
-                />
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  L'adresse e-mail ne peut pas être modifiée
-                </p>
-              </div>
-  
-              <div>
-                <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                  Téléphone
-                </label>
-                <input 
-                  id="phone"
-                  v-model="form.phone"
-                  type="tel"
-                  placeholder="06 12 34 56 78"
-                  class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                />
-              </div>
-  
-              <div v-if="isExpert" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label for="profession" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                    Profession
-                  </label>
-                  <input 
-                    id="profession"
-                    v-model="form.profession"
-                    type="text"
-                    placeholder="Ex: Développeur web"
-                    class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  />
-                </div>
-                <div>
-                  <label for="experience" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                    Années d'expérience
-                  </label>
-                  <input 
-                    id="experience"
-                    v-model="form.experience"
-                    type="number"
-                    min="0"
-                    class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  />
-                </div>
-              </div>
-  
-              <div class="pt-2">
-                <button 
-                  @click="saveProfile"
-                  class="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-full shadow-sm inline-flex items-center transition-colors"
-                  :disabled="isSubmitting"
-                >
-                  <span v-if="isSubmitting" class="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
-                  <Save v-else class="h-4 w-4 mr-2" />
-                  Enregistrer les modifications
-                </button>
-              </div>
+  <div class="max-w-4xl mx-auto px-4 py-6">
+    <h1 class="text-2xl font-bold mb-8">Paramètres du compte</h1>
+
+    <!-- Profile completion progress - More prominent -->
+    <div v-if="profile" class="mb-8 border-2 border-primary-200 dark:border-primary-900 bg-primary-50 dark:bg-primary-900/20 rounded-xl p-5">
+      <div class="flex justify-between items-center mb-3">
+        <div class="font-medium text-primary-800 dark:text-primary-300">Complétude du profil</div>
+        <div class="text-primary-700 dark:text-primary-400 font-bold text-lg">{{ profile.profile_completion_percentage }}%</div>
+      </div>
+      <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+        <div 
+          class="bg-primary-600 h-3 rounded-full transition-all duration-500" 
+          :style="{ width: `${profile.profile_completion_percentage}%` }"
+        ></div>
+      </div>
+      <div v-if="profile.profile_completion_percentage < 100" class="mt-3 text-sm text-primary-700 dark:text-primary-400 flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+        </svg>
+        Complétez votre profil pour augmenter vos chances d'être contacté
+      </div>
+    </div>
+
+    <!-- Loading state -->
+    <div v-if="isLoading" class="py-10 flex justify-center">
+      <svg class="animate-spin h-8 w-8 text-primary-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+    </div>
+
+    <div v-else class="space-y-8">
+      <!-- Profile information - More prominent -->
+      <div class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm">
+        <div class="px-5 py-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+          <h2 class="font-medium text-lg flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary-500" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+            </svg>
+            Informations personnelles
+          </h2>
+        </div>
+        
+        <div class="p-5">
+          <!-- Avatar - Larger and more prominent -->
+          <div class="flex items-center mb-8">
+            <div class="relative">
+              <img 
+                :src="avatarPreview || profile?.avatar_url || '/images/default-avatar.png'" 
+                alt="Avatar" 
+                class="w-24 h-24 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700"
+              />
+              <button 
+                type="button"
+                @click="$refs.avatarInput.click()"
+                class="absolute bottom-0 right-0 bg-primary-600 hover:bg-primary-700 text-white border border-white dark:border-gray-800 rounded-full p-2 shadow-md"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                </svg>
+              </button>
+              <input 
+                ref="avatarInput"
+                type="file"
+                accept="image/*"
+                class="hidden"
+                @change="handleAvatarChange"
+              />
+            </div>
+            <div class="ml-5">
+              <div class="font-medium text-lg">Photo de profil</div>
+              <div class="text-sm text-gray-500">JPG ou PNG. 2MB max.</div>
+              <button 
+                v-if="avatarPreview" 
+                @click="cancelAvatarUpload" 
+                class="mt-2 text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+              >
+                Annuler
+              </button>
             </div>
           </div>
-  
-          <!-- Section des compétences -->
-          <div class="my-7">
-              <div class="flex items-center justify-between">
-                <div>
-                  <h2 class="text-xl font-bold text-gray-900 dark:text-white">Compétences</h2>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">
-                    Gérez les compétences que vous souhaitez mettre en avant
-                  </p>
-                </div>
-                <button 
-                  @click="showAddSkillModal = true"
-                  class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-full shadow-sm flex items-center transition-colors"
-                >
-                  <PlusIcon class="h-4 w-4 mr-2" />
-                  Ajouter une compétence
-                </button>
+
+          <!-- Name and Contact Info -->
+          <div class="space-y-5">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prénom et Nom</label>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input
+                  v-model="formData.first_name"
+                  type="text"
+                  placeholder="Prénom"
+                  required
+                  class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl dark:bg-gray-700 dark:text-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                />
+                
+                <input
+                  v-model="formData.last_name"
+                  type="text"
+                  placeholder="Nom"
+                  required
+                  class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl dark:bg-gray-700 dark:text-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                />
               </div>
+            </div>
             
-            <div class="space-y-4">
-              <!-- Liste des compétences -->
-              <div v-if="userSkills.length > 0" class="flex flex-wrap items-center gap-2">
-                <div 
-                  v-for="skill in userSkills" 
-                  :key="skill.id"
-                  class="inline-flex items-center bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-full group"
-                >
-                  <span class="text-sm font-medium text-gray-800 dark:text-gray-200">{{ skill.name }}</span>
-                  <div class="ml-1.5 flex items-center gap-1">
-                    <button 
-                      v-if="skill.level"
-                      class="px-1.5 py-0.5 bg-primary-100 dark:bg-primary-900/30 text-xs text-primary-700 dark:text-primary-400 rounded-md"
-                      title="Niveau de compétence"
-                    >
-                      {{ skill.level }}/5
-                    </button>
-                    <button 
-                      @click="removeSkill(skill.id)"
-                      class="ml-1 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                      title="Supprimer cette compétence"
-                    >
-                      <XIcon class="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Message si aucune compétence -->
-              <div v-else class="py-3 text-center text-gray-500 dark:text-gray-400 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
-                Vous n'avez pas encore ajouté de compétences
-              </div>
-              
-              <p class="text-sm text-gray-500 dark:text-gray-400 italic">
-                Les compétences vous permettent d'être plus facilement trouvé par les clients à la recherche de vos services.
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+              <input
+                v-model="formData.email"
+                type="email"
+                placeholder="Email"
+                disabled
+                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
+              />
+              <p class="mt-1 text-xs text-gray-500">L'email ne peut pas être modifié car il est lié à votre compte.</p>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Téléphone</label>
+              <input
+                v-model="formData.phone"
+                type="tel"
+                placeholder="Téléphone (optionnel)"
+                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl dark:bg-gray-700 dark:text-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+              />
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Bio</label>
+              <textarea
+                v-model="formData.bio"
+                rows="4"
+                placeholder="Parlez un peu de vous..."
+                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl dark:bg-gray-700 dark:text-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+              ></textarea>
+              <p class="mt-1 text-xs text-gray-500">Une bio personnelle aide à créer la confiance avec les clients potentiels.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expert Mode Settings - More prominent -->
+      <div class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm">
+        <div class="px-5 py-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+          <h2 class="font-medium text-lg flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary-500" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+            </svg>
+            Mode Expert
+          </h2>
+        </div>
+        
+        <div class="p-5">
+          <div class="flex items-center justify-between mb-6 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl">
+            <div>
+              <h3 class="font-medium text-gray-900 dark:text-white">Activer le mode Expert</h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Proposez vos services et recevez des missions
               </p>
             </div>
-  
-          <!-- Mot de passe -->
-          <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 transition-shadow hover:shadow-sm">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Changer de mot de passe
-            </h2>
-            <div class="space-y-4">
-              <div>
-                <label for="currentPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                  Mot de passe actuel
-                </label>
-                <input 
-                  id="currentPassword"
-                  v-model="passwordForm.current"
-                  type="password"
-                  class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  :class="{ 'border-red-500 dark:border-red-500': passwordErrors.current }"
+            
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                v-model="formData.is_expert" 
+                class="sr-only peer"
+              >
+              <div class="w-12 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-6 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
+            </label>
+          </div>
+          
+          <!-- Skills Section - Only show when expert mode is on -->
+          <div v-if="formData.is_expert" class="space-y-5">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Compétences <span class="text-gray-500">(obligatoire pour les experts)</span>
+              </label>
+              
+              <!-- Skills Input -->
+              <div class="relative">
+                <input
+                  v-model="skillSearchQuery"
+                  type="text"
+                  placeholder="Rechercher une compétence..."
+                  class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl dark:bg-gray-700 dark:text-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                  @input="searchSkills"
+                  @focus="showSkillResults = true"
                 />
-                <p v-if="passwordErrors.current" class="text-red-600 dark:text-red-400 text-xs mt-1">
-                  {{ passwordErrors.current }}
-                </p>
+                
+                <!-- Skills dropdown results -->
+                <div 
+                  v-if="showSkillResults && filteredSkills.length > 0" 
+                  class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 shadow-lg rounded-xl border border-gray-200 dark:border-gray-700 max-h-60 overflow-auto"
+                >
+                  <div 
+                    v-for="skill in filteredSkills" 
+                    :key="skill.id"
+                    @click="addSkill(skill)"
+                    class="px-4 py-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer text-gray-800 dark:text-gray-200"
+                  >
+                    {{ skill.name }}
+                  </div>
+                </div>
               </div>
-  
-              <div>
-                <label for="newPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                  Nouveau mot de passe
-                </label>
-                <div class="relative">
-                  <input 
-                    id="newPassword"
-                    v-model="passwordForm.new"
-                    :type="showPassword ? 'text' : 'password'"
-                    class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 pr-10"
-                    :class="{ 'border-red-500 dark:border-red-500': passwordErrors.new }"
-                  />
+              
+              <!-- Selected skills -->
+              <div v-if="selectedSkills.length > 0" class="mt-3 flex flex-wrap gap-2">
+                <span 
+                  v-for="skill in selectedSkills" 
+                  :key="skill.id"
+                  class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-300"
+                >
+                  {{ skill.name }}
                   <button 
                     type="button" 
-                    @click="showPassword = !showPassword"
-                    class="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    @click="removeSkill(skill)"
+                    class="ml-1.5 h-4 w-4 rounded-full inline-flex items-center justify-center text-primary-600 dark:text-primary-400 hover:bg-primary-200 dark:hover:bg-primary-800"
                   >
-                    <Eye v-if="showPassword" class="h-5 w-5 text-gray-400" />
-                    <EyeOff v-else class="h-5 w-5 text-gray-400" />
+                    <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                      <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                    </svg>
                   </button>
-                </div>
-                <p v-if="passwordErrors.new" class="text-red-600 dark:text-red-400 text-xs mt-1">
-                  {{ passwordErrors.new }}
-                </p>
+                </span>
               </div>
-  
-              <div>
-                <label for="confirmPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                  Confirmez le nouveau mot de passe
-                </label>
-                <input 
-                  id="confirmPassword"
-                  v-model="passwordForm.confirm"
-                  type="password"
-                  class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  :class="{ 'border-red-500 dark:border-red-500': passwordErrors.confirm }"
-                />
-                <p v-if="passwordErrors.confirm" class="text-red-600 dark:text-red-400 text-xs mt-1">
-                  {{ passwordErrors.confirm }}
-                </p>
-              </div>
-  
-              <div class="pt-2">
-                <button 
-                  @click="changePassword"
-                  class="px-6 py-2.5 bg-gray-600 hover:bg-gray-700 text-white text-sm font-semibold rounded-full shadow-sm inline-flex items-center transition-colors"
-                  :disabled="isChangingPassword"
-                >
-                  <span v-if="isChangingPassword" class="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
-                  <Key v-else class="h-4 w-4 mr-2" />
-                  Modifier le mot de passe
-                </button>
-              </div>
+              
+              <p v-else-if="formData.is_expert" class="mt-2 text-sm text-yellow-600 dark:text-yellow-400 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+                Ajoutez au moins une compétence pour compléter votre profil
+              </p>
             </div>
           </div>
         </div>
-  
       </div>
-  
-      <!-- Modal de confirmation pour la suppression du compte -->
-      <div v-if="showDeleteModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-gray-800 rounded-xl max-w-md w-full p-6 shadow-lg">
-          <h3 class="text-lg font-semibold text-red-600 dark:text-red-400 mb-2">
-            Confirmer la suppression
-          </h3>
-          <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">
-            Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.
-          </p>
-          
-          <div class="mb-4">
-            <label for="delete-confirm" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-              Tapez "SUPPRIMER" pour confirmer
-            </label>
-            <input 
-              id="delete-confirm"
-              v-model="deleteConfirmation"
-              type="text"
-              class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-red-500"
-            />
-          </div>
-          
-          <div class="flex justify-end space-x-3">
-            <button 
-              @click="showDeleteModal = false; deleteConfirmation = ''"
-              class="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg transition-colors"
-            >
-              Annuler
-            </button>
-            <button 
-              @click="deleteAccount"
-              class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg inline-flex items-center transition-colors"
-              :disabled="deleteConfirmation !== 'SUPPRIMER' || isDeletingAccount"
-            >
-              <span v-if="isDeletingAccount" class="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
-              <Trash2 v-else class="h-4 w-4 mr-2" />
-              Supprimer définitivement
-            </button>
-          </div>
-        </div>
+      
+      <!-- Submit Button - More prominent -->
+      <div class="flex justify-end">
+        <button 
+          @click="updateProfile" 
+          :disabled="isSubmitting"
+          class="px-5 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-lg font-medium shadow-sm transition-all hover:shadow-md flex items-center justify-center min-w-[200px]"
+          :class="{ 'opacity-75 cursor-not-allowed': isSubmitting }"
+        >
+          <svg v-if="isSubmitting" class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          {{ isSubmitting ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+        </button>
       </div>
-  
-      <!-- Modal d'ajout de compétence -->
-      <TransitionRoot appear :show="showAddSkillModal" as="template">
-        <Dialog as="div" @close="closeSkillModal" class="relative z-50">
-          <TransitionChild
-            enter="ease-out duration-300"
-            enter-from="opacity-0"
-            enter-to="opacity-100"
-            leave="ease-in duration-200"
-            leave-from="opacity-100"
-            leave-to="opacity-0"
-          >
-            <div class="fixed inset-0 bg-black bg-opacity-25" />
-          </TransitionChild>
-  
-          <div class="fixed inset-0 overflow-y-auto">
-            <div class="flex min-h-full items-center justify-center p-4 text-center">
-              <TransitionChild
-                enter="ease-out duration-300"
-                enter-from="opacity-0 scale-95"
-                enter-to="opacity-100 scale-100"
-                leave="ease-in duration-200"
-                leave-from="opacity-100 scale-100"
-                leave-to="opacity-0 scale-95"
-              >
-                <DialogPanel class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all">
-                  <DialogTitle as="h3" class="text-lg font-medium leading-6 text-gray-900 dark:text-white mb-4">
-                    Ajouter une compétence
-                  </DialogTitle>
-                  
-                  <div v-if="skillSaveError" class="mb-4 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
-                    {{ skillSaveError }}
-                  </div>
-                  
-                  <div class="space-y-4">
-                    <!-- Sélection de compétence -->
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Compétence
-                      </label>
-                      <div class="relative">
-                        <select 
-                          v-model="newSkill.skill_id"
-                          class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                        >
-                          <option value="" disabled selected>Sélectionnez une compétence</option>
-                          <optgroup 
-                            v-for="category in skillCategories" 
-                            :key="category.id" 
-                            :label="category.name"
-                          >
-                            <option 
-                              v-for="skill in category.skills" 
-                              :key="skill.id" 
-                              :value="skill.id"
-                              :disabled="userSkills.some(s => s.id === skill.id)"
-                            >
-                              {{ skill.name }}
-                            </option>
-                          </optgroup>
-                        </select>
-                      </div>
-                    </div>
-                    
-                    <!-- Niveau de compétence -->
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Niveau d'expertise (optionnel)
-                      </label>
-                      <div class="flex items-center">
-                        <input 
-                          v-model="newSkill.level"
-                          type="range" 
-                          min="1" 
-                          max="5" 
-                          class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
-                        />
-                        <span class="ml-3 text-gray-700 dark:text-gray-300 font-medium">{{ newSkill.level }}/5</span>
-                      </div>
-                    </div>
-                  </div>
-  
-                  <div class="mt-6 flex justify-end gap-3">
-                    <button 
-                      @click="closeSkillModal"
-                      class="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-                    >
-                      Annuler
-                    </button>
-                    <button 
-                      @click="addSkill"
-                      :disabled="!newSkill.skill_id || savingSkill"
-                      class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg shadow-sm disabled:opacity-70 disabled:cursor-not-allowed transition-colors flex items-center"
-                    >
-                      <Loader2 v-if="savingSkill" class="animate-spin h-4 w-4 mr-2" />
-                      <span>Ajouter</span>
-                    </button>
-                  </div>
-                </DialogPanel>
-              </TransitionChild>
-            </div>
-          </div>
-        </Dialog>
-      </TransitionRoot>
     </div>
-  </template>
+  </div>
+</template>
+
+<script setup>
+import { ref, reactive, onMounted, computed } from 'vue'
+// import { useToast } from 'vue-toastification'
+import { useSupabaseClient, useSupabaseUser } from '#imports'
+
+const supabase = useSupabaseClient()
+const user = useSupabaseUser()
+const toast = useToast()
+
+// State
+const profile = ref(null)
+const allSkills = ref([])
+const selectedSkills = ref([])
+const isLoading = ref(true)
+const isSubmitting = ref(false)
+const skillSearch = ref('')
+const showSkillResults = ref(false)
+const avatarFile = ref(null)
+const avatarPreview = ref(null)
+
+// Form data
+const formData = reactive({
+  first_name: '',
+  last_name: '',
+  email: '',
+  phone: '',
+  bio: '',
+  is_expert: false
+})
+
+// Fetch current user profile
+async function fetchProfile() {
+  isLoading.value = true
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.value.id)
+      .single()
     
-  <script setup>
-  import { ref, onMounted, computed } from 'vue'
-  import { useRouter } from 'vue-router'
-  import { useSupabaseClient, useSupabaseUser } from '#imports'
-  import {
-    User,
-    Settings,
-    Bell,
-    Shield,
-    Key,
-    LogOut,
-    Trash2,
-    Camera,
-    Save,
-    Eye,
-    EyeOff,
-    CheckCircle,
-    PlusIcon,
-    XIcon,
-    Loader2
-  } from 'lucide-vue-next'
-  import { Dialog, DialogPanel, DialogTitle, TransitionRoot, TransitionChild } from '@headlessui/vue'
-  import AccountHeader from '~/components/account/AccountHeader.vue'
-  
-  const supabase = useSupabaseClient()
-  const user = useSupabaseUser()
-  const router = useRouter()
-  
-  // État des onglets
-  const activeTab = ref('profile')
-  const tabs = [
-    { id: 'profile', name: 'Profil', icon: User },
-    { id: 'notifications', name: 'Notifications', icon: Bell },
-    { id: 'privacy', name: 'Sécurité & Confidentialité', icon: Shield }
-  ]
-  
-  // États du formulaire de profil
-  const profile = ref({})
-  const form = ref({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    bio: '',
-    profession: '',
-    experience: ''
-  })
-  const isSubmitting = ref(false)
-  
-  // États du formulaire de mot de passe
-  const passwordForm = ref({
-    current: '',
-    new: '',
-    confirm: ''
-  })
-  const passwordErrors = ref({})
-  const showPassword = ref(false)
-  const isChangingPassword = ref(false)
-  
-  // États des préférences de notification
-  const notifs = ref({
-    email: true,
-    sms: false,
-    app: true,
-    messages: true,
-    proposals: true,
-    contracts: true,
-    payments: true
-  })
-  const isSavingNotifs = ref(false)
-  
-  // États des paramètres de confidentialité
-  const privacy = ref({
-    publicProfile: true,
-    showPhone: false,
-    allowIndexing: true
-  })
-  const isSavingPrivacy = ref(false)
-  
-  // États de la suppression de compte
-  const showDeleteModal = ref(false)
-  const deleteConfirmation = ref('')
-  const isDeletingAccount = ref(false)
-  
-  // États pour la gestion des compétences
-  const userSkills = ref([])
-  const skillCategories = ref([])
-  const showAddSkillModal = ref(false)
-  const savingSkill = ref(false)
-  const skillSaveError = ref('')
-  const newSkill = ref({
-    skill_id: '',
-    level: 3
-  })
-  
-  // Calcul du mode expert
-  const isExpert = computed(() => {
-    return profile.value?.is_expert || false
-  })
-  
-  // Charger les données du profil
-  const fetchProfile = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.value.id)
-        .single()
-      
-      if (error) throw error
-      
-      profile.value = data
-      
-      // Remplir le formulaire
-      form.value = {
-        firstName: data.first_name || '',
-        lastName: data.last_name || '',
-        email: user.value.email,
-        phone: data.phone || '',
-        bio: data.bio || '',
-        profession: data.profession || '',
-        experience: data.years_experience || ''
-      }
-      
-      // Récupérer les préférences de notification (simulé)
-      notifs.value = {
-        email: data.notif_email !== false,
-        sms: data.notif_sms === true,
-        app: data.notif_app !== false,
-        messages: data.notif_messages !== false,
-        proposals: data.notif_proposals !== false,
-        contracts: data.notif_contracts !== false,
-        payments: data.notif_payments !== false
-      }
-      
-      // Récupérer les paramètres de confidentialité (simulé)
-      privacy.value = {
-        publicProfile: data.is_public !== false,
-        showPhone: data.show_phone === true,
-        allowIndexing: data.allow_indexing !== false
-      }
-      
-      // Charger les compétences de l'utilisateur
-      await loadUserSkills()
-      
-    } catch (error) {
-      console.error('Erreur lors du chargement du profil:', error)
+    if (error) throw error
+    
+    profile.value = data
+    
+    // Populate form with profile data
+    formData.first_name = data.first_name || ''
+    formData.last_name = data.last_name || ''
+    formData.email = data.email || ''
+    formData.phone = data.phone || ''
+    formData.bio = data.bio || ''
+    formData.is_expert = data.is_expert || false
+    
+    // If user is expert, fetch their skills
+    if (data.is_expert) {
+      await fetchUserSkills()
     }
+  } catch (error) {
+    console.error('Error fetching profile:', error)
+    toast.error('Erreur lors du chargement du profil')
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Fetch user skills
+async function fetchUserSkills() {
+  try {
+    const { data, error } = await supabase
+      .from('user_skills')
+      .select('skill_id, skills(id, name)')
+      .eq('user_id', user.value.id)
+    
+    if (error) throw error
+    
+    selectedSkills.value = data.map(item => item.skills)
+  } catch (error) {
+    console.error('Error fetching user skills:', error)
+  }
+}
+
+// Fetch all available skills
+async function fetchSkills() {
+  try {
+    const { data, error } = await supabase
+      .from('skills')
+      .select('*')
+      .order('name')
+    
+    if (error) throw error
+    
+    allSkills.value = data
+  } catch (error) {
+    console.error('Error fetching skills:', error)
+  }
+}
+
+// Filter skills based on search
+const filteredSkills = computed(() => {
+  if (!skillSearch.value) return allSkills.value
+  
+  const search = skillSearch.value.toLowerCase()
+  return allSkills.value.filter(skill => {
+    const isSelected = selectedSkills.value.some(s => s.id === skill.id)
+    if (isSelected) return false
+    
+    return skill.name.toLowerCase().includes(search)
+  })
+})
+
+// Add skill to selected skills
+function addSkill(skill) {
+  const exists = selectedSkills.value.some(s => s.id === skill.id)
+  if (!exists) {
+    selectedSkills.value.push(skill)
+  }
+  skillSearch.value = ''
+  showSkillResults.value = false
+}
+
+// Remove skill from selected skills
+function removeSkill(skill) {
+  selectedSkills.value = selectedSkills.value.filter(s => s.id !== skill.id)
+}
+
+// Handle avatar image change
+function handleAvatarChange(event) {
+  const file = event.target.files[0]
+  if (!file) return
+  
+  // Basic validation
+  if (file.size > 2 * 1024 * 1024) {
+    toast.error('L\'image est trop volumineuse (max 2MB)')
+    return
   }
   
-  // Enregistrer les modifications du profil
-  const saveProfile = async () => {
-    isSubmitting.value = true
-    formErrors.value = {}
-    
-    try {
-      // Valider les données
-      // ...
-      
-      // Enregistrer le profil
-      const { error } = await supabase
-        .from('users')
-        .update({
-          first_name: profile.value.first_name,
-          last_name: profile.value.last_name,
-          bio: profile.value.bio,
-          phone: profile.value.phone,
-          location: profile.value.location,
-          role: profile.value.role, // Ajouter le rôle ici
-          // autres champs...
-        })
-        .eq('id', user.value.id)
-      
-      if (error) throw error
-      
-      toast.success('Profil mis à jour avec succès')
-      
-      // Si l'utilisateur change de rôle vers expert, afficher une section spécifique
-      if (profile.value.role === 'expert') {
-        activeTab.value = 'professional' // Assurez-vous d'avoir cet onglet défini
-      }
-    } catch (error) {
-      console.error('Erreur lors de la mise à jour du profil:', error)
-      formErrors.value.general = 'Une erreur est survenue lors de la mise à jour du profil'
-    } finally {
-      isSubmitting.value = false
-    }
-  }
+  avatarFile.value = file
   
-  // Changer le mot de passe
-  const changePassword = async () => {
-    // Réinitialiser les erreurs
-    passwordErrors.value = {}
+  // Create preview
+  const reader = new FileReader()
+  reader.onload = e => {
+    avatarPreview.value = e.target.result
+  }
+  reader.readAsDataURL(file)
+}
+
+// Upload avatar to storage
+async function uploadAvatar() {
+  if (!avatarFile.value) return null
+  
+  try {
+    const fileExt = avatarFile.value.name.split('.').pop()
+    const filePath = `avatars/${user.value.id}-${Date.now()}.${fileExt}`
     
-    // Valider les entrées
-    if (!passwordForm.value.current) {
-      passwordErrors.value.current = 'Veuillez saisir votre mot de passe actuel'
-      return
+    const { error: uploadError } = await supabase.storage
+      .from('profiles')
+      .upload(filePath, avatarFile.value)
+    
+    if (uploadError) throw uploadError
+    
+    const { data } = supabase.storage
+      .from('profiles')
+      .getPublicUrl(filePath)
+    
+    return data.publicUrl
+  } catch (error) {
+    console.error('Error uploading avatar:', error)
+    toast.error('Erreur lors de l\'upload de l\'avatar')
+    return null
+  }
+}
+
+// Update user profile
+async function updateProfile() {
+  isSubmitting.value = true
+  
+  try {
+    // Upload avatar if changed
+    let avatarUrl = profile.value?.avatar_url
+    if (avatarFile.value) {
+      const newAvatarUrl = await uploadAvatar()
+      if (newAvatarUrl) {
+        avatarUrl = newAvatarUrl
+      }
     }
     
-    if (!passwordForm.value.new) {
-      passwordErrors.value.new = 'Veuillez saisir un nouveau mot de passe'
-      return
-    }
-    
-    if (passwordForm.value.new.length < 8) {
-      passwordErrors.value.new = 'Le mot de passe doit contenir au moins 8 caractères'
-      return
-    }
-    
-    if (passwordForm.value.new !== passwordForm.value.confirm) {
-      passwordErrors.value.confirm = 'Les mots de passe ne correspondent pas'
-      return
-    }
-    
-    isChangingPassword.value = true
-    
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password: passwordForm.value.new
+    // Update profile
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        phone: formData.phone,
+        bio: formData.bio,
+        avatar_url: avatarUrl,
+        is_expert: formData.is_expert,
+        updated_at: new Date()
       })
-      
-      if (error) throw error
-      
-      // Réinitialiser le formulaire
-      passwordForm.value = {
-        current: '',
-        new: '',
-        confirm: ''
-      }
-      
-      alert('Mot de passe mis à jour avec succès')
-    } catch (error) {
-      console.error('Erreur lors du changement de mot de passe:', error)
-      
-      // Afficher une erreur
-      if (error.message.includes('password')) {
-        passwordErrors.value.current = 'Mot de passe actuel incorrect'
-      } else {
-        alert('Une erreur est survenue lors du changement de mot de passe')
-      }
-    } finally {
-      isChangingPassword.value = false
-    }
-  }
-
-  // Charger les compétences de l'utilisateur
-  const loadUserSkills = async () => {
-    try {
-      const { data, error } = await supabase
+      .eq('id', user.value.id)
+    
+    if (profileError) throw profileError
+    
+    // Update skills if user is expert
+    if (formData.is_expert) {
+      // First delete all existing skills
+      const { error: deleteError } = await supabase
         .from('user_skills')
-        .select(`
-          skill_id,
-          level,
-          skills (id, name, description)
-        `)
+        .delete()
         .eq('user_id', user.value.id)
       
-      if (error) throw error
+      if (deleteError) throw deleteError
       
-      userSkills.value = data.map(item => ({
-        id: item.skill_id,
-        name: item.skills.name,
-        description: item.skills.description,
-        level: item.level
-      }))
-    } catch (error) {
-      console.error('Erreur lors du chargement des compétences:', error)
-    }
-  }
-
-  // Charger toutes les compétences disponibles
-  const loadAllSkills = async () => {
-    try {
-      // Charger les catégories
-      const { data: categories, error: catError } = await supabase
-        .from('categories')
-        .select('id, name')
-        .order('name')
-      
-      if (catError) throw catError
-      
-      // Pour chaque catégorie, charger les compétences associées
-      const categoriesWithSkills = await Promise.all(
-        categories.map(async (category) => {
-          const { data: skills, error: skillError } = await supabase
-            .from('skills')
-            .select('id, name, description')
-            .eq('category_id', category.id)
-            .order('name')
-          
-          if (skillError) throw skillError
-          
-          return {
-            ...category,
-            skills: skills || []
-          }
-        })
-      )
-      
-      skillCategories.value = categoriesWithSkills
-    } catch (error) {
-      console.error('Erreur lors du chargement des compétences disponibles:', error)
-    }
-  }
-
-  // Ajouter une compétence
-  const addSkill = async () => {
-    if (!newSkill.value.skill_id) return
-    
-    try {
-      savingSkill.value = true
-      skillSaveError.value = ''
-      
-      const { error } = await supabase
-        .from('user_skills')
-        .insert({
+      // Then insert new skills
+      if (selectedSkills.value.length > 0) {
+        const skillsToInsert = selectedSkills.value.map(skill => ({
           user_id: user.value.id,
-          skill_id: newSkill.value.skill_id,
-          level: newSkill.value.level
-        })
-      
-      if (error) throw error
-      
-      // Recharger les compétences et fermer le modal
-      await loadUserSkills()
-      closeSkillModal()
-      toast.success('Compétence ajoutée avec succès')
-    } catch (error) {
-      console.error('Erreur lors de l\'ajout de la compétence:', error)
-      skillSaveError.value = 'Impossible d\'ajouter cette compétence. Veuillez réessayer.'
-    } finally {
-      savingSkill.value = false
-    }
-  }
-
-  // Supprimer une compétence
-  const removeSkill = async (skillId) => {
-    try {
-      const { error } = await supabase
-        .from('user_skills')
-        .delete()
-        .eq('user_id', user.value.id)
-        .eq('skill_id', skillId)
-      
-      if (error) throw error
-      
-      // Mettre à jour la liste locale
-      userSkills.value = userSkills.value.filter(skill => skill.id !== skillId)
-      toast.success('Compétence supprimée')
-    } catch (error) {
-      console.error('Erreur lors de la suppression de la compétence:', error)
-      toast.error('Erreur lors de la suppression de la compétence')
-    }
-  }
-
-  // Fermer le modal et réinitialiser le formulaire
-  const closeSkillModal = () => {
-    showAddSkillModal.value = false
-    skillSaveError.value = ''
-    newSkill.value = {
-      skill_id: '',
-      level: 3
-    }
-  }
-
-  // Enregistrer les préférences de notification
-  const saveNotificationPreferences = async () => {
-    isSavingNotifs.value = true
-    
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          notification_preferences: {
-            email: notifs.value.email,
-            sms: notifs.value.sms,
-            app: notifs.value.app,
-            messages: notifs.value.messages,
-            proposals: notifs.value.proposals,
-            contracts: notifs.value.contracts,
-            payments: notifs.value.payments
-          }
-        })
-        .eq('id', user.value.id)
-      
-      if (error) throw error
-      
-      alert('Préférences de notification mises à jour')
-    } catch (error) {
-      console.error('Erreur lors de la mise à jour des préférences de notification:', error)
-      alert('Une erreur est survenue lors de la mise à jour des préférences')
-    } finally {
-      isSavingNotifs.value = false
-    }
-  }
-
-  // Enregistrer les paramètres de confidentialité
-  const savePrivacySettings = async () => {
-    isSavingPrivacy.value = true
-    
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          is_public: privacy.value.publicProfile,
-          show_phone: privacy.value.showPhone,
-          allow_indexing: privacy.value.allowIndexing
-        })
-        .eq('id', user.value.id)
-      
-      if (error) throw error
-      
-      alert('Paramètres de confidentialité mis à jour')
-    } catch (error) {
-      console.error('Erreur lors de la mise à jour des paramètres de confidentialité:', error)
-      alert('Une erreur est survenue lors de la mise à jour des paramètres')
-    } finally {
-      isSavingPrivacy.value = false
-    }
-  }
-
-  // Upload avatar
-  const uploadAvatar = async () => {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = 'image/*'
-    
-    input.onchange = async (e) => {
-      const file = e.target.files[0]
-      if (!file) return
-      
-      try {
-        // Créer un nom de fichier unique
-        const fileExt = file.name.split('.').pop()
-        const fileName = `${user.value.id}-${Date.now()}.${fileExt}`
-        const filePath = `avatars/${fileName}`
+          skill_id: skill.id
+        }))
         
-        // Upload du fichier
-        const { error: uploadError } = await supabase.storage
-          .from('avatars')
-          .upload(filePath, file)
+        const { error: insertError } = await supabase
+          .from('user_skills')
+          .insert(skillsToInsert)
         
-        if (uploadError) throw uploadError
-        
-        // Obtenir l'URL publique
-        const { data: { publicUrl } } = supabase.storage
-          .from('avatars')
-          .getPublicUrl(filePath)
-        
-        // Mettre à jour le profil
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({
-            avatar_url: publicUrl
-          })
-          .eq('id', user.value.id)
-        
-        if (updateError) throw updateError
-        
-        // Mettre à jour l'UI
-        profile.value.avatar_url = publicUrl
-        
-      } catch (error) {
-        console.error('Erreur lors de l\'upload de l\'avatar:', error)
-        alert('Erreur lors de l\'upload de l\'avatar')
+        if (insertError) throw insertError
       }
     }
     
-    input.click()
-  }
-
-  // Supprimer le compte
-  const deleteAccount = async () => {
-    if (deleteConfirmation.value !== user.value.email) {
-      alert('Veuillez saisir votre adresse e-mail pour confirmer')
-      return
-    }
+    // Refresh profile data
+    await fetchProfile()
     
-    isDeletingAccount.value = true
-    
-    try {
-      // Supprimer le profil d'abord
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', user.value.id)
-      
-      if (profileError) throw profileError
-      
-      // Supprimer l'utilisateur
-      const { error: userError } = await supabase.auth.admin.deleteUser(
-        user.value.id
-      )
-      
-      if (userError) throw userError
-      
-      // Déconnexion
-      await supabase.auth.signOut()
-      
-      // Redirection
-      router.push('/')
-    } catch (error) {
-      console.error('Erreur lors de la suppression du compte:', error)
-      alert('Une erreur est survenue lors de la suppression du compte')
-    } finally {
-      isDeletingAccount.value = false
-      showDeleteModal.value = false
-    }
+    toast.success('Profil mis à jour avec succès')
+  } catch (error) {
+    console.error('Error updating profile:', error)
+    toast.error('Erreur lors de la mise à jour du profil')
+  } finally {
+    isSubmitting.value = false
   }
+}
 
-  // Initialisation
-  onMounted(async () => {
-    fetchProfile()
-    await loadUserSkills()
-    await loadAllSkills()
-  })
+// Close dropdown when clicking outside
+function handleClickOutside(event) {
+  if (showSkillResults.value) {
+    showSkillResults.value = false
+  }
+}
 
-  definePageMeta({
-    layout: 'account'
-  })
+// Initialize
+onMounted(async () => {
+  document.addEventListener('click', handleClickOutside)
+  await fetchProfile()
+  await fetchSkills()
+})
+
+definePageMeta({
+  middleware: ['auth'],
+  layout: 'account'
+})
 </script>
 
 <style scoped>
-/* Animation des composants */
+/* Animation des composants avec transitions plus douces */
 .space-y-6 > div {
-  animation: fadeIn 0.4s ease;
+  animation: fadeIn 0.5s ease;
   animation-fill-mode: both;
+  transition: all 0.2s ease;
 }
 
-/* Animation séquentielle pour chaque section */
+/* Animation séquentielle pour chaque section avec délais plus courts */
 .space-y-6 > div:nth-child(1) { animation-delay: 0.05s; }
 .space-y-6 > div:nth-child(2) { animation-delay: 0.1s; }
 .space-y-6 > div:nth-child(3) { animation-delay: 0.15s; }
@@ -1022,7 +529,7 @@
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -1030,81 +537,33 @@
   }
 }
 
-/* Améliorer l'apparence du focus */
+/* Improved input styling */
+input, select, textarea {
+  transition: all 0.2s ease;
+}
+
 input:focus, select:focus, textarea:focus {
   outline: none;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
 }
 
-/* Styliser le sélecteur de date pour le rendre plus cohérent */
-input[type="date"] {
-  appearance: none;
+/* Improved button hover effects */
+button {
+  transition: all 0.2s ease;
 }
 
-/* Empêcher le redimensionnement des textarea */
-textarea {
-  resize: none;
+/* Custom styling for form elements */
+.form-input {
+  @apply w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white;
+  transition: all 0.2s ease;
 }
 
-/* Personnalisation du switch */
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 38px;
-  height: 22px;
+.form-input:focus {
+  @apply ring-2 ring-primary-500 border-primary-500;
 }
 
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  transition: .3s;
-  border-radius: 34px;
-}
-
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 16px;
-  width: 16px;
-  left: 3px;
-  bottom: 3px;
-  background-color: white;
-  transition: .3s;
-  border-radius: 50%;
-}
-
-input:checked + .slider {
-  background-color: #4f46e5;
-}
-
-input:focus + .slider {
-  box-shadow: 0 0 1px #4f46e5;
-}
-
-input:checked + .slider:before {
-  transform: translateX(16px);
-}
-
-/* Dark mode pour les switches */
-.dark .slider {
-  background-color: #4b5563;
-}
-
-.dark input:checked + .slider {
-  background-color: #6366f1;
-}
-
-.dark input:focus + .slider {
-  box-shadow: 0 0 1px #6366f1;
+/* Dark mode adjustments for better contrast */
+.dark .form-input {
+  background-color: rgba(31, 41, 55, 0.8);
 }
 </style> 
