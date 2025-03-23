@@ -171,62 +171,7 @@
         </div>
 
         <!-- Attachment section -->
-        <div class="pt-2">
-          <div class="text-base font-medium mb-2">Documents ou images</div>
-          <div 
-            @dragover.prevent
-            @drop.prevent="handleFileDrop"
-            class="border-2 border-dashed border-gray-300 rounded-2xl p-6 text-center hover:border-primary-400 transition-colors"
-          >
-            <div class="space-y-2">
-              <svg class="mx-auto h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-              </svg>
-              <div class="text-sm text-gray-600">
-                <label for="file-upload" class="relative cursor-pointer text-primary-600 hover:text-primary-500">
-                  <span>Télécharger un fichier</span>
-                  <input 
-                    id="file-upload" 
-                    name="file-upload" 
-                    type="file" 
-                    class="sr-only" 
-                    multiple
-                    @change="handleFileChange"
-                  />
-                </label>
-                <span class="text-gray-500"> ou glisser-déposer</span>
-              </div>
-              <p class="text-xs text-gray-500">
-                PNG, JPG, PDF jusqu'à 10MB
-              </p>
-            </div>
-          </div>
-          
-          <!-- File preview -->
-          <div v-if="files.length > 0" class="mt-4 space-y-2">
-            <div 
-              v-for="(file, index) in files" 
-              :key="index"
-              class="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-full"
-            >
-              <div class="flex items-center overflow-hidden">
-                <svg class="flex-shrink-0 h-5 w-5 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                </svg>
-                <span class="text-sm truncate">{{ file.name }}</span>
-              </div>
-              <button 
-                type="button" 
-                @click="removeFile(index)"
-                class="ml-2 flex-shrink-0 text-gray-500 hover:text-red-500"
-              >
-                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
+        <!--  -->
 
         <!-- Submit button -->
         <div class="pt-4">
@@ -245,13 +190,7 @@
       </form>
 
       <!-- Bouton de débogage temporaire -->
-      <button 
-        type="button" 
-        @click="debugCategories" 
-        class="mt-2 text-xs text-gray-500 underline"
-      >
-        Debug catégories
-      </button>
+     
     </main>
   </div>
 </template>

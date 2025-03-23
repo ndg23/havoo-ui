@@ -1,520 +1,617 @@
 <template>
-  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <!-- Header with navigation -->
-    <div class="flex items-center justify-between mb-8">
-      <div class="flex items-center">
-        <button 
-          @click="router.back()" 
-          class="flex items-center text-gray-600 hover:text-black transition-all"
-        >
-          <ChevronLeft class="h-5 w-5" />
-          <span class="ml-1.5 font-medium">Retour</span>
-        </button>
-        
-        <h1 class="text-xl font-bold text-gray-900 ml-6 hidden md:block">
-          Détails de l'utilisateur
-        </h1>
-      </div>
-      
-      <div v-if="user && !error" class="flex gap-3">
-        <button
-          @click="editMode = !editMode"
-          class="px-4 py-2 rounded-full flex items-center bg-gray-100 text-gray-800 hover:bg-gray-200 transition-all text-sm font-medium"
-        >
-          <component :is="editMode ? 'Eye' : 'Edit'" class="h-4 w-4 mr-2" />
-          {{ editMode ? 'Voir profil' : 'Modifier' }}
-        </button>
-        
-        <button
-          @click="confirmDelete"
-          class="p-2 rounded-full flex items-center text-red-500 hover:bg-red-50 transition-all"
-        >
-          <Trash class="h-5 w-5" />
-        </button>
-      </div>
-    </div>
-    
-    <!-- Loading state -->
-    <div v-if="loading" class="py-32 flex flex-col items-center justify-center">
-      <Loader2 class="h-8 w-8 text-blue-500 animate-spin mb-4" />
-      <p class="text-gray-500">Chargement des informations...</p>
-    </div>
-    
-    <!-- Error state -->
-    <div v-else-if="error" class="py-32 flex flex-col items-center justify-center">
-      <AlertCircle class="h-16 w-16 text-red-500 mb-5" />
-      <h3 class="text-xl font-semibold text-gray-900 mb-3">Utilisateur non trouvé</h3>
-      <p class="text-gray-500 text-center max-w-md mb-6">
-        Impossible de trouver les détails de cet utilisateur. Il a peut-être été supprimé.
-      </p>
-      <button 
-        @click="router.push('/admin/users')" 
-        class="px-5 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition-all"
-      >
-        Retour à la liste
-      </button>
-    </div>
-    
-    <!-- Main content -->
-    <div v-else-if="user" class="space-y-8">
-      <!-- User profile header -->
-      <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
-        <div class="h-40 bg-gradient-to-r from-blue-500 to-purple-600 relative">
-          <!-- User avatar positioned at the bottom edge of the header -->
-          <div class="absolute -bottom-12 left-8">
-            <div class="h-24 w-24 rounded-full border-4 border-white bg-white overflow-hidden shadow-sm">
-              <img 
-                v-if="user.avatar_url" 
-                :src="user.avatar_url" 
-                alt="Avatar" 
-                class="h-full w-full object-cover"
-              />
-              <div v-else class="h-full w-full bg-gray-100 flex items-center justify-center">
-                <User class="h-12 w-12 text-gray-400" />
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="pt-16 px-8 pb-8">
-          <div class="flex flex-col md:flex-row md:items-start md:justify-between">
-            <div>
-              <h1 class="text-2xl font-bold text-gray-900">
-                {{ user.first_name }} {{ user.last_name }}
-              </h1>
-              <div class="text-gray-500 mt-1">{{ user.email }}</div>
-              
-              <div class="flex mt-3 gap-2">
-                <span 
-                  class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"
-                  :class="{
-                    'bg-blue-100 text-blue-800': user.role === 'admin',
-                    'bg-purple-100 text-purple-800': user.role === 'expert',
-                    'bg-gray-100 text-gray-800': user.role === 'client'
-                  }"
-                >
-                  {{ formatRole(user.role) }}
-                </span>
-                
-                <span 
-                  class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"
-                  :class="{
-                    'bg-green-100 text-green-800': user.status === 'active',
-                    'bg-yellow-100 text-yellow-800': user.status === 'pending',
-                    'bg-red-100 text-red-800': user.status === 'blocked'
-                  }"
-                >
-                  {{ formatStatus(user.status) }}
-                </span>
-              </div>
-            </div>
-            
-            <div class="mt-4 md:mt-0">
-              <div class="text-sm text-gray-500 flex items-center">
-                <Calendar class="h-4 w-4 mr-2" />
-                <span>Inscrit le {{ formatDate(user.created_at) }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- View mode content -->
-      <div v-if="!editMode" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Left column: Personal information -->
-        <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100 p-6">
-          <h3 class="text-lg font-semibold text-gray-900 mb-5 flex items-center">
-            <User class="h-5 w-5 mr-2 text-blue-500" />
-            Informations personnelles
-          </h3>
+  <div class="min-h-screen bg-white">
+    <!-- Twitter-inspired sticky header with lighter design -->
+    <header class="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-3 mb-5">
+      <div class="max-w-5xl mx-auto flex items-center justify-between">
+        <div class="flex items-center">
+          <button 
+            @click="router.back()" 
+            class="flex items-center text-gray-700 hover:text-primary-600 transition-colors font-medium"
+          >
+            <ChevronLeft class="h-5 w-5 mr-1" />
+            <span>Retour</span>
+          </button>
           
-          <div class="space-y-4">
-            <div class="border-b border-gray-100 pb-4">
-              <div class="text-sm font-medium text-gray-500 mb-1">Nom complet</div>
-              <div class="text-gray-900 font-medium">{{ user.first_name }} {{ user.last_name }}</div>
-            </div>
-            
-            <div class="border-b border-gray-100 pb-4">
-              <div class="text-sm font-medium text-gray-500 mb-1">Email</div>
-              <div class="text-gray-900">{{ user.email }}</div>
-            </div>
-            
-            <div class="border-b border-gray-100 pb-4">
-              <div class="text-sm font-medium text-gray-500 mb-1">Téléphone</div>
-              <div class="text-gray-900">{{ user.phone || '—' }}</div>
-            </div>
-            
-            <div>
-              <div class="text-sm font-medium text-gray-500 mb-1">Adresse</div>
-              <div class="text-gray-900">
-                <div>{{ user.address || '—' }}</div>
-                <div v-if="user.city || user.zip_code" class="mt-1">
-                  {{ user.zip_code || '' }} {{ user.city || '' }}
-                </div>
-              </div>
-            </div>
-          </div>
+          <h1 class="text-xl font-bold text-gray-900 ml-6 hidden md:block">
+            Détails de l'utilisateur
+          </h1>
         </div>
         
-        <!-- Middle column: Expert information or statistics -->
-        <div v-if="user.role === 'expert'" class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100 p-6">
-          <h3 class="text-lg font-semibold text-gray-900 mb-5 flex items-center">
-            <Briefcase class="h-5 w-5 mr-2 text-purple-500" />
-            Informations expert
-          </h3>
+        <div v-if="user && !error" class="flex gap-3">
+          <button
+            @click="editMode = !editMode"
+            class="px-4 py-2 rounded-full flex items-center bg-gray-50 text-gray-800 hover:bg-gray-100 transition-colors text-sm font-medium border border-gray-100"
+          >
+            <component :is="editMode ? 'Eye' : 'Edit'" class="h-4 w-4 mr-2" />
+            {{ editMode ? 'Voir profil' : 'Modifier' }}
+          </button>
           
-          <div class="space-y-4">
-            <div class="border-b border-gray-100 pb-4">
-              <div class="text-sm font-medium text-gray-500 mb-1">Tarif horaire</div>
-              <div class="text-gray-900 font-medium">
-                {{ user.hourly_rate ? `${user.hourly_rate} FCFA/h` : '—' }}
-              </div>
-            </div>
-            
-            <div class="border-b border-gray-100 pb-4">
-              <div class="text-sm font-medium text-gray-500 mb-1">Disponibilité</div>
-              <div class="text-gray-900 flex items-center">
-                <div class="h-2 w-2 rounded-full mr-2 bg-green-500"></div>
-                {{ user.availability_status || 'Disponible' }}
-              </div>
-            </div>
-            
-            <div class="border-b border-gray-100 pb-4">
-              <div class="text-sm font-medium text-gray-500 mb-1">Vérification</div>
-              <div class="mt-1">
-                <span 
-                  class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"
-                  :class="{
-                    'bg-green-100 text-green-800': user.verification_status === 'verified',
-                    'bg-yellow-100 text-yellow-800': user.verification_status === 'pending',
-                    'bg-red-100 text-red-800': user.verification_status === 'rejected'
-                  }"
-                >
-                  <component :is="getVerificationIcon(user.verification_status)" class="h-3.5 w-3.5 mr-1" />
-                  {{ formatVerificationStatus(user.verification_status) }}
-                </span>
-              </div>
-            </div>
-            
-            <div>
-              <div class="text-sm font-medium text-gray-500 mb-1">Note moyenne</div>
-              <div class="flex items-center">
-                <div class="flex">
-                  <Star class="h-5 w-5 text-yellow-400" :fill="true" />
-                  <Star class="h-5 w-5 text-yellow-400" :fill="user.rating >= 2" />
-                  <Star class="h-5 w-5 text-yellow-400" :fill="user.rating >= 3" />
-                  <Star class="h-5 w-5 text-yellow-400" :fill="user.rating >= 4" />
-                  <Star class="h-5 w-5 text-yellow-400" :fill="user.rating >= 5" />
-                </div>
-                <span class="ml-2 font-medium">{{ user.rating || '—' }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Right column: Statistics -->
-        <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100 p-6">
-          <h3 class="text-lg font-semibold text-gray-900 mb-5 flex items-center">
-            <BarChart2 class="h-5 w-5 mr-2 text-green-500" />
-            Statistiques
-          </h3>
-          
-          <div class="grid grid-cols-2 gap-4">
-            <div class="bg-gray-50 p-4 rounded-lg">
-              <div class="text-sm text-gray-500 mb-1">Demandes</div>
-              <div class="text-2xl font-bold">{{ stats.requests || 0 }}</div>
-            </div>
-            
-            <div class="bg-gray-50 p-4 rounded-lg">
-              <div class="text-sm text-gray-500 mb-1">Propositions</div>
-              <div class="text-2xl font-bold">{{ stats.proposals || 0 }}</div>
-            </div>
-            
-            <div class="bg-gray-50 p-4 rounded-lg">
-              <div class="text-sm text-gray-500 mb-1">Contrats</div>
-              <div class="text-2xl font-bold">{{ stats.contracts || 0 }}</div>
-            </div>
-            
-            <div class="bg-gray-50 p-4 rounded-lg">
-              <div class="text-sm text-gray-500 mb-1">Avis</div>
-              <div class="text-2xl font-bold">{{ stats.reviews || 0 }}</div>
-            </div>
-          </div>
+          <button
+            @click="confirmDelete"
+            class="p-2 rounded-full flex items-center text-red-500 hover:bg-red-50 transition-colors border border-transparent hover:border-red-100"
+          >
+            <Trash class="h-5 w-5" />
+          </button>
         </div>
       </div>
-      
-      <!-- Quick verification button for experts in view mode -->
-      <div v-if="user.role === 'expert' && !editMode" class="mt-6 flex items-center gap-4">
-        <button
-          v-if="user.verification_status !== 'verified'"
-          @click="verifyExpert"
-          class="px-5 py-2.5 rounded-full bg-green-600 text-white hover:bg-green-700 transition-all flex items-center gap-2 shadow-sm"
-        >
-          <Badge class="h-4 w-4" />
-          <span>Vérifier l'expert</span>
-        </button>
-        
-        <button
-          v-else
-          @click="confirmUnverifyExpert"
-          class="px-5 py-2.5 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition-all flex items-center gap-2"
-        >
-          <ShieldOff class="h-4 w-4" />
-          <span>Retirer la vérification</span>
-        </button>
+    </header>
 
-        <div v-if="verificationLoading" class="animate-pulse text-sm text-gray-600 ml-2">
-          Mise à jour...
+    <main class="max-w-5xl mx-auto px-4 py-4">
+      <!-- Enhanced loading state with Twitter spinner -->
+      <div v-if="loading" class="flex flex-col items-center justify-center py-24">
+        <div class="animate-spin h-10 w-10 mb-5 text-primary-500">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="#E1E8ED" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
         </div>
+        <p class="text-gray-500 font-medium">Chargement des informations...</p>
       </div>
       
-      <!-- Edit mode content -->
-      <div v-if="editMode" class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100 p-6">
-        <div class="flex items-center justify-between mb-6">
-          <h3 class="text-lg font-semibold text-gray-900 flex items-center">
-            <Edit class="h-5 w-5 mr-2 text-blue-500" />
-            Modifier l'utilisateur
-          </h3>
-          
-          <div class="flex gap-3">
-            <button
-              @click="cancelEdit"
-              class="px-4 py-2 rounded-full text-gray-700 hover:bg-gray-100 transition-all"
+      <!-- Twitter-style error state -->
+      <div v-else-if="error" class="max-w-md mx-auto bg-red-50 p-5 rounded-2xl border border-red-50 text-red-700">
+        <div class="flex">
+          <AlertCircle class="h-5 w-5 text-red-500 mr-3 flex-shrink-0" />
+          <div>
+            <p class="font-medium">Utilisateur non trouvé</p>
+            <p class="mt-1 text-sm">Impossible de trouver les détails de cet utilisateur. Il a peut-être été supprimé.</p>
+            <button 
+              @click="router.push('/admin/users')" 
+              class="mt-4 text-sm font-semibold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-5 py-2 rounded-full transition-colors"
             >
-              Annuler
-            </button>
-            
-            <button
-              @click="saveChanges"
-              class="px-4 py-2 rounded-full bg-black text-white hover:bg-gray-800 transition-all"
-            >
-              Enregistrer
+              Retour à la liste
             </button>
           </div>
         </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <!-- Personal Information Form -->
-          <div>
-            <h4 class="font-medium text-gray-900 mb-4">Informations personnelles</h4>
+      </div>
+      
+      <!-- Main content -->
+      <div v-else-if="user" class="space-y-6">
+        <!-- User profile header with Twitter-style design -->
+        <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:border-gray-200 transition-colors">
+          <div class="h-36 bg-gradient-to-r from-primary-50 to-blue-50 relative">
+            <!-- Subtle decorative elements -->
+            <div class="absolute top-0 right-0 w-32 h-32 rounded-full bg-primary-100 opacity-20 -translate-y-1/2 translate-x-1/2"></div>
+            <div class="absolute bottom-0 left-0 w-24 h-24 rounded-full bg-blue-100 opacity-20 translate-y-1/2 -translate-x-1/2"></div>
+          </div>
+          
+          <div class="relative px-6 pt-16 pb-6">
+            <!-- User avatar positioned at the edge of the header with improved border -->
+            <div class="absolute -top-12 left-6">
+              <div class="h-24 w-24 rounded-full border-4 border-white bg-white overflow-hidden ring-4 ring-primary-50 ring-opacity-50">
+                <img 
+                  v-if="user.avatar_url" 
+                  :src="user.avatar_url" 
+                  alt="Avatar" 
+                  class="h-full w-full object-cover"
+                />
+                <div v-else class="h-full w-full bg-gray-100 flex items-center justify-center">
+                  <User class="h-12 w-12 text-gray-400" />
+                </div>
+              </div>
+            </div>
             
-            <div class="space-y-4">
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1" for="first_name">Prénom</label>
-                  <input
-                    id="first_name"
-                    v-model="editedUser.first_name"
-                    type="text"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                  />
+            <div class="flex flex-col md:flex-row md:items-start md:justify-between">
+              <div>
+                <h1 class="text-2xl font-bold text-gray-900">
+                  {{ user.first_name }} {{ user.last_name }}
+                </h1>
+                <div class="text-gray-500 mt-1 flex items-center">
+                  <Mail class="h-3.5 w-3.5 mr-1.5 text-gray-400" />
+                  {{ user.email }}
                 </div>
                 
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1" for="last_name">Nom</label>
-                  <input
-                    id="last_name"
-                    v-model="editedUser.last_name"
-                    type="text"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                  />
+                <div class="flex mt-3 gap-2">
+                  <!-- Role badge with enhanced hover effect -->
+                  <span 
+                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-colors duration-200"
+                    :class="{
+                      'bg-blue-50 text-blue-700 hover:bg-blue-100': user.role === 'admin',
+                      'bg-primary-50 text-primary-700 hover:bg-primary-100': user.role === 'expert',
+                      'bg-gray-100 text-gray-800 hover:bg-gray-200': user.role === 'client'
+                    }"
+                  >
+                    <component 
+                      :is="user.role === 'admin' ? 'Shield' : user.role === 'expert' ? 'Briefcase' : 'User'" 
+                      class="h-3 w-3 mr-1.5" 
+                    />
+                    {{ formatRole(user.role) }}
+                  </span>
+                  
+                  <!-- Status badge with enhanced styling -->
+                  <span 
+                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-colors duration-200"
+                    :class="{
+                      'bg-green-50 text-green-700 hover:bg-green-100': user.status === 'active',
+                      'bg-amber-50 text-amber-700 hover:bg-amber-100': user.status === 'pending',
+                      'bg-red-50 text-red-700 hover:bg-red-100': user.status === 'blocked'
+                    }"
+                  >
+                    <component 
+                      :is="user.status === 'active' ? 'CheckCircle' : user.status === 'pending' ? 'Clock' : 'XCircle'" 
+                      class="h-3 w-3 mr-1.5" 
+                    />
+                    {{ formatStatus(user.status) }}
+                  </span>
                 </div>
               </div>
               
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1" for="email">Email</label>
-                <input
-                  id="email"
-                  v-model="editedUser.email"
-                  type="email"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1" for="phone">Téléphone</label>
-                <input
-                  id="phone"
-                  v-model="editedUser.phone"
-                  type="tel"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1" for="address">Adresse</label>
-                <input
-                  id="address"
-                  v-model="editedUser.address"
-                  type="text"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1" for="city">Ville</label>
-                  <input
-                    id="city"
-                    v-model="editedUser.city"
-                    type="text"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                  />
+              <div class="mt-4 md:mt-0">
+                <div class="text-sm text-gray-500 flex items-center px-3 py-1.5 bg-gray-50 rounded-lg">
+                  <Calendar class="h-4 w-4 mr-2 text-gray-400" />
+                  <span>Inscrit le {{ formatDate(user.created_at) }}</span>
                 </div>
-                
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1" for="zip_code">Code postal</label>
-                  <input
-                    id="zip_code"
-                    v-model="editedUser.zip_code"
-                    type="text"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                  />
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- View mode content -->
+        <div v-if="!editMode" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Left column: Personal information -->
+          <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+              <h3 class="font-semibold text-gray-900 flex items-center">
+                <User class="h-5 w-5 mr-2 text-primary-600" />
+                Informations personnelles
+              </h3>
+            </div>
+            
+            <div class="p-6 space-y-4">
+              <div class="border-b border-gray-100 pb-4">
+                <div class="text-sm font-medium text-gray-500 mb-1">Nom complet</div>
+                <div class="text-gray-900 font-medium">{{ user.first_name }} {{ user.last_name }}</div>
+              </div>
+              
+              <div class="border-b border-gray-100 pb-4">
+                <div class="text-sm font-medium text-gray-500 mb-1">Email</div>
+                <div class="text-gray-900">{{ user.email }}</div>
+              </div>
+              
+              <div class="border-b border-gray-100 pb-4">
+                <div class="text-sm font-medium text-gray-500 mb-1">Téléphone</div>
+                <div class="text-gray-900">{{ user.phone || '—' }}</div>
+              </div>
+              
+              <div>
+                <div class="text-sm font-medium text-gray-500 mb-1">Adresse</div>
+                <div class="text-gray-900">
+                  <div>{{ user.address || '—' }}</div>
+                  <div v-if="user.city || user.zip_code" class="mt-1">
+                    {{ user.zip_code || '' }} {{ user.city || '' }}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
           
-          <!-- Status and role form -->
-          <div>
-            <h4 class="font-medium text-gray-900 mb-4">Statut et rôle</h4>
+          <!-- Middle column: Expert information -->
+          <div v-if="user.role === 'expert'" class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+              <h3 class="font-semibold text-gray-900 flex items-center">
+                <Briefcase class="h-5 w-5 mr-2 text-primary-600" />
+                Informations expert
+              </h3>
+            </div>
             
-            <div class="space-y-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1" for="role">Rôle</label>
-                <select
-                  id="role"
-                  v-model="editedUser.role"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="admin">Administrateur</option>
-                  <option value="expert">Expert</option>
-                  <option value="client">Client</option>
-                </select>
-              </div>
-              
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1" for="status">Statut</label>
-                <select
-                  id="status"
-                  v-model="editedUser.status"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="active">Actif</option>
-                  <option value="pending">En attente</option>
-                  <option value="blocked">Bloqué</option>
-                </select>
-              </div>
-              
-              <div v-if="editedUser.role === 'expert'">
-                <label class="block text-sm font-medium text-gray-700 mb-1" for="hourly_rate">Tarif horaire (FCFA)</label>
-                <input
-                  id="hourly_rate"
-                  v-model="editedUser.hourly_rate"
-                  type="number"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              
-              <div v-if="editedUser.role === 'expert'">
-                <label class="block text-sm font-medium text-gray-700 mb-1" for="verification_status">Statut de vérification</label>
-                <div class="flex gap-3 mt-1">
-                  <button
-                    @click="editedUser.verification_status = 'verified'"
-                    class="flex-1 px-3 py-2.5 rounded-lg border flex items-center justify-center gap-2 transition-all"
-                    :class="editedUser.verification_status === 'verified' ? 
-                      'bg-green-50 border-green-200 text-green-700' : 
-                      'border-gray-200 hover:bg-gray-50 text-gray-700'"
-                  >
-                    <CheckCircle class="h-4 w-4" :class="editedUser.verification_status === 'verified' ? 'text-green-500' : 'text-gray-400'" />
-                    <span>Vérifié</span>
-                  </button>
-                  
-                  <button
-                    @click="editedUser.verification_status = 'pending'"
-                    class="flex-1 px-3 py-2.5 rounded-lg border flex items-center justify-center gap-2 transition-all"
-                    :class="editedUser.verification_status === 'pending' ? 
-                      'bg-yellow-50 border-yellow-200 text-yellow-700' : 
-                      'border-gray-200 hover:bg-gray-50 text-gray-700'"
-                  >
-                    <Clock class="h-4 w-4" :class="editedUser.verification_status === 'pending' ? 'text-yellow-500' : 'text-gray-400'" />
-                    <span>En attente</span>
-                  </button>
-                  
-                  <button
-                    @click="editedUser.verification_status = 'rejected'"
-                    class="flex-1 px-3 py-2.5 rounded-lg border flex items-center justify-center gap-2 transition-all"
-                    :class="editedUser.verification_status === 'rejected' ? 
-                      'bg-red-50 border-red-200 text-red-700' : 
-                      'border-gray-200 hover:bg-gray-50 text-gray-700'"
-                  >
-                    <X class="h-4 w-4" :class="editedUser.verification_status === 'rejected' ? 'text-red-500' : 'text-gray-400'" />
-                    <span>Rejeté</span>
-                  </button>
+            <div class="p-6 space-y-4">
+              <div class="border-b border-gray-100 pb-4">
+                <div class="text-sm font-medium text-gray-500 mb-1">Tarif horaire</div>
+                <div class="text-gray-900 font-medium">
+                  {{ user.hourly_rate ? `${user.hourly_rate} FCFA/h` : '—' }}
                 </div>
               </div>
               
-              <div class="pt-4">
-                <h4 class="font-medium text-gray-900 mb-4">Photo de profil</h4>
+              <div class="border-b border-gray-100 pb-4">
+                <div class="text-sm font-medium text-gray-500 mb-1">Disponibilité</div>
+                <div class="text-gray-900 flex items-center">
+                  <div class="h-2 w-2 rounded-full mr-2 bg-green-500"></div>
+                  {{ user.availability_status || 'Disponible' }}
+                </div>
+              </div>
+              
+              <div class="border-b border-gray-100 pb-4">
+                <div class="text-sm font-medium text-gray-500 mb-1">Vérification</div>
+                <div class="mt-1">
+                  <span 
+                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"
+                    :class="{
+                      'bg-green-50 text-green-700': user.verification_status === 'verified',
+                      'bg-amber-50 text-amber-700': user.verification_status === 'pending',
+                      'bg-red-50 text-red-700': user.verification_status === 'rejected'
+                    }"
+                  >
+                    <component :is="getVerificationIcon(user.verification_status)" class="h-3.5 w-3.5 mr-1" />
+                    {{ formatVerificationStatus(user.verification_status) }}
+                  </span>
+                </div>
+              </div>
+              
+              <div>
+                <div class="text-sm font-medium text-gray-500 mb-1">Note moyenne</div>
+                <div class="flex items-center">
+                  <div class="flex">
+                    <Star class="h-5 w-5 text-amber-400" :fill="true" />
+                    <Star class="h-5 w-5 text-amber-400" :fill="user.rating >= 2" />
+                    <Star class="h-5 w-5 text-amber-400" :fill="user.rating >= 3" />
+                    <Star class="h-5 w-5 text-amber-400" :fill="user.rating >= 4" />
+                    <Star class="h-5 w-5 text-amber-400" :fill="user.rating >= 5" />
+                  </div>
+                  <span class="ml-2 font-medium">{{ user.rating || '—' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Right column: Statistics -->
+          <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+              <h3 class="font-semibold text-gray-900 flex items-center">
+                <BarChart2 class="h-5 w-5 mr-2 text-primary-600" />
+                Statistiques
+              </h3>
+            </div>
+            
+            <div class="p-6">
+              <div class="grid grid-cols-2 gap-4">
+                <div class="bg-white p-4 rounded-lg border border-gray-100 hover:border-primary-100 hover:bg-blue-50/10 transition-all duration-200 group">
+                  <div class="flex justify-between items-start">
+                    <div>
+                      <div class="text-sm text-gray-500 mb-1">Demandes</div>
+                      <div class="text-2xl font-bold text-gray-900 group-hover:text-primary-600 transition-colors">{{ stats.requests || 0 }}</div>
+                    </div>
+                    <div class="h-9 w-9 rounded-full bg-primary-50 flex items-center justify-center group-hover:bg-primary-100 transition-colors">
+                      <FileText class="h-4 w-4 text-primary-600" />
+                    </div>
+                  </div>
+                </div>
                 
-                <div class="flex items-center space-x-4">
-                  <div class="h-16 w-16 rounded-full bg-gray-100 overflow-hidden flex-shrink-0 border border-gray-200">
-                    <img 
-                      v-if="editedUser.avatar_url" 
-                      :src="editedUser.avatar_url" 
-                      alt="Avatar" 
-                      class="h-full w-full object-cover"
+                <div class="bg-white p-4 rounded-lg border border-gray-100 hover:border-primary-100 hover:bg-blue-50/10 transition-all duration-200 group">
+                  <div class="flex justify-between items-start">
+                    <div>
+                      <div class="text-sm text-gray-500 mb-1">Propositions</div>
+                      <div class="text-2xl font-bold text-gray-900 group-hover:text-primary-600 transition-colors">{{ stats.proposals || 0 }}</div>
+                    </div>
+                    <div class="h-9 w-9 rounded-full bg-primary-50 flex items-center justify-center group-hover:bg-primary-100 transition-colors">
+                      <MessageCircle class="h-4 w-4 text-primary-600" />
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="bg-white p-4 rounded-lg border border-gray-100 hover:border-primary-100 hover:bg-blue-50/10 transition-all duration-200 group">
+                  <div class="flex justify-between items-start">
+                    <div>
+                      <div class="text-sm text-gray-500 mb-1">Contrats</div>
+                      <div class="text-2xl font-bold text-gray-900 group-hover:text-primary-600 transition-colors">{{ stats.contracts || 0 }}</div>
+                    </div>
+                    <div class="h-9 w-9 rounded-full bg-primary-50 flex items-center justify-center group-hover:bg-primary-100 transition-colors">
+                      <FileText class="h-4 w-4 text-primary-600" />
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="bg-white p-4 rounded-lg border border-gray-100 hover:border-primary-100 hover:bg-blue-50/10 transition-all duration-200 group">
+                  <div class="flex justify-between items-start">
+                    <div>
+                      <div class="text-sm text-gray-500 mb-1">Avis</div>
+                      <div class="text-2xl font-bold text-gray-900 group-hover:text-primary-600 transition-colors">{{ stats.reviews || 0 }}</div>
+                    </div>
+                    <div class="h-9 w-9 rounded-full bg-primary-50 flex items-center justify-center group-hover:bg-primary-100 transition-colors">
+                      <Star class="h-4 w-4 text-primary-600" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Quick verification button for experts in view mode -->
+        <div v-if="user.role === 'expert' && !editMode" class="mt-6 flex items-center gap-4">
+          <button
+            v-if="user.verification_status !== 'verified'"
+            @click="verifyExpert"
+            class="px-5 py-2.5 rounded-full bg-white text-green-600 hover:bg-green-50 transition-all flex items-center gap-2 border border-green-200"
+          >
+            <Badge class="h-4 w-4" />
+            <span>Vérifier l'expert</span>
+          </button>
+          
+          <button
+            v-else
+            @click="confirmUnverifyExpert"
+            class="px-5 py-2.5 rounded-full bg-white text-gray-700 hover:bg-gray-50 transition-all flex items-center gap-2 border border-gray-200"
+          >
+            <ShieldOff class="h-4 w-4" />
+            <span>Retirer la vérification</span>
+          </button>
+
+          <div v-if="verificationLoading" class="animate-pulse text-sm text-gray-600 ml-2 flex items-center">
+            <div class="animate-spin h-4 w-4 mr-2 text-primary-500">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="#E1E8ED" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </div>
+            Mise à jour...
+          </div>
+        </div>
+        
+        <!-- Edit mode content -->
+        <div v-if="editMode" class="bg-white rounded-2xl border border-gray-100 overflow-hidden p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+              <Edit class="h-5 w-5 mr-2 text-primary-600" />
+              Modifier l'utilisateur
+            </h3>
+            
+            <div class="flex gap-3">
+              <button
+                @click="cancelEdit"
+                class="px-4 py-2 rounded-full text-gray-700 hover:bg-gray-50 transition-all border border-gray-100"
+              >
+                <span class="flex items-center">
+                  <X class="h-4 w-4 mr-2" />
+                  Annuler
+                </span>
+              </button>
+              
+              <button
+                @click="saveChanges"
+                class="px-5 py-2 rounded-full bg-primary-600 text-white hover:bg-primary-700 transition-all"
+              >
+                <span class="flex items-center">
+                  <Check class="h-4 w-4 mr-2" />
+                  Enregistrer
+                </span>
+              </button>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Personal Information Form -->
+            <div class="bg-white rounded-xl border border-gray-100 p-5 hover:border-gray-200 transition-colors">
+              <h4 class="font-medium text-gray-900 mb-4 flex items-center">
+                <User class="h-4 w-4 mr-2 text-primary-600" />
+                Informations personnelles
+              </h4>
+              
+              <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1" for="first_name">Prénom</label>
+                    <input
+                      id="first_name"
+                      v-model="editedUser.first_name"
+                      type="text"
+                      class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+                      placeholder="Prénom"
                     />
-                    <User v-else class="h-8 w-8 text-gray-400 m-4" />
                   </div>
                   
                   <div>
-                    <button class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">
-                      Modifier la photo
+                    <label class="block text-sm font-medium text-gray-700 mb-1" for="last_name">Nom</label>
+                    <input
+                      id="last_name"
+                      v-model="editedUser.last_name"
+                      type="text"
+                      class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+                      placeholder="Nom"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1" for="email">Email</label>
+                  <input
+                    id="email"
+                    v-model="editedUser.email"
+                    type="email"
+                    class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+                    placeholder="exemple@email.com"
+                  />
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1" for="phone">Téléphone</label>
+                  <input
+                    id="phone"
+                    v-model="editedUser.phone"
+                    type="tel"
+                    class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+                    placeholder="+XX XXX XXX XXX"
+                  />
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1" for="address">Adresse</label>
+                  <input
+                    id="address"
+                    v-model="editedUser.address"
+                    type="text"
+                    class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+                    placeholder="Adresse"
+                  />
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1" for="city">Ville</label>
+                    <input
+                      id="city"
+                      v-model="editedUser.city"
+                      type="text"
+                      class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+                      placeholder="Ville"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1" for="zip_code">Code postal</label>
+                    <input
+                      id="zip_code"
+                      v-model="editedUser.zip_code"
+                      type="text"
+                      class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+                      placeholder="Code postal"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Status and role form -->
+            <div class="bg-white rounded-xl border border-gray-100 p-5 hover:border-gray-200 transition-colors">
+              <h4 class="font-medium text-gray-900 mb-4 flex items-center">
+                <Settings class="h-4 w-4 mr-2 text-primary-600" />
+                Statut et rôle
+              </h4>
+              
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1" for="role">Rôle</label>
+                  <select
+                    id="role"
+                    v-model="editedUser.role"
+                    class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+                  >
+                    <option value="admin">Administrateur</option>
+                    <option value="expert">Expert</option>
+                    <option value="client">Client</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1" for="status">Statut</label>
+                  <select
+                    id="status"
+                    v-model="editedUser.status"
+                    class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+                  >
+                    <option value="active">Actif</option>
+                    <option value="pending">En attente</option>
+                    <option value="blocked">Bloqué</option>
+                  </select>
+                </div>
+                
+                <div v-if="editedUser.role === 'expert'">
+                  <label class="block text-sm font-medium text-gray-700 mb-1" for="hourly_rate">Tarif horaire (FCFA)</label>
+                  <input
+                    id="hourly_rate"
+                    v-model="editedUser.hourly_rate"
+                    type="number"
+                    class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+                    placeholder="Tarif horaire"
+                  />
+                </div>
+                
+                <div v-if="editedUser.role === 'expert'">
+                  <label class="block text-sm font-medium text-gray-700 mb-1" for="verification_status">Statut de vérification</label>
+                  <div class="flex gap-3 mt-1">
+                    <button
+                      @click="editedUser.verification_status = 'verified'"
+                      class="flex-1 px-3 py-2.5 rounded-lg border flex items-center justify-center gap-2 transition-all"
+                      :class="editedUser.verification_status === 'verified' ? 
+                        'bg-green-50 border-green-200 text-green-700' : 
+                        'border-gray-200 hover:bg-gray-50 text-gray-700'"
+                    >
+                      <CheckCircle class="h-4 w-4" :class="editedUser.verification_status === 'verified' ? 'text-green-500' : 'text-gray-400'" />
+                      <span>Vérifié</span>
                     </button>
+                    
+                    <button
+                      @click="editedUser.verification_status = 'pending'"
+                      class="flex-1 px-3 py-2.5 rounded-lg border flex items-center justify-center gap-2 transition-all"
+                      :class="editedUser.verification_status === 'pending' ? 
+                        'bg-yellow-50 border-yellow-200 text-yellow-700' : 
+                        'border-gray-200 hover:bg-gray-50 text-gray-700'"
+                    >
+                      <Clock class="h-4 w-4" :class="editedUser.verification_status === 'pending' ? 'text-yellow-500' : 'text-gray-400'" />
+                      <span>En attente</span>
+                    </button>
+                    
+                    <button
+                      @click="editedUser.verification_status = 'rejected'"
+                      class="flex-1 px-3 py-2.5 rounded-lg border flex items-center justify-center gap-2 transition-all"
+                      :class="editedUser.verification_status === 'rejected' ? 
+                        'bg-red-50 border-red-200 text-red-700' : 
+                        'border-gray-200 hover:bg-gray-50 text-gray-700'"
+                    >
+                      <X class="h-4 w-4" :class="editedUser.verification_status === 'rejected' ? 'text-red-500' : 'text-gray-400'" />
+                      <span>Rejeté</span>
+                    </button>
+                  </div>
+                </div>
+                
+                <div class="pt-4">
+                  <h4 class="font-medium text-gray-900 mb-4 flex items-center">
+                    <Image class="h-4 w-4 mr-2 text-primary-600" />
+                    Photo de profil
+                  </h4>
+                  
+                  <div class="flex items-center space-x-4">
+                    <div class="h-16 w-16 rounded-full bg-gray-100 overflow-hidden flex-shrink-0 border border-gray-200">
+                      <img 
+                        v-if="editedUser.avatar_url" 
+                        :src="editedUser.avatar_url" 
+                        alt="Avatar" 
+                        class="h-full w-full object-cover"
+                      />
+                      <User v-else class="h-8 w-8 text-gray-400 m-4" />
+                    </div>
+                    
+                    <div>
+                      <button class="px-3 py-1.5 border border-gray-200 rounded-lg text-sm hover:bg-gray-50 transition-colors">
+                        <span class="flex items-center">
+                          <UploadCloud class="h-3.5 w-3.5 mr-1.5" />
+                          Modifier la photo
+                        </span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      
-      <!-- Activity section (always visible) -->
-      <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100 p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-5 flex items-center">
-          <Activity class="h-5 w-5 mr-2 text-red-500" />
-          Activité récente
-        </h3>
         
-        <div v-if="activities.length > 0" class="space-y-3">
-          <div 
-            v-for="activity in activities" 
-            :key="activity.id"
-            class="flex p-4 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100"
-          >
-            <div class="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center mr-4 flex-shrink-0">
-              <component :is="getActivityIcon(activity.type)" class="h-5 w-5 text-gray-600" />
+        <!-- Activity section (always visible) -->
+        <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-5 flex items-center">
+            <Activity class="h-5 w-5 mr-2 text-primary-600" />
+            Activité récente
+          </h3>
+          
+          <div v-if="activities.length > 0" class="space-y-4">
+            <div 
+              v-for="activity in activities" 
+              :key="activity.id"
+              class="flex p-4 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100 group"
+            >
+              <div class="h-10 w-10 rounded-full bg-gray-50 flex items-center justify-center mr-4 flex-shrink-0 group-hover:bg-primary-50 transition-colors">
+                <component :is="getActivityIcon(activity.type)" class="h-5 w-5 text-primary-500" />
+              </div>
+              
+              <div class="flex-grow">
+                <div class="text-gray-900 font-medium group-hover:text-primary-600 transition-colors">{{ activity.title }}</div>
+                <div class="text-sm text-gray-500 mt-1">{{ formatDate(activity.created_at, true) }}</div>
+              </div>
+              
+              <button class="text-gray-400 hover:text-primary-600 h-8 w-8 rounded-full flex items-center justify-center hover:bg-gray-50">
+                <ChevronRight class="h-5 w-5" />
+              </button>
             </div>
-            
-            <div class="flex-grow">
-              <div class="text-gray-900 font-medium">{{ activity.title }}</div>
-              <div class="text-sm text-gray-500 mt-1">{{ formatDate(activity.created_at, true) }}</div>
-            </div>
-            
-            <button class="text-gray-400 hover:text-gray-600 h-8 w-8 rounded-full flex items-center justify-center hover:bg-gray-100">
-              <ChevronRight class="h-5 w-5" />
-            </button>
+          </div>
+          
+          <div v-else class="flex flex-col items-center justify-center py-10 text-gray-500 bg-gray-50 rounded-lg">
+            <Calendar class="h-12 w-12 text-gray-300 mb-3" />
+            <p class="font-medium">Aucune activité récente</p>
+            <p class="text-sm text-gray-400 mt-1">Les activités de l'utilisateur apparaîtront ici</p>
           </div>
         </div>
-        
-        <div v-else class="flex flex-col items-center justify-center py-10 text-gray-500">
-          <Calendar class="h-12 w-12 text-gray-300 mb-3" />
-          <p>Aucune activité récente</p>
-        </div>
       </div>
-    </div>
-    
+    </main>
+
     <!-- Delete confirmation modal -->
     <ConfirmModal
       :show="showDeleteModal"
@@ -522,60 +619,17 @@
       @close="showDeleteModal = false"
     >
       <div class="py-3">
-        <AlertCircle class="h-14 w-14 text-red-500 mx-auto mb-4" />
+        <div class="flex justify-center mb-4">
+          <div class="h-16 w-16 rounded-full bg-red-50 flex items-center justify-center">
+            <AlertCircle class="h-8 w-8 text-red-500" />
+          </div>
+        </div>
         
         <p class="text-gray-700 mb-4 text-center">
           Cette action est irréversible et supprimera définitivement toutes les données de cet utilisateur.
         </p>
         
-        <div class="bg-gray-50 p-4 rounded-lg mb-4 border border-gray-200">
-          <div class="font-medium">{{ user?.first_name }} {{ user?.last_name }}</div>
-          <div class="text-sm text-gray-500">{{ user?.email }}</div>
-        </div>
-      </div>
-      
-      <template #footer>
-        <div class="flex justify-end gap-3">
-          <button
-            @click="showDeleteModal = false"
-            class="px-4 py-2 bg-white border border-gray-300 rounded-full text-gray-700 hover:bg-gray-50 transition-colors"
-          >
-            Annuler
-          </button>
-          
-          <button
-            @click="deleteUser"
-            class="px-4 py-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
-            :class="{ 'opacity-75 cursor-not-allowed': deleting }"
-            :disabled="deleting"
-          >
-            <span v-if="deleting" class="flex items-center">
-              <Loader2 class="animate-spin h-4 w-4 mr-2" />
-              Suppression...
-            </span>
-            <span v-else>Supprimer</span>
-          </button>
-        </div>
-      </template>
-    </ConfirmModal>
-
-    <!-- Verification success modal -->
-    <ConfirmModal
-      :show="showVerificationModal"
-      :title="verificationModalTitle"
-      @close="showVerificationModal = false"
-    >
-      <div class="py-3">
-        <component :is="verificationState === 'verified' ? 'CheckCircle' : 'ShieldOff'" 
-          class="h-16 w-16 mx-auto mb-4"
-          :class="verificationState === 'verified' ? 'text-green-500' : 'text-gray-500'"
-        />
-        
-        <p class="text-gray-700 mb-4 text-center">
-          {{ verificationModalMessage }}
-        </p>
-        
-        <div class="bg-gray-50 p-4 rounded-lg mb-4 border border-gray-200">
+        <div class="bg-gray-50 p-4 rounded-lg mb-4 border border-gray-100">
           <div class="flex items-center">
             <div class="h-10 w-10 rounded-full bg-gray-200 overflow-hidden flex-shrink-0 mr-4">
               <img 
@@ -597,8 +651,75 @@
       <template #footer>
         <div class="flex justify-end gap-3">
           <button
+            @click="showDeleteModal = false"
+            class="px-4 py-2 bg-white border border-gray-100 rounded-full text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            Annuler
+          </button>
+          
+          <button
+            @click="deleteUser"
+            class="px-4 py-2 bg-white text-red-600 rounded-full hover:bg-red-50 transition-colors border border-red-100"
+            :class="{ 'opacity-75 cursor-not-allowed': deleting }"
+            :disabled="deleting"
+          >
+            <span v-if="deleting" class="flex items-center">
+              <Loader2 class="animate-spin h-4 w-4 mr-2" />
+              Suppression...
+            </span>
+            <span v-else>Supprimer</span>
+          </button>
+        </div>
+      </template>
+    </ConfirmModal>
+
+    <!-- Verification success modal -->
+    <ConfirmModal
+      :show="showVerificationModal"
+      :title="verificationModalTitle"
+      @close="showVerificationModal = false"
+    >
+      <div class="py-3">
+        <div class="flex justify-center mb-4">
+          <div 
+            class="h-16 w-16 rounded-full flex items-center justify-center"
+            :class="verificationState === 'verified' ? 'bg-green-50' : 'bg-gray-50'"
+          >
+            <component :is="verificationState === 'verified' ? 'CheckCircle' : 'ShieldOff'" 
+              class="h-8 w-8"
+              :class="verificationState === 'verified' ? 'text-green-500' : 'text-gray-500'"
+            />
+          </div>
+        </div>
+        
+        <p class="text-gray-700 mb-4 text-center">
+          {{ verificationModalMessage }}
+        </p>
+        
+        <div class="bg-gray-50 p-4 rounded-lg mb-4 border border-gray-100">
+          <div class="flex items-center">
+            <div class="h-10 w-10 rounded-full bg-gray-100 overflow-hidden flex-shrink-0 mr-4">
+              <img 
+                v-if="user?.avatar_url" 
+                :src="user.avatar_url" 
+                alt="Avatar" 
+                class="h-full w-full object-cover"
+              />
+              <User v-else class="h-6 w-6 text-gray-400 m-2" />
+            </div>
+            <div>
+              <div class="font-medium">{{ user?.first_name }} {{ user?.last_name }}</div>
+              <div class="text-sm text-gray-500">{{ user?.email }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <button
             @click="showVerificationModal = false"
-            class="px-4 py-2 bg-gray-100 border border-gray-300 rounded-full text-gray-700 hover:bg-gray-200 transition-colors"
+            class="px-4 py-2 bg-white border border-gray-100 rounded-full text-gray-700 hover:bg-gray-50 transition-colors"
           >
             Fermer
           </button>
@@ -615,7 +736,7 @@ import { useSupabaseClient } from '#imports'
 import { 
   ChevronLeft, ChevronRight, Edit, Trash, User, Star, AlertCircle, Loader2,
   MessageCircle, FileText, CreditCard, Check, X, ShoppingBag,
-  Calendar, Clock, Briefcase, Heart, Activity, BarChart2, Eye, CheckCircle, Badge, ShieldOff
+  Calendar, Clock, Briefcase, Heart, Activity, BarChart2, Eye, CheckCircle, Badge, ShieldOff, Mail, UploadCloud, Settings, Image
 } from 'lucide-vue-next'
 import ConfirmModal from '@/components/admin/ConfirmModal.vue'
 

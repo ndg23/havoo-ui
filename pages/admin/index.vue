@@ -1,248 +1,295 @@
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <!-- Header with minimalist design -->
-    <div class="flex justify-between items-center mb-10">
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900">Tableau de bord</h1>
-        <p class="text-gray-600 mt-1">Vue d'ensemble de la plateforme Havoo</p>
+  <div class="min-h-screen bg-white">
+    <!-- Twitter-inspired sticky header with lighter design -->
+    <header class="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-3 mb-5">
+      <div class="max-w-7xl mx-auto flex items-center justify-between">
+        <div>
+          <h1 class="text-xl font-bold text-gray-900">Tableau de bord</h1>
+          <p class="text-gray-600 text-sm">Vue d'ensemble de la plateforme Havoo</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <button 
+            @click="loadDashboardData" 
+            class="p-2.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 font-medium rounded-full transition-colors flex items-center gap-2"
+          >
+            <RefreshIcon class="h-4 w-4" />
+            <span>Actualiser</span>
+          </button>
+          
+          <button class="p-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-full transition-colors flex items-center gap-2">
+            <PlusIcon class="h-4 w-4" />
+            <span>Nouvelle action</span>
+          </button>
+        </div>
       </div>
-      <div class="flex items-center gap-3">
-        <button class="px-4 py-2.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 font-medium rounded-full transition-colors flex items-center gap-2 shadow-sm">
-          <RefreshIcon class="h-4 w-4" />
-          <span>Actualiser</span>
-        </button>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <!-- Enhanced loading state with Twitter spinner -->
+      <div v-if="isLoading" class="flex flex-col items-center justify-center py-24">
+        <div class="animate-spin h-10 w-10 mb-5 text-primary-500">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="#E1E8ED" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </div>
+        <p class="text-gray-500 font-medium">Chargement du tableau de bord...</p>
+      </div>
+
+      <div v-else class="space-y-8">
+        <!-- Key metrics in Twitter-style cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div 
+            v-for="stat in summaryStats" 
+            :key="stat.name"
+            class="bg-white rounded-2xl p-5 hover:shadow-sm hover:border-gray-200 transition-all border border-gray-100 cursor-pointer"
+          >
+            <div class="flex justify-between items-start">
+              <div>
+                <p class="text-sm font-medium text-gray-500 mb-1">{{ stat.name }}</p>
+                <h3 class="text-2xl font-bold text-gray-900">{{ stat.value }}</h3>
+                
+                <div class="flex items-center mt-3 text-sm">
+                  <div v-if="stat.trend > 0" class="flex items-center text-green-600">
+                    <TrendingUpIcon class="h-4 w-4 mr-1" />
+                    <span>+{{ stat.trend }}%</span>
+                  </div>
+                  <div v-else-if="stat.trend < 0" class="flex items-center text-red-600">
+                    <TrendingDownIcon class="h-4 w-4 mr-1" />
+                    <span>{{ stat.trend }}%</span>
+                  </div>
+                  <div v-else class="flex items-center text-gray-500">
+                    <MinusIcon class="h-4 w-4 mr-1" />
+                    <span>0%</span>
+                  </div>
+                  <span class="text-xs text-gray-500 ml-1">ce mois</span>
+                </div>
+              </div>
+              
+              <div class="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center">
+                <component :is="stat.icon" class="h-6 w-6 text-gray-700" />
+              </div>
+            </div>
+          </div>
+        </div>
         
-        <button class="px-5 py-2.5 bg-black hover:bg-gray-800 text-white font-medium rounded-full transition-colors flex items-center gap-2 shadow-sm">
-          <PlusIcon class="h-4 w-4" />
-          <span>Nouvelle action</span>
-        </button>
-      </div>
-    </div>
-    
-    <!-- Key metrics in impactful cards -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-      <div 
-        v-for="stat in summaryStats" 
-        :key="stat.name"
-        class="bg-white rounded-2xl p-6 hover:shadow-md transition-all border border-gray-100"
-      >
-        <div class="flex justify-between items-start">
-          <div>
-            <p class="text-sm font-medium text-gray-500 mb-1">{{ stat.name }}</p>
-            <h3 class="text-3xl font-bold text-gray-900">{{ stat.value }}</h3>
-            
-            <div class="flex items-center mt-4 text-sm">
-              <div v-if="stat.trend > 0" class="flex items-center text-green-600">
-                <TrendingUpIcon class="h-4 w-4 mr-1" />
-                <span>+{{ stat.trend }}%</span>
+        <!-- Performance indicators with Twitter-inspired design -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div class="bg-white rounded-2xl overflow-hidden border border-gray-100 group hover:shadow-sm hover:border-gray-200 transition-all cursor-pointer">
+            <div class="p-5">
+              <div class="flex justify-between items-start mb-3">
+                <div>
+                  <h3 class="text-base font-semibold text-gray-900">Taux de conversion</h3>
+                  <p class="text-xs text-gray-500 mt-1">Demandes / Contrats</p>
+                </div>
+                <div class="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                  <TrendingUpIcon class="h-5 w-5 text-blue-600" />
+                </div>
               </div>
-              <div v-else-if="stat.trend < 0" class="flex items-center text-red-600">
-                <TrendingDownIcon class="h-4 w-4 mr-1" />
-                <span>{{ stat.trend }}%</span>
+              
+              <div class="flex items-end space-x-2">
+                <span class="text-3xl font-bold text-gray-900">{{ conversionRate }}%</span>
+                <span class="text-sm text-blue-600 font-medium pb-1">+2.4%</span>
               </div>
-              <div v-else class="flex items-center text-gray-500">
-                <MinusIcon class="h-4 w-4 mr-1" />
-                <span>0%</span>
-              </div>
-              <span class="text-xs text-gray-500 ml-1">ce mois</span>
             </div>
           </div>
           
-          <div class="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center">
-            <component :is="stat.icon" class="h-6 w-6 text-gray-700" />
+          <div class="bg-white rounded-2xl overflow-hidden border border-gray-100 group hover:shadow-sm hover:border-gray-200 transition-all cursor-pointer">
+            <div class="p-5">
+              <div class="flex justify-between items-start mb-3">
+                <div>
+                  <h3 class="text-base font-semibold text-gray-900">Taux d'engagement</h3>
+                  <p class="text-xs text-gray-500 mt-1">Sessions / Actions</p>
+                </div>
+                <div class="h-10 w-10 rounded-full bg-purple-50 flex items-center justify-center group-hover:bg-purple-100 transition-colors">
+                  <HeartIcon class="h-5 w-5 text-purple-600" />
+                </div>
+              </div>
+              
+              <div class="flex items-end space-x-2">
+                <span class="text-3xl font-bold text-gray-900">{{ engagementRate }}%</span>
+                <span class="text-sm text-purple-600 font-medium pb-1">+5.3%</span>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Performance indicators -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-      <div class="bg-white rounded-2xl p-6 border border-gray-100">
-        <div class="flex justify-between items-start mb-3">
-          <div>
-            <h3 class="text-lg font-semibold text-gray-900">Taux de conversion</h3>
-          </div>
-          <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-            <TrendingUpIcon class="h-5 w-5 text-blue-600" />
-          </div>
-        </div>
-        
-        <div class="flex items-end space-x-2">
-          <span class="text-3xl font-bold">{{ conversionRate }}%</span>
-        </div>
-      </div>
-      
-      <div class="bg-white rounded-2xl p-6 border border-gray-100">
-        <div class="flex justify-between items-start mb-3">
-          <div>
-            <h3 class="text-lg font-semibold text-gray-900">Taux d'engagement</h3>
-          </div>
-          <div class="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
-            <HeartIcon class="h-5 w-5 text-purple-600" />
-          </div>
-        </div>
-        
-        <div class="flex items-end space-x-2">
-          <span class="text-3xl font-bold">{{ engagementRate }}%</span>
-        </div>
-      </div>
-      
-      <div class="bg-white rounded-2xl p-6 border border-gray-100">
-        <div class="flex justify-between items-start mb-3">
-          <div>
-            <h3 class="text-lg font-semibold text-gray-900">Taux de complétion</h3>
-          </div>
-          <div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
-            <CheckSquareIcon class="h-5 w-5 text-green-600" />
+          
+          <div class="bg-white rounded-2xl overflow-hidden border border-gray-100 group hover:shadow-sm hover:border-gray-200 transition-all cursor-pointer">
+            <div class="p-5">
+              <div class="flex justify-between items-start mb-3">
+                <div>
+                  <h3 class="text-base font-semibold text-gray-900">Taux de complétion</h3>
+                  <p class="text-xs text-gray-500 mt-1">Projets terminés / Total</p>
+                </div>
+                <div class="h-10 w-10 rounded-full bg-green-50 flex items-center justify-center group-hover:bg-green-100 transition-colors">
+                  <CheckSquareIcon class="h-5 w-5 text-green-600" />
+                </div>
+              </div>
+              
+              <div class="flex items-end space-x-2">
+                <span class="text-3xl font-bold text-gray-900">{{ completionRate }}%</span>
+                <span class="text-sm text-green-600 font-medium pb-1">+1.7%</span>
+              </div>
+            </div>
           </div>
         </div>
         
-        <div class="flex items-end space-x-2">
-          <span class="text-3xl font-bold">{{ completionRate }}%</span>
-        </div>
-      </div>
-    </div>
-    
-    <!-- New Grid layout for most recent info and status -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
-      <!-- Latest requests in first two columns -->
-      <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden lg:col-span-3">
-        <div class="px-6 py-4 border-b border-gray-100">
-          <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-lg text-gray-900">Dernières demandes</h2>
-            <NuxtLink 
-              to="/admin/requests" 
-              class="text-black hover:text-gray-700 text-sm font-medium flex items-center gap-1"
+        <!-- Latest requests with Twitter timeline aesthetic -->
+        <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-xs">
+          <div class="px-6 py-4 border-b border-gray-100">
+            <div class="flex justify-between items-center">
+              <h2 class="font-semibold text-base text-gray-900">Dernières demandes</h2>
+              <NuxtLink 
+                to="/admin/requests" 
+                class="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center gap-1"
+              >
+                Voir tout
+                <ChevronRightIcon class="h-4 w-4" />
+              </NuxtLink>
+            </div>
+          </div>
+          
+          <div class="divide-y divide-gray-100">
+            <div v-if="latestRequests.length === 0" class="py-12 text-center">
+              <div class="mx-auto h-16 w-16 text-gray-300 bg-gray-50 rounded-full flex items-center justify-center">
+                <MessageSquareIcon class="h-8 w-8" />
+              </div>
+              <h3 class="mt-4 text-base font-medium text-gray-900">Aucune demande</h3>
+              <p class="mt-1 text-sm text-gray-500">Les demandes récentes apparaîtront ici</p>
+            </div>
+            
+            <div 
+              v-else
+              v-for="request in latestRequests" 
+              :key="request.id"
+              class="hover:bg-gray-50 transition-colors"
             >
-              Voir tout
-              <ChevronRightIcon class="h-4 w-4" />
-            </NuxtLink>
+              <div class="p-5">
+                <div class="flex items-start gap-4">
+                  <div class="h-12 w-12 rounded-full overflow-hidden bg-gray-100 border border-gray-100 flex-shrink-0">
+                    <img 
+                      v-if="request.client.avatar" 
+                      :src="request.client.avatar" 
+                      alt="Client avatar" 
+                      class="h-full w-full object-cover"
+                    />
+                    <User v-else class="h-full w-full p-2 text-gray-400" />
+                  </div>
+                  
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between mb-2">
+                      <div>
+                        <div class="flex items-center mb-1">
+                          <p class="font-medium text-gray-900">{{ request.client.name }}</p>
+                          <span class="mx-2 text-gray-300">•</span>
+                          <span class="text-sm text-gray-500">{{ request.date }}</span>
+                        </div>
+                        <p class="text-gray-900 font-medium">{{ request.service }}</p>
+                      </div>
+                      
+                      <span 
+                        class="text-xs font-medium px-3 py-1 rounded-full"
+                        :class="getStatusClass(request.status)"
+                      >
+                        {{ getStatusLabel(request.status) }}
+                      </span>
+                    </div>
+                    
+                    <div class="flex items-center mt-3 gap-3">
+                      <NuxtLink 
+                        :to="`/admin/requests/${request.id}`" 
+                        class="flex items-center text-gray-700 hover:text-primary-600 transition-colors"
+                      >
+                        <EyeIcon class="h-4 w-4 mr-1.5" />
+                        <span class="text-sm">Détails</span>
+                      </NuxtLink>
+                      
+                      <button class="flex items-center text-gray-700 hover:text-primary-600 transition-colors">
+                        <MessageSquareIcon class="h-4 w-4 mr-1.5" />
+                        <span class="text-sm">Message</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         
-        <div>
-          <div 
-            v-for="request in latestRequests" 
-            :key="request.id"
-            class="border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
-          >
-            <div class="p-6">
-              <div class="flex items-start gap-4">
-                <div class="h-12 w-12 rounded-full overflow-hidden bg-gray-100">
-                  <img 
-                    v-if="request.client.avatar" 
-                    :src="request.client.avatar" 
-                    alt="Client avatar" 
-                    class="h-full w-full object-cover"
-                  />
-                  <User v-else class="h-full w-full p-2 text-gray-400" />
+        <!-- Recent activities with Twitter timeline style -->
+        <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-xs">
+          <div class="px-6 py-4 border-b border-gray-100">
+            <div class="flex justify-between items-center">
+              <h2 class="font-semibold text-base text-gray-900">Activités récentes</h2>
+              <NuxtLink 
+                to="/admin/activities" 
+                class="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center gap-1"
+              >
+                Voir tout
+                <ChevronRightIcon class="h-4 w-4" />
+              </NuxtLink>
+            </div>
+          </div>
+          
+          <div class="divide-y divide-gray-100">
+            <div v-if="recentActivities.length === 0" class="py-12 text-center">
+              <div class="mx-auto h-16 w-16 text-gray-300 bg-gray-50 rounded-full flex items-center justify-center">
+                <Activity class="h-8 w-8" />
+              </div>
+              <h3 class="mt-4 text-base font-medium text-gray-900">Aucune activité</h3>
+              <p class="mt-1 text-sm text-gray-500">Les activités récentes apparaîtront ici</p>
+            </div>
+            
+            <div 
+              v-else
+              v-for="(activity, index) in recentActivities" 
+              :key="index"
+              class="px-5 py-4 hover:bg-gray-50 transition-colors"
+            >
+              <div class="flex gap-4">
+                <div 
+                  class="h-11 w-11 rounded-full flex items-center justify-center flex-shrink-0"
+                  :class="getActivityColorClass(activity.type)"
+                >
+                  <component :is="getActivityIcon(activity.type)" class="h-5 w-5 text-white" />
                 </div>
                 
                 <div class="flex-1 min-w-0">
-                  <div class="flex items-center justify-between mb-2">
-                    <div>
-                      <div class="flex items-center mb-1">
-                        <p class="font-medium text-gray-900">{{ request.client.name }}</p>
-                        <span class="mx-2 text-gray-300">•</span>
-                        <span class="text-sm text-gray-500">{{ request.date }}</span>
-                      </div>
-                      <p class="text-gray-900 font-medium">{{ request.service }}</p>
-                    </div>
-                    
-                    <span 
-                      class="text-xs font-medium px-3 py-1 rounded-full"
-                      :class="getStatusClass(request.status)"
-                    >
-                      {{ getStatusLabel(request.status) }}
+                  <p class="font-medium text-gray-900">
+                    {{ activity.title }}
+                  </p>
+                  <div class="flex items-center mt-1 text-sm text-gray-500">
+                    <span>{{ activity.time }}</span>
+                    <span v-if="activity.user" class="flex items-center mx-1.5">•</span>
+                    <span v-if="activity.user" class="font-medium text-gray-700">
+                      {{ activity.user.name }}
                     </span>
                   </div>
-                  
-                  <div class="flex items-center mt-3 gap-3">
-                    <NuxtLink 
-                      :to="`/admin/requests/${request.id}`" 
-                      class="flex items-center text-gray-700 hover:text-black transition-colors"
-                    >
-                      <EyeIcon class="h-4 w-4 mr-1.5" />
-                      <span class="text-sm">Détails</span>
-                    </NuxtLink>
-                    
-                    <button class="flex items-center text-gray-700 hover:text-black transition-colors">
-                      <MessageSquareIcon class="h-4 w-4 mr-1.5" />
-                      <span class="text-sm">Message</span>
-                    </button>
-                  </div>
+                </div>
+                
+                <!-- Action dropdown with Twitter-style hover -->
+                <div v-if="activity.type !== 'admin_action'" class="flex items-center">
+                  <button class="p-1.5 rounded-full hover:bg-gray-100 transition-colors">
+                    <MoreHorizontalIcon class="h-4 w-4 text-gray-500" />
+                  </button>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-    
-    <!-- Recent activities -->
-    <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-      <div class="px-6 py-4 border-b border-gray-100">
-        <div class="flex justify-between items-center">
-          <h2 class="font-semibold text-lg text-gray-900">Activités récentes</h2>
-          <NuxtLink 
-            to="/admin/activities" 
-            class="text-black hover:text-gray-700 text-sm font-medium flex items-center gap-1"
-          >
-            Voir tout
-            <ChevronRightIcon class="h-4 w-4" />
-          </NuxtLink>
-        </div>
-      </div>
-      
-      <div class="divide-y divide-gray-100">
-        <div 
-          v-for="(activity, index) in recentActivities" 
-          :key="index"
-          class="px-6 py-4 hover:bg-gray-50 transition-colors"
-        >
-          <div class="flex gap-4">
-            <div 
-              class="h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0"
-              :class="getActivityColorClass(activity.type)"
-            >
-              <component :is="getActivityIcon(activity.type)" class="h-5 w-5 text-white" />
+        
+        <!-- Twitter-style footer -->
+        <div class="mt-6 pt-5 border-t border-gray-100">
+          <div class="flex flex-col sm:flex-row items-center justify-between text-sm text-gray-500">
+            <div>
+              <span>Havoo - Version 1.0.0</span>
             </div>
-            
-            <div class="flex-1 min-w-0">
-              <p class="font-medium text-gray-900">
-                {{ activity.title }}
-              </p>
-              <div class="flex items-center mt-1 text-sm text-gray-500">
-                <span>{{ activity.time }}</span>
-                <span v-if="activity.user" class="flex items-center mx-1.5">•</span>
-                <span v-if="activity.user" class="font-medium text-gray-700">
-                  {{ activity.user.name }}
-                </span>
-              </div>
-            </div>
-            
-            <!-- Action dropdown, if needed -->
-            <div v-if="activity.type !== 'admin_action'" class="flex items-center">
-              <button class="p-1.5 rounded-full hover:bg-gray-200">
-                <MoreHorizontalIcon class="h-4 w-4 text-gray-500" />
-              </button>
+            <div class="mt-3 sm:mt-0">
+              <span>© {{ new Date().getFullYear() }} Havoo</span>
             </div>
           </div>
         </div>
       </div>
-    </div>
-    
-    <!-- Footer with app version and status -->
-    <div class="mt-8 pt-6 border-t border-gray-200">
-      <div class="flex flex-col sm:flex-row items-center justify-between text-sm text-gray-500">
-        <div>
-          <span>Havoo - Version 1.0.0</span>
-        </div>
-        <div class="mt-4 sm:mt-0">
-          <span>© {{ new Date().getFullYear() }} Havoo</span>
-        </div>
-      </div>
-    </div>
+    </main>
   </div>
 </template>
 
@@ -270,7 +317,8 @@ import {
   RefreshCw as RefreshIcon,
   MoreHorizontal as MoreHorizontalIcon,
   Settings as SettingsIcon,
-  LogIn as LogInIcon
+  LogIn as LogInIcon,
+  Activity
 } from 'lucide-vue-next'
 
 const supabase = useSupabaseClient()

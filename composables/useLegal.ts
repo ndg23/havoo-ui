@@ -5,7 +5,7 @@ export const useLegal = () => {
       items: [
         {
           label: 'Raison sociale',
-          value: 'Sunutaf Services SAS'
+          value: 'Keetaf Services SAS'
         },
         {
           label: 'Siège social',

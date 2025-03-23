@@ -132,7 +132,7 @@ definePageMeta({
 
 // Définir un titre de page
 useHead({
-  title: 'Mes propositions | Sunutaf Services'
+  title: 'Mes propositions | Keetaf Services'
 })
 
 // États

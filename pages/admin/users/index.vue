@@ -17,8 +17,15 @@
           <span>Exporter</span>
         </button>
         <button 
-          @click="refreshData"
+          @click="openAddUserModal"
           class="btn-primary flex items-center gap-2"
+        >
+          <UserPlus class="h-4 w-4" />
+          <span>Ajouter</span>
+        </button>
+        <button 
+          @click="refreshData"
+          class="btn-outline flex items-center gap-2"
         >
           <RefreshCw class="h-4 w-4" />
           <span>Actualiser</span>
@@ -155,122 +162,377 @@
     
     <!-- Tableau des utilisateurs avec UTable -->
     <div v-else>
-      <UTable
-        :columns="columns"
-        :rows="paginatedUsers"
-        :loading="isLoading"
-        class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm"
-      >
-        <!-- Colonne Utilisateur -->
-        <template #user-data="{ row }">
-          <div class="flex items-center gap-3">
-            <div class="h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-700 dark:text-primary-400 font-medium">
-              {{ getInitials(row.first_name + ' ' + row.last_name) }}
+      <!-- Version tableau pour écrans moyens et grands -->
+      <div class="hidden md:block">
+        <UTable
+          :columns="columns"
+          :rows="paginatedUsers"
+          :loading="isLoading"
+          class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm"
+        >
+          <!-- Colonne Utilisateur -->
+          <template #user-data="{ row }">
+            <div class="flex items-center gap-3">
+              <div class="h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-700 dark:text-primary-400 font-medium">
+                {{ getInitials(row.first_name + ' ' + row.last_name) }}
+              </div>
+              <div>
+                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ row.first_name }} {{ row.last_name }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">{{ row.email }}</p>
+              </div>
             </div>
-            <div>
-              <p class="text-sm font-medium text-gray-900 dark:text-white">{{ row.first_name }} {{ row.last_name }}</p>
-              <p class="text-xs text-gray-500 dark:text-gray-400">{{ row.email }}</p>
-            </div>
-          </div>
-        </template>
-        
-        <!-- Colonne Rôle -->
-        <template #role-data="{ row }">
-          <span 
-            class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium"
-            :class="getRoleClass(row.role)"
-          >
-            {{ formatRole(row.role) }}
-          </span>
-        </template>
-        
-        <!-- Colonne Statut -->
-        <template #status-data="{ row }">
-          <span 
-            class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium"
-            :class="getStatusClass(row.is_active)"
-          >
-            <span class="w-2 h-2 rounded-full mr-2" :class="getStatusDotClass(row.is_active)"></span>
-            {{ row.is_active ? 'Actif' : 'Bloqué' }}
-          </span>
-        </template>
-        
-        <!-- Colonne Vérifié (pour les experts) -->
-        <template #verified-data="{ row }">
-          <div v-if="row.role === 'expert'">
+          </template>
+          
+          <!-- Colonne Rôle -->
+          <template #role-data="{ row }">
             <span 
               class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium"
-              :class="row.is_verified ? 'bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-amber-50 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'"
+              :class="getRoleClass(row.role)"
             >
-              <span class="w-2 h-2 rounded-full mr-2" :class="row.is_verified ? 'bg-green-500' : 'bg-amber-500'"></span>
-              {{ row.is_verified ? 'Certifié' : 'Non certifié' }}
+              {{ formatRole(row.role) }}
             </span>
+          </template>
+          
+          <!-- Colonne Statut -->
+          <template #status-data="{ row }">
+            <span 
+              class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium"
+              :class="getStatusClass(row.is_active)"
+            >
+              <span class="w-2 h-2 rounded-full mr-2" :class="getStatusDotClass(row.is_active)"></span>
+              {{ row.is_active ? 'Actif' : 'Bloqué' }}
+            </span>
+          </template>
+          
+          <!-- Colonne Vérifié (pour les experts) -->
+          <template #verified-data="{ row }">
+            <div v-if="row.role === 'expert'">
+              <span 
+                class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium"
+                :class="row.is_verified ? 'bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-amber-50 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'"
+              >
+                <span class="w-2 h-2 rounded-full mr-2" :class="row.is_verified ? 'bg-green-500' : 'bg-amber-500'"></span>
+                {{ row.is_verified ? 'Certifié' : 'Non certifié' }}
+              </span>
+            </div>
+            <div v-else>-</div>
+          </template>
+          
+          <!-- Colonne Date d'inscription -->
+          <template #created-at-data="{ row }">
+            <div class="text-sm text-gray-600 dark:text-gray-400">
+              {{ formatDate(row.created_at) }}
+            </div>
+          </template>
+          
+          <!-- Colonne Actions -->
+          <template #actions-data="{ row }">
+            <div class="flex justify-end gap-2">
+              <button 
+                @click="editUser(row)"
+                class="p-2 text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors"
+                title="Modifier l'utilisateur"
+              >
+                <Edit class="h-5 w-5" />
+              </button>
+              <button 
+                @click="viewUser(row)"
+                class="p-2 text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors"
+                title="Voir le profil"
+              >
+                <Eye class="h-5 w-5" />
+              </button>
+              <button 
+                @click="toggleUserStatus(row)"
+                class="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                :title="row.is_active ? 'Bloquer l\'utilisateur' : 'Débloquer l\'utilisateur'"
+              >
+                <component :is="row.is_active ? 'Ban' : 'UserCheck'" class="h-5 w-5" />
+              </button>
+            </div>
+          </template>
+        </UTable>
+      </div>
+      
+      <!-- Vue responsive pour petits écrans (mobile) -->
+      <div class="block md:hidden space-y-4">
+        <div 
+          v-for="row in paginatedUsers" 
+          :key="row.id" 
+          class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden"
+        >
+          <!-- En-tête avec l'utilisateur -->
+          <div class="p-4 border-b border-gray-100 dark:border-gray-700">
+            <div class="flex items-center gap-3">
+              <div class="h-12 w-12 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-700 dark:text-primary-400 font-medium text-lg">
+                {{ getInitials(row.first_name + ' ' + row.last_name) }}
+              </div>
+              <div>
+                <p class="text-base font-medium text-gray-900 dark:text-white">{{ row.first_name }} {{ row.last_name }}</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{{ row.email }}</p>
+              </div>
+            </div>
           </div>
-          <div v-else>-</div>
-        </template>
-        
-        <!-- Colonne Date d'inscription -->
-        <template #created-at-data="{ row }">
-          <div class="text-sm text-gray-600 dark:text-gray-400">
-            {{ formatDate(row.created_at) }}
+          
+          <!-- Informations -->
+          <div class="p-4 space-y-3">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Rôle</p>
+                <span 
+                  class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium"
+                  :class="getRoleClass(row.role)"
+                >
+                  {{ formatRole(row.role) }}
+                </span>
+              </div>
+              
+              <div>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Statut</p>
+                <span 
+                  class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium"
+                  :class="getStatusClass(row.is_active)"
+                >
+                  <span class="w-2 h-2 rounded-full mr-2" :class="getStatusDotClass(row.is_active)"></span>
+                  {{ row.is_active ? 'Actif' : 'Bloqué' }}
+                </span>
+              </div>
+            </div>
+            
+            <!-- Certification (pour experts) -->
+            <div v-if="row.role === 'expert'">
+              <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Certification</p>
+              <span 
+                class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium"
+                :class="row.is_verified ? 'bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-amber-50 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'"
+              >
+                <span class="w-2 h-2 rounded-full mr-2" :class="row.is_verified ? 'bg-green-500' : 'bg-amber-500'"></span>
+                {{ row.is_verified ? 'Certifié' : 'Non certifié' }}
+              </span>
+            </div>
+            
+            <!-- Date d'inscription -->
+            <div>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Inscription</p>
+              <p class="text-sm text-gray-700 dark:text-gray-300">{{ formatDate(row.created_at) }}</p>
+            </div>
           </div>
-        </template>
-        
-        <!-- Colonne Actions -->
-        <template #actions-data="{ row }">
-          <div class="flex justify-end gap-2">
+          
+          <!-- Actions -->
+          <div class="px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-2">
+            <button 
+              @click="editUser(row)"
+              class="px-3 py-1.5 flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors"
+            >
+              <Edit class="h-4 w-4" />
+              <span>Modifier</span>
+            </button>
             <button 
               @click="viewUser(row)"
-              class="p-2 text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors"
-              title="Voir le profil"
+              class="px-3 py-1.5 flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors"
             >
-              <Eye class="h-5 w-5" />
+              <Eye class="h-4 w-4" />
+              <span>Profil</span>
             </button>
             <button 
               @click="toggleUserStatus(row)"
-              class="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-              :title="row.is_active ? 'Bloquer l\'utilisateur' : 'Débloquer l\'utilisateur'"
+              class="px-3 py-1.5 flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
             >
-              <component :is="row.is_active ? 'Ban' : 'UserCheck'" class="h-5 w-5" />
+              <component :is="row.is_active ? 'Ban' : 'UserCheck'" class="h-4 w-4" />
+              <span>{{ row.is_active ? 'Bloquer' : 'Activer' }}</span>
             </button>
           </div>
-        </template>
-      </UTable>
+        </div>
+      </div>
       
-      <!-- Pagination -->
-      <div class="flex justify-center mt-6">
-        <nav class="flex items-center gap-1">
+      <!-- Pagination responsive -->
+      <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6">
+        <div class="text-sm text-gray-600 dark:text-gray-400 order-2 sm:order-1 text-center sm:text-left">
+          Affichage de {{ paginatedUsers.length }} sur {{ filteredUsers.length }} utilisateurs
+        </div>
+        <div class="flex items-center justify-center gap-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-1 shadow-sm order-1 sm:order-2">
           <button 
             @click="currentPage > 1 ? currentPage-- : null"
             :disabled="currentPage === 1"
-            class="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 disabled:opacity-50 disabled:hover:bg-transparent dark:disabled:hover:bg-transparent transition-colors"
           >
             <ChevronLeft class="h-5 w-5" />
           </button>
-          
-          <div class="flex items-center gap-1">
-            <button 
-              v-for="page in totalPages" 
-              :key="page"
-              @click="currentPage = page"
-              class="h-10 w-10 rounded-lg flex items-center justify-center text-sm font-medium transition-colors"
-              :class="currentPage === page ? 'bg-primary-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'"
-            >
-              {{ page }}
-            </button>
-          </div>
-          
+          <span class="px-2 text-sm text-gray-600 dark:text-gray-400">
+            Page {{ currentPage }} sur {{ totalPages }}
+          </span>
           <button 
             @click="currentPage < totalPages ? currentPage++ : null"
             :disabled="currentPage === totalPages"
-            class="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 disabled:opacity-50 disabled:hover:bg-transparent dark:disabled:hover:bg-transparent transition-colors"
           >
             <ChevronRight class="h-5 w-5" />
           </button>
-        </nav>
+        </div>
       </div>
     </div>
   </div>
+  
+  <!-- Modal d'ajout/modification d'utilisateur -->
+  <UModal v-model="showUserModal" :ui="{ width: 'sm:max-w-xl' }">
+    <div class="p-6">
+      <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">
+        {{ editMode ? 'Modifier l\'utilisateur' : 'Ajouter un utilisateur' }}
+      </h2>
+      
+      <form @submit.prevent="saveUser" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Prénom -->
+          <div>
+            <label for="first_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prénom</label>
+            <input 
+              id="first_name"
+              v-model="userForm.first_name"
+              type="text"
+              required
+              class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+              placeholder="Prénom"
+            />
+          </div>
+          
+          <!-- Nom -->
+          <div>
+            <label for="last_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nom</label>
+            <input 
+              id="last_name"
+              v-model="userForm.last_name"
+              type="text"
+              required
+              class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+              placeholder="Nom"
+            />
+          </div>
+        </div>
+        
+        <!-- Email -->
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+          <input 
+            id="email"
+            v-model="userForm.email"
+            type="email"
+            required
+            :disabled="editMode"
+            class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
+            placeholder="exemple@email.com"
+          />
+          <p v-if="editMode" class="text-xs text-gray-500 mt-1">L'email ne peut pas être modifié</p>
+        </div>
+        
+        <!-- Téléphone -->
+        <div>
+          <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Téléphone</label>
+          <input 
+            id="phone"
+            v-model="userForm.phone"
+            type="tel"
+            class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+            placeholder="+123456789"
+          />
+        </div>
+        
+        <!-- Mot de passe (uniquement pour la création) -->
+        <div v-if="!editMode">
+          <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mot de passe</label>
+          <input 
+            id="password"
+            v-model="userForm.password"
+            type="password"
+            required
+            class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+            placeholder="Minimum 8 caractères"
+            minlength="8"
+          />
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Rôle -->
+          <div>
+            <label for="role" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rôle</label>
+            <select 
+              id="role"
+              v-model="userForm.role"
+              required
+              class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+            >
+              <option value="client">Client</option>
+              <option value="expert">Expert</option>
+              <option value="admin">Administrateur</option>
+            </select>
+          </div>
+          
+          <!-- Statut -->
+          <div class="flex items-center h-full pt-6">
+            <input 
+              id="is_active"
+              v-model="userForm.is_active"
+              type="checkbox"
+              class="h-5 w-5 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+            />
+            <label for="is_active" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+              Utilisateur actif
+            </label>
+          </div>
+        </div>
+        
+        <!-- Statut de vérification pour les experts -->
+        <div v-if="userForm.role === 'expert'">
+          <div class="flex items-center">
+            <input 
+              id="is_verified"
+              v-model="userForm.is_verified"
+              type="checkbox"
+              class="h-5 w-5 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+            />
+            <label for="is_verified" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+              Expert certifié
+            </label>
+          </div>
+        </div>
+        
+        <!-- Adresse -->
+        <div>
+          <label for="address" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Adresse</label>
+          <textarea 
+            id="address"
+            v-model="userForm.address"
+            rows="2"
+            class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+            placeholder="Adresse complète"
+          ></textarea>
+        </div>
+        
+        <!-- Actions -->
+        <div class="flex justify-end gap-3 pt-4">
+          <button 
+            type="button"
+            @click="showUserModal = false"
+            class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+          >
+            Annuler
+          </button>
+          <button 
+            type="submit"
+            class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl"
+            :disabled="isSaving"
+          >
+            <span v-if="isSaving" class="flex items-center gap-2">
+              <Loader2 class="h-4 w-4 animate-spin" />
+              Enregistrement...
+            </span>
+            <span v-else>
+              {{ editMode ? 'Mettre à jour' : 'Ajouter' }}
+            </span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </UModal>
 </template>
 
 <script setup>
@@ -280,7 +542,7 @@ import { debounce } from 'lodash';
 import { 
   Plus, Search, Edit, Trash2, RefreshCw, X, CheckCircle, AlertTriangle, 
   Info, Users, ChevronLeft, ChevronRight, Eye, EyeOff, User, Download,
-  UserPlus, UserCheck, UserX, Shield, Mail
+  UserPlus, UserCheck, UserX, Shield, Mail, Ban, Loader2
 } from 'lucide-vue-next';
 import { useSupabaseClient } from '#imports';
 
@@ -628,6 +890,139 @@ const getStatusClass = (isActive) => {
 // Obtenir la classe pour le point de statut
 const getStatusDotClass = (isActive) => {
   return isActive ? 'bg-green-500' : 'bg-red-500';
+};
+
+// Modal state and form
+const showUserModal = ref(false);
+const editMode = ref(false);
+const isSaving = ref(false);
+const userForm = ref({
+  first_name: '',
+  last_name: '',
+  email: '',
+  phone: '',
+  password: '',
+  role: 'client',
+  is_active: true,
+  is_verified: false,
+  address: ''
+});
+
+// Ouvrir la modal d'ajout d'utilisateur
+const openAddUserModal = () => {
+  editMode.value = false;
+  userForm.value = {
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    password: '',
+    role: 'client',
+    is_active: true,
+    is_verified: false,
+    address: ''
+  };
+  showUserModal.value = true;
+};
+
+// Modifier un utilisateur
+const editUser = (user) => {
+  editMode.value = true;
+  userForm.value = {
+    id: user.id,
+    first_name: user.first_name || '',
+    last_name: user.last_name || '',
+    email: user.email || '',
+    phone: user.phone || '',
+    role: user.role || 'client',
+    is_active: user.is_active !== false, // Default to true if undefined
+    is_verified: user.is_verified || false,
+    address: user.address || ''
+  };
+  showUserModal.value = true;
+};
+
+// Enregistrer un utilisateur
+const saveUser = async () => {
+  // Validation basique
+  if (!userForm.value.email) {
+    showNotification('error', 'Erreur', 'L\'email est requis');
+    return;
+  }
+  
+  if (!editMode.value && !userForm.value.password) {
+    showNotification('error', 'Erreur', 'Le mot de passe est requis pour la création d\'un utilisateur');
+    return;
+  }
+  
+  isSaving.value = true;
+  
+  try {
+    if (editMode.value) {
+      // Mettre à jour un utilisateur existant
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          first_name: userForm.value.first_name,
+          last_name: userForm.value.last_name,
+          phone: userForm.value.phone,
+          role: userForm.value.role,
+          is_active: userForm.value.is_active,
+          is_verified: userForm.value.role === 'expert' ? userForm.value.is_verified : false,
+          address: userForm.value.address,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', userForm.value.id);
+      
+      if (error) throw error;
+      
+      showNotification('success', 'Utilisateur mis à jour', 'L\'utilisateur a été mis à jour avec succès');
+    } else {
+      // Créer un nouvel utilisateur avec auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: userForm.value.email,
+        password: userForm.value.password,
+        options: {
+          data: {
+            first_name: userForm.value.first_name,
+            last_name: userForm.value.last_name,
+            role: userForm.value.role
+          }
+        }
+      });
+      
+      if (authError) throw authError;
+      
+      if (!authData.user) {
+        throw new Error('Erreur lors de la création du compte utilisateur');
+      }
+      
+      // Mettre à jour le profil avec des informations supplémentaires
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          phone: userForm.value.phone,
+          is_active: userForm.value.is_active,
+          is_verified: userForm.value.role === 'expert' ? userForm.value.is_verified : false,
+          address: userForm.value.address
+        })
+        .eq('id', authData.user.id);
+      
+      if (profileError) throw profileError;
+      
+      showNotification('success', 'Utilisateur créé', 'L\'utilisateur a été créé avec succès');
+    }
+    
+    // Fermer la modal et rafraîchir les données
+    showUserModal.value = false;
+    await loadData();
+    
+  } catch (error) {
+    console.error('Erreur lors de l\'enregistrement de l\'utilisateur:', error);
+    showNotification('error', 'Erreur', error.message || 'Impossible d\'enregistrer l\'utilisateur');
+  } finally {
+    isSaving.value = false;
+  }
 };
 
 definePageMeta({

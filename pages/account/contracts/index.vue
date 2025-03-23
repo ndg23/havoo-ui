@@ -8,7 +8,7 @@
     </header>
 
     <!-- Main content -->
-    <main class="max-w-2xl mx-auto px-4 py-6">
+    <main class="max-w-2xl- mx-auto px-4 py-6">
       <!-- Loading state -->
       <div v-if="isLoading" class="flex flex-col items-center justify-center py-12">
         <svg class="animate-spin h-8 w-8 text-gray-400 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

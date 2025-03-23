@@ -1,32 +1,36 @@
 <template>
   <div class="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <!-- En-tête avec style moderne -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Propositions</h1>
-        <p class="text-gray-600 dark:text-gray-400 mt-1">Gérez les propositions des experts</p>
-      </div>
-      
-      <!-- Actions principales -->
-      <div class="flex items-center gap-3">
-        <button 
-          @click="exportData"
-          class="btn-outline flex items-center gap-2"
-        >
-          <Download class="h-4 w-4" />
-          <span>Exporter</span>
-        </button>
-        <button 
-          @click="refreshData"
-          class="btn-primary flex items-center gap-2"
-        >
-          <RefreshCw class="h-4 w-4" />
-          <span>Actualiser</span>
-        </button>
+    <!-- Header avec design moderne et élégant -->
+    <div class="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm mb-8">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Propositions</h1>
+          <p class="text-gray-600 dark:text-gray-400 mt-1 max-w-xl">
+            Gérez les propositions des experts pour les différentes demandes des clients
+          </p>
+        </div>
+        
+        <!-- Actions principales avec animation hover -->
+        <div class="flex items-center gap-3">
+          <button 
+            @click="exportData"
+            class="px-4 py-2.5 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 border border-gray-200 dark:border-gray-600 rounded-xl hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-md transition-all duration-200 flex items-center gap-2"
+          >
+            <Download class="h-4 w-4" />
+            <span>Exporter</span>
+          </button>
+          <button 
+            @click="refreshData"
+            class="px-4 py-2.5 bg-black dark:bg-blue-600 text-white rounded-xl hover:bg-gray-800 dark:hover:bg-blue-700 shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-2"
+          >
+            <RefreshCw class="h-4 w-4" />
+            <span>Actualiser</span>
+          </button>
+        </div>
       </div>
     </div>
     
-    <!-- Notifications avec animation -->
+    <!-- Notifications avec animation améliorée -->
     <Transition
       enter-active-class="transform transition duration-300 ease-out"
       enter-from-class="translate-y-2 opacity-0"
@@ -37,11 +41,11 @@
     >
       <div 
         v-if="notification?.show" 
-        class="p-4 rounded-2xl flex items-start gap-3 shadow-sm"
+        class="p-5 rounded-2xl flex items-start gap-3 shadow-md border-l-4"
         :class="[
-          notification.type === 'success' ? 'bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800/30' : 
-          notification.type === 'error' ? 'bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800/30' : 
-          'bg-blue-50 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border border-blue-200 dark:border-blue-800/30'
+          notification.type === 'success' ? 'bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-400 border-green-500 dark:border-green-400' : 
+          notification.type === 'error' ? 'bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-400 border-red-500 dark:border-red-400' : 
+          'bg-blue-50 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border-blue-500 dark:border-blue-400'
         ]"
       >
         <component 
@@ -61,12 +65,12 @@
       </div>
     </Transition>
     
-    <!-- Statistiques avec cartes modernes -->
+    <!-- Statistiques avec cartes modernes et animations au survol -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
       <div 
         v-for="stat in stats" 
         :key="stat.label"
-        class="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-200"
+        class="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
       >
         <div class="flex items-center justify-between">
           <div>
@@ -74,45 +78,48 @@
             <p class="text-3xl font-bold text-gray-900 dark:text-white mt-1">{{ stat.value }}</p>
           </div>
           <div 
-            class="h-14 w-14 rounded-2xl flex items-center justify-center"
+            class="h-16 w-16 rounded-2xl flex items-center justify-center shadow-lg"
             :class="stat.colorClass"
           >
-            <component :is="stat.icon" class="h-7 w-7 text-white" />
+            <component :is="stat.icon" class="h-8 w-8 text-white" />
           </div>
         </div>
       </div>
     </div>
     
-    <!-- Filtres avec design épuré -->
+    <!-- Filtres avec design élégant -->
     <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 shadow-sm">
       <div class="flex flex-col md:flex-row md:items-center gap-4">
-        <!-- Recherche -->
+        <!-- Recherche améliorée -->
         <div class="relative flex-grow max-w-md">
           <Search class="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
           <input 
             v-model="search"
             type="text"
             placeholder="Rechercher une proposition..."
-            class="pl-12 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl w-full focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+            class="pl-12 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl w-full focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-500"
           />
         </div>
         
         <div class="flex flex-wrap gap-3 items-center">
-          <!-- Filtre de statut -->
-          <select 
-            v-model="statusFilter"
-            class="px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white appearance-none bg-none"
-          >
-            <option value="all">Tous les statuts</option>
-            <option value="pending">En attente</option>
-            <option value="accepted">Acceptées</option>
-            <option value="rejected">Rejetées</option>
-          </select>
+          <!-- Filtre de statut amélioré -->
+          <div class="relative">
+            <select 
+              v-model="statusFilter"
+              class="px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white appearance-none pr-10 hover:border-gray-300 dark:hover:border-gray-500 transition-all duration-200"
+            >
+              <option value="all">Tous les statuts</option>
+              <option value="pending">En attente</option>
+              <option value="accepted">Acceptées</option>
+              <option value="rejected">Rejetées</option>
+            </select>
+            <ChevronDown class="absolute right-3 top-3.5 h-5 w-5 text-gray-400 pointer-events-none" />
+          </div>
           
           <!-- Réinitialiser -->
           <button 
             @click="resetFilters"
-            class="flex items-center gap-2 px-4 py-3 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+            class="flex items-center gap-2 px-4 py-3 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors shadow-sm"
           >
             <RefreshCw class="h-4 w-4" />
             <span>Réinitialiser</span>
@@ -121,15 +128,16 @@
       </div>
     </div>
     
-    <!-- État de chargement avec animation -->
-    <div v-if="isLoading" class="flex justify-center p-12">
-      <div class="inline-block h-10 w-10 animate-spin rounded-full border-4 border-solid border-primary-500 border-r-transparent"></div>
+    <!-- État de chargement avec animation améliorée -->
+    <div v-if="isLoading" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-12 flex flex-col items-center justify-center">
+      <div class="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-blue-500 border-r-transparent mb-4"></div>
+      <p class="text-gray-600 dark:text-gray-400">Chargement des propositions...</p>
     </div>
     
-    <!-- État vide avec illustration -->
+    <!-- État vide avec illustration améliorée -->
     <div v-else-if="filteredProposals && filteredProposals.length === 0" class="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center border border-gray-100 dark:border-gray-700 shadow-sm">
-      <div class="inline-flex items-center justify-center h-20 w-20 rounded-full bg-gray-100 dark:bg-gray-700 mb-6">
-        <FileText class="h-10 w-10 text-gray-500 dark:text-gray-400" />
+      <div class="inline-flex items-center justify-center h-24 w-24 rounded-full bg-blue-50 dark:bg-blue-900/30 mb-6">
+        <FileText class="h-12 w-12 text-blue-500 dark:text-blue-400" />
       </div>
       <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Aucune proposition trouvée</h3>
       <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
@@ -138,144 +146,254 @@
       <div class="flex flex-wrap justify-center gap-4">
         <button 
           @click="resetFilters"
-          class="px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-xl transition-colors"
+          class="px-6 py-3 bg-black hover:bg-gray-800 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-medium rounded-xl transition-colors shadow-sm"
         >
           Réinitialiser les filtres
         </button>
       </div>
     </div>
     
-    <!-- Tableau des propositions avec UTable -->
+    <!-- Tableau des propositions avec design amélioré -->
     <div v-else>
-      <UTable
-        :columns="columns"
-        :rows="paginatedProposals"
-        :loading="isLoading"
-        class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm"
-      >
-        <!-- Colonne Proposition -->
-        <template #proposal-data="{ row }">
-          <div class="flex items-center gap-3">
+      <!-- Version tableau pour écrans moyens et grands -->
+      <div class="hidden md:block">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm">
+          <UTable
+            :columns="columns"
+            :rows="paginatedProposals"
+            :loading="isLoading"
+            class="border-none"
+          >
+            <!-- Colonne Proposition -->
+            <template #proposal-data="{ row }">
+              <div class="flex items-center gap-3">
+                <div 
+                  class="h-12 w-12 rounded-xl flex items-center justify-center shadow-sm"
+                  :class="getStatusColorClass(row.status)"
+                >
+                  <component :is="getStatusIcon(row.status)" class="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <p class="text-sm font-medium text-gray-900 dark:text-white">{{ row.request?.title || 'Demande inconnue' }}</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">{{ row.description || 'Aucune description' }}</p>
+                </div>
+              </div>
+            </template>
+            
+            <!-- Colonne Expert -->
+            <template #expert-data="{ row }">
+              <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden border-2 border-white dark:border-gray-600 shadow-sm">
+                  <img v-if="row.expert?.avatar_url" :src="row.expert.avatar_url" alt="Avatar" class="h-full w-full object-cover" />
+                  <User v-else class="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                </div>
+                <div>
+                  <p class="text-sm font-medium text-gray-900 dark:text-white">
+                    {{ row.expert ? `${row.expert.first_name} ${row.expert.last_name}` : 'Expert inconnu' }}
+                  </p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">{{ row.expert?.email || '-' }}</p>
+                </div>
+              </div>
+            </template>
+            
+            <!-- Colonne Client -->
+            <template #client-data="{ row }">
+              <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden border-2 border-white dark:border-gray-600 shadow-sm">
+                  <img v-if="row.request?.client?.avatar_url" :src="row.request.client.avatar_url" alt="Avatar" class="h-full w-full object-cover" />
+                  <User v-else class="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                </div>
+                <div>
+                  <p class="text-sm font-medium text-gray-900 dark:text-white">
+                    {{ row.request?.client ? `${row.request.client.first_name} ${row.request.client.last_name}` : 'Client inconnu' }}
+                  </p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">{{ row.request?.client?.email || '-' }}</p>
+                </div>
+              </div>
+            </template>
+            
+            <!-- Colonne Prix -->
+            <template #price-data="{ row }">
+              <div class="text-sm text-gray-900 dark:text-white font-semibold">
+                {{ formatPrice(row.price) }}
+              </div>
+            </template>
+            
+            <!-- Colonne Statut -->
+            <template #status-data="{ row }">
+              <span 
+                class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium"
+                :class="getStatusClass(row.status)"
+              >
+                <span class="w-2 h-2 rounded-full mr-2" :class="getStatusDotClass(row.status)"></span>
+                {{ formatStatus(row.status) }}
+              </span>
+            </template>
+            
+            <!-- Colonne Date de création -->
+            <template #created-at-data="{ row }">
+              <div class="text-sm text-gray-600 dark:text-gray-400">
+                {{ formatDate(row.created_at) }}
+              </div>
+            </template>
+            
+            <!-- Colonne Actions -->
+            <template #actions-data="{ row }">
+              <div class="flex justify-end gap-2">
+                <button 
+                  @click="viewProposal(row)"
+                  class="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                  title="Voir les détails"
+                >
+                  <Eye class="h-5 w-5" />
+                </button>
+                <button 
+                  v-if="row.status === 'pending'"
+                  @click="approveProposal(row)"
+                  class="p-2 text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
+                  title="Approuver"
+                >
+                  <CheckCircle class="h-5 w-5" />
+                </button>
+                <button 
+                  v-if="row.status === 'pending'"
+                  @click="rejectProposal(row)"
+                  class="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                  title="Rejeter"
+                >
+                  <X class="h-5 w-5" />
+                </button>
+              </div>
+            </template>
+          </UTable>
+        </div>
+      </div>
+      
+      <!-- Vue responsive pour petits écrans (mobile) -->
+      <div class="block md:hidden space-y-4">
+        <div 
+          v-for="row in paginatedProposals" 
+          :key="row.id" 
+          class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm p-4"
+        >
+          <!-- En-tête avec statut et date -->
+          <div class="flex items-center justify-between mb-4">
+            <span 
+              class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium"
+              :class="getStatusClass(row.status)"
+            >
+              <span class="w-2 h-2 rounded-full mr-2" :class="getStatusDotClass(row.status)"></span>
+              {{ formatStatus(row.status) }}
+            </span>
+            <div class="text-xs text-gray-500 dark:text-gray-400">
+              {{ formatDate(row.created_at) }}
+            </div>
+          </div>
+          
+          <!-- Titre de la demande -->
+          <div class="flex items-start gap-3 mb-4">
             <div 
-              class="h-12 w-12 rounded-xl flex items-center justify-center"
+              class="h-12 w-12 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0"
               :class="getStatusColorClass(row.status)"
             >
               <component :is="getStatusIcon(row.status)" class="h-6 w-6 text-white" />
             </div>
             <div>
-              <p class="text-sm font-medium text-gray-900 dark:text-white">{{ row.request?.title || 'Demande inconnue' }}</p>
-              <p class="text-xs text-gray-500 dark:text-gray-400">{{ row.description || 'Aucune description' }}</p>
+              <h3 class="text-base font-medium text-gray-900 dark:text-white">{{ row.request?.title || 'Demande inconnue' }}</h3>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ row.description || 'Aucune description' }}</p>
             </div>
           </div>
-        </template>
-        
-        <!-- Colonne Expert -->
-        <template #expert-data="{ row }">
-          <div class="flex items-center gap-3">
-            <div class="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
-              <img v-if="row.expert?.avatar_url" :src="row.expert.avatar_url" alt="Avatar" class="h-full w-full object-cover" />
-              <User v-else class="h-4 w-4 text-gray-500 dark:text-gray-400" />
+          
+          <!-- Informations principales -->
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <!-- Expert -->
+            <div class="space-y-1">
+              <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Expert</p>
+              <div class="flex items-center gap-2">
+                <div class="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden border-2 border-white dark:border-gray-600 shadow-sm flex-shrink-0">
+                  <img v-if="row.expert?.avatar_url" :src="row.expert.avatar_url" alt="Avatar" class="h-full w-full object-cover" />
+                  <User v-else class="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                </div>
+                <div class="min-w-0">
+                  <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                    {{ row.expert ? `${row.expert.first_name} ${row.expert.last_name}` : 'Expert inconnu' }}
+                  </p>
+                </div>
+              </div>
             </div>
-            <div>
-              <p class="text-sm font-medium text-gray-900 dark:text-white">
-                {{ row.expert ? `${row.expert.first_name} ${row.expert.last_name}` : 'Expert inconnu' }}
-              </p>
-              <p class="text-xs text-gray-500 dark:text-gray-400">{{ row.expert?.email || '-' }}</p>
+            
+            <!-- Client -->
+            <div class="space-y-1">
+              <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Client</p>
+              <div class="flex items-center gap-2">
+                <div class="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden border-2 border-white dark:border-gray-600 shadow-sm flex-shrink-0">
+                  <img v-if="row.request?.client?.avatar_url" :src="row.request.client.avatar_url" alt="Avatar" class="h-full w-full object-cover" />
+                  <User v-else class="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                </div>
+                <div class="min-w-0">
+                  <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                    {{ row.request?.client ? `${row.request.client.first_name} ${row.request.client.last_name}` : 'Client inconnu' }}
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Prix -->
+            <div class="space-y-1">
+              <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Prix proposé</p>
+              <p class="text-base font-semibold text-gray-900 dark:text-white">{{ formatPrice(row.price) }}</p>
             </div>
           </div>
-        </template>
-        
-        <!-- Colonne Client -->
-        <template #client-data="{ row }">
-          <div class="flex items-center gap-3">
-            <div class="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
-              <img v-if="row.request?.client?.avatar_url" :src="row.request.client.avatar_url" alt="Avatar" class="h-full w-full object-cover" />
-              <User v-else class="h-4 w-4 text-gray-500 dark:text-gray-400" />
-            </div>
-            <div>
-              <p class="text-sm font-medium text-gray-900 dark:text-white">
-                {{ row.request?.client ? `${row.request.client.first_name} ${row.request.client.last_name}` : 'Client inconnu' }}
-              </p>
-              <p class="text-xs text-gray-500 dark:text-gray-400">{{ row.request?.client?.email || '-' }}</p>
-            </div>
-          </div>
-        </template>
-        
-        <!-- Colonne Prix -->
-        <template #price-data="{ row }">
-          <div class="text-sm text-gray-600 dark:text-gray-400">
-            {{ formatPrice(row.price) }}
-          </div>
-        </template>
-        
-        <!-- Colonne Statut -->
-        <template #status-data="{ row }">
-          <span 
-            class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium"
-            :class="getStatusClass(row.status)"
-          >
-            <span class="w-2 h-2 rounded-full mr-2" :class="getStatusDotClass(row.status)"></span>
-            {{ formatStatus(row.status) }}
-          </span>
-        </template>
-        
-        <!-- Colonne Date de création -->
-        <template #created-at-data="{ row }">
-          <div class="text-sm text-gray-600 dark:text-gray-400">
-            {{ formatDate(row.created_at) }}
-          </div>
-        </template>
-        
-        <!-- Colonne Actions -->
-        <template #actions-data="{ row }">
-          <div class="flex justify-end gap-2">
+          
+          <!-- Boutons d'action -->
+          <div class="flex justify-end gap-2 pt-3 border-t border-gray-100 dark:border-gray-700">
             <button 
               @click="viewProposal(row)"
-              class="p-2 text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors"
-              title="Voir les détails"
+              class="px-3 py-1.5 text-sm flex items-center gap-1.5 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
             >
-              <Eye class="h-5 w-5" />
+              <Eye class="h-4 w-4" />
+              <span>Détails</span>
             </button>
             <button 
               v-if="row.status === 'pending'"
               @click="approveProposal(row)"
-              class="p-2 text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
-              title="Approuver"
+              class="px-3 py-1.5 text-sm flex items-center gap-1.5 text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
             >
-              <CheckCircle class="h-5 w-5" />
+              <CheckCircle class="h-4 w-4" />
+              <span>Approuver</span>
             </button>
             <button 
               v-if="row.status === 'pending'"
               @click="rejectProposal(row)"
-              class="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-              title="Rejeter"
+              class="px-3 py-1.5 text-sm flex items-center gap-1.5 text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
             >
-              <X class="h-5 w-5" />
+              <X class="h-4 w-4" />
+              <span>Rejeter</span>
             </button>
           </div>
-        </template>
-      </UTable>
+        </div>
+      </div>
       
-      <!-- Pagination -->
-      <div class="flex justify-between items-center mt-6">
-        <div class="text-sm text-gray-600 dark:text-gray-400">
+      <!-- Pagination améliorée -->
+      <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6">
+        <div class="text-sm text-gray-600 dark:text-gray-400 order-2 sm:order-1">
           Affichage de {{ paginatedProposals.length }} sur {{ filteredProposals.length }} propositions
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center justify-center gap-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-1 shadow-sm order-1 sm:order-2">
           <button 
             @click="currentPage--"
             :disabled="currentPage === 1"
-            class="p-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 disabled:opacity-50"
+            class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 disabled:opacity-50 disabled:hover:bg-transparent dark:disabled:hover:bg-transparent transition-colors"
           >
             <ChevronLeft class="h-5 w-5" />
           </button>
-          <span class="text-sm text-gray-600 dark:text-gray-400">
+          <span class="px-2 text-sm text-gray-600 dark:text-gray-400">
             Page {{ currentPage }} sur {{ totalPages }}
           </span>
           <button 
             @click="currentPage++"
             :disabled="currentPage === totalPages || totalPages === 0"
-            class="p-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 disabled:opacity-50"
+            class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 disabled:opacity-50 disabled:hover:bg-transparent dark:disabled:hover:bg-transparent transition-colors"
           >
             <ChevronRight class="h-5 w-5" />
           </button>
@@ -286,20 +404,41 @@
     <!-- Modal de confirmation pour approuver une proposition -->
     <UModal v-model="showApproveModal">
       <div class="p-6 space-y-6">
-        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Approuver la proposition</h3>
+        <div class="flex items-center gap-3 mb-4">
+          <div class="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+            <CheckCircle class="h-6 w-6 text-green-600 dark:text-green-400" />
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white">Approuver la proposition</h3>
+        </div>
         <p class="text-gray-600 dark:text-gray-400">
           Êtes-vous sûr de vouloir approuver cette proposition ? Cette action attribuera la demande à l'expert et notifiera le client.
         </p>
+        
+        <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-200 dark:border-gray-600">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
+              <img v-if="selectedProposal?.expert?.avatar_url" :src="selectedProposal.expert.avatar_url" alt="Avatar" class="h-full w-full object-cover" />
+              <User v-else class="h-5 w-5 text-gray-500 dark:text-gray-400" />
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-900 dark:text-white">
+                {{ selectedProposal?.expert ? `${selectedProposal.expert.first_name} ${selectedProposal.expert.last_name}` : 'Expert inconnu' }}
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Prix proposé: {{ formatPrice(selectedProposal?.price) }}</p>
+            </div>
+          </div>
+        </div>
+        
         <div class="flex justify-end gap-3">
           <button 
             @click="showApproveModal = false"
-            class="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-xl transition-colors"
+            class="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-xl transition-colors"
           >
             Annuler
           </button>
           <button 
             @click="confirmApproveProposal"
-            class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl shadow-sm transition-colors"
+            class="px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl shadow-sm transition-colors"
             :disabled="isProcessing"
           >
             <div v-if="isProcessing" class="flex items-center gap-2">
@@ -315,20 +454,41 @@
     <!-- Modal de confirmation pour rejeter une proposition -->
     <UModal v-model="showRejectModal">
       <div class="p-6 space-y-6">
-        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Rejeter la proposition</h3>
+        <div class="flex items-center gap-3 mb-4">
+          <div class="h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+            <AlertTriangle class="h-6 w-6 text-red-600 dark:text-red-400" />
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white">Rejeter la proposition</h3>
+        </div>
         <p class="text-gray-600 dark:text-gray-400">
           Êtes-vous sûr de vouloir rejeter cette proposition ? L'expert sera notifié du rejet.
         </p>
+        
+        <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-200 dark:border-gray-600">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
+              <img v-if="selectedProposal?.expert?.avatar_url" :src="selectedProposal.expert.avatar_url" alt="Avatar" class="h-full w-full object-cover" />
+              <User v-else class="h-5 w-5 text-gray-500 dark:text-gray-400" />
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-900 dark:text-white">
+                {{ selectedProposal?.expert ? `${selectedProposal.expert.first_name} ${selectedProposal.expert.last_name}` : 'Expert inconnu' }}
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Pour: {{ selectedProposal?.request?.title || 'Demande inconnue' }}</p>
+            </div>
+          </div>
+        </div>
+        
         <div class="flex justify-end gap-3">
           <button 
             @click="showRejectModal = false"
-            class="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-xl transition-colors"
+            class="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-xl transition-colors"
           >
             Annuler
           </button>
           <button 
             @click="confirmRejectProposal"
-            class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl shadow-sm transition-colors"
+            class="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl shadow-sm transition-colors"
             :disabled="isProcessing"
           >
             <div v-if="isProcessing" class="flex items-center gap-2">
@@ -350,7 +510,7 @@ import { debounce } from 'lodash';
 import { 
   Download, Search, RefreshCw, X, CheckCircle, AlertTriangle, 
   Info, FileText, ChevronLeft, ChevronRight, Eye, User,
-  Clock, ThumbsUp, ThumbsDown, XCircle
+  Clock, ThumbsUp, ThumbsDown, XCircle, ChevronDown
 } from 'lucide-vue-next';
 import { useSupabaseClient } from '#imports';
 
@@ -383,13 +543,13 @@ const stats = ref([
     label: 'Total propositions',
     value: 0,
     icon: FileText,
-    colorClass: 'bg-primary-500'
+    colorClass: 'bg-blue-500'
   },
   {
     label: 'En attente',
     value: 0,
     icon: Clock,
-    colorClass: 'bg-blue-500'
+    colorClass: 'bg-yellow-500'
   },
   {
     label: 'Acceptées',

@@ -32,7 +32,7 @@ Devenir expert
           <!-- Footer -->
           <footer class="mt-12 text-center">
             <p class="text-sm text-gray-500">
-              © 2022 - {{ new Date().getFullYear() }} Sunutaf. Tous droits réservés.
+              © 2022 - {{ new Date().getFullYear() }} Keetaf. Tous droits réservés.
             </p>
             
             <div class="mt-4 flex justify-center space-x-6">

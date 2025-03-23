@@ -4,11 +4,11 @@ export const useTerms = () => {
       id: 'introduction',
       title: 'Introduction',
       content: {
-        text: 'Sunutaf est une plateforme innovante qui connecte les experts et les particuliers en Afrique. Ces conditions régissent votre utilisation de nos services.',
+        text: 'Keetaf est une plateforme innovante qui connecte les experts et les particuliers en Afrique. Ces conditions régissent votre utilisation de nos services.',
         subsections: [
           {
             title: 'Acceptation des conditions',
-            text: 'En utilisant Sunutaf, vous acceptez d être lié par ces conditions. Si vous n\'acceptez pas ces conditions, vous ne devez pas utiliser la plateforme.'
+            text: 'En utilisant Keetaf, vous acceptez d être lié par ces conditions. Si vous n\'acceptez pas ces conditions, vous ne devez pas utiliser la plateforme.'
           },
           {
             title: 'Modifications',
@@ -21,11 +21,11 @@ export const useTerms = () => {
       id: 'eligibilite',
       title: 'Éligibilité',
       content: {
-        text: 'Pour utiliser Sunutaf, vous devez remplir certaines conditions d\'éligibilité.',
+        text: 'Pour utiliser Keetaf, vous devez remplir certaines conditions d\'éligibilité.',
         list: [
           'Être âgé d\'au moins 18 ans',
           'Avoir la capacité juridique de contracter',
-          'Résider dans un pays où Sunutaf opère',
+          'Résider dans un pays où Keetaf opère',
           'Fournir des informations exactes et à jour'
         ]
       }
@@ -37,7 +37,7 @@ export const useTerms = () => {
         subsections: [
           {
             title: 'Description des services',
-            text: 'Sunutaf permet la mise en relation entre experts qualifiés et clients pour divers services.',
+            text: 'Keetaf permet la mise en relation entre experts qualifiés et clients pour divers services.',
             list: [
               'Services à domicile',
               'Services professionnels',
@@ -62,7 +62,7 @@ export const useTerms = () => {
       id: 'paiements',
       title: 'Paiements',
       content: {
-        text: 'Les transactions financières sur Sunutaf sont sécurisées et transparentes.',
+        text: 'Les transactions financières sur Keetaf sont sécurisées et transparentes.',
         subsections: [
           {
             title: 'Méthodes de paiement',
@@ -75,7 +75,7 @@ export const useTerms = () => {
           },
           {
             title: 'Commission',
-            text: 'Sunutaf prélève une commission de 10% sur chaque transaction réussie.'
+            text: 'Keetaf prélève une commission de 10% sur chaque transaction réussie.'
           }
         ]
       }

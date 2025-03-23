@@ -129,101 +129,180 @@
     
     <!-- Tableau des catégories avec UTable -->
     <div v-else>
-      <UTable
-        :columns="columns"
-        :rows="paginatedCategories"
-        :loading="isLoading"
-        class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm"
-      >
-        <!-- Colonne Catégorie -->
-        <template #category-data="{ row }">
-          <div class="flex items-center gap-3">
-            <div 
-              class="h-12 w-12 rounded-xl flex items-center justify-center"
-              :class="getCategoryColorClass(row.id)"
+      <!-- Version tableau pour écrans moyens et grands -->
+      <div class="hidden md:block">
+        <UTable
+          :columns="columns"
+          :rows="paginatedCategories"
+          :loading="isLoading"
+          class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm"
+        >
+          <!-- Colonne Catégorie -->
+          <template #category-data="{ row }">
+            <div class="flex items-center gap-3">
+              <div 
+                class="h-12 w-12 rounded-xl flex items-center justify-center"
+                :class="getCategoryColorClass(row.id)"
+              >
+                <component :is="getCategoryIcon(row.icon)" class="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ row.name }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">{{ row.description || 'Aucune description' }}</p>
+              </div>
+            </div>
+          </template>
+          
+          <!-- Colonne Statut -->
+          <template #status-data="{ row }">
+            <span 
+              class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium"
+              :class="row.is_active ? 'bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-400'"
             >
-              <component :is="getCategoryIcon(row.icon)" class="h-6 w-6 text-white" />
+              <span class="w-2 h-2 rounded-full mr-2" :class="row.is_active ? 'bg-green-500' : 'bg-red-500'"></span>
+              {{ row.is_active ? 'Active' : 'Inactive' }}
+            </span>
+          </template>
+          
+          <!-- Colonne Services -->
+          <template #services-count-data="{ row }">
+            <div class="text-sm text-gray-600 dark:text-gray-400">
+              {{ row.services_count || 0 }} service(s)
             </div>
-            <div>
-              <p class="text-sm font-medium text-gray-900 dark:text-white">{{ row.name }}</p>
-              <p class="text-xs text-gray-500 dark:text-gray-400">{{ row.description || 'Aucune description' }}</p>
+          </template>
+          
+          <!-- Colonne Date de création -->
+          <template #created-at-data="{ row }">
+            <div class="text-sm text-gray-600 dark:text-gray-400">
+              {{ formatDate(row.created_at) }}
+            </div>
+          </template>
+          
+          <!-- Colonne Actions -->
+          <template #actions-data="{ row }">
+            <div class="flex justify-end gap-2">
+              <button 
+                @click="editCategory(row)"
+                class="p-2 text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors"
+                title="Modifier"
+              >
+                <Edit class="h-5 w-5" />
+              </button>
+              <button 
+                @click="toggleCategoryStatus(row)"
+                class="p-2 text-gray-500 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors"
+                :title="row.is_active ? 'Désactiver' : 'Activer'"
+              >
+                <component :is="row.is_active ? 'EyeOff' : 'Eye'" class="h-5 w-5" />
+              </button>
+              <button 
+                @click="deleteCategory(row)"
+                class="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                title="Supprimer"
+              >
+                <Trash2 class="h-5 w-5" />
+              </button>
+            </div>
+          </template>
+        </UTable>
+      </div>
+      
+      <!-- Vue responsive pour petits écrans (mobile) -->
+      <div class="block md:hidden space-y-4">
+        <div 
+          v-for="row in paginatedCategories" 
+          :key="row.id" 
+          class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden"
+        >
+          <!-- En-tête avec catégorie et icône -->
+          <div class="p-4 border-b border-gray-100 dark:border-gray-700">
+            <div class="flex items-center gap-3">
+              <div 
+                class="h-14 w-14 rounded-xl flex items-center justify-center"
+                :class="getCategoryColorClass(row.id)"
+              >
+                <component :is="getCategoryIcon(row.icon)" class="h-7 w-7 text-white" />
+              </div>
+              <div>
+                <p class="text-base font-medium text-gray-900 dark:text-white">{{ row.name }}</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ row.description || 'Aucune description' }}</p>
+              </div>
             </div>
           </div>
-        </template>
-        
-        <!-- Colonne Statut -->
-        <template #status-data="{ row }">
-          <span 
-            class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium"
-            :class="row.is_active ? 'bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-400'"
-          >
-            <span class="w-2 h-2 rounded-full mr-2" :class="row.is_active ? 'bg-green-500' : 'bg-red-500'"></span>
-            {{ row.is_active ? 'Active' : 'Inactive' }}
-          </span>
-        </template>
-        
-        <!-- Colonne Services -->
-        <template #services-count-data="{ row }">
-          <div class="text-sm text-gray-600 dark:text-gray-400">
-            {{ row.services_count || 0 }} service(s)
+          
+          <!-- Informations principales -->
+          <div class="p-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Statut</p>
+                <span 
+                  class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium"
+                  :class="row.is_active ? 'bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-400'"
+                >
+                  <span class="w-2 h-2 rounded-full mr-2" :class="row.is_active ? 'bg-green-500' : 'bg-red-500'"></span>
+                  {{ row.is_active ? 'Active' : 'Inactive' }}
+                </span>
+              </div>
+              
+              <div>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Services</p>
+                <p class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ row.services_count || 0 }} service(s)</p>
+              </div>
+              
+              <div class="col-span-2">
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Date de création</p>
+                <p class="text-sm text-gray-700 dark:text-gray-300">{{ formatDate(row.created_at) }}</p>
+              </div>
+            </div>
           </div>
-        </template>
-        
-        <!-- Colonne Date de création -->
-        <template #created-at-data="{ row }">
-          <div class="text-sm text-gray-600 dark:text-gray-400">
-            {{ formatDate(row.created_at) }}
-          </div>
-        </template>
-        
-        <!-- Colonne Actions -->
-        <template #actions-data="{ row }">
-          <div class="flex justify-end gap-2">
+          
+          <!-- Actions -->
+          <div class="px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-2">
             <button 
               @click="editCategory(row)"
-              class="p-2 text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors"
-              title="Modifier"
+              class="px-3 py-1.5 flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors"
             >
-              <Edit class="h-5 w-5" />
+              <Edit class="h-4 w-4" />
+              <span>Modifier</span>
             </button>
             <button 
               @click="toggleCategoryStatus(row)"
-              class="p-2 text-gray-500 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors"
-              :title="row.is_active ? 'Désactiver' : 'Activer'"
+              class="px-3 py-1.5 flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors"
             >
-              <component :is="row.is_active ? 'EyeOff' : 'Eye'" class="h-5 w-5" />
+              <component :is="row.is_active ? 'EyeOff' : 'Eye'" class="h-4 w-4" />
+              <span>{{ row.is_active ? 'Désactiver' : 'Activer' }}</span>
             </button>
             <button 
               @click="deleteCategory(row)"
-              class="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-              title="Supprimer"
+              class="px-3 py-1.5 flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
             >
-              <Trash2 class="h-5 w-5" />
+              <Trash2 class="h-4 w-4" />
+              <span>Supprimer</span>
             </button>
           </div>
-        </template>
-      </UTable>
+        </div>
+      </div>
       
-      <!-- Pagination -->
-      <div class="flex justify-between items-center mt-6">
-        <div class="text-sm text-gray-600 dark:text-gray-400">
+      <!-- Pagination responsive -->
+      <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6">
+        <div class="text-sm text-gray-600 dark:text-gray-400 order-2 sm:order-1 text-center sm:text-left">
           Affichage de {{ paginatedCategories.length }} sur {{ filteredCategories.length }} catégories
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center justify-center gap-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-1 shadow-sm order-1 sm:order-2">
           <button 
-            @click="currentPage > 1 ? currentPage-- : null"
+            @click="currentPage--"
             :disabled="currentPage === 1"
-            class="p-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 disabled:opacity-50"
+            class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 disabled:opacity-50 disabled:hover:bg-transparent dark:disabled:hover:bg-transparent transition-colors"
           >
             <ChevronLeft class="h-5 w-5" />
           </button>
-          <span class="text-sm text-gray-600 dark:text-gray-400">
+          <span class="px-2 text-sm text-gray-600 dark:text-gray-400">
             Page {{ currentPage }} sur {{ totalPages }}
           </span>
           <button 
-            @click="currentPage < totalPages ? currentPage++ : null"
+            @click="currentPage++"
             :disabled="currentPage === totalPages"
-            class="p-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 disabled:opacity-50"
+            class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 disabled:opacity-50 disabled:hover:bg-transparent dark:disabled:hover:bg-transparent transition-colors"
           >
             <ChevronRight class="h-5 w-5" />
           </button>

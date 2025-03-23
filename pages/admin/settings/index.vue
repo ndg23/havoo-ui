@@ -5,8 +5,8 @@
       <div>
         <h1 class="text-2xl font-bold text-gray-900">Paramètres</h1>
         <p class="text-gray-600 mt-1">Configurez les paramètres généraux de la plateforme</p>
-      </div>
-      
+    </div>
+    
       <div class="flex items-center gap-3">
         <button 
           @click="resetToDefaults" 
@@ -102,8 +102,8 @@
                 placeholder="https://havoo.fr"
               />
             </div>
-          </div>
-          
+            </div>
+            
           <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -353,8 +353,8 @@ const { error } = await supabase
                 <span class="font-medium text-gray-900">Attribution automatique des experts</span>
                 <p class="text-sm text-gray-500 mt-0.5">Attribue automatiquement des experts aux demandes selon leurs compétences</p>
               </div>
-            </div>
-            
+          </div>
+          
             <div class="flex items-center p-4 bg-gray-50 rounded-xl border border-gray-100">
               <Switch v-model="settings.allow_user_categories" />
               <div class="ml-3">
@@ -403,8 +403,8 @@ const { error } = await supabase
                 placeholder="587"
               />
             </div>
-          </div>
-          
+            </div>
+            
           <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -448,9 +448,9 @@ const { error } = await supabase
             <div class="ml-3">
               <span class="font-medium text-gray-900">Notifications par email</span>
               <p class="text-sm text-gray-500 mt-0.5">Activer l'envoi de notifications par email aux utilisateurs</p>
-            </div>
           </div>
-          
+        </div>
+        
           <div class="flex justify-end">
             <button 
               @click="sendTestEmail" 
@@ -460,24 +460,24 @@ const { error } = await supabase
               Envoyer un email de test
             </button>
           </div>
-        </div>
-        
+            </div>
+            
         <!-- Paramètres légaux (CGU/Mentions légales) -->
         <div v-else-if="activeTab === 'legal'" class="space-y-6">
           <div class="p-4 bg-purple-50 rounded-xl border border-purple-100 mb-4">
             <div class="flex">
               <FileText class="h-5 w-5 text-purple-500 mr-3 mt-0.5" />
-              <div>
+            <div>
                 <h3 class="font-medium text-purple-800">Documents légaux</h3>
                 <p class="text-sm text-purple-700 mt-1">
                   Gérez les documents légaux de votre plateforme tels que les CGU, politique de confidentialité et mentions légales.
                 </p>
               </div>
             </div>
-          </div>
-          
+            </div>
+            
           <!-- CGU -->
-          <div>
+            <div>
             <div class="flex items-center justify-between mb-2">
               <label class="block text-lg font-medium text-gray-900">
                 Conditions Générales d'Utilisation (CGU)
@@ -516,8 +516,8 @@ const { error } = await supabase
                 Mettre à jour
               </button>
             </div>
-          </div>
-          
+            </div>
+            
           <!-- Politique de confidentialité -->
           <div class="pt-6 border-t border-gray-100 mt-6">
             <div class="flex items-center justify-between mb-2">
@@ -612,10 +612,10 @@ const { error } = await supabase
             </button>
           </div>
         </div>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-  
+      
   <!-- Footer avec diagnostic -->
   <div class="mt-8 bg-gray-50 border-t border-gray-100 py-4 px-4 sm:px-6 lg:px-8">
     <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -626,7 +626,7 @@ const { error } = await supabase
       </div>
       
       <div class="flex items-center gap-3">
-        <button
+        <button 
           @click="exportSettings"
           class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-800 text-sm font-medium flex items-center gap-1.5"
         >
@@ -648,7 +648,7 @@ const { error } = await supabase
           />
         </label>
         
-        <button
+        <button 
           @click="debugSupabase"
           class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-800 text-sm font-medium flex items-center gap-1.5"
         >
@@ -1109,12 +1109,12 @@ const showNotification = (type, title, message) => {
   
   // Auto-hide after 5 seconds only for success and info notifications
   if (type !== 'error') {
-    setTimeout(() => {
+  setTimeout(() => {
       // Only hide this specific notification (not a new one that might have appeared)
       if (notification.value.title === title && notification.value.message === message) {
-        notification.value.show = false
+    notification.value.show = false
       }
-    }, 5000)
+  }, 5000)
   }
 }
 

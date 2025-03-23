@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-4xl mx-auto px-4 py-8">
+  <div class=" mx-auto px-4 py-8">
     <!-- En-tête de la page -->
     <div class="mb-8">
       <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Modifier mon profil</h1>
@@ -247,15 +247,7 @@
       </div>
       
       <!-- Informations professionnelles (pour les experts) -->
-      <div v-if="isExpert" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
-        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
-          <h2 class="text-lg font-medium text-gray-900 dark:text-white flex items-center">
-            <Briefcase class="h-5 w-5 mr-2 text-primary-600 dark:text-primary-400" />
-            Informations professionnelles
-          </h2>
-        </div>
-        
-        <div class="p-6">
+      <div v-if="isExpert" class="p-6-">
           <!-- Compétences -->
           <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
             <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
@@ -349,7 +341,7 @@
             </div>
           </div>
         </div>
-      </div>
+      
       
      
       
@@ -889,6 +881,10 @@ const addSkill = async (skill) => {
     selectedSkills.value.push(skill);
   }
 };
+definePageMeta({
+  layout: 'account',
+  middleware: 'auth'
+})
 </script>
 
 <style scoped>

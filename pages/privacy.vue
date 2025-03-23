@@ -13,7 +13,7 @@
       <div class="prose prose-lg prose-primary mx-auto">
         <h2>1. Introduction</h2>
         <p>
-          Chez Sunutaf services, nous accordons une grande importance à la protection de vos données personnelles. Cette politique de confidentialité explique comment nous collectons, utilisons, partageons et protégeons vos informations lorsque vous utilisez notre plateforme.
+          Chez Keetaf services, nous accordons une grande importance à la protection de vos données personnelles. Cette politique de confidentialité explique comment nous collectons, utilisons, partageons et protégeons vos informations lorsque vous utilisez notre plateforme.
         </p>
         <p>
           Cette politique est conforme à la loi sénégalaise n° 2008-12 du 25 janvier 2008 portant sur la protection des données à caractère personnel et au règlement de la CEDEAO sur la protection des données personnelles.
@@ -147,7 +147,7 @@
 
         <h2>14. Contact</h2>
         <p>
-          Si vous avez des questions concernant cette politique de confidentialité ou nos pratiques en matière de protection des données, veuillez nous contacter à l'adresse suivante: contact@Sunutaf-services.com.
+          Si vous avez des questions concernant cette politique de confidentialité ou nos pratiques en matière de protection des données, veuillez nous contacter à l'adresse suivante: contact@Keetaf-services.com.
         </p>
       </div>
 

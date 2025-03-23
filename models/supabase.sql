@@ -1,4 +1,4 @@
--- Schéma des tables pour Sunutaf Services
+-- Schéma des tables pour Keetaf Services
 
 -- Enumérations
 CREATE TYPE user_role AS ENUM ('client', 'expert', 'admin');

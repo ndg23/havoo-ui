@@ -37,7 +37,7 @@
       <!-- Footer -->
       <footer class="mt-16 pt-8 border-t border-gray-100">
         <p class="text-sm text-gray-500 text-center">
-          Copyright © {{ new Date().getFullYear() }} Sunutaf. Tous droits réservés.
+          Copyright © {{ new Date().getFullYear() }} Keetaf. Tous droits réservés.
         </p>
       </footer>
     </div>
@@ -53,7 +53,7 @@ const sections = [
   {
     title: "Informations Légales",
     content: {
-      "Raison sociale": "Sunutaf SAS",
+      "Raison sociale": "Keetaf SAS",
       "Capital social": "1 000 000 FCFA",
       "RCCM": "SN DKR 2024 B 12345",
       "NINEA": "123456789",
@@ -66,7 +66,7 @@ const sections = [
     content: {
       "Directeur de la publication": "John Doe",
       "Fonction": "Président Directeur Général",
-      "Contact": "direction@Sunutaf.com"
+      "Contact": "direction@Keetaf.com"
     }
   },
   {
@@ -82,7 +82,7 @@ const sections = [
     title: "Protection des Données",
     content: {
       "Délégué à la Protection des Données": "Jane Smith",
-      "Email": "dpo@Sunutaf.com",
+      "Email": "dpo@Keetaf.com",
       "Déclaration CDP": "N° 2024-001234/CDP",
       "Autorité de contrôle": "Commission de Protection des Données Personnelles (CDP)"
     }
@@ -90,9 +90,9 @@ const sections = [
   {
     title: "Contacts",
     content: {
-      "Service Client": "support@Sunutaf.com",
-      "Service Commercial": "commercial@Sunutaf.com",
-      "Service Technique": "tech@Sunutaf.com",
+      "Service Client": "support@Keetaf.com",
+      "Service Commercial": "commercial@Keetaf.com",
+      "Service Technique": "tech@Keetaf.com",
       "Téléphone": "+221 XX XXX XX XX",
       "Horaires": "Lundi au Vendredi, 9h-18h (GMT)"
     }
@@ -100,10 +100,10 @@ const sections = [
   {
     title: "Propriété Intellectuelle",
     content: {
-      "Marque déposée": "Sunutaf® est une marque déposée",
+      "Marque déposée": "Keetaf® est une marque déposée",
       "Numéro d'enregistrement": "MA-2024-001234",
       "Droits d'auteur": "Tous les contenus de ce site sont protégés par le droit d'auteur",
-      "Licence": "Tous droits réservés Sunutaf SAS"
+      "Licence": "Tous droits réservés Keetaf SAS"
     }
   }
 ]
