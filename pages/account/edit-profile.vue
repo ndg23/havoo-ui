@@ -256,181 +256,102 @@
         </div>
         
         <div class="p-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Tarif horaire -->
-            <div>
-              <FloatingLabelInput
-                id="hourlyRate"
-                label="Tarif horaire (FCFA/h)"
-                type="number"
-                min="0"
-                step="0.01"
-                v-model="form.hourlyRate"
-              />
-              <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Votre tarif horaire indicatif pour les clients.
-              </p>
-            </div>
-            
-            <!-- Statut de disponibilité -->
-            <div>
-              <FloatingLabelInput
-                id="availabilityStatus"
-                label="Statut de disponibilité"
-                v-model="form.availabilityStatus"
-                as="select"
-              >
-                <option value="available">Disponible maintenant</option>
-                <option value="limited">Disponibilité limitée</option>
-                <option value="busy">Occupé(e)</option>
-                <option value="unavailable">Non disponible</option>
-              </FloatingLabelInput>
-              <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Indiquez votre disponibilité actuelle aux clients potentiels.
-              </p>
-            </div>
-          </div>
-          
           <!-- Compétences -->
-          <div class="mt-6">
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-              Compétences
-            </label>
-            
-            <div class="flex flex-wrap gap-2 mb-3">
-              <div 
-                v-for="(skill, index) in form.skills" 
-                :key="index"
-                class="bg-primary-100 dark:bg-primary-900/30 text-primary-800 dark:text-primary-300 px-3 py-1.5 rounded-full text-sm font-medium flex items-center"
-              >
-                {{ skill }}
-                <button 
-                  @click="removeSkill(index)" 
-                  type="button"
-                  class="ml-1.5 text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-200"
-                >
-                  <X class="h-3.5 w-3.5" />
-                </button>
-              </div>
+          <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
+              <h2 class="text-lg font-medium text-gray-900 dark:text-white flex items-center">
+                <Briefcase class="h-5 w-5 mr-2 text-primary-600 dark:text-primary-400" />
+                Compétences
+              </h2>
             </div>
             
-            <div class="flex">
-              <FloatingLabelInput
-                id="newSkill"
-                label="Ajouter une compétence..."
-                v-model="newSkill"
-                @keyup.enter="addSkill"
-              />
-              <button 
-                @click="addSkill"
-                type="button"
-                class="px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-r-full transition-colors"
-              >
-                <Plus class="h-5 w-5" />
-              </button>
-            </div>
-            
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Ajoutez vos compétences professionnelles pour vous démarquer (ex: Développement Web, Design UX, etc.)
-            </p>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Section de disponibilité détaillée -->
-      <div v-if="isExpert" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
-        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
-          <h2 class="text-lg font-medium text-gray-900 dark:text-white flex items-center">
-            <Calendar class="h-5 w-5 mr-2 text-primary-600 dark:text-primary-400" />
-            Planning et disponibilité
-          </h2>
-        </div>
-        
-        <div class="p-6">
-          <div class="grid grid-cols-1 md:grid-cols-7 gap-2">
-            <div v-for="(day, index) in days" :key="day" class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-              <div class="bg-gray-50 dark:bg-gray-700 px-3 py-2 border-b border-gray-200 dark:border-gray-700 text-center">
-                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ day }}</span>
-              </div>
+            <div class="p-6">
+              <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Ajoutez les compétences que vous maîtrisez pour aider les clients à vous trouver plus facilement.
+              </p>
               
-              <div class="p-3">
-                <label :for="`available-${index}`" class="relative inline-flex items-center cursor-pointer mb-3">
-                  <input 
-                    v-model="form.availableDays[index]" 
-                    type="checkbox" 
-                    :id="`available-${index}`" 
-                    class="sr-only peer"
+              <!-- Dropdown style Google -->
+              <div class="relative mb-6">
+                <div class="flex flex-wrap gap-2 p-2 border border-gray-300 dark:border-gray-600 rounded-lg min-h-[56px] focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-primary-500">
+                  <!-- Compétences sélectionnées -->
+                  <div 
+                    v-for="skill in selectedSkills" 
+                    :key="skill.id"
+                    class="inline-flex items-center px-2.5 py-1.5 rounded-full text-sm font-medium bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200"
                   >
-                  <div class="switch-toggle"></div>
-                  <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {{ form.availableDays[index] ? 'Disponible' : 'Indisponible' }}
-                  </span>
-                </label>
-                
-                <div v-if="form.availableDays[index]" class="space-y-2">
-                  <div>
-                    <label :for="`start-${index}`" class="block text-xs text-gray-700 dark:text-gray-300 mb-1">Début</label>
-                    <select 
-                      v-model="form.availableHours[index].start" 
-                      :id="`start-${index}`"
-                      class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-white"
+                    {{ skill.name }}
+                <button 
+                  type="button"
+                      @click="removeSkill(skill)"
+                      class="ml-1 inline-flex items-center justify-center w-4 h-4 rounded-full text-primary-600 dark:text-primary-400 hover:bg-primary-200 dark:hover:bg-primary-800 focus:outline-none"
+                >
+                      <X class="h-3 w-3" />
+                </button>
+            </div>
+            
+                  <!-- Dropdown trigger -->
+                  <div class="relative flex-grow">
+                    <select
+                      v-model="selectedSkillId"
+                      @change="addSelectedSkill"
+                      class="w-full py-1.5 px-2 bg-transparent border-0 focus:ring-0 focus:outline-none text-gray-700 dark:text-gray-300 appearance-none"
                     >
-                      <option v-for="hour in hours" :key="`start-${hour}`" :value="hour">{{ hour }}</option>
+                      <option value="" disabled selected>Ajouter une compétence...</option>
+                      <optgroup 
+                        v-for="category in skillCategories" 
+                        :key="category.id" 
+                        :label="category.name"
+                      >
+                        <option 
+                          v-for="skill in category.skills" 
+                          :key="skill.id" 
+                          :value="skill.id"
+                          :disabled="isSkillSelected(skill.id)"
+                        >
+                          {{ skill.name }}
+                        </option>
+                      </optgroup>
+                      <optgroup label="Autres compétences">
+                        <option 
+                          v-for="skill in uncategorizedSkills" 
+                          :key="skill.id" 
+                          :value="skill.id"
+                          :disabled="isSkillSelected(skill.id)"
+                        >
+                          {{ skill.name }}
+                        </option>
+                      </optgroup>
                     </select>
-                  </div>
-                  
-                  <div>
-                    <label :for="`end-${index}`" class="block text-xs text-gray-700 dark:text-gray-300 mb-1">Fin</label>
-                    <select 
-                      v-model="form.availableHours[index].end" 
-                      :id="`end-${index}`"
-                      class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-white"
-                    >
-                      <option v-for="hour in hours" :key="`end-${hour}`" :value="hour">{{ hour }}</option>
-                    </select>
-                  </div>
-                </div>
+        </div>
+      </div>
+      
+                <div v-if="selectedSkills.length === 0" class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                  Sélectionnez au moins une compétence pour améliorer votre visibilité
+        </div>
+            </div>
+            
+              <!-- Suggestions de compétences populaires -->
+              <div>
+                <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Suggestions populaires :</h3>
+                <div class="flex flex-wrap gap-2">
+                  <button 
+                    v-for="skill in popularSkills" 
+                    :key="skill.id"
+                    type="button"
+                    @click="addSkill(skill)"
+                    :disabled="isSkillSelected(skill.id)"
+                    class="px-3 py-1 text-sm rounded-full border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    + {{ skill.name }}
+                  </button>
+              </div>
               </div>
             </div>
           </div>
         </div>
       </div>
       
-      <!-- Préférences -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
-        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
-          <h2 class="text-lg font-medium text-gray-900 dark:text-white flex items-center">
-            <Bell class="h-5 w-5 mr-2 text-primary-600 dark:text-primary-400" />
-            Préférences de notification
-          </h2>
-        </div>
-        
-        <div class="p-6">
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="text-gray-900 dark:text-white font-medium">Notifications par email</h3>
-                <p class="text-sm text-gray-600 dark:text-gray-400">Recevez des mises à jour par email</p>
-              </div>
-              <label class="switch">
-                <input type="checkbox" v-model="form.emailNotifications">
-                <span class="slider round"></span>
-              </label>
-            </div>
-            
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="text-gray-900 dark:text-white font-medium">Notifications push</h3>
-                <p class="text-sm text-gray-600 dark:text-gray-400">Recevez des notifications sur votre appareil</p>
-              </div>
-              <label class="switch">
-                <input type="checkbox" v-model="form.pushNotifications">
-                <span class="slider round"></span>
-              </label>
-            </div>
-          </div>
-        </div>
-      </div>
+     
       
       <!-- Boutons d'action -->
       <div class="flex flex-wrap items-center justify-end gap-3 mt-8">
@@ -463,7 +384,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, computed, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSupabaseClient, useSupabaseUser } from '#imports'
 import { 
@@ -477,7 +398,8 @@ import {
   Trash2, 
   Briefcase, 
   X, 
-  Plus 
+  Plus,
+  ChevronDown
 } from 'lucide-vue-next'
 import FloatingLabelInput from '~/components/ui/FloatingLabelInput.vue'
 
@@ -507,6 +429,14 @@ const hours = [
   '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30',
   '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00'
 ]
+
+// État pour les compétences
+const selectedSkillId = ref('');
+const allSkills = ref([]);
+const selectedSkills = ref([]);
+const skillCategories = ref([]);
+const uncategorizedSkills = ref([]);
+const showSkillResults = ref(false);
 
 // Données du formulaire
 const form = ref({
@@ -681,6 +611,109 @@ const uploadAvatar = async () => {
   }
 }
 
+// Charger toutes les compétences depuis la base de données
+const fetchSkills = async () => {
+  try {
+    // Récupérer les catégories
+    const { data: categoriesData, error: categoriesError } = await supabase
+      .from('categories')
+      .select('id, name')
+      .order('name');
+    
+    if (categoriesError) throw categoriesError;
+    
+    // Récupérer les compétences avec leurs catégories
+    const { data: skillsData, error: skillsError } = await supabase
+      .from('skills')
+      .select('id, name, category_id')
+      .order('name');
+    
+    if (skillsError) throw skillsError;
+    
+    // Stocker toutes les compétences
+    allSkills.value = skillsData || [];
+    
+    // Organiser les compétences par catégorie
+    skillCategories.value = categoriesData.map(category => ({
+      ...category,
+      skills: skillsData.filter(skill => skill.category_id === category.id)
+    }));
+    
+    // Compétences sans catégorie
+    uncategorizedSkills.value = skillsData.filter(skill => !skill.category_id);
+    
+  } catch (err) {
+    console.error('Erreur lors du chargement des compétences:', err);
+  }
+};
+
+// Charger les compétences de l'utilisateur
+const fetchUserSkills = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('user_skills')
+      .select('skill_id, skills(id, name)')
+      .eq('user_id', user.value.id);
+    
+    if (error) throw error;
+    
+    selectedSkills.value = data.map(item => item.skills) || [];
+  } catch (err) {
+    console.error('Erreur lors du chargement des compétences de l\'utilisateur:', err);
+  }
+};
+
+// Vérifier si une compétence est déjà sélectionnée
+const isSkillSelected = (skillId) => {
+  return selectedSkills.value.some(skill => skill.id === skillId);
+};
+
+// Ajouter la compétence sélectionnée
+const addSelectedSkill = () => {
+  if (!selectedSkillId.value) return;
+  
+  const skill = allSkills.value.find(s => s.id === selectedSkillId.value);
+  if (skill && !isSkillSelected(skill.id)) {
+    selectedSkills.value.push(skill);
+    selectedSkillId.value = ''; // Réinitialiser la sélection
+  }
+};
+
+// Supprimer une compétence
+const removeSkill = (skill) => {
+  selectedSkills.value = selectedSkills.value.filter(s => s.id !== skill.id);
+};
+
+// Sauvegarder les compétences de l'utilisateur
+const saveUserSkills = async () => {
+  try {
+    // Supprimer toutes les compétences existantes
+    const { error: deleteError } = await supabase
+      .from('user_skills')
+      .delete()
+      .eq('user_id', user.value.id);
+    
+    if (deleteError) throw deleteError;
+    
+    // Ajouter les nouvelles compétences
+    if (selectedSkills.value.length > 0) {
+      const skillsToInsert = selectedSkills.value.map(skill => ({
+        user_id: user.value.id,
+        skill_id: skill.id
+      }));
+      
+      const { error: insertError } = await supabase
+        .from('user_skills')
+        .insert(skillsToInsert);
+      
+      if (insertError) throw insertError;
+    }
+  } catch (err) {
+    console.error('Erreur lors de la sauvegarde des compétences:', err);
+    throw err;
+  }
+};
+
 // Mettre à jour le profil
 const updateProfile = async () => {
   isSaving.value = true
@@ -726,6 +759,9 @@ const updateProfile = async () => {
       .eq('id', user.value.id)
     
     if (error) throw error
+    
+    // Sauvegarder les compétences
+    await saveUserSkills()
     
     // Mettre à jour les valeurs initiales
     initialForm.value = { ...form.value }
@@ -773,31 +809,86 @@ const showStatusMessage = (type, message, duration = 5000) => {
   }, duration)
 }
 
-// Nouvelles méthodes pour gérer les compétences
-const addSkill = () => {
-  if (!newSkill.value.trim()) return
-  
-  // Vérifier si la compétence existe déjà
-  if (!form.value.skills.includes(newSkill.value.trim())) {
-    form.value.skills.push(newSkill.value.trim())
+// Fermer le dropdown des compétences en cliquant ailleurs
+const handleClickOutside = (event) => {
+  if (showSkillResults.value && !event.target.closest('.skills-dropdown')) {
+    showSkillResults.value = false;
   }
-  
-  newSkill.value = ''
-}
-
-const removeSkill = (index) => {
-  form.value.skills.splice(index, 1)
-}
+};
 
 // Initialisation
 onMounted(() => {
   fetchProfile()
+  fetchSkills()
+  fetchUserSkills()
+  document.addEventListener('click', handleClickOutside)
+})
+
+// Ajouter à onBeforeUnmount
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside)
 })
 
 // Vous pouvez ajouter ce bloc en haut de chaque fichier
 definePageMeta({
-  layout: 'account'
+  layout: 'default',
+  middleware: 'auth'
 })
+
+// Compétences populaires (à adapter selon votre domaine)
+const popularSkills = computed(() => {
+  // Filtrer les compétences déjà sélectionnées
+  return [
+    { id: 1, name: 'JavaScript' },
+    { id: 2, name: 'Design UX/UI' },
+    { id: 3, name: 'Marketing Digital' },
+    { id: 4, name: 'Rédaction Web' },
+    { id: 5, name: 'SEO' },
+    { id: 6, name: 'Photographie' },
+    { id: 7, name: 'Montage Vidéo' },
+    { id: 8, name: 'Traduction' }
+  ].filter(skill => {
+    // Vérifier si la compétence existe dans allSkills
+    const existingSkill = allSkills.value.find(s => s.name === skill.name);
+    // Si elle existe, utiliser son ID réel
+    if (existingSkill) {
+      skill.id = existingSkill.id;
+      // Ne pas l'afficher si déjà sélectionnée
+      return !isSkillSelected(existingSkill.id);
+    }
+    return true;
+  });
+});
+
+// Ajouter une compétence (modifié pour gérer les compétences populaires)
+const addSkill = async (skill) => {
+  // Si la compétence n'existe pas dans la base de données
+  if (!allSkills.value.some(s => s.id === skill.id)) {
+    try {
+      // Créer la compétence dans la base de données
+      const { data, error } = await supabase
+        .from('skills')
+        .insert({ name: skill.name })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      // Mettre à jour l'ID avec celui de la base de données
+      skill = data;
+      // Ajouter à la liste des compétences
+      allSkills.value.push(skill);
+    } catch (err) {
+      console.error('Erreur lors de la création de la compétence:', err);
+      return;
+    }
+  }
+  
+  // Ajouter à la sélection si pas déjà présente
+  if (!selectedSkills.value.some(s => s.id === skill.id)) {
+    selectedSkills.value.push(skill);
+  }
+};
 </script>
 
 <style scoped>

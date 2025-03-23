@@ -1,708 +1,764 @@
 <template>
-  <div class="space-y-6 max-w-7xl mx-auto">
-    <!-- En-tête avec style Twitter -->
-    <div class="px-4 py-6">
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Catégories de services</h1>
-      <p class="text-gray-600 dark:text-gray-400 mt-1">Gérez les catégories disponibles sur la plateforme</p>
-    </div>
-    
-    <!-- Notifications -->
-    <div 
-      v-if="notification.show" 
-      class="mx-4 p-4 rounded-xl flex items-start gap-3"
-      :class="[
-        notification.type === 'success' ? 'bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400' : 
-        notification.type === 'error' ? 'bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-400' : 
-        'bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
-      ]"
-    >
-      <component 
-        :is="notification.type === 'success' ? 'CheckCircle' : notification.type === 'error' ? 'AlertTriangle' : 'Info'" 
-        class="h-5 w-5 mt-0.5 flex-shrink-0" 
-      />
+  <div class="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- En-tête avec style moderne -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div>
-        <h3 class="font-medium">{{ notification.title }}</h3>
-        <p class="text-sm opacity-80 mt-0.5">{{ notification.message }}</p>
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Catégories</h1>
+        <p class="text-gray-600 dark:text-gray-400 mt-1">Gérez les catégories de services</p>
       </div>
-      <button 
-        @click="notification.show = false" 
-        class="ml-auto p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5"
-      >
-        <X class="h-4 w-4" />
-      </button>
+      
+      <!-- Actions principales -->
+      <div class="flex items-center gap-3">
+        <button 
+          @click="openAddModal"
+          class="btn-primary flex items-center gap-2"
+        >
+          <Plus class="h-4 w-4" />
+          <span>Ajouter</span>
+        </button>
+        <button 
+          @click="refreshData"
+          class="btn-outline flex items-center gap-2"
+        >
+          <RefreshCw class="h-4 w-4" />
+          <span>Actualiser</span>
+        </button>
+      </div>
     </div>
     
-    <!-- Statistiques rapides -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <!-- Notifications avec animation -->
+    <Transition
+      enter-active-class="transform transition duration-300 ease-out"
+      enter-from-class="translate-y-2 opacity-0"
+      enter-to-class="translate-y-0 opacity-100"
+      leave-active-class="transform transition duration-200 ease-in"
+      leave-from-class="translate-y-0 opacity-100"
+      leave-to-class="translate-y-2 opacity-0"
+    >
       <div 
-        v-for="stat in stats" 
-        :key="stat.label"
-        class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700"
+        v-if="notification?.show" 
+        class="p-4 rounded-2xl flex items-start gap-3 shadow-sm"
+        :class="[
+          notification.type === 'success' ? 'bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800/30' : 
+          notification.type === 'error' ? 'bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800/30' : 
+          'bg-blue-50 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border border-blue-200 dark:border-blue-800/30'
+        ]"
       >
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm text-gray-500 dark:text-gray-400">{{ stat.label }}</p>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ stat.value }}</p>
-          </div>
-          <div 
-            class="h-12 w-12 rounded-full flex items-center justify-center"
-            :class="stat.colorClass"
-          >
-            <component :is="stat.icon" class="h-6 w-6 text-white" />
-          </div>
+        <component 
+          :is="notification.type === 'success' ? 'CheckCircle' : notification.type === 'error' ? 'AlertTriangle' : 'Info'" 
+          class="h-5 w-5 mt-0.5 flex-shrink-0" 
+        />
+        <div>
+          <h3 class="font-medium">{{ notification.title }}</h3>
+          <p class="text-sm opacity-80 mt-0.5">{{ notification.message }}</p>
         </div>
+        <button 
+          @click="notification.show = false" 
+          class="ml-auto p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5"
+        >
+          <X class="h-4 w-4" />
+        </button>
       </div>
-    </div>
+    </Transition>
     
-    <!-- Filtres et actions -->
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-5">
-      <div class="flex flex-wrap gap-4 items-center justify-between">
-        <div class="relative">
-          <Search class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+    <!-- Recherche -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 shadow-sm">
+      <div class="flex flex-col md:flex-row md:items-center gap-4">
+        <div class="relative flex-grow max-w-md">
+          <Search class="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
           <input 
             v-model="search"
             type="text"
             placeholder="Rechercher une catégorie..."
-            class="pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-600 rounded-full focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white w-60"
+            class="pl-12 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl w-full focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
           />
         </div>
         
-        <!-- Actions -->
+        <div class="flex flex-wrap gap-3 items-center">
+          <!-- Filtre de statut -->
+          <select 
+            v-model="statusFilter"
+            class="px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white appearance-none bg-none"
+          >
+            <option value="all">Tous les statuts</option>
+            <option value="active">Actives</option>
+            <option value="inactive">Inactives</option>
+          </select>
+          
+          <!-- Réinitialiser -->
+          <button 
+            @click="resetFilters"
+            class="flex items-center gap-2 px-4 py-3 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+          >
+            <RefreshCw class="h-4 w-4" />
+            <span>Réinitialiser</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- État de chargement avec animation -->
+    <div v-if="isLoading" class="flex justify-center p-12">
+      <div class="inline-block h-10 w-10 animate-spin rounded-full border-4 border-solid border-primary-500 border-r-transparent"></div>
+    </div>
+    
+    <!-- État vide avec illustration -->
+    <div v-else-if="filteredCategories && filteredCategories.length === 0" class="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center border border-gray-100 dark:border-gray-700 shadow-sm">
+      <div class="inline-flex items-center justify-center h-20 w-20 rounded-full bg-gray-100 dark:bg-gray-700 mb-6">
+        <Folder class="h-10 w-10 text-gray-500 dark:text-gray-400" />
+      </div>
+      <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Aucune catégorie trouvée</h3>
+      <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+        Essayez de modifier vos filtres ou d'ajouter une nouvelle catégorie.
+      </p>
+      <div class="flex flex-wrap justify-center gap-4">
+        <button 
+          @click="resetFilters"
+          class="px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-xl transition-colors"
+        >
+          Réinitialiser les filtres
+        </button>
+        <button 
+          @click="openAddModal"
+          class="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-xl shadow-sm transition-colors"
+        >
+          Ajouter une catégorie
+        </button>
+      </div>
+    </div>
+    
+    <!-- Tableau des catégories avec UTable -->
+    <div v-else>
+      <UTable
+        :columns="columns"
+        :rows="paginatedCategories"
+        :loading="isLoading"
+        class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm"
+      >
+        <!-- Colonne Catégorie -->
+        <template #category-data="{ row }">
+          <div class="flex items-center gap-3">
+            <div 
+              class="h-12 w-12 rounded-xl flex items-center justify-center"
+              :class="getCategoryColorClass(row.id)"
+            >
+              <component :is="getCategoryIcon(row.icon)" class="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-900 dark:text-white">{{ row.name }}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">{{ row.description || 'Aucune description' }}</p>
+            </div>
+          </div>
+        </template>
+        
+        <!-- Colonne Statut -->
+        <template #status-data="{ row }">
+          <span 
+            class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium"
+            :class="row.is_active ? 'bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-400'"
+          >
+            <span class="w-2 h-2 rounded-full mr-2" :class="row.is_active ? 'bg-green-500' : 'bg-red-500'"></span>
+            {{ row.is_active ? 'Active' : 'Inactive' }}
+          </span>
+        </template>
+        
+        <!-- Colonne Services -->
+        <template #services-count-data="{ row }">
+          <div class="text-sm text-gray-600 dark:text-gray-400">
+            {{ row.services_count || 0 }} service(s)
+          </div>
+        </template>
+        
+        <!-- Colonne Date de création -->
+        <template #created-at-data="{ row }">
+          <div class="text-sm text-gray-600 dark:text-gray-400">
+            {{ formatDate(row.created_at) }}
+          </div>
+        </template>
+        
+        <!-- Colonne Actions -->
+        <template #actions-data="{ row }">
+          <div class="flex justify-end gap-2">
+            <button 
+              @click="editCategory(row)"
+              class="p-2 text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors"
+              title="Modifier"
+            >
+              <Edit class="h-5 w-5" />
+            </button>
+            <button 
+              @click="toggleCategoryStatus(row)"
+              class="p-2 text-gray-500 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors"
+              :title="row.is_active ? 'Désactiver' : 'Activer'"
+            >
+              <component :is="row.is_active ? 'EyeOff' : 'Eye'" class="h-5 w-5" />
+            </button>
+            <button 
+              @click="deleteCategory(row)"
+              class="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+              title="Supprimer"
+            >
+              <Trash2 class="h-5 w-5" />
+            </button>
+          </div>
+        </template>
+      </UTable>
+      
+      <!-- Pagination -->
+      <div class="flex justify-between items-center mt-6">
+        <div class="text-sm text-gray-600 dark:text-gray-400">
+          Affichage de {{ paginatedCategories.length }} sur {{ filteredCategories.length }} catégories
+        </div>
         <div class="flex items-center gap-2">
           <button 
-            @click="refreshData"
-            class="flex items-center p-2.5 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-full hover:bg-gray-50 dark:hover:bg-gray-700"
-            title="Rafraîchir"
+            @click="currentPage > 1 ? currentPage-- : null"
+            :disabled="currentPage === 1"
+            class="p-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 disabled:opacity-50"
           >
-            <RefreshCw class="h-5 w-5" />
+            <ChevronLeft class="h-5 w-5" />
           </button>
+          <span class="text-sm text-gray-600 dark:text-gray-400">
+            Page {{ currentPage }} sur {{ totalPages }}
+          </span>
           <button 
-            @click="openCreateModal"
-            class="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-full font-medium shadow-sm transition-colors"
+            @click="currentPage < totalPages ? currentPage++ : null"
+            :disabled="currentPage === totalPages"
+            class="p-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 disabled:opacity-50"
           >
-            <PlusCircle class="h-5 w-5" />
-            <span>Nouvelle catégorie</span>
+            <ChevronRight class="h-5 w-5" />
           </button>
         </div>
       </div>
     </div>
     
-    <!-- Liste des catégories -->
-    <div v-if="isLoading" class="flex justify-center p-12">
-      <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-500 border-r-transparent"></div>
-    </div>
-    
-    <div v-else-if="filteredCategories.length === 0" class="bg-white dark:bg-gray-800 rounded-xl p-8 text-center border border-gray-100 dark:border-gray-700">
-      <div class="inline-flex items-center justify-center h-16 w-16 rounded-full bg-gray-100 dark:bg-gray-700 mb-4">
-        <Layers class="h-8 w-8 text-gray-500 dark:text-gray-400" />
-      </div>
-      <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Aucune catégorie trouvée</h3>
-      <p class="text-gray-600 dark:text-gray-400 mb-4">
-        Commencez par créer une nouvelle catégorie.
-      </p>
-      <button 
-        @click="openCreateModal"
-        class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-full shadow-sm flex items-center gap-2 mx-auto"
-      >
-        <PlusCircle class="h-4 w-4" />
-        <span>Nouvelle catégorie</span>
-      </button>
-    </div>
-    
-    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div 
-        v-for="category in filteredCategories" 
-        :key="category.id"
-        class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-md transition-all duration-200"
-      >
-        <!-- En-tête de carte avec couleur -->
-        <div 
-          class="h-4 w-full"
-          :style="{ backgroundColor: category.color || '#6366f1' }"
-        ></div>
+    <!-- Modal d'ajout/modification de catégorie -->
+    <UModal v-model="showCategoryModal">
+      <div class="p-6">
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">
+          {{ editMode ? 'Modifier la catégorie' : 'Ajouter une catégorie' }}
+        </h2>
         
-        <div class="p-5">
-          <div class="flex items-start justify-between mb-4">
-            <div class="flex items-center">
-              <div 
-                class="h-12 w-12 rounded-full flex items-center justify-center mr-3"
-                :style="{ backgroundColor: category.color || '#6366f1' }"
-              >
-                <component :is="getCategoryIcon(category.icon)" class="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white">
-                  {{ category.name }}
-                </h3>
-                <p class="text-gray-600 dark:text-gray-400 text-sm">
-                  {{ category.services_count || 0 }} services
-                </p>
-              </div>
-            </div>
-            
-            <!-- Statut -->
-            <span 
-              class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium"
-              :class="category.is_active ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400'"
-            >
-              {{ category.is_active ? 'Active' : 'Inactive' }}
-            </span>
-          </div>
-          
-          <!-- Description -->
-          <p class="text-gray-600 dark:text-gray-400 line-clamp-2 mb-4 min-h-[40px]">
-            {{ category.description || 'Aucune description fournie.' }}
-          </p>
-          
-          <!-- Actions -->
-          <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-            <button 
-              @click="openEditModal(category)"
-              class="inline-flex items-center text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300"
-            >
-              <Edit class="h-4 w-4 mr-1" />
-              Modifier
-            </button>
-            
-            <div class="flex gap-1">
-              <button 
-                @click="toggleCategoryStatus(category)"
-                class="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
-                :title="category.is_active ? 'Désactiver' : 'Activer'"
-              >
-                <component :is="category.is_active ? 'EyeOff' : 'Eye'" class="h-5 w-5" />
-              </button>
-              <button 
-                @click="confirmDeleteCategory(category)"
-                class="p-1.5 text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full"
-                title="Supprimer"
-              >
-                <Trash2 class="h-5 w-5" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Pagination -->
-    <div v-if="totalPages > 1" class="flex justify-center mt-6">
-      <div class="inline-flex rounded-md shadow-sm">
-        <button
-          @click="currentPage > 1 ? currentPage-- : null"
-          :disabled="currentPage === 1"
-          class="px-4 py-2 text-sm font-medium border border-gray-300 dark:border-gray-600 rounded-l-lg bg-white dark:bg-gray-800 disabled:opacity-50"
-          :class="currentPage === 1 ? 'text-gray-400 dark:text-gray-600' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'"
-        >
-          <ChevronLeft class="h-5 w-5" />
-        </button>
-        <button
-          v-for="page in visiblePages"
-          :key="page"
-          @click="page !== '...' ? currentPage = page : null"
-          :disabled="page === '...'"
-          class="px-4 py-2 text-sm font-medium border border-gray-300 dark:border-gray-600 border-l-0 bg-white dark:bg-gray-800"
-          :class="[
-            page === '...' ? 'text-gray-400 dark:text-gray-600' : 
-            page === currentPage ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-900' : 
-            'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-          ]"
-        >
-          {{ page }}
-        </button>
-        <button
-          @click="currentPage < totalPages ? currentPage++ : null"
-          :disabled="currentPage === totalPages"
-          class="px-4 py-2 text-sm font-medium border border-gray-300 dark:border-gray-600 border-l-0 rounded-r-lg bg-white dark:bg-gray-800 disabled:opacity-50"
-          :class="currentPage === totalPages ? 'text-gray-400 dark:text-gray-600' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'"
-        >
-          <ChevronRight class="h-5 w-5" />
-        </button>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Teleport pour le modal de création/édition -->
-  <Teleport to="body">
-    <!-- Overlay -->
-    <div 
-      v-if="showFormModal"
-      class="fixed inset-0 bg-black/50 dark:bg-black/70 z-40 flex items-center justify-center p-4 overflow-y-auto"
-      @click="showFormModal = false"
-    >
-      <!-- Modal -->
-      <div 
-        class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto"
-        @click.stop
-      >
-        <div class="flex items-center justify-between p-5 border-b border-gray-200 dark:border-gray-700">
-          <div class="flex items-center">
-            <component :is="isEditing ? 'Edit3' : 'PlusCircle'" class="h-5 w-5 text-primary-600 dark:text-primary-400 mr-2" />
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white">
-              {{ isEditing ? 'Modifier la catégorie' : 'Nouvelle catégorie' }}
-            </h3>
-          </div>
-          <button 
-            @click="showFormModal = false"
-            class="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
-          >
-            <X class="h-5 w-5" />
-          </button>
-        </div>
-        
-        <form @submit.prevent="saveCategory" class="p-5 space-y-5">
+        <form @submit.prevent="saveCategory" class="space-y-4">
           <!-- Nom -->
           <div>
-            <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Nom *
-            </label>
+            <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nom</label>
             <input 
-              id="name" 
-              v-model="form.name" 
-              type="text" 
+              id="name"
+              v-model="categoryForm.name"
+              type="text"
               required
-              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-              placeholder="Ex: Plomberie"
+              class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+              placeholder="Nom de la catégorie"
             />
           </div>
           
           <!-- Description -->
           <div>
-            <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Description
-            </label>
+            <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
             <textarea 
-              id="description" 
-              v-model="form.description" 
+              id="description"
+              v-model="categoryForm.description"
               rows="3"
-              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-              placeholder="Décrivez brièvement cette catégorie de services"
+              class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+              placeholder="Description de la catégorie"
             ></textarea>
           </div>
           
-          <!-- Icône et Couleur -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label for="icon" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Icône
-              </label>
-              <select 
-                id="icon" 
-                v-model="form.icon"
-                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-              >
-                <option value="home">Maison</option>
-                <option value="tool">Outil</option>
-                <option value="paint">Peinture</option>
-                <option value="garden">Jardinage</option>
-                <option value="cleaning">Nettoyage</option>
-                <option value="teaching">Enseignement</option>
-                <option value="computer">Informatique</option>
-                <option value="car">Automobile</option>
-                <option value="grid">Autre</option>
-              </select>
-            </div>
-            
-            <div>
-              <label for="color" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Couleur
-              </label>
-              <input 
-                id="color" 
-                v-model="form.color" 
-                type="color"
-                class="w-full h-10 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg"
-              />
-            </div>
+          <!-- Icône -->
+          <div>
+            <label for="icon" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Icône</label>
+            <select 
+              id="icon"
+              v-model="categoryForm.icon"
+              class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+            >
+              <option value="Briefcase">Briefcase</option>
+              <option value="Code">Code</option>
+              <option value="PenTool">PenTool</option>
+              <option value="Image">Image</option>
+              <option value="FileText">FileText</option>
+              <option value="MessageSquare">MessageSquare</option>
+              <option value="ShoppingBag">ShoppingBag</option>
+              <option value="Globe">Globe</option>
+              <option value="Database">Database</option>
+              <option value="Smartphone">Smartphone</option>
+            </select>
           </div>
           
           <!-- Statut -->
           <div class="flex items-center">
-            <Switch
-              v-model="form.is_active"
-              :class="form.is_active ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700'"
-              class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-            >
-              <span
-                :class="form.is_active ? 'translate-x-6' : 'translate-x-1'"
-                class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-              />
-            </Switch>
-            <span class="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">
-              {{ form.is_active ? 'Catégorie active' : 'Catégorie inactive' }}
-            </span>
+            <input 
+              id="is_active"
+              v-model="categoryForm.is_active"
+              type="checkbox"
+              class="h-5 w-5 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+            />
+            <label for="is_active" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+              Catégorie active
+            </label>
           </div>
           
           <!-- Actions -->
-          <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div class="flex justify-end gap-3 pt-4">
             <button 
               type="button"
-              @click="showFormModal = false"
-              class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-full hover:bg-gray-50 dark:hover:bg-gray-700"
+              @click="showCategoryModal = false"
+              class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               Annuler
             </button>
             <button 
               type="submit"
-              class="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-full hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+              class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl"
               :disabled="isSaving"
             >
-              <span v-if="isSaving" class="flex items-center">
-                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
+              <span v-if="isSaving" class="flex items-center gap-2">
+                <Loader2 class="h-4 w-4 animate-spin" />
                 Enregistrement...
               </span>
               <span v-else>
-                {{ isEditing ? 'Mettre à jour' : 'Créer' }}
+                {{ editMode ? 'Mettre à jour' : 'Ajouter' }}
               </span>
             </button>
           </div>
         </form>
       </div>
-    </div>
-  </Teleport>
+    </UModal>
+    
+    <!-- Modal de confirmation de suppression -->
+    <UModal v-model="showDeleteModal">
+      <div class="p-6">
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">
+          Confirmer la suppression
+        </h2>
+        
+        <p class="text-gray-600 dark:text-gray-400 mb-6">
+          Êtes-vous sûr de vouloir supprimer la catégorie <span class="font-medium text-gray-900 dark:text-white">{{ selectedCategory?.name }}</span> ?
+          <br><br>
+          Cette action est irréversible et supprimera également tous les services associés à cette catégorie.
+        </p>
+        
+        <div class="flex justify-end gap-3">
+          <button 
+            @click="showDeleteModal = false"
+            class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+          >
+            Annuler
+          </button>
+          <button 
+            @click="confirmDeleteCategory"
+            class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl"
+            :disabled="isDeleting"
+          >
+            <span v-if="isDeleting" class="flex items-center gap-2">
+              <Loader2 class="h-4 w-4 animate-spin" />
+              Suppression...
+            </span>
+            <span v-else class="flex items-center gap-2">
+              <Trash2 class="h-4 w-4" />
+              Supprimer
+            </span>
+          </button>
+        </div>
+      </div>
+    </UModal>
+  </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import { useSupabaseClient } from '#imports'
+import { ref, computed, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import { debounce } from 'lodash';
 import { 
-  Layers, PlusCircle, Search, X, RefreshCw, Edit, Trash2, Eye, EyeOff, CheckCircle, AlertTriangle, Info,
-  ChevronLeft, ChevronRight, Edit3, Download, Home, Tool, Paintbrush as Paint, Scissors as Garden, 
-  ShowerHead as Cleaning, BookOpen as Teaching, Monitor as Computer, Car, LayoutGrid as Grid,
-  Switch
-} from 'lucide-vue-next'
+  Plus, Search, Edit, Trash2, RefreshCw, X, CheckCircle, AlertTriangle, 
+  Info, Folder, ChevronLeft, ChevronRight, Eye, EyeOff, Briefcase, Code, 
+  PenTool, Image, FileText, MessageSquare, ShoppingBag, Globe, Database, 
+  Smartphone 
+} from 'lucide-vue-next';
+import { useSupabaseClient } from '#imports';
 
-// État
-const supabase = useSupabaseClient()
-const categories = ref([])
-const isLoading = ref(true)
-const error = ref(null)
-const search = ref('')
-const currentPage = ref(1)
-const itemsPerPage = ref(9)
-const showFormModal = ref(false)
-const isEditing = ref(false)
-const isSaving = ref(false)
-const editingId = ref(null)
-const notification = ref({ show: false, type: '', title: '', message: '' })
+const supabase = useSupabaseClient();
+const router = useRouter();
 
-// Formulaire
-const form = ref({
+// État des données
+const categories = ref([]);
+const isLoading = ref(true);
+const search = ref('');
+const statusFilter = ref('all');
+const currentPage = ref(1);
+const itemsPerPage = ref(10);
+const showCategoryModal = ref(false);
+const showDeleteModal = ref(false);
+const editMode = ref(false);
+const selectedCategory = ref(null);
+const isSaving = ref(false);
+const isDeleting = ref(false);
+
+// Notification avec initialisation correcte
+const notification = ref({
+  show: false,
+  type: 'info',
+  title: '',
+  message: ''
+});
+
+// Formulaire de catégorie
+const categoryForm = ref({
   name: '',
   description: '',
-  icon: 'grid',
-  color: '#6366f1',
+  icon: 'Briefcase',
   is_active: true
-})
+});
 
-// Statistiques
-const stats = ref([
-  { 
-    label: 'Catégories', 
-    value: '0', 
-    icon: Layers, 
-    colorClass: 'bg-primary-500 dark:bg-primary-600' 
+// Colonnes pour UTable
+const columns = [
+  {
+    key: 'category',
+    label: 'Catégorie',
+    sortable: true
   },
-  { 
-    label: 'Catégories actives', 
-    value: '0', 
-    icon: CheckCircle, 
-    colorClass: 'bg-green-500 dark:bg-green-600' 
+  {
+    key: 'status',
+    label: 'Statut',
+    sortable: true
   },
-  { 
-    label: 'Services liés', 
-    value: '0', 
-    icon: Grid, 
-    colorClass: 'bg-amber-500 dark:bg-amber-600' 
+  {
+    key: 'services_count',
+    label: 'Services',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'Date de création',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'Actions',
+    sortable: false
   }
-])
+];
 
-// Filtrage
+// Computed properties
 const filteredCategories = computed(() => {
-  let filtered = [...categories.value]
+  if (!categories.value) return [];
+  
+  let result = [...categories.value];
   
   // Filtre de recherche
   if (search.value) {
-    const searchLower = search.value.toLowerCase()
-    filtered = filtered.filter(cat => 
-      cat.name.toLowerCase().includes(searchLower) || 
-      (cat.description && cat.description.toLowerCase().includes(searchLower))
-    )
+    const searchLower = search.value.toLowerCase();
+    result = result.filter(category => 
+      category.name.toLowerCase().includes(searchLower) || 
+      (category.description && category.description.toLowerCase().includes(searchLower))
+    );
   }
   
-  return filtered
-})
+  // Filtre de statut
+  if (statusFilter.value !== 'all') {
+    const isActive = statusFilter.value === 'active';
+    result = result.filter(category => category.is_active === isActive);
+  }
+  
+  return result;
+});
 
 // Pagination
-const totalPages = computed(() => Math.ceil(filteredCategories.value.length / itemsPerPage.value))
+const totalPages = computed(() => {
+  return Math.ceil(filteredCategories.value.length / itemsPerPage.value);
+});
 
 const paginatedCategories = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value
-  const end = start + itemsPerPage.value
-  return filteredCategories.value.slice(start, end)
-})
+  const startIndex = (currentPage.value - 1) * itemsPerPage.value;
+  const endIndex = startIndex + itemsPerPage.value;
+  return filteredCategories.value.slice(startIndex, endIndex);
+});
 
-// Pages visibles
-const visiblePages = computed(() => {
-  const totalPageCount = totalPages.value
-  if (totalPageCount <= 7) {
-    return Array.from({ length: totalPageCount }, (_, i) => i + 1)
-  }
-  
-  if (currentPage.value <= 3) {
-    return [1, 2, 3, 4, 5, '...', totalPageCount]
-  } else if (currentPage.value >= totalPageCount - 2) {
-    return [1, '...', totalPageCount - 4, totalPageCount - 3, totalPageCount - 2, totalPageCount - 1, totalPageCount]
-  } else {
-    return [1, '...', currentPage.value - 1, currentPage.value, currentPage.value + 1, '...', totalPageCount]
-  }
-})
-
-// Méthodes
-const fetchCategories = async () => {
-  isLoading.value = true
+// Charger les données
+const loadData = async () => {
+  isLoading.value = true;
   
   try {
-    // Récupérer les catégories
-    const { data, error: fetchError } = await supabase
-      .from('services_categories')
-      .select('*')
+    const { data, error } = await supabase
+      .from('categories')
+      .select(`
+        *,
+        services_count:services(count)
+      `)
+      .order('name');
     
-    if (fetchError) throw fetchError
+    if (error) throw error;
     
-    categories.value = data || []
+    // Transformer les données pour l'affichage
+    categories.value = data.map(category => ({
+      ...category,
+      services_count: category.services_count[0]?.count || 0
+    }));
     
-    // Récupérer le nombre de services par catégorie
-    const { data: servicesData, error: servicesError } = await supabase
-      .from('services')
-      .select('category_id, count')
-      .group('category_id')
-    
-    if (servicesError) throw servicesError
-    
-    // Ajouter le comptage des services à chaque catégorie
-    if (servicesData) {
-      categories.value = categories.value.map(cat => {
-        const serviceCount = servicesData.find(s => s.category_id === cat.id)
-        return {
-          ...cat,
-          services_count: serviceCount ? parseInt(serviceCount.count) : 0
-        }
-      })
-    }
-    
-    // Mettre à jour les statistiques
-    updateStats()
-  } catch (err) {
-    console.error('Erreur lors du chargement des catégories:', err)
-    error.value = err.message
-    showNotification('error', 'Erreur', 'Impossible de charger les catégories')
+  } catch (error) {
+    console.error('Erreur lors du chargement des catégories:', error);
+    showNotification('error', 'Erreur', 'Impossible de charger les catégories');
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 
-// Mettre à jour les statistiques
-const updateStats = () => {
-  stats.value[0].value = categories.value.length.toString()
-  stats.value[1].value = categories.value.filter(c => c.is_active).length.toString()
-  
-  const totalServices = categories.value.reduce((sum, cat) => sum + (cat.services_count || 0), 0)
-  stats.value[2].value = totalServices.toString()
-}
+// Réinitialiser les filtres
+const resetFilters = () => {
+  search.value = '';
+  statusFilter.value = 'all';
+  currentPage.value = 1;
+};
 
-// Obtenir l'icône de la catégorie
-const getCategoryIcon = (iconName) => {
-  switch (iconName) {
-    case 'home': return Home
-    case 'tool': return Tool
-    case 'paint': return Paint
-    case 'garden': return Garden
-    case 'cleaning': return Cleaning
-    case 'teaching': return Teaching
-    case 'computer': return Computer
-    case 'car': return Car
-    default: return Grid
-  }
-}
-
-// Ouvrir le modal de création
-const openCreateModal = () => {
-  isEditing.value = false
-  editingId.value = null
-  form.value = {
+// Ouvrir la modal d'ajout
+const openAddModal = () => {
+  editMode.value = false;
+  categoryForm.value = {
     name: '',
     description: '',
-    icon: 'grid',
-    color: '#6366f1',
+    icon: 'Briefcase',
     is_active: true
-  }
-  showFormModal.value = true
-}
+  };
+  showCategoryModal.value = true;
+};
 
-// Ouvrir le modal d'édition
-const openEditModal = (category) => {
-  isEditing.value = true
-  editingId.value = category.id
-  form.value = {
+// Modifier une catégorie
+const editCategory = (category) => {
+  editMode.value = true;
+  selectedCategory.value = category;
+  categoryForm.value = {
     name: category.name,
     description: category.description || '',
-    icon: category.icon || 'grid',
-    color: category.color || '#6366f1',
+    icon: category.icon || 'Briefcase',
     is_active: category.is_active
-  }
-  showFormModal.value = true
-}
+  };
+  showCategoryModal.value = true;
+};
 
-// Enregistrer la catégorie
+// Enregistrer une catégorie
 const saveCategory = async () => {
-  if (!form.value.name.trim()) return
+  // Validation basique
+  if (!categoryForm.value.name) {
+    showNotification('error', 'Erreur', 'Le nom de la catégorie est requis');
+    return;
+  }
   
-  isSaving.value = true
+  isSaving.value = true;
   
   try {
-    if (isEditing.value) {
-      // Mise à jour d'une catégorie existante
+    if (editMode.value) {
+      // Mettre à jour une catégorie existante
       const { error } = await supabase
-        .from('services_categories')
+        .from('categories')
         .update({
-          name: form.value.name.trim(),
-          description: form.value.description.trim(),
-          icon: form.value.icon,
-          color: form.value.color,
-          is_active: form.value.is_active,
-          updated_at: new Date()
+          name: categoryForm.value.name,
+          description: categoryForm.value.description,
+          icon: categoryForm.value.icon,
+          is_active: categoryForm.value.is_active,
+          updated_at: new Date().toISOString()
         })
-        .eq('id', editingId.value)
+        .eq('id', selectedCategory.value.id);
       
-      if (error) throw error
+      if (error) throw error;
       
-      showNotification('success', 'Catégorie mise à jour', 'La catégorie a été modifiée avec succès')
+      showNotification('success', 'Catégorie mise à jour', 'La catégorie a été mise à jour avec succès');
     } else {
-      // Création d'une nouvelle catégorie
+      // Créer une nouvelle catégorie
       const { error } = await supabase
-        .from('services_categories')
+        .from('categories')
         .insert({
-          name: form.value.name.trim(),
-          description: form.value.description.trim(),
-          icon: form.value.icon,
-          color: form.value.color,
-          is_active: form.value.is_active,
-          created_at: new Date(),
-          updated_at: new Date()
-        })
+          name: categoryForm.value.name,
+          description: categoryForm.value.description,
+          icon: categoryForm.value.icon,
+          is_active: categoryForm.value.is_active
+        });
       
-      if (error) throw error
+      if (error) throw error;
       
-      showNotification('success', 'Catégorie créée', 'La nouvelle catégorie a été créée avec succès')
+      showNotification('success', 'Catégorie ajoutée', 'La catégorie a été ajoutée avec succès');
     }
     
-    // Rafraîchir les données
-    await fetchCategories()
-    showFormModal.value = false
-  } catch (err) {
-    console.error('Erreur lors de l\'enregistrement de la catégorie:', err)
-    showNotification('error', 'Erreur', `Impossible de ${isEditing.value ? 'modifier' : 'créer'} la catégorie`)
+    // Fermer la modal et rafraîchir les données
+    showCategoryModal.value = false;
+    await loadData();
+    
+  } catch (error) {
+    console.error('Erreur lors de l\'enregistrement de la catégorie:', error);
+    showNotification('error', 'Erreur', 'Impossible d\'enregistrer la catégorie');
   } finally {
-    isSaving.value = false
+    isSaving.value = false;
   }
-}
+};
 
 // Changer le statut d'une catégorie
 const toggleCategoryStatus = async (category) => {
+  const newStatus = !category.is_active;
+  const action = newStatus ? 'activer' : 'désactiver';
+  
+  if (!confirm(`Êtes-vous sûr de vouloir ${action} cette catégorie ?`)) {
+    return;
+  }
+  
   try {
     const { error } = await supabase
-      .from('services_categories')
+      .from('categories')
       .update({ 
-        is_active: !category.is_active,
-        updated_at: new Date()
+        is_active: newStatus,
+        updated_at: new Date().toISOString()
       })
-      .eq('id', category.id)
+      .eq('id', category.id);
     
-    if (error) throw error
+    if (error) throw error;
     
-    // Mettre à jour localement
-    const index = categories.value.findIndex(c => c.id === category.id)
-    if (index !== -1) {
-      categories.value[index].is_active = !category.is_active
-    }
-    
-    // Mettre à jour les statistiques
-    updateStats()
+    // Mettre à jour la catégorie localement
+    category.is_active = newStatus;
     
     showNotification(
       'success', 
-      category.is_active ? 'Catégorie désactivée' : 'Catégorie activée', 
-      `La catégorie a été ${category.is_active ? 'désactivée' : 'activée'} avec succès`
-    )
-  } catch (err) {
-    console.error('Erreur lors du changement de statut:', err)
-    showNotification('error', 'Erreur', 'Impossible de modifier le statut de la catégorie')
+      'Statut modifié', 
+      `La catégorie a été ${newStatus ? 'activée' : 'désactivée'} avec succès.`
+    );
+    
+  } catch (error) {
+    console.error('Erreur lors de la modification du statut:', error);
+    showNotification(
+      'error', 
+      'Erreur', 
+      `Impossible de ${action} la catégorie.`
+    );
   }
-}
-
-// Confirmation de suppression d'une catégorie
-const confirmDeleteCategory = (category) => {
-  if (confirm(`Êtes-vous sûr de vouloir supprimer la catégorie "${category.name}" ? Cette action est irréversible.`)) {
-    deleteCategory(category.id)
-  }
-}
+};
 
 // Supprimer une catégorie
-const deleteCategory = async (categoryId) => {
+const deleteCategory = (category) => {
+  selectedCategory.value = category;
+  showDeleteModal.value = true;
+};
+
+// Confirmer la suppression
+const confirmDeleteCategory = async () => {
+  isDeleting.value = true;
+  
   try {
-    const { error } = await supabase
-      .from('services_categories')
-      .delete()
-      .eq('id', categoryId)
+    // Vérifier si la catégorie contient des services
+    if (selectedCategory.value.services_count > 0) {
+      showNotification(
+        'error',
+        'Impossible de supprimer',
+        `La catégorie "${selectedCategory.value.name}" contient des services et ne peut pas être supprimée.`
+      );
+      showDeleteModal.value = false;
+      return;
+    }
     
-    if (error) throw error
+    const { error } = await supabase
+      .from('categories')
+      .delete()
+      .eq('id', selectedCategory.value.id);
+    
+    if (error) throw error;
+    
+    showDeleteModal.value = false;
+    showNotification('success', 'Catégorie supprimée', 'La catégorie a été supprimée avec succès');
     
     // Rafraîchir les données
-    await fetchCategories()
+    await loadData();
     
-    showNotification('success', 'Catégorie supprimée', 'La catégorie a été supprimée avec succès')
-  } catch (err) {
-    console.error('Erreur lors de la suppression:', err)
-    showNotification('error', 'Erreur', 'Impossible de supprimer la catégorie. Elle est peut-être liée à des services existants.')
+  } catch (error) {
+    console.error('Erreur lors de la suppression de la catégorie:', error);
+    showNotification('error', 'Erreur', 'Impossible de supprimer la catégorie');
+  } finally {
+    isDeleting.value = false;
   }
-}
+};
+
+// Obtenir l'icône de la catégorie
+const getCategoryIcon = (iconName) => {
+  const iconMap = {
+    Briefcase,
+    Code,
+    PenTool,
+    Image,
+    FileText,
+    MessageSquare,
+    ShoppingBag,
+    Globe,
+    Database,
+    Smartphone
+  };
+  
+  return iconMap[iconName] || FileText;
+};
+
+// Obtenir la classe de couleur pour la catégorie
+const getCategoryColorClass = (categoryId) => {
+  const colors = [
+    'bg-blue-500',
+    'bg-green-500',
+    'bg-purple-500',
+    'bg-amber-500',
+    'bg-red-500',
+    'bg-indigo-500',
+    'bg-pink-500',
+    'bg-teal-500'
+  ];
+  
+  // Utiliser l'ID de la catégorie pour choisir une couleur
+  const index = categoryId ? parseInt(categoryId) % colors.length : 0;
+  return colors[index];
+};
+
+// Formater la date
+const formatDate = (dateString) => {
+  if (!dateString) return '-';
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  }).format(date);
+};
 
 // Afficher une notification
-const showNotification = (type, title, message = '') => {
-  notification.value = {
-    show: true,
-    type,
-    title,
-    message
+const showNotification = (type, title, message) => {
+  if (!notification.value) {
+    notification.value = {
+      show: false,
+      type: 'info',
+      title: '',
+      message: ''
+    };
   }
   
-  // Masquer la notification après 5 secondes
+  notification.value.show = true;
+  notification.value.type = type;
+  notification.value.title = title;
+  notification.value.message = message;
+  
+  // Masquer automatiquement après 5 secondes
   setTimeout(() => {
-    notification.value.show = false
-  }, 5000)
-}
+    if (notification.value) {
+      notification.value.show = false;
+    }
+  }, 5000);
+};
 
 // Rafraîchir les données
-const refreshData = async () => {
-  await fetchCategories()
-  showNotification('success', 'Données actualisées', 'La liste des catégories a été mise à jour')
-}
+const refreshData = () => {
+  loadData();
+};
+
+// Charger les données au montage du composant
+onMounted(() => {
+  loadData();
+});
 
 // Réinitialiser la pagination quand les filtres changent
-watch(search, () => {
-  currentPage.value = 1
-})
-
-// Initialisation
-onMounted(() => {
-  fetchCategories()
-})
+watch([search, statusFilter], () => {
+  currentPage.value = 1;
+});
 
 definePageMeta({
   layout: 'admin'
-})
+});
 </script> 

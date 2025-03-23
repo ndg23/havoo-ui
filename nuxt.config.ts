@@ -48,7 +48,7 @@ export default defineNuxtConfig({
   },
   app: {
     head: {
-      title: '------ - Trouvez votre expert en quelques clics',
+      title: '% - Trouvez votre expert en quelques clics',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' }

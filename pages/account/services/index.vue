@@ -13,19 +13,19 @@
           </svg>
           Nouveau service
         </NuxtLink>
-      </div>
+    </div>
     </header>
 
     <!-- Main content -->
     <main class="max-w-2xl mx-auto px-4 py-6">
-      <!-- Loading state -->
+    <!-- Loading state -->
       <div v-if="isLoading" class="flex flex-col items-center justify-center py-12">
         <svg class="animate-spin h-8 w-8 text-gray-400 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
         <p class="text-gray-500">Chargement de vos services...</p>
-      </div>
+    </div>
 
       <!-- Error state -->
       <div v-else-if="error" class="bg-red-50 p-4 rounded-lg text-red-700 my-6">
@@ -35,19 +35,19 @@
           </svg>
           <p>{{ error }}</p>
         </div>
-        <button 
+      <button
           @click="fetchServices" 
           class="mt-3 text-sm font-medium text-red-600 hover:text-red-500"
-        >
+      >
           Réessayer
-        </button>
-      </div>
+      </button>
+    </div>
 
       <!-- Not an expert -->
       <div v-else-if="!isExpert" class="text-center py-12">
         <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-        </svg>
+                </svg>
         <h3 class="mt-2 text-lg font-medium text-gray-900">Devenez expert</h3>
         <p class="mt-1 text-gray-500">Vous devez être un expert pour proposer des services.</p>
         <div class="mt-6">
@@ -77,8 +77,8 @@
             </svg>
             Créer un service
           </NuxtLink>
-        </div>
       </div>
+    </div>
 
       <!-- Service list -->
       <div v-else class="space-y-4">
@@ -103,13 +103,13 @@
               </span>
             </button>
           </nav>
-        </div>
-
+          </div>
+          
         <!-- Service cards -->
         <div v-if="getFilteredServices(activeTab).length === 0" class="text-center py-8">
           <p class="text-gray-500">Aucun service {{ getTabLabel(activeTab).toLowerCase() }}</p>
-        </div>
-        
+              </div>
+              
         <div v-else class="space-y-4">
           <div
             v-for="service in getFilteredServices(activeTab)"
@@ -140,7 +140,7 @@
                 <div class="text-right flex-shrink-0">
                   <div class="text-base font-bold text-gray-900">
                     {{ formatPrice(service.price) }}
-                  </div>
+                    </div>
                   <div v-if="service.delivery_time" class="text-xs text-gray-500 mt-1">
                     {{ service.delivery_time }} jour{{ service.delivery_time > 1 ? 's' : '' }}
                   </div>
@@ -168,8 +168,8 @@
                     </svg>
                     Modifier
                   </NuxtLink>
-                </div>
-                <button 
+              </div>
+                <button
                   @click="toggleServiceStatus(service)"
                   class="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
                 >
@@ -275,7 +275,7 @@ const getTabLabel = (tabValue) => {
 const toggleServiceStatus = async (service) => {
   try {
     const { error: updateError } = await supabase
-      .from('services')
+        .from('services')
       .update({ is_active: !service.is_active })
       .eq('id', service.id);
     
@@ -302,7 +302,12 @@ onMounted(async () => {
   await fetchProfile();
   await fetchServices();
 });
-</script>
+
+definePageMeta({
+  middleware: ['auth'],
+  layout: 'account'
+})
+</script> 
 
 <style scoped>
 .line-clamp-1 {

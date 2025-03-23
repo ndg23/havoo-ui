@@ -1,948 +1,824 @@
 <template>
-  <div class="space-y-6 max-w-7xl mx-auto">
-    <!-- En-tête avec style Twitter -->
-    <div class="px-4 py-6">
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Services</h1>
-      <p class="text-gray-600 dark:text-gray-400 mt-1">Gérez les services disponibles sur la plateforme</p>
-    </div>
-    
-    <!-- Notifications -->
-    <div 
-      v-if="notification.show" 
-      class="mx-4 p-4 rounded-xl flex items-start gap-3"
-      :class="[
-        notification.type === 'success' ? 'bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400' : 
-        notification.type === 'error' ? 'bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-400' : 
-        'bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
-      ]"
-    >
-      <component 
-        :is="notification.type === 'success' ? 'CheckCircle' : notification.type === 'error' ? 'AlertTriangle' : 'Info'" 
-        class="h-5 w-5 mt-0.5 flex-shrink-0" 
-      />
+  <div class="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- En-tête avec style moderne -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div>
-        <h3 class="font-medium">{{ notification.title }}</h3>
-        <p class="text-sm opacity-80 mt-0.5">{{ notification.message }}</p>
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Services</h1>
+        <p class="text-gray-600 dark:text-gray-400 mt-1">Gérez les services proposés sur la plateforme</p>
       </div>
-      <button 
-        @click="notification.show = false" 
-        class="ml-auto p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5"
-      >
-        <X class="h-4 w-4" />
-      </button>
+      
+      <!-- Actions principales -->
+      <div class="flex items-center gap-3">
+        <button 
+          @click="openAddModal"
+          class="btn-primary flex items-center gap-2"
+        >
+          <Plus class="h-4 w-4" />
+          <span>Ajouter</span>
+        </button>
+        <button 
+          @click="refreshData"
+          class="btn-outline flex items-center gap-2"
+        >
+          <RefreshCw class="h-4 w-4" />
+          <span>Actualiser</span>
+        </button>
+      </div>
     </div>
     
-    <!-- Statistiques rapides -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Notifications avec animation -->
+    <Transition
+      enter-active-class="transform transition duration-300 ease-out"
+      enter-from-class="translate-y-2 opacity-0"
+      enter-to-class="translate-y-0 opacity-100"
+      leave-active-class="transform transition duration-200 ease-in"
+      leave-from-class="translate-y-0 opacity-100"
+      leave-to-class="translate-y-2 opacity-0"
+    >
       <div 
-        v-for="stat in stats" 
-        :key="stat.label"
-        class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700"
+        v-if="notification?.show" 
+        class="p-4 rounded-2xl flex items-start gap-3 shadow-sm"
+        :class="[
+          notification.type === 'success' ? 'bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800/30' : 
+          notification.type === 'error' ? 'bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800/30' : 
+          'bg-blue-50 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border border-blue-200 dark:border-blue-800/30'
+        ]"
       >
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm text-gray-500 dark:text-gray-400">{{ stat.label }}</p>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ stat.value }}</p>
-          </div>
-          <div 
-            class="h-12 w-12 rounded-full flex items-center justify-center"
-            :class="stat.colorClass"
-          >
-            <component :is="stat.icon" class="h-6 w-6 text-white" />
-          </div>
+        <component 
+          :is="notification.type === 'success' ? 'CheckCircle' : notification.type === 'error' ? 'AlertTriangle' : 'Info'" 
+          class="h-5 w-5 mt-0.5 flex-shrink-0" 
+        />
+        <div>
+          <h3 class="font-medium">{{ notification.title }}</h3>
+          <p class="text-sm opacity-80 mt-0.5">{{ notification.message }}</p>
         </div>
+        <button 
+          @click="notification.show = false" 
+          class="ml-auto p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5"
+        >
+          <X class="h-4 w-4" />
+        </button>
       </div>
-    </div>
+    </Transition>
     
-    <!-- Filtres et actions -->
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-5">
-      <div class="flex flex-wrap gap-4 items-center justify-between">
-        <div class="flex flex-wrap gap-3">
-          <!-- Recherche -->
-          <div class="relative">
-            <Search class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-            <input 
-              v-model="search"
-              type="text"
-              placeholder="Rechercher un service..."
-              class="pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-600 rounded-full focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white w-60"
-            />
-          </div>
-          
+    <!-- Filtres avec design épuré -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 shadow-sm">
+      <div class="flex flex-col md:flex-row md:items-center gap-4">
+        <!-- Recherche -->
+        <div class="relative flex-grow max-w-md">
+          <Search class="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
+          <input 
+            v-model="search"
+            type="text"
+            placeholder="Rechercher un service..."
+            class="pl-12 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl w-full focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+          />
+        </div>
+        
+        <div class="flex flex-wrap gap-3 items-center">
           <!-- Filtre de catégorie -->
           <select 
             v-model="categoryFilter"
-            class="px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-full focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white appearance-none"
+            class="px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white appearance-none bg-none"
           >
             <option value="all">Toutes les catégories</option>
             <option v-for="category in categories" :key="category.id" :value="category.id">
               {{ category.name }}
             </option>
           </select>
-        </div>
-        
-        <!-- Actions -->
-        <div class="flex items-center gap-2">
-          <button 
-            @click="refreshData"
-            class="flex items-center p-2.5 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-full hover:bg-gray-50 dark:hover:bg-gray-700"
-            title="Rafraîchir"
+          
+          <!-- Filtre de statut -->
+          <select 
+            v-model="statusFilter"
+            class="px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white appearance-none"
           >
-            <RefreshCw class="h-5 w-5" />
-          </button>
+            <option value="all">Tous les statuts</option>
+            <option value="active">Actifs</option>
+            <option value="inactive">Inactifs</option>
+          </select>
+          
+          <!-- Réinitialiser -->
           <button 
-            @click="openCreateModal"
-            class="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-full font-medium shadow-sm transition-colors"
+            @click="resetFilters"
+            class="flex items-center gap-2 px-4 py-3 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
           >
-            <PlusCircle class="h-5 w-5" />
-            <span>Nouveau service</span>
+            <RefreshCw class="h-4 w-4" />
+            <span>Réinitialiser</span>
           </button>
         </div>
       </div>
     </div>
     
-    <!-- Liste des services -->
+    <!-- État de chargement avec animation -->
     <div v-if="isLoading" class="flex justify-center p-12">
-      <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-500 border-r-transparent"></div>
+      <div class="inline-block h-10 w-10 animate-spin rounded-full border-4 border-solid border-primary-500 border-r-transparent"></div>
     </div>
     
-    <div v-else-if="filteredServices.length === 0" class="bg-white dark:bg-gray-800 rounded-xl p-8 text-center border border-gray-100 dark:border-gray-700">
-      <div class="inline-flex items-center justify-center h-16 w-16 rounded-full bg-gray-100 dark:bg-gray-700 mb-4">
-        <ShoppingBag class="h-8 w-8 text-gray-500 dark:text-gray-400" />
+    <!-- État vide avec illustration -->
+    <div v-else-if="filteredServices && filteredServices.length === 0" class="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center border border-gray-100 dark:border-gray-700 shadow-sm">
+      <div class="inline-flex items-center justify-center h-20 w-20 rounded-full bg-gray-100 dark:bg-gray-700 mb-6">
+        <Briefcase class="h-10 w-10 text-gray-500 dark:text-gray-400" />
       </div>
-      <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Aucun service trouvé</h3>
-      <p class="text-gray-600 dark:text-gray-400 mb-4">
+      <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Aucun service trouvé</h3>
+      <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
         Essayez de modifier vos filtres ou d'ajouter un nouveau service.
       </p>
-      <button 
-        @click="openCreateModal"
-        class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-full shadow-sm flex items-center gap-2 mx-auto"
-      >
-        <PlusCircle class="h-4 w-4" />
-        <span>Nouveau service</span>
-      </button>
+      <div class="flex flex-wrap justify-center gap-4">
+        <button 
+          @click="resetFilters"
+          class="px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-xl transition-colors"
+        >
+          Réinitialiser les filtres
+        </button>
+        <button 
+          @click="openAddModal"
+          class="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-xl shadow-sm transition-colors"
+        >
+          Ajouter un service
+        </button>
+      </div>
     </div>
     
-    <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-      <div 
-        v-for="service in paginatedServices" 
-        :key="service.id"
-        class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-md transition-all duration-200"
+    <!-- Tableau des services avec UTable -->
+    <div v-else>
+      <UTable
+        :columns="columns"
+        :rows="paginatedServices"
+        :loading="isLoading"
+        class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm"
       >
-        <!-- Image du service -->
-        <div class="h-48 w-full bg-gray-200 dark:bg-gray-700 overflow-hidden relative">
-          <img 
-            v-if="service.image_url" 
-            :src="service.image_url" 
-            alt="Image du service"
-            class="w-full h-full object-cover"
-          />
-          <div 
-            v-else
-            class="w-full h-full flex items-center justify-center"
-          >
-            <ShoppingBag class="h-12 w-12 text-gray-400 dark:text-gray-500" />
-          </div>
-          
-          <!-- Badge de catégorie -->
-          <div 
-            class="absolute top-3 right-3 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm" 
-            :style="{ 
-              backgroundColor: getCategoryColor(service.category_id), 
-              color: 'white'
-            }"
-          >
-            {{ getCategoryName(service.category_id) }}
-          </div>
-        </div>
-        
-        <div class="p-5">
-          <div class="flex items-start justify-between mb-2">
-            <h3 class="text-xl font-bold text-gray-900 dark:text-white truncate">
-              {{ service.name }}
-            </h3>
-            
-            <!-- Statut -->
-            <span 
-              class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium"
-              :class="service.is_active ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400'"
+        <!-- Colonne Service -->
+        <template #service-data="{ row }">
+          <div class="flex items-center gap-3">
+            <div 
+              class="h-12 w-12 rounded-xl flex items-center justify-center"
+              :class="getCategoryColorClass(row.category_id)"
             >
-              {{ service.is_active ? 'Actif' : 'Inactif' }}
-            </span>
+              <component :is="getCategoryIcon(row.category?.icon)" class="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-900 dark:text-white">{{ row.name }}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">{{ row.description || 'Aucune description' }}</p>
+            </div>
           </div>
-          
-          <!-- Prix -->
-          <div class="flex items-center text-primary-600 dark:text-primary-400 font-bold text-lg mb-3">
-            {{ formatPrice(service.price) }}
-            <span class="text-sm text-gray-500 dark:text-gray-400 font-normal ml-1">/ {{ service.price_unit }}</span>
+        </template>
+        
+        <!-- Colonne Catégorie -->
+        <template #category-data="{ row }">
+          <div class="text-sm text-gray-600 dark:text-gray-400">
+            {{ row.category?.name || 'Non catégorisé' }}
+          </div>
+        </template>
+        
+        <!-- Colonne Prix -->
+        <template #price-data="{ row }">
+          <div class="text-sm text-gray-600 dark:text-gray-400">
+            {{ formatPrice(row.price) }}
+          </div>
+        </template>
+        
+        <!-- Colonne Statut -->
+        <template #status-data="{ row }">
+          <span 
+            class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium"
+            :class="row.is_active ? 'bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-400'"
+          >
+            <span class="w-2 h-2 rounded-full mr-2" :class="row.is_active ? 'bg-green-500' : 'bg-red-500'"></span>
+            {{ row.is_active ? 'Actif' : 'Inactif' }}
+          </span>
+        </template>
+        
+        <!-- Colonne Date de création -->
+        <template #created-at-data="{ row }">
+          <div class="text-sm text-gray-600 dark:text-gray-400">
+            {{ formatDate(row.created_at) }}
+          </div>
+        </template>
+        
+        <!-- Colonne Actions -->
+        <template #actions-data="{ row }">
+          <div class="flex justify-end gap-2">
+            <button 
+              @click="editService(row)"
+              class="p-2 text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors"
+              title="Modifier"
+            >
+              <Edit class="h-5 w-5" />
+            </button>
+            <button 
+              @click="toggleServiceStatus(row)"
+              class="p-2 text-gray-500 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors"
+              :title="row.is_active ? 'Désactiver' : 'Activer'"
+            >
+              <component :is="row.is_active ? 'EyeOff' : 'Eye'" class="h-5 w-5" />
+            </button>
+            <button 
+              @click="deleteService(row)"
+              class="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+              title="Supprimer"
+            >
+              <Trash2 class="h-5 w-5" />
+            </button>
+          </div>
+        </template>
+      </UTable>
+      
+      <!-- Pagination -->
+      <div class="flex justify-between items-center mt-6">
+        <div class="text-sm text-gray-600 dark:text-gray-400">
+          Affichage de {{ paginatedServices.length }} sur {{ filteredServices.length }} services
+        </div>
+        <div class="flex items-center gap-2">
+          <button 
+            @click="currentPage > 1 ? currentPage-- : null"
+            :disabled="currentPage === 1"
+            class="p-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 disabled:opacity-50"
+          >
+            <ChevronLeft class="h-5 w-5" />
+          </button>
+          <span class="text-sm text-gray-600 dark:text-gray-400">
+            Page {{ currentPage }} sur {{ totalPages }}
+          </span>
+          <button 
+            @click="currentPage < totalPages ? currentPage++ : null"
+            :disabled="currentPage === totalPages"
+            class="p-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 disabled:opacity-50"
+          >
+            <ChevronRight class="h-5 w-5" />
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Modal d'ajout/modification de service -->
+    <UModal v-model="showServiceModal">
+      <div class="p-6">
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-6">
+          {{ editMode ? 'Modifier le service' : 'Ajouter un service' }}
+        </h2>
+        
+        <div class="space-y-4">
+          <!-- Nom -->
+          <div>
+            <label for="service-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nom</label>
+            <input 
+              id="service-name"
+              v-model="serviceForm.name"
+              type="text"
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+              placeholder="Nom du service"
+            />
           </div>
           
           <!-- Description -->
-          <p class="text-gray-600 dark:text-gray-400 line-clamp-3 mb-4 min-h-[80px]">
-            {{ service.description || 'Aucune description fournie.' }}
-          </p>
+          <div>
+            <label for="service-description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+            <textarea 
+              id="service-description"
+              v-model="serviceForm.description"
+              rows="3"
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+              placeholder="Description du service"
+            ></textarea>
+          </div>
           
-          <!-- Actions -->
-          <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-            <button 
-              @click="openEditModal(service)"
-              class="inline-flex items-center text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300"
+          <!-- Catégorie -->
+          <div>
+            <label for="service-category" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Catégorie</label>
+            <select 
+              id="service-category"
+              v-model="serviceForm.category_id"
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
             >
-              <Edit class="h-4 w-4 mr-1" />
-              Modifier
-            </button>
-            
-            <div class="flex gap-1">
-              <button 
-                @click="toggleServiceStatus(service)"
-                class="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
-                :title="service.is_active ? 'Désactiver' : 'Activer'"
-              >
-                <component :is="service.is_active ? 'EyeOff' : 'Eye'" class="h-5 w-5" />
-              </button>
-              <button 
-                @click="viewServiceDetails(service)"
-                class="p-1.5 text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full"
-                title="Voir les détails"
-              >
-                <Eye class="h-5 w-5" />
-              </button>
-              <button 
-                @click="confirmDeleteService(service)"
-                class="p-1.5 text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full"
-                title="Supprimer"
-              >
-                <Trash2 class="h-5 w-5" />
-              </button>
-            </div>
+              <option value="">Sélectionner une catégorie</option>
+              <option v-for="category in categories" :key="category.id" :value="category.id">
+                {{ category.name }}
+              </option>
+            </select>
+          </div>
+          
+          <!-- Prix -->
+          <div>
+            <label for="service-price" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prix (FCFA)</label>
+            <input 
+              id="service-price"
+              v-model="serviceForm.price"
+              type="number"
+              min="0"
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+              placeholder="Prix du service"
+            />
+          </div>
+          
+          <!-- Durée estimée -->
+          <div>
+            <label for="service-duration" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Durée estimée (jours)</label>
+            <input 
+              id="service-duration"
+              v-model="serviceForm.estimated_duration"
+              type="number"
+              min="1"
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+              placeholder="Durée estimée en jours"
+            />
+          </div>
+          
+          <!-- Statut -->
+          <div class="flex items-center">
+            <input 
+              id="service-active"
+              v-model="serviceForm.is_active"
+              type="checkbox"
+              class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+            />
+            <label for="service-active" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+              Service actif
+            </label>
           </div>
         </div>
-      </div>
-    </div>
-    
-    <!-- Pagination -->
-    <div v-if="totalPages > 1" class="flex justify-center mt-6">
-      <div class="inline-flex rounded-md shadow-sm">
-        <button
-          @click="currentPage > 1 ? currentPage-- : null"
-          :disabled="currentPage === 1"
-          class="px-4 py-2 text-sm font-medium border border-gray-300 dark:border-gray-600 rounded-l-lg bg-white dark:bg-gray-800 disabled:opacity-50"
-          :class="currentPage === 1 ? 'text-gray-400 dark:text-gray-600' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'"
-        >
-          <ChevronLeft class="h-5 w-5" />
-        </button>
-        <button
-          v-for="page in visiblePages"
-          :key="page"
-          @click="page !== '...' ? currentPage = page : null"
-          :disabled="page === '...'"
-          class="px-4 py-2 text-sm font-medium border border-gray-300 dark:border-gray-600 border-l-0 bg-white dark:bg-gray-800"
-          :class="[
-            page === '...' ? 'text-gray-400 dark:text-gray-600' : 
-            page === currentPage ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-900' : 
-            'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-          ]"
-        >
-          {{ page }}
-        </button>
-        <button
-          @click="currentPage < totalPages ? currentPage++ : null"
-          :disabled="currentPage === totalPages || totalPages === 0"
-          class="px-4 py-2 text-sm font-medium border border-gray-300 dark:border-gray-600 border-l-0 rounded-r-lg bg-white dark:bg-gray-800 disabled:opacity-50"
-          :class="currentPage === totalPages || totalPages === 0 ? 'text-gray-400 dark:text-gray-600' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'"
-        >
-          <ChevronRight class="h-5 w-5" />
-        </button>
-      </div>
-    </div>
-  
-  <!-- Modal pour ajouter/éditer un service (via Teleport) -->
-  <Teleport to="body">
-    <div v-if="showFormModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div 
-        class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden"
-        @click.stop
-      >
-        <div class="flex items-start justify-between p-5 border-b border-gray-200 dark:border-gray-700">
-          <h3 class="text-xl font-bold text-gray-900 dark:text-white">
-            {{ isEditing ? 'Modifier un service' : 'Ajouter un service' }}
-          </h3>
-          <button 
-            @click="showFormModal = false"
-            class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
-          >
-            <X class="h-5 w-5" />
-          </button>
-        </div>
         
-        <div class="p-5 overflow-y-auto max-h-[calc(90vh-130px)]">
-          <!-- Formulaire -->
-          <form @submit.prevent="saveService" class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <!-- Nom -->
-              <div class="col-span-2">
-                <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Nom <span class="text-red-500">*</span>
-                </label>
-                <input 
-                  id="name"
-                  v-model="form.name"
-                  type="text"
-                  required
-                  placeholder="Nom du service"
-                  class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                />
-              </div>
-              
-              <!-- Catégorie -->
-              <div>
-                <label for="category" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Catégorie <span class="text-red-500">*</span>
-                </label>
-                <select 
-                  id="category"
-                  v-model="form.category_id"
-                  required
-                  class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white appearance-none"
-                >
-                  <option value="" disabled>Sélectionner une catégorie</option>
-                  <option v-for="category in categories" :key="category.id" :value="category.id">
-                    {{ category.name }}
-                  </option>
-                </select>
-              </div>
-              
-              <!-- Prix -->
-              <div class="flex gap-3">
-                <div class="flex-1">
-                  <label for="price" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Prix <span class="text-red-500">*</span>
-                  </label>
-                  <input 
-                    id="price"
-                    v-model="form.price"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    required
-                    placeholder="0.00"
-                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                  />
-                </div>
-                
-                <div class="w-40">
-                  <label for="price_unit" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Unité <span class="text-red-500">*</span>
-                  </label>
-                  <select 
-                    id="price_unit"
-                    v-model="form.price_unit"
-                    required
-                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white appearance-none"
-                  >
-                    <option value="heure">Heure</option>
-                    <option value="jour">Jour</option>
-                    <option value="projet">Projet</option>
-                    <option value="m²">m²</option>
-                  </select>
-                </div>
-              </div>
-              
-              <!-- Description -->
-              <div class="col-span-2">
-                <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Description
-                </label>
-                <textarea 
-                  id="description"
-                  v-model="form.description"
-                  rows="4"
-                  placeholder="Description détaillée du service"
-                  class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                ></textarea>
-              </div>
-              
-              <!-- Image URL -->
-              <div class="col-span-2">
-                <label for="image_url" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  URL de l'image
-                </label>
-                <input 
-                  id="image_url"
-                  v-model="form.image_url"
-                  type="url"
-                  placeholder="https://exemple.com/image.jpg"
-                  class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                />
-              </div>
-              
-              <!-- Durée estimée -->
-              <div>
-                <label for="estimated_time" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Durée estimée
-                </label>
-                <input 
-                  id="estimated_time"
-                  v-model="form.estimated_time"
-                  type="text"
-                  placeholder="Ex: 2-3 heures"
-                  class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                />
-              </div>
-              
-              <!-- Statut -->
-              <div class="flex items-center h-full">
-                <label class="inline-flex items-center cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    v-model="form.is_active" 
-                    class="sr-only peer"
-                  >
-                  <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
-                  <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">Actif</span>
-                </label>
-              </div>
-            </div>
-          </form>
-        </div>
-        
-        <div class="flex justify-end gap-3 p-5 border-t border-gray-200 dark:border-gray-700">
+        <div class="flex justify-end gap-3 mt-6">
           <button 
-            @click="showFormModal = false"
-            class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+            @click="showServiceModal = false"
+            class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
           >
             Annuler
           </button>
           <button 
             @click="saveService"
-            :disabled="isSaving || !form.name || !form.category_id || form.price === ''"
-            class="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl"
+            :disabled="isSaving"
           >
-            <div v-if="isSaving" class="flex items-center">
-              <div class="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-              Enregistrement...
+            <div v-if="isSaving" class="flex items-center gap-2">
+              <div class="animate-spin h-4 w-4 border-2 border-white border-r-transparent rounded-full"></div>
+              <span>Enregistrement...</span>
             </div>
-            <span v-else>{{ isEditing ? 'Mettre à jour' : 'Ajouter' }}</span>
+            <span v-else>{{ editMode ? 'Mettre à jour' : 'Ajouter' }}</span>
           </button>
         </div>
       </div>
-    </div>
-  </Teleport>
-  
-  <!-- Modal de détails -->
-  <Teleport to="body">
-    <div v-if="showDetailsModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div 
-        class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden"
-        @click.stop
-      >
-        <div class="flex items-start justify-between p-5 border-b border-gray-200 dark:border-gray-700">
-          <h3 class="text-xl font-bold text-gray-900 dark:text-white">
-            Détails du service
-          </h3>
-          <button 
-            @click="showDetailsModal = false"
-            class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
-          >
-            <X class="h-5 w-5" />
-          </button>
-        </div>
+    </UModal>
+    
+    <!-- Modal de confirmation de suppression -->
+    <UModal v-model="showDeleteModal">
+      <div class="p-6">
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Confirmer la suppression</h2>
+        <p class="text-gray-600 dark:text-gray-400 mb-6">
+          Êtes-vous sûr de vouloir supprimer le service "{{ selectedService?.name }}" ? Cette action est irréversible.
+        </p>
         
-        <div v-if="selectedService" class="p-5 overflow-y-auto max-h-[calc(90vh-130px)]">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Image -->
-            <div class="col-span-2 h-48 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden">
-              <img 
-                v-if="selectedService.image_url" 
-                :src="selectedService.image_url" 
-                alt="Image du service"
-                class="w-full h-full object-cover"
-              />
-              <div 
-                v-else
-                class="w-full h-full flex items-center justify-center"
-              >
-                <ShoppingBag class="h-12 w-12 text-gray-400 dark:text-gray-500" />
-              </div>
-            </div>
-            
-            <!-- Informations principales -->
-            <div>
-              <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Informations</h4>
-              <dl class="space-y-3">
-                <div>
-                  <dt class="text-sm text-gray-500 dark:text-gray-400">Nom</dt>
-                  <dd class="text-base font-medium text-gray-900 dark:text-white">{{ selectedService.name }}</dd>
-                </div>
-                <div>
-                  <dt class="text-sm text-gray-500 dark:text-gray-400">Catégorie</dt>
-                  <dd class="text-base font-medium text-gray-900 dark:text-white">
-                    {{ getCategoryName(selectedService.category_id) }}
-                  </dd>
-                </div>
-                <div>
-                  <dt class="text-sm text-gray-500 dark:text-gray-400">Prix</dt>
-                  <dd class="text-base font-medium text-primary-600 dark:text-primary-400">
-                    {{ formatPrice(selectedService.price) }} / {{ selectedService.price_unit }}
-                  </dd>
-                </div>
-                <div>
-                  <dt class="text-sm text-gray-500 dark:text-gray-400">Statut</dt>
-                  <dd class="text-base">
-                    <span 
-                      class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium"
-                      :class="selectedService.is_active ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400'"
-                    >
-                      {{ selectedService.is_active ? 'Actif' : 'Inactif' }}
-                    </span>
-                  </dd>
-                </div>
-              </dl>
-            </div>
-            
-            <!-- Informations complémentaires -->
-            <div>
-              <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Détails</h4>
-              <dl class="space-y-3">
-                <div>
-                  <dt class="text-sm text-gray-500 dark:text-gray-400">Durée estimée</dt>
-                  <dd class="text-base font-medium text-gray-900 dark:text-white">
-                    {{ selectedService.estimated_time || 'Non spécifiée' }}
-                  </dd>
-                </div>
-                <div>
-                  <dt class="text-sm text-gray-500 dark:text-gray-400">Créé le</dt>
-                  <dd class="text-base font-medium text-gray-900 dark:text-white">
-                    {{ formatDate(selectedService.created_at) }}
-                  </dd>
-                </div>
-                <div>
-                  <dt class="text-sm text-gray-500 dark:text-gray-400">Dernière mise à jour</dt>
-                  <dd class="text-base font-medium text-gray-900 dark:text-white">
-                    {{ formatDate(selectedService.updated_at) }}
-                  </dd>
-                </div>
-              </dl>
-            </div>
-            
-            <!-- Description -->
-            <div class="col-span-2 mt-2">
-              <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Description</h4>
-              <p class="text-gray-600 dark:text-gray-400">
-                {{ selectedService.description || 'Aucune description fournie.' }}
-              </p>
-            </div>
-          </div>
-        </div>
-        
-        <div class="flex justify-end gap-3 p-5 border-t border-gray-200 dark:border-gray-700">
+        <div class="flex justify-end gap-3">
           <button 
-            @click="showDetailsModal = false"
-            class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+            @click="showDeleteModal = false"
+            class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
           >
-            Fermer
+            Annuler
           </button>
           <button 
-            v-if="selectedService"
-            @click="openEditModal(selectedService); showDetailsModal = false"
-            class="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg shadow-sm flex items-center"
+            @click="confirmDeleteService"
+            class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl"
+            :disabled="isDeleting"
           >
-            <Edit class="h-4 w-4 mr-1.5" />
-            Modifier
+            <div v-if="isDeleting" class="flex items-center gap-2">
+              <div class="animate-spin h-4 w-4 border-2 border-white border-r-transparent rounded-full"></div>
+              <span>Suppression...</span>
+            </div>
+            <span v-else>Supprimer</span>
           </button>
         </div>
       </div>
-    </div>
-  </Teleport>
+    </UModal>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import { debounce } from 'lodash';
 import { 
-  ShoppingBag, PlusCircle, Search, X, RefreshCw, Edit, Trash2, Eye, EyeOff, 
-  CheckCircle, AlertTriangle, Info, ChevronLeft, ChevronRight, Download
-} from 'lucide-vue-next'
+  Plus, Search, Edit, Trash2, RefreshCw, X, CheckCircle, AlertTriangle, 
+  Info, Briefcase, ChevronLeft, ChevronRight, Eye, EyeOff, Code, 
+  PenTool, Image, FileText, MessageSquare, ShoppingBag, Globe, Database, 
+  Smartphone 
+} from 'lucide-vue-next';
+import { useSupabaseClient } from '#imports';
 
-// État
-const supabase = useSupabaseClient()
-const services = ref([])
-const categories = ref([])
-const isLoading = ref(true)
-const error = ref(null)
-const search = ref('')
-const categoryFilter = ref('all')
-const currentPage = ref(1)
-const itemsPerPage = ref(9)
-const showFormModal = ref(false)
-const showDetailsModal = ref(false)
-const selectedService = ref(null)
-const isEditing = ref(false)
-const isSaving = ref(false)
-const editingId = ref(null)
-const notification = ref({ show: false, type: '', title: '', message: '' })
+const supabase = useSupabaseClient();
+const router = useRouter();
 
-// Formulaire
-const form = ref({
+// État des données
+const services = ref([]);
+const categories = ref([]);
+const isLoading = ref(true);
+const search = ref('');
+const categoryFilter = ref('all');
+const statusFilter = ref('all');
+const currentPage = ref(1);
+const itemsPerPage = ref(10);
+const showServiceModal = ref(false);
+const showDeleteModal = ref(false);
+const editMode = ref(false);
+const selectedService = ref(null);
+const isSaving = ref(false);
+const isDeleting = ref(false);
+
+// Notification avec initialisation correcte
+const notification = ref({
+  show: false,
+  type: 'info',
+  title: '',
+  message: ''
+});
+
+// Formulaire de service
+const serviceForm = ref({
   name: '',
   description: '',
-  price: '',
-  price_unit: 'heure',
   category_id: '',
-  image_url: '',
-  estimated_time: '',
+  price: 0,
+  estimated_duration: 1,
   is_active: true
-})
+});
 
-// Statistiques
-const stats = ref([
-  { 
-    label: 'Services', 
-    value: '0', 
-    icon: ShoppingBag, 
-    colorClass: 'bg-primary-500 dark:bg-primary-600' 
+// Colonnes pour UTable
+const columns = [
+  {
+    key: 'service',
+    label: 'Service',
+    sortable: true
   },
-  { 
-    label: 'Services actifs', 
-    value: '0', 
-    icon: CheckCircle, 
-    colorClass: 'bg-green-500 dark:bg-green-600' 
+  {
+    key: 'category',
+    label: 'Catégorie',
+    sortable: true
   },
-  { 
-    label: 'Catégories', 
-    value: '0', 
-    icon: Info, 
-    colorClass: 'bg-blue-500 dark:bg-blue-600' 
+  {
+    key: 'price',
+    label: 'Prix',
+    sortable: true
   },
-  { 
-    label: 'Prix moyen', 
-    value: '0FCFA', 
-    icon: AlertTriangle, 
-    colorClass: 'bg-amber-500 dark:bg-amber-600' 
+  {
+    key: 'status',
+    label: 'Statut',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'Date de création',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'Actions',
+    sortable: false
   }
-])
+];
 
-// Filtrage
+// Computed properties
 const filteredServices = computed(() => {
-  let filtered = [...services.value]
+  if (!services.value) return [];
+  
+  let result = [...services.value];
   
   // Filtre de recherche
   if (search.value) {
-    const searchLower = search.value.toLowerCase()
-    filtered = filtered.filter(service => 
+    const searchLower = search.value.toLowerCase();
+    result = result.filter(service => 
       service.name.toLowerCase().includes(searchLower) || 
       (service.description && service.description.toLowerCase().includes(searchLower))
-    )
+    );
   }
   
   // Filtre de catégorie
   if (categoryFilter.value !== 'all') {
-    filtered = filtered.filter(service => service.category_id === categoryFilter.value)
+    result = result.filter(service => service.category_id === categoryFilter.value);
   }
   
-  return filtered
-})
+  // Filtre de statut
+  if (statusFilter.value !== 'all') {
+    const isActive = statusFilter.value === 'active';
+    result = result.filter(service => service.is_active === isActive);
+  }
+  
+  return result;
+});
 
 // Pagination
-const totalPages = computed(() => Math.ceil(filteredServices.value.length / itemsPerPage.value))
+const totalPages = computed(() => {
+  return Math.ceil(filteredServices.value.length / itemsPerPage.value);
+});
 
 const paginatedServices = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value
-  const end = start + itemsPerPage.value
-  return filteredServices.value.slice(start, end)
-})
+  const startIndex = (currentPage.value - 1) * itemsPerPage.value;
+  const endIndex = startIndex + itemsPerPage.value;
+  return filteredServices.value.slice(startIndex, endIndex);
+});
 
-// Pages visibles
-const visiblePages = computed(() => {
-  const totalPageCount = totalPages.value
-  if (totalPageCount <= 7) {
-    return Array.from({ length: totalPageCount }, (_, i) => i + 1)
-  }
-  
-  if (currentPage.value <= 3) {
-    return [1, 2, 3, 4, 5, '...', totalPageCount]
-  } else if (currentPage.value >= totalPageCount - 2) {
-    return [1, '...', totalPageCount - 4, totalPageCount - 3, totalPageCount - 2, totalPageCount - 1, totalPageCount]
-  } else {
-    return [1, '...', currentPage.value - 1, currentPage.value, currentPage.value + 1, '...', totalPageCount]
-  }
-})
-
-// Méthodes
-const fetchData = async () => {
-  isLoading.value = true
+// Charger les données
+const loadData = async () => {
+  isLoading.value = true;
   
   try {
-    // Récupérer les catégories
+    // Charger les services
+    const { data: servicesData, error: servicesError } = await supabase
+      .from('services')
+      .select(`
+        *,
+        category:categories(*)
+      `)
+      .order('title');
+    
+    if (servicesError) throw servicesError;
+    
+    services.value = servicesData || [];
+    
+    // Charger les catégories
     const { data: categoriesData, error: categoriesError } = await supabase
       .from('categories')
       .select('*')
-      .order('name')
+      .order('name');
     
-    if (categoriesError) throw categoriesError
+    if (categoriesError) throw categoriesError;
     
-    categories.value = categoriesData || []
+    categories.value = categoriesData || [];
     
-    // Récupérer les services
-    const { data: servicesData, error: servicesError } = await supabase
-      .from('services')
-      .select('*')
-      .order('name')
-    
-    if (servicesError) throw servicesError
-    
-    services.value = servicesData || []
-    
-    // Mettre à jour les statistiques
-    updateStats()
-  } catch (err) {
-    console.error('Erreur lors du chargement des données:', err)
-    error.value = err.message
-    showNotification('error', 'Erreur', 'Impossible de charger les données')
+  } catch (error) {
+    console.error('Erreur lors du chargement des données:', error);
+    showNotification('error', 'Erreur', 'Impossible de charger les services');
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 
-// Mettre à jour les statistiques
-const updateStats = () => {
-  stats.value[0].value = services.value.length.toString()
-  stats.value[1].value = services.value.filter(s => s.is_active).length.toString()
-  stats.value[2].value = categories.value.length.toString()
-  
-  // Calculer le prix moyen
-  if (services.value.length > 0) {
-    const totalPrice = services.value.reduce((sum, service) => sum + parseFloat(service.price || 0), 0)
-    const avgPrice = totalPrice / services.value.length
-    stats.value[3].value = formatPrice(avgPrice)
-  } else {
-    stats.value[3].value = '0FCFA'
-  }
-}
+// Réinitialiser les filtres
+const resetFilters = () => {
+  search.value = '';
+  categoryFilter.value = 'all';
+  statusFilter.value = 'all';
+  currentPage.value = 1;
+};
 
-// État
-const loading = ref(true)
-const sortOption = ref('recent')
-const serviceToDelete = ref(null)
-const showDeleteModal = ref(false)
-const serviceToEdit = ref(null)
-const showServiceModal = ref(false)
-const statusMessage = ref({
-  show: false,
-  type: 'info',
-  message: ''
-})
-
-// const filteredServices = computed(() => {
-//   if (!search.value && !categoryFilter.value) return services.value
-  
-//   const searchLower = search.value?.toLowerCase() || ''
-//   const categoryId = categoryFilter.value
-  
-//   return services.value.filter(service => 
-//     service.name?.toLowerCase().includes(searchLower) ||
-//     service.description?.toLowerCase().includes(searchLower) ||
-//     (categoryId && service.category_id === categoryId)
-//   )
-// })
-
-// const totalPages = computed(() => Math.ceil(filteredServices.value.length / itemsPerPage))
-// const paginatedServices = computed(() => {
-//   const start = (currentPage.value - 1) * itemsPerPage
-//   const end = start + itemsPerPage
-//   return filteredServices.value.slice(start, end)
-// })
-
-const paginationStart = computed(() => {
-  if (filteredServices.value.length === 0) return 0
-  return (currentPage.value - 1) * itemsPerPage + 1
-})
-
-const paginationEnd = computed(() => {
-  const end = currentPage.value * itemsPerPage
-  return end > filteredServices.value.length ? filteredServices.value.length : end
-})
-
-const displayedPages = computed(() => {
-  if (totalPages.value <= 7) {
-    return Array.from({ length: totalPages.value }, (_, i) => i + 1)
-  }
-  
-  if (currentPage.value <= 4) {
-    return [1, 2, 3, 4, 5, '...', totalPages.value]
-  }
-  
-  if (currentPage.value >= totalPages.value - 3) {
-    return [1, '...', totalPages.value - 4, totalPages.value - 3, totalPages.value - 2, totalPages.value - 1, totalPages.value]
-  }
-  
-  return [1, '...', currentPage.value - 1, currentPage.value, currentPage.value + 1, '...', totalPages.value]
-})
-
-function formatDate(dateString) {
-  if (!dateString) return '—'
-  const date = new Date(dateString)
-  return date.toLocaleDateString('fr-FR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
-}
-
-function formatPrice(price) {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'EUR',
-    minimumFractionDigits: 0
-  }).format(price)
-}
-
-function getCategoryName(categoryId) {
-  const category = categories.value.find(c => c.id === categoryId)
-  return category ? category.name : 'Non catégorisé'
-}
-
-function openServiceModal() {
-  serviceToEdit.value = {
+// Ouvrir la modal d'ajout
+const openAddModal = () => {
+  editMode.value = false;
+  serviceForm.value = {
     name: '',
     description: '',
     category_id: '',
     price: 0,
-    duration: 60,
-    active: true,
-    icon: '🔧'
+    estimated_duration: 1,
+    is_active: true
+  };
+  showServiceModal.value = true;
+};
+
+// Modifier un service
+const editService = (service) => {
+  editMode.value = true;
+  selectedService.value = service;
+  serviceForm.value = {
+    name: service.name,
+    description: service.description || '',
+    category_id: service.category_id || '',
+    price: service.price || 0,
+    estimated_duration: service.estimated_duration || 1,
+    is_active: service.is_active
+  };
+  showServiceModal.value = true;
+};
+
+// Enregistrer un service
+const saveService = async () => {
+  // Validation basique
+  if (!serviceForm.value.name) {
+    showNotification('error', 'Erreur', 'Le nom du service est requis');
+    return;
   }
-  showServiceModal.value = true
-}
-
-function editService(service) {
-  serviceToEdit.value = { ...service }
-  showServiceModal.value = true
-}
-
-function openDeleteModal(service) {
-  serviceToDelete.value = service
-  showDeleteModal.value = true
-}
-
-function exportServices() {
-  // Logique d'exportation
-  console.log('Exporter les services')
-}
-
-async function fetchServices() {
-  isLoading.value = true
-  error.value = null
+  
+  if (!serviceForm.value.category_id) {
+    showNotification('error', 'Erreur', 'La catégorie est requise');
+    return;
+  }
+  
+  isSaving.value = true;
   
   try {
-    // Récupérer les catégories
-    const { data: categoriesData, error: categoriesError } = await supabase
-      .from('categories')
-      .select('*')
-      .order('name')
+    if (editMode.value) {
+      // Mettre à jour un service existant
+      const { error } = await supabase
+        .from('services')
+        .update({
+          name: serviceForm.value.name,
+          description: serviceForm.value.description,
+          category_id: serviceForm.value.category_id,
+          price: serviceForm.value.price,
+          estimated_duration: serviceForm.value.estimated_duration,
+          is_active: serviceForm.value.is_active,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', selectedService.value.id);
+      
+      if (error) throw error;
+      
+      showNotification('success', 'Service mis à jour', 'Le service a été mis à jour avec succès');
+    } else {
+      // Créer un nouveau service
+      const { error } = await supabase
+        .from('services')
+        .insert({
+          name: serviceForm.value.name,
+          description: serviceForm.value.description,
+          category_id: serviceForm.value.category_id,
+          price: serviceForm.value.price,
+          estimated_duration: serviceForm.value.estimated_duration,
+          is_active: serviceForm.value.is_active
+        });
+      
+      if (error) throw error;
+      
+      showNotification('success', 'Service ajouté', 'Le service a été ajouté avec succès');
+    }
     
-    if (categoriesError) throw categoriesError
+    // Fermer la modal et rafraîchir les données
+    showServiceModal.value = false;
+    await loadData();
     
-    categories.value = categoriesData || []
-    
-    // Récupérer les services
-    const { data: servicesData, error: servicesError } = await supabase
-      .from('services')
-      .select('*')
-      .order('created_at', { ascending: false })
-    
-    if (servicesError) throw servicesError
-    
-    services.value = servicesData || []
-    
-    // Mettre à jour les statistiques
-    updateStats()
-  } catch (err) {
-    console.error('Erreur lors du chargement des données:', err)
-    error.value = err.message
-    showNotification('error', 'Erreur', 'Impossible de charger les données')
+  } catch (error) {
+    console.error('Erreur lors de l\'enregistrement du service:', error);
+    showNotification('error', 'Erreur', 'Impossible d\'enregistrer le service');
   } finally {
-    isLoading.value = false
+    isSaving.value = false;
   }
-}
+};
 
-async function saveService(serviceData) {
-  try {
-    // Logique pour enregistrer le service
-    await fetchServices()
-    showServiceModal.value = false
-  } catch (error) {
-    console.error('Erreur lors de l\'enregistrement du service:', error)
-    alert('Erreur lors de l\'enregistrement du service: ' + error.message)
+// Changer le statut d'un service
+const toggleServiceStatus = async (service) => {
+  const newStatus = !service.is_active;
+  const action = newStatus ? 'activer' : 'désactiver';
+  
+  if (!confirm(`Êtes-vous sûr de vouloir ${action} ce service ?`)) {
+    return;
   }
-}
-
-async function deleteService() {
-  if (!serviceToDelete.value) return
   
   try {
-    // Logique pour supprimer le service
-    await fetchServices()
-    showDeleteModal.value = false
-    serviceToDelete.value = null
+    const { error } = await supabase
+      .from('services')
+      .update({ 
+        is_active: newStatus,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', service.id);
+    
+    if (error) throw error;
+    
+    // Mettre à jour le service localement
+    service.is_active = newStatus;
+    
+    showNotification(
+      'success', 
+      'Statut modifié', 
+      `Le service a été ${newStatus ? 'activé' : 'désactivé'} avec succès`
+    );
+    
   } catch (error) {
-    console.error('Erreur lors de la suppression du service:', error)
-    alert('Erreur lors de la suppression du service: ' + error.message)
+    console.error('Erreur lors de la modification du statut:', error);
+    showNotification(
+      'error', 
+      'Erreur', 
+      `Impossible de ${action} le service`
+    );
   }
-}
+};
 
-// Réinitialiser les filtres
-const resetFilters = () => {
-  search.value = ''
-  categoryFilter.value = ''
-  sortOption.value = 'recent'
-  currentPage.value = 1
-}
+// Supprimer un service
+const deleteService = (service) => {
+  selectedService.value = service;
+  showDeleteModal.value = true;
+};
 
-// Afficher un message de statut
-const showStatusMessage = (type, message, duration = 5000) => {
-  statusMessage.value = {
-    show: true,
-    type,
-    message
+// Confirmer la suppression
+const confirmDeleteService = async () => {
+  isDeleting.value = true;
+  
+  try {
+    const { error } = await supabase
+      .from('services')
+      .delete()
+      .eq('id', selectedService.value.id);
+    
+    if (error) throw error;
+    
+    showDeleteModal.value = false;
+    showNotification('success', 'Service supprimé', 'Le service a été supprimé avec succès');
+    
+    // Rafraîchir les données
+    await loadData();
+    
+  } catch (error) {
+    console.error('Erreur lors de la suppression du service:', error);
+    showNotification('error', 'Erreur', 'Impossible de supprimer le service');
+  } finally {
+    isDeleting.value = false;
+  }
+};
+
+// Obtenir l'icône de la catégorie
+const getCategoryIcon = (iconName) => {
+  const iconMap = {
+    Briefcase,
+    Code,
+    PenTool,
+    Image,
+    FileText,
+    MessageSquare,
+    ShoppingBag,
+    Globe,
+    Database,
+    Smartphone
+  };
+  
+  return iconMap[iconName] || FileText;
+};
+
+// Obtenir la classe de couleur pour la catégorie
+const getCategoryColorClass = (categoryId) => {
+  const colors = [
+    'bg-blue-500',
+    'bg-green-500',
+    'bg-purple-500',
+    'bg-amber-500',
+    'bg-red-500',
+    'bg-indigo-500',
+    'bg-pink-500',
+    'bg-teal-500'
+  ];
+  
+  // Utiliser l'ID de la catégorie pour choisir une couleur
+  const index = categoryId ? parseInt(categoryId) % colors.length : 0;
+  return colors[index];
+};
+
+// Formater la date
+const formatDate = (dateString) => {
+  if (!dateString) return '-';
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  }).format(date);
+};
+
+// Formater le prix
+const formatPrice = (price) => {
+  if (price === null || price === undefined) return '-';
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'XOF',
+    minimumFractionDigits: 0
+  }).format(price);
+};
+
+// Afficher une notification
+const showNotification = (type, title, message) => {
+  if (!notification.value) {
+    notification.value = {
+      show: false,
+      type: 'info',
+      title: '',
+      message: ''
+    };
   }
   
+  notification.value.show = true;
+  notification.value.type = type;
+  notification.value.title = title;
+  notification.value.message = message;
+  
+  // Masquer automatiquement après 5 secondes
   setTimeout(() => {
-    statusMessage.value.show = false
-  }, duration)
-}
+    if (notification.value) {
+      notification.value.show = false;
+    }
+  }, 5000);
+};
 
-watch([search, categoryFilter, sortOption], () => {
-  currentPage.value = 1
-})
+// Rafraîchir les données
+const refreshData = () => {
+  loadData();
+};
 
+// Charger les données au montage du composant
 onMounted(() => {
-  fetchServices()
-})
+  loadData();
+});
+
+// Réinitialiser la pagination quand les filtres changent
+watch([search, categoryFilter, statusFilter], () => {
+  currentPage.value = 1;
+});
 
 definePageMeta({
   layout: 'admin'
-})
+});
 </script>
-
-<style scoped>
-/* Style pour les sélecteurs avec flèche dropdown */
-select {
-  background-position: right 1rem center;
-  background-repeat: no-repeat;
-  background-size: 1em;
-  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>');
-}
-
-/* Animation pour le modal */
-.modal-enter-active,
-.modal-leave-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
-}
-
-.modal-enter-from,
-.modal-leave-to {
-  opacity: 0;
-  transform: scale(0.95);
-}
-</style>

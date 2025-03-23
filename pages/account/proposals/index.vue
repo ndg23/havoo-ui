@@ -25,7 +25,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <p>{{ error }}</p>
-        </div>
+    </div>
         <button 
           @click="fetchProposals" 
           class="mt-3 text-sm font-medium text-red-600 hover:text-red-500"
@@ -38,7 +38,7 @@
       <div v-else-if="!isExpert" class="text-center py-12">
         <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-        </svg>
+      </svg>
         <h3 class="mt-2 text-lg font-medium text-gray-900">Devenez expert</h3>
         <p class="mt-1 text-gray-500">Vous devez être un expert pour faire des propositions.</p>
         <div class="mt-6">
@@ -47,10 +47,10 @@
             class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium text-white bg-black hover:bg-gray-800 transition-colors"
           >
             Devenir expert
-          </NuxtLink>
+      </NuxtLink>
         </div>
-      </div>
-
+        </div>
+        
       <!-- Empty state -->
       <div v-else-if="proposals.length === 0" class="text-center py-12">
         <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -94,13 +94,13 @@
               </span>
             </button>
           </nav>
-        </div>
+    </div>
 
         <!-- Proposal cards -->
         <div v-if="getFilteredProposals(activeTab).length === 0" class="text-center py-8">
           <p class="text-gray-500">Aucune proposition {{ getTabLabel(activeTab).toLowerCase() }}</p>
-        </div>
-        
+          </div>
+          
         <div v-else class="space-y-4">
           <div
             v-for="proposal in getFilteredProposals(activeTab)"
@@ -109,7 +109,7 @@
           >
             <div class="p-4">
               <div class="flex justify-between items-start">
-                <div>
+              <div>
                   <div class="flex items-center space-x-2 mb-1">
                     <span 
                       class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
@@ -128,8 +128,8 @@
                     {{ proposal.request?.title || 'Demande sans titre' }}
                   </h3>
                   <p class="mt-1 text-sm text-gray-500 line-clamp-2">{{ proposal.message }}</p>
-                </div>
-                
+              </div>
+              
                 <div class="text-right flex-shrink-0">
                   <div class="text-base font-bold text-gray-900">
                     {{ formatPrice(proposal.price) }}
@@ -137,7 +137,7 @@
                   <div class="text-xs text-gray-500 mt-1">
                     {{ proposal.duration }} jour{{ proposal.duration > 1 ? 's' : '' }}
                   </div>
-                </div>
+              </div>
               </div>
               
               <div class="mt-4 flex items-center justify-between">
@@ -148,7 +148,7 @@
                   <svg class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
+                    </svg>
                   Voir la demande
                 </NuxtLink>
                 <div class="text-xs text-gray-500">

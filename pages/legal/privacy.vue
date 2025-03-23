@@ -36,7 +36,7 @@
       <!-- Footer -->
       <footer class="mt-16 pt-8 border-t border-gray-100">
         <p class="text-sm text-gray-500 text-center">
-          Copyright © {{ new Date().getFullYear() }} Havoo. Tous droits réservés.
+          Copyright © {{ new Date().getFullYear() }} Sunutaf. Tous droits réservés.
         </p>
       </footer>
     </div>
@@ -54,8 +54,8 @@ const sections = [
   {
     title: "Introduction",
     paragraphs: [
-      "Chez Havoo, nous accordons une grande importance à la protection de vos données personnelles. Cette politique de confidentialité explique comment nous collectons, utilisons et protégeons vos informations lorsque vous utilisez notre plateforme.",
-      "En utilisant Havoo, vous acceptez les pratiques décrites dans cette politique de confidentialité. Si vous n'acceptez pas cette politique, veuillez ne pas utiliser nos services."
+      "Chez Sunutaf, nous accordons une grande importance à la protection de vos données personnelles. Cette politique de confidentialité explique comment nous collectons, utilisons et protégeons vos informations lorsque vous utilisez notre plateforme.",
+      "En utilisant Sunutaf, vous acceptez les pratiques décrites dans cette politique de confidentialité. Si vous n'acceptez pas cette politique, veuillez ne pas utiliser nos services."
     ]
   },
   {
@@ -93,7 +93,7 @@ const sections = [
     title: "Vos Droits",
     paragraphs: [
       "Vous disposez de droits sur vos données : accès, rectification, suppression, portabilité, limitation du traitement, et opposition au traitement.",
-      "Pour exercer ces droits, contactez notre Délégué à la Protection des Données à dpo@Havoo.com. Nous répondrons à votre demande dans un délai d'un mois."
+      "Pour exercer ces droits, contactez notre Délégué à la Protection des Données à dpo@Sunutaf.com. Nous répondrons à votre demande dans un délai d'un mois."
     ]
   },
   {
@@ -114,7 +114,7 @@ const sections = [
     title: "Contact",
     paragraphs: [
       "Pour toute question concernant cette politique ou vos données personnelles, contactez notre Délégué à la Protection des Données :",
-      "Email : dpo@Havoo.com\nAdresse : Havoo SAS, 123 Avenue de l'Indépendance, Dakar, Sénégal"
+      "Email : dpo@Sunutaf.com\nAdresse : Sunutaf SAS, 123 Avenue de l'Indépendance, Dakar, Sénégal"
     ]
   }
 ]

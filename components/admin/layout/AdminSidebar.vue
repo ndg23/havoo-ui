@@ -25,6 +25,7 @@ const menuItems = [
   { name: 'Dashboard', path: '/admin', icon: 'HomeIcon' },
   { name: 'Utilisateurs', path: '/admin/users', icon: 'UsersIcon' },
   { name: 'Objets', path: '/admin/items', icon: 'CubeIcon' },
+  { name: 'Activités', path: '/admin/activities', icon: 'ActivityIcon' },
   { name: 'Paramètres', path: '/admin/settings', icon: 'CogIcon' }
 ]
 

@@ -40,6 +40,6 @@ import { Map } from 'lucide-vue-next'
 
 // Définir un titre de page
 useHead({
-  title: 'Page introuvable | Havoo Services'
+  title: 'Page introuvable | Sunutaf Services'
 })
 </script> 

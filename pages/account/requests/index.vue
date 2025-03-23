@@ -290,6 +290,10 @@ const getStatusLabel = (status) => {
 onMounted(() => {
   fetchRequests();
 });
+
+definePageMeta({
+  layout: 'account'
+})
 </script>
 
 <style scoped>

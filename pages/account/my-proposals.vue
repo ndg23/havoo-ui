@@ -132,7 +132,7 @@ definePageMeta({
 
 // Définir un titre de page
 useHead({
-  title: 'Mes propositions | Havoo Services'
+  title: 'Mes propositions | Sunutaf Services'
 })
 
 // États

@@ -19,7 +19,7 @@
 
         <h2>2. Définitions</h2>
         <ul>
-          <li>"Nous", "notre", "nos" fait référence à Havoo services, société de droit sénégalais.</li>
+          <li>"Nous", "notre", "nos" fait référence à Sunutaf services, société de droit sénégalais.</li>
           <li>"Plateforme" désigne le site web et tous les services associés.</li>
           <li>"Utilisateur", "vous", "votre" désigne toute personne qui accède à notre plateforme.</li>
           <li>"Expert" désigne un utilisateur qui propose des services de conseil sur notre plateforme.</li>
@@ -155,7 +155,7 @@
 
         <h2>20. Contact</h2>
         <p>
-          Si vous avez des questions concernant ces conditions, veuillez nous contacter à l'adresse suivante: contact@havoo-services.com.
+          Si vous avez des questions concernant ces conditions, veuillez nous contacter à l'adresse suivante: contact@Sunutaf-services.com.
         </p>
       </div>
 

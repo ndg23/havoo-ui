@@ -1,99 +1,218 @@
 <template>
-  <div class="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
-    <!-- Header premium avec effet de verre et gradient subtil -->
- <NavbarMain />
-
-    <!-- Search modal - simplified -->
-    <transition
-      enter-active-class="ease-out duration-200"
-      enter-from-class="opacity-0"
-      enter-to-class="opacity-100"
-      leave-active-class="ease-in duration-150"
-      leave-from-class="opacity-100"
-      leave-to-class="opacity-0"
-    >
-      <div v-if="showSearch" class="fixed inset-0 z-50 overflow-y-auto">
-        <div class="flex items-start justify-center min-h-screen pt-16 px-4 pb-20 text-center">
-          <div 
-            class="fixed inset-0 bg-gray-900/50 dark:bg-gray-900/70 transition-opacity"
-            @click="showSearch = false"
-          ></div>
-
-          <!-- Search box -->
-          <div class="relative bg-white dark:bg-gray-800 rounded-xl max-w-md w-full p-6 shadow-xl transform transition-all">
-            <div class="relative">
-              <Search class="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input
-                ref="searchInput"
-                v-model="searchQuery"
-                type="text"
-                placeholder="Rechercher..."
-                class="w-full pl-10 pr-10 py-2.5 border border-gray-300 dark:border-gray-600 rounded-full bg-white dark:bg-gray-800 text-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
-                @keyup.enter="performSearch"
+  <div class="min-h-screen flex flex-col bg-white -50 dark:bg-gray-900">
+    <!-- Header principal style Wave -->
+    <header class="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+      <div class="max-w-5xl mx-auto flex items-center justify-between">
+        <!-- Logo -->
+        <div class="flex items-center">
+          <NuxtLink to="/" class="flex items-center">
+            <Logo />
+          </NuxtLink>
+        </div>
+        
+        <!-- Navigation centrale (style Wave) -->
+        <div class="hidden md:flex space-x-8">
+          <NuxtLink 
+            to="/" 
+            class="flex flex-col items-center pb-1 pt-1 border-b-2"
+            :class="[$route.path === '/' ? 'border-primary-500 text-primary-600 dark:text-primary-400 font-medium' : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400']"
+          >
+            <Home class="h-6 w-6" />
+            <span class="text-xs mt-1">Accueil</span>
+          </NuxtLink>
+          
+          <NuxtLink 
+            to="/requests" 
+            class="flex flex-col items-center pb-1 pt-1 border-b-2"
+            :class="[$route.path.includes('/requests') ? 'border-primary-500 text-primary-600 dark:text-primary-400 font-medium' : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400']"
+          >
+            <FileText class="h-6 w-6" />
+            <span class="text-xs mt-1">Demandes</span>
+          </NuxtLink>
+          
+          <NuxtLink 
+            to="/experts" 
+            class="flex flex-col items-center pb-1 pt-1 border-b-2"
+            :class="[$route.path.includes('/experts') ? 'border-primary-500 text-primary-600 dark:text-primary-400 font-medium' : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400']"
+          >
+            <Users class="h-6 w-6" />
+            <span class="text-xs mt-1">Experts</span>
+          </NuxtLink>
+          
+          <NuxtLink 
+            to="/account/messages" 
+            class="flex flex-col items-center pb-1 pt-1 border-b-2 relative"
+            :class="[$route.path.includes('/account/messages') ? 'border-primary-500 text-primary-600 dark:text-primary-400 font-medium' : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400']"
+          >
+            <MessageSquare class="h-6 w-6" />
+            <span class="text-xs mt-1">Messages</span>
+            <span 
+              v-if="unreadCount > 0" 
+              class="absolute -top-1 -right-1 bg-primary-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
+            >
+              {{ unreadCount }}
+            </span>
+          </NuxtLink>
+        </div>
+        
+        <!-- User menu -->
+        <div class="flex items-center space-x-4">
+          <NuxtLink 
+            v-if="!user" 
+            to="/login" 
+            class="text-sm font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400"
+          >
+            Connexion
+          </NuxtLink>
+          
+          <div v-else class="relative">
+            <button 
+              @click="showProfileMenu = !showProfileMenu" 
+              class="flex items-center focus:outline-none profile-menu-button"
+            >
+              <img 
+                v-if="userProfile?.avatar_url" 
+                :src="userProfile.avatar_url" 
+                alt="Avatar" 
+                class="h-8 w-8 rounded-full"
               />
-              <button 
-                @click="showSearch = false"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              <div 
+                v-else 
+                class="h-8 w-8 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center text-primary-700 dark:text-primary-300 font-medium"
               >
-                <X class="h-5 w-5" />
+                {{ getInitials(userProfile?.first_name, userProfile?.last_name) }}
+              </div>
+            </button>
+            
+            <!-- Menu déroulant du profil -->
+            <div 
+              v-if="showProfileMenu" 
+              class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-20 border border-gray-200 dark:border-gray-700 animate-scaleUp"
+            >
+              <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                <p class="text-sm font-medium text-gray-900 dark:text-white">
+                  {{ userProfile?.first_name }} {{ userProfile?.last_name }}
+                </p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                  {{ userProfile?.email }}
+                </p>
+              </div>
+              
+              <NuxtLink 
+                to="/account" 
+                class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                @click="showProfileMenu = false"
+              >
+                Tableau de bord
+              </NuxtLink>
+              
+              <NuxtLink 
+                to="/account/edit-profile" 
+                class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                @click="showProfileMenu = false"
+              >
+                Modifier le profil
+              </NuxtLink>
+              
+              <NuxtLink 
+                v-if="userProfile?.is_expert"
+                to="/account/services" 
+                class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                @click="showProfileMenu = false"
+              >
+                Mes services
+              </NuxtLink>
+              
+              <div class="border-t border-gray-200 dark:border-gray-700 mt-1 pt-1">
+                <button 
+                  @click="logout" 
+                  class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  Déconnexion
               </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </transition>
+    </header>
 
-    <!-- Page content -->
-    <main class="flex-1">
+    <!-- Mobile navigation (bottom bar) -->
+    <div class="md:hidden fixed bottom-0 left-0 right-0 z-10 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+      <div class="flex justify-around">
+        <NuxtLink 
+          to="/" 
+          class="flex flex-col items-center py-2 flex-1"
+          :class="[$route.path === '/' ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400']"
+        >
+          <Home class="h-6 w-6" />
+          <span class="text-xs mt-0.5">Accueil</span>
+        </NuxtLink>
+        
+        <NuxtLink 
+          to="/requests" 
+          class="flex flex-col items-center py-2 flex-1"
+          :class="[$route.path.includes('/requests') ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400']"
+        >
+          <FileText class="h-6 w-6" />
+          <span class="text-xs mt-0.5">Demandes</span>
+        </NuxtLink>
+        
+        <NuxtLink 
+          to="/experts" 
+          class="flex flex-col items-center py-2 flex-1"
+          :class="[$route.path.includes('/experts') ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400']"
+        >
+          <Users class="h-6 w-6" />
+          <span class="text-xs mt-0.5">Experts</span>
+        </NuxtLink>
+        
+        <NuxtLink 
+          to="/account" 
+          class="flex flex-col items-center py-2 flex-1"
+          :class="[$route.path.includes('/account') ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400']"
+        >
+          <User class="h-6 w-6" />
+          <span class="text-xs mt-0.5">Compte</span>
+        </NuxtLink>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <main class="flex-1 pb-16 md:pb-0">
       <slot />
     </main>
-
-    <!-- Footer would go here -->
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
-import { useSupabaseClient, useSupabaseUser } from '#imports'
-import { User, Search, Menu, X, Sun, Moon } from 'lucide-vue-next'
-import NavbarMain from '@/components/NavbarMain.vue'
-const router = useRouter()
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { useSupabaseClient, useSupabaseUser, useRouter } from '#imports'
+import { 
+  Home, 
+  FileText, 
+  Users, 
+  MessageSquare, 
+  User
+} from 'lucide-vue-next'
+
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
+const router = useRouter()
 
-// State variables
-const userMenuOpen = ref(false)
-const mobileMenuOpen = ref(false)
-const showSearch = ref(false)
-const searchQuery = ref('')
-const searchInput = ref(null)
+// État
 const userProfile = ref(null)
-const hasNotifications = ref(true)
-const hasRequestNotifications = ref(true)
+const unreadCount = ref(0)
+const showProfileMenu = ref(false)
 
-// Log out the user
-const logout = async () => {
-  try {
-    await supabase.auth.signOut()
-    userMenuOpen.value = false
-    mobileMenuOpen.value = false
-    router.push('/')
-  } catch (error) {
-    console.error('Error logging out:', error)
+// Fermer le menu en cliquant ailleurs
+const handleClickOutside = (event) => {
+  if (showProfileMenu.value && !event.target.closest('.profile-menu-button') && !event.target.closest('.profile-menu')) {
+    showProfileMenu.value = false
   }
 }
 
-// Perform search
-const performSearch = () => {
-  if (!searchQuery.value.trim()) return
-  
-  router.push(`/search?q=${encodeURIComponent(searchQuery.value)}`)
-  showSearch.value = false
-  searchQuery.value = ''
-}
-
-// Fetch user profile from Supabase
+// Récupérer le profil utilisateur
 const fetchUserProfile = async () => {
   if (!user.value) return
   
@@ -105,74 +224,67 @@ const fetchUserProfile = async () => {
       .single()
     
     if (error) throw error
+    
     userProfile.value = data
-  } catch (error) {
-    console.error('Error fetching user profile:', error)
+    
+    // Récupérer le nombre de messages non lus
+    await fetchUnreadMessages()
+  } catch (err) {
+    console.error('Error fetching user profile:', err)
   }
 }
 
-// Get user display name
-const getUserDisplayName = () => {
-  if (!userProfile.value) return 'Mon compte'
+// Récupérer le nombre de messages non lus
+const fetchUnreadMessages = async () => {
+  if (!user.value) return
   
-  if (userProfile.value.first_name && userProfile.value.last_name) {
-    return `${userProfile.value.first_name} ${userProfile.value.last_name}`
-  } else if (userProfile.value.first_name) {
-    return userProfile.value.first_name
-  } else {
-    return 'Mon compte'
+  try {
+    const { data, error } = await supabase
+      .from('messages')
+      .select('id', { count: 'exact' })
+      .eq('is_read', false)
+      .in('conversation_id', 
+        supabase
+          .from('conversation_participants')
+          .select('conversation_id')
+          .eq('profile_id', user.value.id)
+      )
+    
+    if (error) throw error
+    
+    unreadCount.value = data?.length || 0
+  } catch (err) {
+    console.error('Error fetching unread messages:', err)
   }
 }
 
-// Get user initials for avatar placeholder
-const getUserInitials = () => {
-  if (!userProfile.value) return '?'
-  
-  if (userProfile.value.first_name && userProfile.value.last_name) {
-    return userProfile.value.first_name.charAt(0) + userProfile.value.last_name.charAt(0)
-  } else if (userProfile.value.first_name) {
-    return userProfile.value.first_name.charAt(0)
-  } else if (user.value?.email) {
-    return user.value.email.charAt(0).toUpperCase()
-  } else {
-    return '?'
+// Déconnexion
+const logout = async () => {
+  try {
+    await supabase.auth.signOut()
+    router.push('/login')
+  } catch (err) {
+    console.error('Error during logout:', err)
   }
 }
 
-// Toggle user menu
-const toggleUserMenu = () => {
-  userMenuOpen.value = !userMenuOpen.value
+// Obtenir les initiales
+const getInitials = (firstName, lastName) => {
+  if (!firstName && !lastName) return '?'
+  return `${firstName ? firstName.charAt(0) : ''}${lastName ? lastName.charAt(0) : ''}`.toUpperCase()
 }
 
-// Handle click outside
-const handleClickOutside = (event) => {
-  const target = event.target
-  if (userMenuOpen.value && !target.closest('.user-menu')) {
-    userMenuOpen.value = false
-  }
-}
-
-// Initialize
+// Initialisation
 onMounted(() => {
-  // Set up click outside listener
-  window.addEventListener('click', handleClickOutside)
-  
-  // Fetch user profile if logged in
-  if (user.value) {
     fetchUserProfile()
-  }
+  document.addEventListener('click', handleClickOutside)
 })
 
-// Focus search input when search modal opens
-watch(showSearch, (newVal) => {
-  if (newVal) {
-    nextTick(() => {
-      searchInput.value?.focus()
-    })
-  }
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside)
 })
 
-// Watch for user changes
+// Surveiller les changements d'utilisateur
 watch(user, (newUser) => {
   if (newUser) {
     fetchUserProfile()

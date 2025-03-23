@@ -1,4 +1,4 @@
--- Schéma des tables pour Havoo Services
+-- Schéma des tables pour Sunutaf Services
 
 -- Enumérations
 CREATE TYPE user_role AS ENUM ('client', 'expert', 'admin');

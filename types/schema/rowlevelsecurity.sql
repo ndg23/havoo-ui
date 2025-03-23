@@ -90,3 +90,30 @@ USING (
   )
 );
 
+
+
+
+-- Enable RLS
+ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE conversation_participants ENABLE ROW LEVEL SECURITY;
+
+-- Policies for conversations
+CREATE POLICY "Users can view conversations they are in" ON conversations
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM conversation_participants
+      WHERE conversation_id = conversations.id
+      AND profile_id = auth.uid()
+    )
+  );
+
+-- Policies for messages
+CREATE POLICY "Users can view messages in their conversations" ON messages
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM conversation_participants
+      WHERE conversation_id = messages.conversation_id
+      AND profile_id = auth.uid()
+    )
+  );

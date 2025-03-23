@@ -1,348 +1,659 @@
 <template>
   <div class="min-h-screen bg-white">
-    <!-- Header avec retour -->
-    <header class="sticky top-0 z-10 bg-white/80 backdrop-blur-sm border-b border-gray-100">
-      <div class="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-        <div class="flex items-center">
-          <button 
-            @click="$router.back()" 
-            class="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors"
-          >
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <h1 class="ml-6 text-xl font-bold truncate">{{ request?.title || 'Détail de la demande' }}</h1>
-        </div>
-        
-        <!-- Actions -->
-        <div v-if="request && isOwner" class="flex items-center">
-          <button 
-            class="p-2 rounded-full hover:bg-gray-100 transition-colors text-gray-500"
-            @click="showActionsMenu = !showActionsMenu"
-          >
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-            </svg>
-          </button>
-          
-          <!-- Menu d'actions -->
-          <div 
-            v-if="showActionsMenu" 
-            class="absolute right-4 top-12 bg-white shadow-lg rounded-lg py-1 w-48 border border-gray-200 z-20"
-          >
-            <button 
-              @click="editRequest" 
-              class="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center text-gray-700"
-            >
-              <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-              Modifier
-            </button>
-            <button 
-              @click="deleteRequest" 
-              class="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center text-red-600"
-            >
-              <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-              Supprimer
-            </button>
-          </div>
-        </div>
-      </div>
+    <!-- Header -->
+    <header class="sticky top-0 z-10 bg-white/90 backdrop-blur-sm border-b border-gray-100">
+      <div class="max-w-3xl mx-auto px-4 py-3 flex items-center">
+      <NuxtLink 
+        to="/requests" 
+          class="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors"
+      >
+          <ArrowLeft class="w-5 h-5" />
+      </NuxtLink>
+        <h1 class="ml-4 text-xl font-bold">Détail de la demande</h1>
+    </div>
     </header>
 
-    <!-- Contenu principal -->
-    <main class="max-w-2xl mx-auto px-4 py-6">
-      <!-- Chargement -->
+    <!-- Main content -->
+    <main class="max-w-3xl mx-auto px-4 py-6">
+    <!-- Loading state -->
       <div v-if="isLoading" class="flex flex-col items-center justify-center py-12">
-        <svg class="animate-spin h-8 w-8 text-gray-400 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
+        <Loader2 class="h-8 w-8 text-gray-400 mb-4 animate-spin" />
         <p class="text-gray-500">Chargement de la demande...</p>
-      </div>
+    </div>
 
-      <!-- Erreur -->
-      <div v-else-if="error" class="bg-red-50 p-4 rounded-lg text-red-700 my-6">
-        <div class="flex">
-          <svg class="h-5 w-5 text-red-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <p>{{ error }}</p>
-        </div>
-        <button 
-          @click="fetchRequest" 
-          class="mt-3 text-sm font-medium text-red-600 hover:text-red-500"
-        >
-          Réessayer
-        </button>
+      <!-- Error state -->
+    <div v-else-if="error" class="bg-red-50 p-4 rounded-lg text-red-700 my-6">
+      <div class="flex">
+          <AlertCircle class="h-5 w-5 text-red-400 mr-3" />
+        <p>{{ error }}</p>
       </div>
+    </div>
 
-      <!-- Contenu de la demande -->
-      <div v-else-if="request" class="space-y-6">
-        <!-- En-tête avec statut -->
-        <div class="flex items-start justify-between">
+    <!-- Request details -->
+      <div v-else class="space-y-6">
+        <!-- Request card -->
+        <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+      <!-- Request header -->
+        <div class="p-6">
+            <div class="flex items-start justify-between">
           <div>
-            <div class="flex items-center space-x-2">
+                <h2 class="text-xl font-bold text-gray-900">{{ request.title }}</h2>
+                <div class="flex items-center mt-2 space-x-4">
+                  <span class="inline-flex items-center text-sm text-gray-500">
+                    <Calendar class="h-4 w-4 mr-1.5" />
+                    {{ formatDate(request.created_at) }}
+                  </span>
+                  <span class="inline-flex items-center text-sm text-gray-500">
+                    <Tag class="h-4 w-4 mr-1.5" />
+                    {{ request.category?.name || 'Non catégorisé' }}
+              </span>
               <span 
                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                :class="getStatusClass(request.status)"
+                    :class="statusClasses"
               >
-                {{ getStatusLabel(request.status) }}
-              </span>
-              <span 
-                v-if="request.category" 
-                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
-              >
-                {{ request.category.name }}
+                    {{ statusLabel }}
               </span>
             </div>
-            <h2 class="text-2xl font-bold mt-2">{{ request.title }}</h2>
-            <p class="text-gray-500 text-sm mt-1">
-              Publié {{ formatDate(request.created_at) }} par {{ request.client?.first_name || 'Utilisateur' }}
+          </div>
+          <div class="text-right">
+                <div class="text-lg font-bold text-primary-600">
+                  {{ formatPrice(request.budget) }}
+                </div>
+                <div v-if="request.deadline" class="text-sm text-gray-500 mt-1">
+                  Deadline: {{ formatDate(request.deadline) }}
+          </div>
+            </div>
+          </div>
+          
+          <!-- Client info -->
+            <div class="flex items-center mt-6 pb-6 border-b border-gray-100">
+              <div class="flex-shrink-0">
+                <img 
+                  v-if="request.client?.avatar_url" 
+                  :src="request.client.avatar_url" 
+                  alt="Client" 
+                  class="h-10 w-10 rounded-full"
+                />
+                <div 
+                  v-else 
+                  class="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-medium"
+                >
+                  {{ getInitials(request.client?.first_name, request.client?.last_name) }}
+                </div>
+        </div>
+              <div class="ml-3">
+                <p class="text-sm font-medium text-gray-900">
+                  {{ request.client?.first_name }} {{ request.client?.last_name }}
+                </p>
+                <p class="text-xs text-gray-500">Client</p>
+              </div>
+                </div>
+            
+            <!-- Description -->
+            <div class="mt-6">
+              <h3 class="text-base font-medium text-gray-900 mb-3">Description</h3>
+              <div class="prose prose-sm max-w-none text-gray-700">
+                {{ request.description }}
+              </div>
+            </div>
+          </div>
+          
+          <!-- Action buttons -->
+          <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
+            <div class="flex space-x-2">
+              <button 
+                @click="toggleLike"
+                class="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-full text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+              >
+                <Heart v-if="isLiked" class="h-4 w-4 mr-1.5 text-red-500" fill="currentColor" />
+                <Heart v-else class="h-4 w-4 mr-1.5" />
+                {{ likeCount }}
+              </button>
+              
+              <button 
+                @click="scrollToProposals"
+                class="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-full text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+              >
+                <MessageSquare class="h-4 w-4 mr-1.5" />
+                {{ proposalCount }} Propositions
+              </button>
+      </div>
+      
+            <div>
+              <button 
+                v-if="canMakeProposal"
+                @click="showProposalForm = true"
+                class="inline-flex items-center px-4 py-2 border border-transparent rounded-full shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+              >
+                <Send class="h-4 w-4 mr-1.5" />
+                Faire une proposition
+              </button>
+              
+              <button 
+                v-else-if="isOwner"
+                @click="editRequest"
+                class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-full text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+              >
+                <Edit class="h-4 w-4 mr-1.5" />
+                Modifier
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Proposals section -->
+        <div id="proposals" class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+          <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+            <h3 class="text-lg font-medium text-gray-900">Propositions ({{ proposalCount }})</h3>
+          </div>
+          
+          <div v-if="proposals.length === 0" class="p-6 text-center">
+            <div class="mx-auto h-12 w-12 text-gray-400">
+              <InboxIcon class="h-12 w-12" />
+            </div>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">Aucune proposition</h3>
+            <p class="mt-1 text-sm text-gray-500">
+              Soyez le premier à faire une proposition pour cette demande.
             </p>
           </div>
           
-          <!-- Prix et date limite -->
-          <div class="text-right">
-            <div v-if="request.budget" class="text-xl font-bold text-gray-900">
-              {{ formatPrice(request.budget) }}
-            </div>
-            <div v-if="request.deadline" class="text-sm text-gray-500 mt-1">
-              Deadline: {{ formatDate(request.deadline) }}
-            </div>
-          </div>
-        </div>
-        
-        <!-- Description -->
-        <div class="bg-gray-50 rounded-lg p-4 mt-4">
-          <h3 class="text-lg font-medium text-gray-900 mb-2">Description</h3>
-          <div class="prose prose-sm max-w-none text-gray-700">
-            {{ request.description }}
-          </div>
-        </div>
-        
-        <!-- Pièces jointes -->
-        <div v-if="attachments.length > 0" class="mt-6">
-          <h3 class="text-lg font-medium text-gray-900 mb-3">Pièces jointes</h3>
-          <div class="grid grid-cols-2 gap-3">
-            <a 
-              v-for="attachment in attachments" 
-              :key="attachment.id"
-              :href="attachment.url"
-              target="_blank"
-              class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+          <div v-else class="divide-y divide-gray-200">
+            <div 
+              v-for="proposal in proposals" 
+              :key="proposal.id"
+              class="p-6 hover:bg-gray-50 transition-colors"
             >
-              <svg class="h-5 w-5 text-gray-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-              </svg>
-              <span class="text-sm truncate">{{ attachment.name }}</span>
-            </a>
+            <div class="flex items-start justify-between">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0">
+                  <img 
+                    v-if="proposal.expert?.avatar_url" 
+                    :src="proposal.expert.avatar_url" 
+                      alt="Expert" 
+                      class="h-10 w-10 rounded-full"
+                  />
+                    <div 
+                      v-else 
+                      class="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-medium"
+                    >
+                    {{ getInitials(proposal.expert?.first_name, proposal.expert?.last_name) }}
+                    </div>
+                  </div>
+                  <div class="ml-3">
+                    <p class="text-sm font-medium text-gray-900">
+                      {{ proposal.expert?.first_name }} {{ proposal.expert?.last_name }}
+                    </p>
+                    <div class="flex items-center mt-1">
+                      <div class="flex items-center">
+                        <StarIcon v-for="i in 5" :key="i" class="h-3.5 w-3.5" :class="i <= (proposal.expert?.rating || 0) ? 'text-yellow-400 fill-current' : 'text-gray-300'" />
+                      </div>
+                      <span class="ml-1 text-xs text-gray-500">
+                        ({{ proposal.expert?.review_count || 0 }} avis)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <div class="text-lg font-bold text-primary-600">
+                    {{ formatPrice(proposal.price) }}
+                  </div>
+                  <div class="text-sm text-gray-500 mt-1">
+                    {{ proposal.duration }} jours
+                  </div>
+                </div>
+              </div>
+              
+              <div class="mt-4 text-sm text-gray-700">
+                {{ proposal.message }}
+              </div>
+              
+              <div class="mt-4 flex justify-between items-center">
+                <span class="text-xs text-gray-500">
+                  {{ formatDate(proposal.created_at) }}
+                </span>
+                
+                <div v-if="isOwner && request.status === 'open'" class="flex space-x-2">
+                  <button 
+                    @click="acceptProposal(proposal.id)"
+                    class="inline-flex items-center px-3 py-1.5 border border-transparent rounded-full text-xs font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  >
+                    <Check class="h-3.5 w-3.5 mr-1" />
+                    Accepter
+                  </button>
+                  
+                <button
+                  @click="rejectProposal(proposal.id)"
+                    class="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-full text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                >
+                    <X class="h-3.5 w-3.5 mr-1" />
+                  Refuser
+                </button>
+              </div>
+                
+                <div v-else-if="proposal.status !== 'pending'" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" :class="getProposalStatusClasses(proposal.status)">
+                  {{ getProposalStatusLabel(proposal.status) }}
+              </div>
+            </div>
           </div>
         </div>
-        
-        <!-- Bouton de contact/proposition -->
-        <div v-if="!isOwner" class="mt-8">
-          <button
-            @click="contactClient"
-            class="w-full py-3 px-4 flex justify-center items-center rounded-full text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800 text-base font-medium transition-colors"
-          >
-            Proposer mes services
-          </button>
+      </div>
+      
+        <!-- Make proposal form -->
+        <div v-if="showProposalForm" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+          <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+              <h3 class="text-lg font-medium text-gray-900">Faire une proposition</h3>
+              <button @click="showProposalForm = false" class="text-gray-400 hover:text-gray-500">
+                <X class="h-5 w-5" />
+              </button>
         </div>
+        
+        <div class="p-6">
+              <form @submit.prevent="submitProposal">
+                <div class="space-y-4">
+              <div>
+                    <label for="price" class="block text-sm font-medium text-gray-700">Prix proposé</label>
+                <div class="mt-1 relative rounded-md shadow-sm">
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span class="text-gray-500 sm:text-sm">FCFA</span>
+                  </div>
+                  <input 
+                    type="number"
+                    id="price"
+                    v-model="proposalForm.price" 
+                        class="focus:ring-primary-500 focus:border-primary-500 block w-full pl-16 pr-12 sm:text-sm border-gray-300 rounded-md" 
+                        placeholder="0.00" 
+                    min="0" 
+                    step="0.01"
+                    required
+                  />
+                </div>
+              </div>
+              
+              <div>
+                    <label for="duration" class="block text-sm font-medium text-gray-700">Durée (jours)</label>
+                <input 
+                  type="number"
+                      id="duration" 
+                  v-model="proposalForm.duration" 
+                      class="focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-gray-300 rounded-md" 
+                  min="1" 
+                  required
+                />
+            </div>
+
+            <div>
+                    <label for="message" class="block text-sm font-medium text-gray-700">Message</label>
+              <textarea 
+                id="message"
+                v-model="proposalForm.message" 
+                rows="4"
+                      class="focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-gray-300 rounded-md" 
+                required
+              ></textarea>
+                  </div>
+            </div>
+
+                <div class="mt-6 flex justify-end">
+                  <button 
+                    type="button" 
+                    @click="showProposalForm = false" 
+                    class="mr-3 inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                  >
+                    Annuler
+                  </button>
+              <button
+                type="submit"
+                    class="inline-flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                :disabled="isSubmitting"
+              >
+                    <Loader2 v-if="isSubmitting" class="animate-spin h-4 w-4 mr-1.5" />
+                    <span>{{ isSubmitting ? 'Envoi en cours...' : 'Envoyer' }}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
       </div>
     </main>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useSupabaseClient, useSupabaseUser } from '#imports';
+import { ref, computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+// import { useSupabaseClient } from '#imports'
+import { 
+  ArrowLeft, Loader2, AlertCircle, Calendar, Tag, Heart, 
+  MessageSquare, Send, Edit, Check, X, Star as StarIcon, Inbox as InboxIcon 
+} from 'lucide-vue-next'
 
-const route = useRoute();
-const router = useRouter();
-const supabase = useSupabaseClient();
-const user = useSupabaseUser();
+const route = useRoute()
+const router = useRouter()
+const supabase = useSupabaseClient()
+const user = useSupabaseUser()
 
 // État
-const request = ref(null);
-const attachments = ref([]);
-const isLoading = ref(true);
-const error = ref(null);
-const showActionsMenu = ref(false);
+const isLoading = ref(true)
+const error = ref(null)
+const request = ref({})
+const proposals = ref([])
+const isLiked = ref(false)
+const likeCount = ref(0)
+const showProposalForm = ref(false)
+const isSubmitting = ref(false)
+const proposalForm = ref({
+  price: '',
+  duration: 1,
+  message: ''
+})
 
-// Vérifier si l'utilisateur est le propriétaire de la demande
+// Computed
+const proposalCount = computed(() => proposals.value.length)
+
+const statusClasses = computed(() => {
+  const classes = {
+    'open': 'bg-green-100 text-green-800',
+    'assigned': 'bg-blue-100 text-blue-800',
+    'completed': 'bg-gray-100 text-gray-800',
+    'cancelled': 'bg-red-100 text-red-800'
+  }
+  return classes[request.value.status] || 'bg-gray-100 text-gray-800'
+})
+
+const statusLabel = computed(() => {
+  const labels = {
+    'open': 'Ouvert',
+    'assigned': 'Assigné',
+    'completed': 'Terminé',
+    'cancelled': 'Annulé'
+  }
+  return labels[request.value.status] || 'Inconnu'
+})
+
 const isOwner = computed(() => {
-  if (!user.value || !request.value) return false;
-  return user.value.id === request.value.client_id;
-});
+  return user.value?.id === request.value.client_id
+})
 
-// Récupérer la demande
+const canMakeProposal = computed(() => {
+  if (!user.value || isOwner.value || request.value.status !== 'open') {
+    return false
+  }
+
+// Vérifier si l'utilisateur est un expert
+  return user.value.is_expert
+})
+
+// Méthodes
 const fetchRequest = async () => {
-  isLoading.value = true;
-  error.value = null;
-  
   try {
-    const { data, error: requestError } = await supabase
+    const { data, error: fetchError } = await supabase
       .from('requests')
       .select(`
-        *,
-        category:category_id (*),
-        client:client_id (id, first_name, last_name, email)
+        *,      
+        client:client_id(*),
+        category:category_id(*)
       `)
       .eq('id', route.params.id)
-      .single();
+      .single()
     
-    if (requestError) throw requestError;
+    if (fetchError) throw fetchError
     
-    if (!data) {
-      error.value = "Cette demande n'existe pas ou a été supprimée";
-      return;
-    }
-    
-    request.value = data;
-    
-    // Récupérer les pièces jointes
-    await fetchAttachments();
-    
+    request.value = data
   } catch (err) {
-    console.error('Error fetching request:', err);
-    error.value = "Une erreur est survenue lors du chargement de la demande";
-  } finally {
-    isLoading.value = false;
+    console.error('Error fetching request:', err)
+    error.value = "Impossible de charger cette demande"
   }
-};
+}
 
-// Récupérer les pièces jointes
-const fetchAttachments = async () => {
+const fetchProposals = async () => {
   try {
-    const { data, error: storageError } = await supabase.storage
-      .from('attachments')
-      .list(`requests/${route.params.id}`);
+    const { data, error: fetchError } = await supabase
+      .from('proposals')
+      .select(`
+        *
+      `)
+      .eq('request_id', route.params.id)
+      .order('created_at', { ascending: false })
     
-    if (storageError) throw storageError;
+    if (fetchError) throw fetchError
     
-    if (data && data.length > 0) {
-      attachments.value = await Promise.all(data.map(async (file) => {
-        const { data: url } = await supabase.storage
-          .from('attachments')
-          .getPublicUrl(`requests/${route.params.id}/${file.name}`);
-        
-        return {
-          id: file.id,
-          name: file.name,
-          url: url.publicUrl,
-          size: file.metadata?.size,
-          type: file.metadata?.mimetype
-        };
-      }));
+    // Calculer la note moyenne pour chaque expert
+    proposals.value = data.map(proposal => {
+      if (proposal.expert && proposal.expert.rating) {
+        const ratings = proposal.expert.rating.map(r => r.rating)
+        const sum = ratings.reduce((a, b) => a + b, 0)
+        proposal.expert.rating = ratings.length > 0 ? sum / ratings.length : 0
+        proposal.expert.review_count = ratings.length
+      }
+      return proposal
+    })
+  } catch (err) {
+    console.error('Error fetching proposals:', err)
+  }
+}
+
+const fetchLikes = async () => {
+  try {
+    // Récupérer le nombre total de likes pour cette demande
+    const { data: countData, error: countError } = await supabase
+      .rpc('get_request_likes_count', { request_id: parseInt(route.params.id) })
+    
+    if (countError) throw countError
+    likeCount.value = countData || 0
+    
+    // Vérifier si l'utilisateur actuel a liké cette demande
+    if (user.value) {
+      const { data: hasLiked, error: likeError } = await supabase
+        .rpc('has_user_liked_request', { 
+          request_id: parseInt(route.params.id),
+          user_id: user.value.id
+        })
+      
+      if (likeError) throw likeError
+      isLiked.value = hasLiked || false
     }
   } catch (err) {
-    console.error('Error fetching attachments:', err);
+    console.error('Error fetching likes:', err)
   }
-};
+}
 
-// Formater le prix
-const formatPrice = (price) => {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'EUR'
-  }).format(price);
-};
-
-// Formater la date
-const formatDate = (dateString) => {
-  if (!dateString) return '';
+const toggleLike = async () => {
+  if (!user.value) {
+    // Rediriger vers la page de connexion si l'utilisateur n'est pas connecté
+    router.push('/login')
+    return
+  }
   
-  const date = new Date(dateString);
+  try {
+    if (isLiked.value) {
+      // Supprimer le like
+      const { error } = await supabase
+        .from('request_likes')
+        .delete()
+        .eq('request_id', parseInt(route.params.id))
+        .eq('user_id', user.value.id)
+      
+      if (error) throw error
+      
+      likeCount.value--
+      isLiked.value = false
+    } else {
+      // Ajouter un like
+      const { error } = await supabase
+        .from('request_likes')
+        .insert({
+          request_id: parseInt(route.params.id),
+          user_id: user.value.id
+        })
+    
+    if (error) throw error
+    
+      likeCount.value++
+      isLiked.value = true
+    }
+  } catch (err) {
+    console.error('Error toggling like:', err)
+    // Restaurer l'état précédent en cas d'erreur
+    isLiked.value = !isLiked.value
+    likeCount.value += isLiked.value ? 1 : -1
+  }
+}
+
+const scrollToProposals = () => {
+  document.getElementById('proposals').scrollIntoView({ behavior: 'smooth' })
+}
+
+const editRequest = () => {
+  router.push(`/requests/edit/${request.value.id}`)
+}
+
+const submitProposal = async () => {
+  if (!user.value) {
+    router.push('/login')
+    return
+  }
+  
+  isSubmitting.value = true
+  
+  try {
+    const { error: submitError } = await supabase
+      .from('proposals')
+      .insert({
+        request_id: request.value.id,
+        expert_id: user.value.id,
+        price: proposalForm.value.price,
+        duration: proposalForm.value.duration,
+        message: proposalForm.value.message,
+        status: 'pending'
+      })
+    
+    if (submitError) throw submitError
+    
+    // Réinitialiser le formulaire et fermer la modal
+    proposalForm.value = { price: '', duration: 1, message: '' }
+    showProposalForm.value = false
+    
+    // Rafraîchir les propositions
+    await fetchProposals()
+  } catch (err) {
+    console.error('Error submitting proposal:', err)
+    alert('Une erreur est survenue lors de l\'envoi de votre proposition')
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+const acceptProposal = async (proposalId) => {
+  try {
+    // Mettre à jour le statut de la proposition
+    const { error: proposalError } = await supabase
+      .from('proposals')
+      .update({ status: 'accepted' })
+      .eq('id', proposalId)
+    
+    if (proposalError) throw proposalError
+    
+    // Mettre à jour le statut de la demande
+    const { error: requestError } = await supabase
+      .from('requests')
+      .update({ status: 'assigned' })
+      .eq('id', request.value.id)
+    
+    if (requestError) throw requestError
+    
+    // Rafraîchir les données
+    await Promise.all([fetchRequest(), fetchProposals()])
+  } catch (err) {
+    console.error('Error accepting proposal:', err)
+    alert('Une erreur est survenue')
+  }
+}
+
+const rejectProposal = async (proposalId) => {
+  try {
+    const { error } = await supabase
+      .from('proposals')
+      .update({ status: 'rejected' })
+      .eq('id', proposalId)
+    
+    if (error) throw error
+    
+    // Rafraîchir les propositions
+    await fetchProposals()
+  } catch (err) {
+    console.error('Error rejecting proposal:', err)
+    alert('Une erreur est survenue')
+  }
+}
+
+const getProposalStatusClasses = (status) => {
+  const classes = {
+    'pending': 'bg-yellow-100 text-yellow-800',
+    'accepted': 'bg-green-100 text-green-800',
+    'rejected': 'bg-red-100 text-red-800'
+  }
+  return classes[status] || 'bg-gray-100 text-gray-800'
+}
+
+const getProposalStatusLabel = (status) => {
+  const labels = {
+    'pending': 'En attente',
+    'accepted': 'Acceptée',
+    'rejected': 'Refusée'
+  }
+  return labels[status] || 'Inconnu'
+}
+
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
   return new Intl.DateTimeFormat('fr-FR', {
     day: 'numeric',
-    month: 'long',
+    month: 'short',
     year: 'numeric'
-  }).format(date);
-};
+  }).format(date)
+}
 
-// Obtenir la classe CSS pour le statut
-const getStatusClass = (status) => {
-  switch (status) {
-    case 'open':
-      return 'bg-green-100 text-green-800';
-    case 'in_progress':
-      return 'bg-blue-100 text-blue-800';
-    case 'completed':
-      return 'bg-purple-100 text-purple-800';
-    case 'cancelled':
-      return 'bg-red-100 text-red-800';
-    default:
-      return 'bg-gray-100 text-gray-800';
-  }
-};
+const formatPrice = (price) => {
+  if (!price) return 'Prix non défini'
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'XOF',
+    maximumFractionDigits: 0
+  }).format(price)
+}
 
-// Obtenir le libellé pour le statut
-const getStatusLabel = (status) => {
-  switch (status) {
-    case 'open':
-      return 'Ouverte';
-    case 'in_progress':
-      return 'En cours';
-    case 'completed':
-      return 'Terminée';
-    case 'cancelled':
-      return 'Annulée';
-    default:
-      return 'Inconnue';
-  }
-};
+const getInitials = (firstName, lastName) => {
+  if (!firstName && !lastName) return '??'
+  return `${firstName ? firstName.charAt(0) : ''}${lastName ? lastName.charAt(0) : ''}`.toUpperCase()
+}
 
-// Actions
-const editRequest = () => {
-  router.push(`/requests/edit/${route.params.id}`);
-  showActionsMenu.value = false;
-};
-
-const deleteRequest = async () => {
-  if (!confirm('Êtes-vous sûr de vouloir supprimer cette demande ?')) return;
-  
+// Initialisation
+onMounted(async () => {
   try {
-    const { error: deleteError } = await supabase
-      .from('requests')
-      .delete()
-      .eq('id', route.params.id);
-    
-    if (deleteError) throw deleteError;
-    
-    router.push('/requests');
+    await Promise.all([
+      fetchRequest(),
+      fetchProposals(),
+      fetchLikes()
+    ])
   } catch (err) {
-    console.error('Error deleting request:', err);
-    alert("Une erreur est survenue lors de la suppression de la demande");
+    console.error('Error during initialization:', err)
+  } finally {
+    isLoading.value = false
   }
-  
-  showActionsMenu.value = false;
-};
+})
 
-const contactClient = () => {
-  // Implémenter la logique pour contacter le client
-  router.push(`/messages/new?request=${route.params.id}`);
-};
+definePageMeta({
+  middleware: ['auth'],
+  layout: 'account'
+})
+</script>
 
-// Fermer le menu d'actions en cliquant ailleurs
-const handleClickOutside = (event) => {
-  if (showActionsMenu.value && !event.target.closest('.actions-menu')) {
-    showActionsMenu.value = false;
-  }
-};
-
-// Cycle de vie
-onMounted(() => {
-  fetchRequest();
-  document.addEventListener('click', handleClickOutside);
-});
-
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside);
-});
-</script> 
+<style scoped>
+.prose {
+  max-width: 65ch;
+  color: inherit;
+}
+</style> 

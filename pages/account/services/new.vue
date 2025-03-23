@@ -4,14 +4,14 @@
     <header class="sticky top-0 z-10 bg-white/80 backdrop-blur-sm border-b border-gray-100">
       <div class="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
         <div class="flex items-center">
-          <NuxtLink 
-            to="/account/services" 
+      <NuxtLink 
+        to="/account/services" 
             class="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors"
-          >
+      >
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 19l-7-7 7-7" />
             </svg>
-          </NuxtLink>
+      </NuxtLink>
           <h1 class="ml-6 text-xl font-bold">Nouveau service</h1>
         </div>
       </div>
@@ -26,7 +26,7 @@
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
         <p class="text-gray-500">Chargement...</p>
-      </div>
+    </div>
 
       <!-- Error state -->
       <div v-else-if="error" class="bg-red-50 p-4 rounded-lg text-red-700 my-6">
@@ -79,7 +79,7 @@
         </div>
 
         <!-- Description -->
-        <div>
+            <div>
           <FloatingLabelInput
             id="description"
             label="Description"
@@ -122,7 +122,7 @@
                 </svg>
               </button>
             </div>
-            
+
             <!-- Dropdown -->
             <div 
               v-if="showCategoryDropdown"
@@ -141,10 +141,10 @@
           <p class="mt-1 text-xs text-gray-500 px-1">
             Choisissez la catégorie qui correspond le mieux à votre service.
           </p>
-        </div>
+          </div>
 
         <!-- Prix -->
-        <div>
+          <div>
           <FloatingLabelInput
             id="price"
             label="Prix"
@@ -155,12 +155,12 @@
             :step="0.01"
             :precision="2"
             currency="FCFA"
-            required
-          />
+              required
+            />
           <p class="mt-1 text-xs text-gray-500 px-1">
             Prix de votre service en FCFA.
-          </p>
-        </div>
+            </p>
+      </div>
 
         <!-- Durée -->
         <div>
@@ -196,7 +196,7 @@
                 Localisation
               </label>
               
-              <button
+              <button 
                 id="location"
                 type="button"
                 @click="showLocationDropdown = !showLocationDropdown"
@@ -209,8 +209,8 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-            </div>
-            
+          </div>
+
             <!-- Dropdown -->
             <div 
               v-if="showLocationDropdown"
@@ -256,51 +256,51 @@
               </div>
               <p class="text-xs text-gray-500">
                 PNG, JPG, GIF jusqu'à 5MB
-              </p>
-            </div>
-          </div>
-          
+          </p>
+        </div>
+      </div>
+
           <!-- Prévisualisation des images -->
           <div v-if="imageFiles.length > 0" class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
             <div 
               v-for="(file, index) in imageFiles" 
-              :key="index" 
+                :key="index"
               class="relative group rounded-lg overflow-hidden bg-gray-100 aspect-w-1 aspect-h-1"
-            >
-              <img 
+              >
+                <img 
                 :src="getImagePreview(file)" 
                 alt="Prévisualisation" 
                 class="object-cover w-full h-full"
-              />
-              <button 
+                />
+                <button 
                 type="button"
-                @click="removeImage(index)"
+                  @click="removeImage(index)"
                 class="absolute top-2 right-2 bg-white rounded-full p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
-              >
+                >
                 <svg class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
-              </button>
-            </div>
+                </button>
           </div>
         </div>
+      </div>
 
         <!-- Statut -->
         <div class="flex items-start">
-          <div class="flex items-center h-5">
-            <input 
+            <div class="flex items-center h-5">
+              <input 
               id="is_active" 
-              type="checkbox" 
+                type="checkbox" 
               v-model="service.is_active" 
               class="focus:ring-black h-4 w-4 text-black border-gray-300 rounded"
-            />
-          </div>
+              />
+            </div>
           <div class="ml-3 text-sm">
             <label for="is_active" class="font-medium text-gray-700">Activer ce service</label>
             <p class="text-gray-500">Le service sera visible et disponible pour les clients.</p>
           </div>
-        </div>
-
+          </div>
+          
         <!-- Boutons d'action -->
         <div class="flex justify-end space-x-3 pt-4">
           <NuxtLink 
@@ -309,8 +309,8 @@
           >
             Annuler
           </NuxtLink>
-          <button 
-            type="submit" 
+            <button 
+              type="submit"
             class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
             :disabled="isSubmitting"
           >
@@ -319,9 +319,9 @@
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
             {{ isSubmitting ? 'Création en cours...' : 'Créer le service' }}
-          </button>
-        </div>
-      </form>
+            </button>
+      </div>
+    </form>
     </main>
   </div>
 </template>
@@ -464,7 +464,6 @@ const submitService = async () => {
     const { data: serviceData, error: serviceError } = await supabase
       .from('services')
       .insert({
-        user_id: user.value.id,
         title: service.value.title,
         description: service.value.description,
         category_id: service.value.category_id,
@@ -472,7 +471,8 @@ const submitService = async () => {
         duration: service.value.duration,
         location_type: service.value.location_type,
         is_active: service.value.is_active,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        expert_id: user.value.id
       })
       .select()
       .single();

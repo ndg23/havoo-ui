@@ -1,275 +1,446 @@
 <template>
-  <div class="bg-white min-h-screen">
-    <!-- Navbar component -->
-    <NavbarMain />
-    
-    <!-- Account layout container -->
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-8">
-      <!-- Header section -->
-      <div class="mb-8">
-        <h1 class="text-2xl font-medium text-gray-800">{{ pageTitle }}</h1>
-        <p class="mt-2 text-gray-500 max-w-2xl">
-          {{ pageDescription }}
-        </p>
-      </div>
-
-      <!-- Loading state -->
-      <div v-if="isLoading" class="flex justify-center py-12">
-        <svg class="animate-spin h-8 w-8 text-primary-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-      </div>
-
-      <div v-else class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <!-- Left column - Profile and navigation -->
-        <div class="lg:col-span-1">
-          <!-- Profile card -->
-          <div class="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden mb-6">
-            <div class="bg-primary-50 p-6 flex flex-col items-center">
-              <!-- Profile picture or default avatar -->
-              <div v-if="profile.avatar_url" class="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-sm mb-3">
-                <img :src="profile.avatar_url" alt="Photo de profil" class="w-full h-full object-cover" />
-              </div>
-              <div v-else class="w-24 h-24 rounded-full bg-white flex items-center justify-center text-2xl font-medium text-primary-600 border-4 border-white shadow-sm mb-3">
-                {{ getInitials(profile.first_name, profile.last_name) }}
+  <NuxtLayout name="default">
+    <template #default>
+      <div class="min-h-screen bg-white dark:bg-gray-900 flex flex-col">
+        <!-- Navigation principale style Twitter -->
+        <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+          <div class="max-w-5xl mx-auto px-4">
+            <!-- Navigation desktop -->
+            <div class="hidden md:flex">
+              <div class="flex">
+                <NuxtLink 
+                  to="/account" 
+                  class="twitter-tab"
+                  :class="[$route.path === '/account' ? 'active' : '']"
+                >
+                  <span>Tableau de bord</span>
+                </NuxtLink>
+                
+                <NuxtLink 
+                  to="/account/requests" 
+                  class="twitter-tab"
+                  :class="[$route.path.includes('/account/requests') ? 'active' : '']"
+                >
+                  <span>Demandes</span>
+                </NuxtLink>
+                
+                <NuxtLink 
+                  v-if="isExpert"
+                  to="/account/services" 
+                  class="twitter-tab"
+                  :class="[$route.path.includes('/account/services') ? 'active' : '']"
+                >
+                  <span>Services</span>
+                </NuxtLink>
+                
+                <NuxtLink 
+                  to="/account/contracts" 
+                  class="twitter-tab"
+                  :class="[$route.path.includes('/account/contracts') ? 'active' : '']"
+                >
+                  <span>Contrats</span>
+                </NuxtLink>
+                
+                <NuxtLink 
+                  to="/account/messages" 
+                  class="twitter-tab relative"
+                  :class="[$route.path.includes('/account/messages') ? 'active' : '']"
+                >
+                  <span>Messages</span>
+                  <span 
+                    v-if="unreadCount > 0" 
+                    class="twitter-badge"
+                  >
+                    {{ unreadCount }}
+                  </span>
+                </NuxtLink>
               </div>
               
-              <!-- User name and status -->
-              <h2 class="text-lg font-medium text-gray-800">{{ profile.first_name }} {{ profile.last_name }}</h2>
-              <p class="text-gray-500 text-sm">{{ profile.email }}</p>
-              
-              <!-- Expert badge if applicable -->
-              <div v-if="profile.is_expert" class="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
-                Expert
+              <!-- Bouton d'action principal avec dropdown correctement positionné -->
+              <div class="ml-auto relative">
+                <button 
+                  @click="showQuickActions = !showQuickActions"
+                  class="twitter-button"
+                >
+                  <span>Créer</span>
+                  <ChevronDown v-if="showQuickActions" class="h-4 w-4 ml-1" />
+                  <ChevronUp v-else class="h-4 w-4 ml-1" />
+                </button>
+                
+                <!-- Menu déroulant des actions rapides (maintenant correctement positionné) -->
+                <div 
+                  v-if="showQuickActions" 
+                  class="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-lg py-2 z-20 border border-gray-200 dark:border-gray-700 animate-scaleUp"
+                >
+                  <NuxtLink 
+                    to="/requests/new" 
+                    class="twitter-dropdown-item"
+                    @click="showQuickActions = false"
+                  >
+                    <div class="flex items-center">
+                      <div class="h-9 w-9 rounded-full bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center mr-3">
+                        <FileText class="h-5 w-5 text-primary-500 dark:text-primary-400" />
+                      </div>
+                      <div>
+                        <span class="block font-medium">Nouvelle demande</span>
+                        <span class="text-xs text-gray-500 dark:text-gray-400">Créer une demande d'expertise</span>
+                      </div>
+                    </div>
+                  </NuxtLink>
+                  
+                  <NuxtLink 
+                    v-if="isExpert"
+                    to="/account/services/new" 
+                    class="twitter-dropdown-item"
+                    @click="showQuickActions = false"
+                  >
+                    <div class="flex items-center">
+                      <div class="h-9 w-9 rounded-full bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center mr-3">
+                        <Briefcase class="h-5 w-5 text-primary-500 dark:text-primary-400" />
+                      </div>
+                      <div>
+                        <span class="block font-medium">Nouveau service</span>
+                        <span class="text-xs text-gray-500 dark:text-gray-400">Proposer un service d'expertise</span>
+                      </div>
+                    </div>
+                  </NuxtLink>
+                </div>
               </div>
             </div>
             
-            <!-- Profile completion -->
-            <div class="p-6">
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-sm font-medium text-gray-700">Profil complété</span>
-                <span class="text-sm font-medium text-primary-600">{{ profileCompletionPercent }}%</span>
-              </div>
-              <div class="w-full bg-gray-100 rounded-full h-2">
-                <div 
-                  class="bg-primary-500 h-2 rounded-full" 
-                  :style="{ width: `${profileCompletionPercent}%` }"
-                ></div>
-              </div>
-              
-              <!-- Missing profile items -->
-              <div v-if="profileCompletionPercent < 100" class="mt-3">
-                <p class="text-xs text-gray-500 mb-2">Pour compléter votre profil :</p>
-                <ul class="space-y-1">
-                  <li v-if="!profile.phone" class="text-xs text-gray-600 flex items-center">
-                    <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Ajouter un numéro de téléphone
-                  </li>
-                  <li v-if="!profile.avatar_url" class="text-xs text-gray-600 flex items-center">
-                    <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Ajouter une photo de profil
-                  </li>
-                  <li v-if="!profile.bio" class="text-xs text-gray-600 flex items-center">
-                    <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Ajouter une bio
-                  </li>
-                </ul>
-              </div>
-              
-              <!-- Edit profile button -->
-              <div class="mt-4">
+            <!-- Navigation mobile (tabs) -->
+            <div class="md:hidden overflow-x-auto hide-scrollbar">
+              <div class="flex">
                 <NuxtLink 
-                  to="/account/edit-profile" 
-                  class="w-full inline-flex justify-center items-center px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                  to="/account" 
+                  class="twitter-tab-mobile"
+                  :class="[$route.path === '/account' ? 'active' : '']"
                 >
-                  <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                  Modifier mon profil
+                  <span>Tableau</span>
                 </NuxtLink>
+                
+                <NuxtLink 
+                  to="/account/requests" 
+                  class="twitter-tab-mobile"
+                  :class="[$route.path.includes('/account/requests') ? 'active' : '']"
+                >
+                  <span>Demandes</span>
+                </NuxtLink>
+                
+                <NuxtLink 
+                  v-if="isExpert"
+                  to="/account/services" 
+                  class="twitter-tab-mobile"
+                  :class="[$route.path.includes('/account/services') ? 'active' : '']"
+                >
+                  <span>Services</span>
+                </NuxtLink>
+                
+                <NuxtLink 
+                  to="/account/contracts" 
+                  class="twitter-tab-mobile"
+                  :class="[$route.path.includes('/account/contracts') ? 'active' : '']"
+                >
+                  <span>Contrats</span>
+                </NuxtLink>
+                
+                <NuxtLink 
+                  to="/account/messages" 
+                  class="twitter-tab-mobile relative"
+                  :class="[$route.path.includes('/account/messages') ? 'active' : '']"
+                >
+                  <span>Messages</span>
+                  <span 
+                    v-if="unreadCount > 0" 
+                    class="twitter-badge-mobile"
+                  >
+                    {{ unreadCount }}
+                  </span>
+                </NuxtLink>
+              </div>
               </div>
             </div>
           </div>
           
-          <!-- Account navigation -->
-          <div class="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
-            <div class="px-5 py-4 border-b border-gray-100">
-              <h3 class="text-sm font-medium text-gray-700">Navigation</h3>
+        <!-- Alerte de vérification (si expert non vérifié) -->
+        <div 
+          v-if="isExpert && !isVerified" 
+          class="bg-amber-50 dark:bg-amber-900/10 border-b border-amber-100 dark:border-amber-800/30"
+        >
+          <div class="max-w-5xl mx-auto px-4 py-2 flex items-center justify-between">
+            <div class="flex items-center">
+              <AlertTriangle class="h-4 w-4 text-amber-500 mr-2" />
+              <span class="text-sm text-amber-700 dark:text-amber-400">
+                Votre compte expert n'est pas encore vérifié
+              </span>
             </div>
-            <div class="divide-y divide-gray-100">
               <NuxtLink 
-                v-for="(link, index) in accountLinks" 
-                :key="index"
-                :to="link.path"
-                class="flex items-center px-5 py-3.5 hover:bg-gray-50 transition-colors"
-                :class="{ 'bg-primary-50': isActiveRoute(link.path) }"
-              >
-                <span class="w-8 h-8 rounded-lg flex items-center justify-center"
-                      :class="isActiveRoute(link.path) ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-500'"
-                >
-                  <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path :d="link.icon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
-                  </svg>
-                </span>
-                <span class="ml-3 text-sm font-medium" 
-                      :class="isActiveRoute(link.path) ? 'text-primary-700' : 'text-gray-700'"
-                >
-                  {{ link.name }}
-                </span>
-                <svg v-if="isActiveRoute(link.path)" class="ml-auto w-5 h-5 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
+              to="/account/verify" 
+              class="text-xs font-medium text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300"
+            >
+              Vérifier maintenant
               </NuxtLink>
-            </div>
           </div>
         </div>
         
-        <!-- Right column - Page content -->
-        <div class="lg:col-span-3">
+        <!-- Contenu principal -->
+        <div class="flex-1">
           <slot />
         </div>
+        
+        <!-- Bouton d'action flottant (mobile uniquement) -->
+        <div class="fixed bottom-6 right-6 md:hidden">
+          <button 
+            class="twitter-fab"
+            @click="showMobileActions = !showMobileActions"
+          >
+            <Plus v-if="!showMobileActions" class="h-6 w-6" />
+            <X v-else class="h-6 w-6" />
+          </button>
+          
+          <!-- Actions flottantes -->
+          <div 
+            v-if="showMobileActions" 
+            class="absolute bottom-16 right-0 space-y-2 animate-slideUp"
+          >
+            <NuxtLink 
+              to="/requests/new" 
+              class="twitter-fab-action"
+              @click="showMobileActions = false"
+            >
+              <FileText class="h-4 w-4 mr-2" />
+              Nouvelle demande
+            </NuxtLink>
+            
+            <NuxtLink 
+              v-if="isExpert"
+              to="/account/services/new" 
+              class="twitter-fab-action"
+              @click="showMobileActions = false"
+            >
+              <Briefcase class="h-4 w-4 mr-2" />
+              Nouveau service
+            </NuxtLink>
       </div>
     </div>
   </div>
+    </template>
+  </NuxtLayout>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
-import { useSupabaseClient, useRoute, useRouter } from '#imports'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { useSupabaseClient, useRouter } from '#imports'
+import { 
+  FileText, 
+  Briefcase, 
+  MessageSquare, 
+  Plus, 
+  X, 
+  AlertTriangle,
+  ChevronDown,
+  ChevronUp
+} from 'lucide-vue-next'
 
-// Props for page metadata
-const props = defineProps({
-  title: {
-    type: String,
-    default: 'Mon compte'
-  },
-  description: {
-    type: String,
-    default: 'Gérez votre profil, suivez vos demandes et consultez vos statistiques'
-  }
-})
-
-// State variables
-const isLoading = ref(true)
-const profile = ref({
-  first_name: '',
-  last_name: '',
-  email: '',
-  avatar_url: null,
-  phone: null,
-  bio: null,
-  is_expert: false,
-  skills: []
-})
-
-// Supabase client
 const supabase = useSupabaseClient()
-const route = useRoute()
 const router = useRouter()
 
-// Computed properties
-const pageTitle = computed(() => props.title)
-const pageDescription = computed(() => props.description)
+// État utilisateur
+const isExpert = ref(false)
+const isVerified = ref(false)
+const unreadCount = ref(0)
 
-const profileCompletionPercent = computed(() => {
-  let completed = 0
-  let total = 3 // Base fields: name, email are assumed to be completed
-  
-  if (profile.value.avatar_url) completed++
-  if (profile.value.phone) completed++
-  if (profile.value.bio) completed++
-  
-  return Math.round((completed / total) * 100)
-})
+// État UI
+const showMobileActions = ref(false)
+const showQuickActions = ref(false)
 
-// Account navigation links
-const accountLinks = [
-  {
-    name: 'Tableau de bord',
-    path: '/account',
-    icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'
-  },
-  {
-    name: 'Mes demandes',
-    path: '/account/requests',
-    icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
-  },
-  {
-    name: 'Mes services',
-    path: '/account/services',
-    icon: 'M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'
-  },
-  {
-    name: 'Messages',
-    path: '/account/messages',
-    icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z'
-  },
-  {
-    name: 'Paramètres',
-    path: '/account/settings',
-    icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z'
+// Fermer les menus en cliquant ailleurs
+const handleClickOutside = (event) => {
+  if (showQuickActions.value && !event.target.closest('.twitter-button') && !event.target.closest('.twitter-dropdown-item')) {
+    showQuickActions.value = false
   }
-]
-
-// Check if current route is active
-const isActiveRoute = (path) => {
-  if (path === '/account') {
-    return route.path === '/account'
+  
+  if (showMobileActions.value && !event.target.closest('.twitter-fab') && !event.target.closest('.twitter-fab-action')) {
+    showMobileActions.value = false
   }
-  return route.path.startsWith(path)
 }
 
-// Methods
-const getInitials = (firstName, lastName) => {
-  return (firstName?.[0] || '') + (lastName?.[0] || '')
-}
-
-// Fetch user profile data
+// Récupérer le profil utilisateur
 const fetchUserProfile = async () => {
   try {
-    isLoading.value = true
+    const { data: { user } } = await supabase.auth.getUser()
     
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) {
-      // Redirect to login if not authenticated
-      return router.push('/login')
+    if (!user) {
+      router.push('/login')
+      return
     }
     
     const { data, error } = await supabase
       .from('profiles')
-      .select('*, user_skills(skill_id, skills(name))')
-      .eq('id', session.user.id)
+      .select('*')
+      .eq('id', user.id)
       .single()
       
     if (error) throw error
     
-    // Format skills array
-    let skills = []
-    if (data.user_skills && data.user_skills.length > 0) {
-      skills = data.user_skills.map(us => us.skills.name)
+    isExpert.value = data.is_expert
+    
+    // Vérifier le statut de vérification si expert
+    if (data.is_expert) {
+      await checkVerificationStatus()
     }
     
-    profile.value = {
-      ...data,
-      email: session.user.email,
-      skills
-    }
-  } catch (error) {
-    console.error('Error fetching profile:', error)
-  } finally {
-    isLoading.value = false
+    // Récupérer le nombre de messages non lus
+    await fetchUnreadMessages()
+  } catch (err) {
+    console.error('Error fetching user profile:', err)
   }
 }
 
-// Lifecycle hooks
+// Vérifier le statut de vérification
+const checkVerificationStatus = async () => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    const { data, error } = await supabase
+      .from('verifications')
+      .select('status')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
+    
+    if (error && error.code !== 'PGRST116') throw error
+    
+    isVerified.value = data?.status === 'approved'
+  } catch (err) {
+    console.error('Error checking verification status:', err)
+  }
+}
+
+// Récupérer le nombre de messages non lus
+const fetchUnreadMessages = async () => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    const { data, error } = await supabase
+      .from('messages')
+      .select('id', { count: 'exact' })
+      .eq('is_read', false)
+      .in('conversation_id', 
+        supabase
+          .from('conversation_participants')
+          .select('conversation_id')
+          .eq('profile_id', user.id)
+      )
+    
+    if (error) throw error
+    
+    unreadCount.value = data?.length || 0
+  } catch (err) {
+    console.error('Error fetching unread messages:', err)
+  }
+}
+
+// Initialisation
 onMounted(() => {
   fetchUserProfile()
+  document.addEventListener('click', handleClickOutside)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside)
 })
 </script>
+
+<style scoped>
+/* Tabs style Twitter */
+.twitter-tab {
+  @apply px-4 py-4 font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 relative flex items-center justify-center;
+}
+
+.twitter-tab.active {
+  @apply font-bold text-black dark:text-white;
+}
+
+.twitter-tab.active::after {
+  content: '';
+  @apply absolute bottom-0 left-0 right-0 h-1 bg-primary-500 dark:bg-primary-400 rounded-full;
+  width: 50%;
+  margin: 0 auto;
+}
+
+/* Tabs mobile */
+.twitter-tab-mobile {
+  @apply px-3 py-3 font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 relative flex items-center justify-center flex-1;
+}
+
+.twitter-tab-mobile.active {
+  @apply font-bold text-black dark:text-white;
+}
+
+.twitter-tab-mobile.active::after {
+  content: '';
+  @apply absolute bottom-0 left-0 right-0 h-1 bg-primary-500 dark:bg-primary-400 rounded-full;
+  width: 50%;
+  margin: 0 auto;
+}
+
+/* Bouton principal style Twitter */
+.twitter-button {
+  @apply py-2 px-4 bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-full flex items-center transition-colors;
+}
+
+/* Éléments du menu déroulant */
+.twitter-dropdown-item {
+  @apply block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors;
+}
+
+/* Badge de notification */
+.twitter-badge {
+  @apply absolute -top-1 -right-1 bg-primary-500 text-white text-xs rounded-full h-5 min-w-[1.25rem] flex items-center justify-center;
+}
+
+.twitter-badge-mobile {
+  @apply absolute top-1 right-1 bg-primary-500 text-white text-xs rounded-full h-4 min-w-[1rem] flex items-center justify-center;
+}
+
+/* Bouton d'action flottant */
+.twitter-fab {
+  @apply h-14 w-14 rounded-full bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center shadow-lg transition-colors;
+}
+
+/* Actions du bouton flottant */
+.twitter-fab-action {
+  @apply flex items-center bg-primary-500 text-white rounded-full pl-3 pr-5 py-2 shadow-md;
+}
+
+/* Hide scrollbar */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
+/* Animation pour le menu d'actions rapides */
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-scaleUp {
+  animation: scaleUp 0.2s ease forwards;
+}
+
+/* Animation pour les actions flottantes mobiles */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slideUp {
+  animation: slideUp 0.2s ease forwards;
+}
+</style>
