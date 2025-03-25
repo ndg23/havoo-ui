@@ -157,7 +157,8 @@
   
   <script setup>
   import { ref, computed, watch } from 'vue';
-  
+  import TwitterInput from '~/components/ui/TwitterInput.vue';
+
   // État du formulaire
   const email = ref('');
   const password = ref('');

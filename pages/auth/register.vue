@@ -1,522 +1,424 @@
 <template>
-  <div class="min-h-screen py-12 bg-white flex flex-col justify-center px-4 sm:px-6 lg:px-8">
+  <div class="min-h-screen bg-white dark:bg-gray-900 flex flex-col justify-center px-4 sm:px-6 lg:px-8">
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
-      <!-- <img class="mx-auto h-14 w-auto" src="/logo.svg" alt="Logo" /> -->
-      <h1 class="mt-8 text-center text-3xl font-bold tracking-tight text-gray-900">
-        Créer un compte
+      <!-- Logo ou icône (optionnel) -->
+      <div class="flex justify-center mb-6">
+        <div class="w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary-600 dark:text-primary-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+            <path d="M2 17l10 5 10-5"></path>
+            <path d="M2 12l10 5 10-5"></path>
+          </svg>
+        </div>
+      </div>
+      
+      <h1 class="text-center text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+        {{ currentStep === 1 ? 'Créer votre compte' : 'Complétez votre profil' }}
       </h1>
-      <p class="mt-2 text-center text-gray-600">
-        Ou
-        <NuxtLink to="/auth/login" class="font-medium text-primary-600 hover:text-primary-500">
-          connectez-vous
-        </NuxtLink>
-        si vous avez déjà un compte
-      </p>
+      
+      <!-- Indicateur d'étape -->
+      <div class="flex justify-center mt-4 space-x-2">
+        <div 
+          class="w-2.5 h-2.5 rounded-full transition-colors"
+          :class="currentStep >= 1 ? 'bg-primary-600 dark:bg-primary-400' : 'bg-gray-300 dark:bg-gray-700'"
+        ></div>
+        <div 
+          class="w-2.5 h-2.5 rounded-full transition-colors"
+          :class="currentStep >= 2 ? 'bg-primary-600 dark:bg-primary-400' : 'bg-gray-300 dark:bg-gray-700'"
+        ></div>
+      </div>
     </div>
 
-    <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-md">
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
       <!-- Message d'erreur -->
-      <div v-if="errorMessage" class="mb-6 rounded-lg p-4 bg-red-50 text-sm text-red-800">
+      <div v-if="errorMessage" class="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40 text-red-600 dark:text-red-400 rounded-lg p-3 text-sm">
         {{ errorMessage }}
       </div>
-
-      <!-- Boutons de connexion sociale -->
-      <div class="space-y-3">
-        <button
-          @click="socialLogin('google')"
-          type="button"
-          class="flex w-full justify-center items-center gap-3 rounded-full border border-gray-300 bg-white px-6 py-3.5 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-        >
-        <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-              </svg>
-          Continuer avec Google
-        </button>
-      </div>
-
-      <div class="relative my-8">
-        <div class="absolute inset-0 flex items-center">
-          <div class="w-full border-t border-gray-200"></div>
-        </div>
-        <div class="relative flex justify-center">
-          <span class="bg-white px-4 text-sm text-gray-500">ou</span>
-        </div>
-      </div>
-
-      <!-- Formulaire d'inscription -->
-      <form @submit.prevent="registerUser" class="space-y-5">
-        <!-- Nom et prénom -->
-        <div class="grid grid-cols-2 gap-4">
-          <FloatingLabelInput
-            id="firstName"
-            label="Prénom"
-            v-model="formData.firstName"
-            required
-            autocomplete="given-name"
-          />
-          
-          <FloatingLabelInput
-            id="lastName"
-            label="Nom"
-            v-model="formData.lastName"
-            required
-            autocomplete="family-name"
-          />
-        </div>
-        
-        <!-- Email avec validation -->
-        <div class="relative">
-          <FloatingLabelInput
-            id="email"
-            label="Email"
-            type="email"
-            v-model="formData.email"
-            required
-            autocomplete="email"
-            @blur="checkEmailExists"
-            :class="{'border-red-500': emailError}"
-          />
-          <div v-if="emailChecking" class="absolute right-3 top-1/2 -translate-y-1/2">
-            <svg class="animate-spin h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-          </div>
-          <p v-if="emailError" class="mt-1 text-sm text-red-600">{{ emailError }}</p>
-        </div>
-        
-        <!-- Mot de passe -->
-        <div class="relative">
-          <FloatingLabelInput
-            id="password"
-            label="Mot de passe"
-            :type="showPassword ? 'text' : 'password'"
-            v-model="formData.password"
-            required
-            autocomplete="new-password"
-          />
-          <button 
+      
+      <!-- Étape 1: Informations de base -->
+      <div v-if="currentStep === 1" class="animate-fade-in">
+        <!-- Boutons sociaux -->
+        <div class="space-y-3">
+          <button
+            @click="socialSignup('google')"
             type="button"
-            @click="showPassword = !showPassword"
-            class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            class="flex w-full justify-center items-center gap-3 rounded-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-6 py-3.5 text-base font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors"
           >
-            <svg v-if="showPassword" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
             </svg>
-            <svg v-else class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-            </svg>
+            Continuer avec Google
           </button>
         </div>
-        
-        <!-- Type d'utilisateur -->
-        <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
-          <!-- <h3 class="text-base font-semibold text-gray-800 mb-3">Vous êtes :</h3> -->
-          
-          <div class="grid grid-cols-2 gap-5">
-            <button 
-              type="button"
-              class="relative flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-200 overflow-hidden group"
-              :class="!formData.isExpert ? 
-                'bg-primary-50 ring-2 ring-primary-500 shadow-sm' : 
-                'bg-gray-50 hover:bg-gray-100 border border-gray-200'"
-              @click="formData.isExpert = false"
-            >
-              <div class="absolute inset-0 bg-primary-500 opacity-0 transition-opacity duration-300" 
-                   :class="!formData.isExpert ? 'opacity-5' : ''"></div>
-              
-              <input 
-                id="user" 
-                name="userType" 
-                type="radio" 
-                v-model="formData.isExpert" 
-                :value="false" 
-                class="sr-only" 
-              />
-              
-              <svg class="h-8 w-8 mb-3 transition-colors duration-200" 
-                   :class="!formData.isExpert ? 'text-primary-600' : 'text-gray-500'" 
-                   viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
-                      d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
-              </svg>
-              
-              <span class="font-bold text-base transition-colors duration-200" 
-                    :class="!formData.isExpert ? 'text-primary-800' : 'text-gray-700'">
-                Client
-              </span>
-              
-              <span class="text-xs mt-1 text-center transition-colors duration-200" 
-                    :class="!formData.isExpert ? 'text-primary-600' : 'text-gray-500'">
-                Je cherche de l'aide
-              </span>
-              
-              <div v-if="!formData.isExpert" class="absolute top-2 right-2">
-                <svg class="h-5 w-5 text-primary-600" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                </svg>
-              </div>
-            </button>
-            
-            <button 
-              type="button"
-              class="relative flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-200 overflow-hidden group"
-              :class="formData.isExpert ? 
-                'bg-primary-50 ring-2 ring-primary-500 shadow-sm' : 
-                'bg-gray-50 hover:bg-gray-100 border border-gray-200'"
-              @click="formData.isExpert = true"
-            >
-              <div class="absolute inset-0 bg-primary-500 opacity-0 transition-opacity duration-300" 
-                   :class="formData.isExpert ? 'opacity-5' : ''"></div>
-              
-              <input 
-                id="expert" 
-                name="userType" 
-                type="radio" 
-                v-model="formData.isExpert" 
-                :value="true" 
-                class="sr-only" 
-              />
-              
-              <svg class="h-8 w-8 mb-3 transition-colors duration-200" 
-                   :class="formData.isExpert ? 'text-primary-600' : 'text-gray-500'" 
-                   viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
-                      d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z" />
-              </svg>
-              
-              <span class="font-bold text-base transition-colors duration-200" 
-                    :class="formData.isExpert ? 'text-primary-800' : 'text-gray-700'">
-                Expert
-              </span>
-              
-              <span class="text-xs mt-1 text-center transition-colors duration-200" 
-                    :class="formData.isExpert ? 'text-primary-600' : 'text-gray-500'">
-                Je propose mes services
-              </span>
-              
-              <div v-if="formData.isExpert" class="absolute top-2 right-2">
-                <svg class="h-5 w-5 text-primary-600" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                </svg>
-              </div>
-            </button>
+
+        <div class="relative my-6">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-gray-200 dark:border-gray-700"></div>
+          </div>
+          <div class="relative flex justify-center">
+            <span class="bg-white dark:bg-gray-900 px-4 text-sm text-gray-500 dark:text-gray-400">ou</span>
           </div>
         </div>
-        
-        <!-- Compétences pour les experts -->
-        <div v-if="formData.isExpert" class="space-y-3 animate-fade-in">
-          <div class="flex items-center justify-between mb-2">
-            <!-- <label class="block text-sm font-medium text-gray-700">Vos compétences</label> -->
-            <span :class="formData.skills.length >= 5 ? 'text-primary-600 font-medium' : 'text-gray-500'" class="text-xs">
-              {{ formData.skills.length }}/5
-            </span>
-          </div>
+
+        <!-- Formulaire étape 1 -->
+        <form @submit.prevent="goToStep2" class="space-y-5">
+          <TwitterInput
+            id="email"
+            v-model="form.email"
+            placeholder="Email"
+            type="email"
+            required
+          />
           
-          <!-- Sélection de compétence avec style Google -->
           <div class="relative">
-            <select 
-              id="skill" 
-              v-model="selectedSkill"
-              @change="addSkillAndReset"
-              class="input-field w-full border border-gray-300 rounded-lg px-4 py-3.5 appearance-none bg-white transition-all focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500 focus:ring-opacity-30 text-base"
-              :disabled="formData.skills.length >= 3"
+            <TwitterInput
+              id="password"
+              v-model="form.password"
+              placeholder="Mot de passe"
+              :type="showPassword ? 'text' : 'password'"
+              required
+            />
+            <button 
+              type="button" 
+              @click="showPassword = !showPassword" 
+              class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400"
             >
-              <option value="" disabled selected>Choisir des compétences</option>
-              <option 
-                v-for="skill in availableSkills.filter(s => !formData.skills.includes(s))" 
-                :key="skill" 
-                :value="skill"
-              >
-                {{ skill }}
-              </option>
-            </select>
-            
-            <!-- Icône de flèche personnalisée -->
-            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              <svg v-if="showPassword" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
               </svg>
-            </div>
+              <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </button>
           </div>
           
-          <!-- Message d'erreur compétences -->
-          <p v-if="skillsError" class="mt-1 text-sm text-red-600 flex items-center">
-            <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            {{ skillsError }}
-          </p>
+          <div class="text-sm">
+            <p class="text-gray-500 dark:text-gray-400">
+              En vous inscrivant, vous acceptez nos 
+              <NuxtLink to="/terms" class="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500">
+                conditions d'utilisation
+              </NuxtLink>
+              et notre
+              <NuxtLink to="/privacy" class="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500">
+                politique de confidentialité
+              </NuxtLink>.
+            </p>
+          </div>
           
-          <!-- Compétences sélectionnées améliorées -->
-          <div v-if="formData.skills.length > 0" class="flex flex-wrap gap-2 mt-3">
-            <div 
-              v-for="(skill, index) in formData.skills" 
-              :key="index"
-              class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-primary-100 text-primary-800 animate-fade-in group"
+          <div>
+            <button 
+              type="submit" 
+              class="w-full flex justify-center py-3 px-4 border border-transparent rounded-full text-base font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
+              :disabled="isLoading"
             >
-              {{ skill }}
-              <button 
-                type="button" 
-                @click="removeSkill(index)" 
-                class="ml-2 inline-flex items-center justify-center h-5 w-5 rounded-full bg-primary-200 text-primary-600 hover:bg-primary-300 hover:text-primary-800 focus:outline-none transition-all"
-                aria-label="Supprimer la compétence"
-              >
-                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              <span v-if="isLoading" class="flex items-center">
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
+                Chargement...
+              </span>
+              <span v-else>Continuer</span>
+            </button>
+          </div>
+        </form>
+      </div>
+      
+      <!-- Étape 2: Informations complémentaires -->
+      <div v-else-if="currentStep === 2" class="animate-fade-in">
+        <form @submit.prevent="completeSignup" class="space-y-5">
+          <div class="grid grid-cols-2 gap-4">
+            <TwitterInput
+              id="firstName"
+              v-model="form.firstName"
+              placeholder="Prénom"
+              required
+            />
+            
+            <TwitterInput
+              id="lastName"
+              v-model="form.lastName"
+              placeholder="Nom"
+              required
+            />
+          </div>
+          
+          <TwitterInput
+            id="phone"
+            v-model="form.phone"
+            placeholder="Téléphone"
+            type="tel"
+          />
+          
+          <!-- Type de compte -->
+          <div class="space-y-3">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Je suis un :
+            </label>
+            <div class="grid grid-cols-2 gap-4">
+              <button 
+                type="button"
+                @click="form.role = 'client'"
+                class="p-4 border rounded-xl text-center transition-colors"
+                :class="form.role === 'client' 
+                  ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800/40 text-primary-700 dark:text-primary-300' 
+                  : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'"
+              >
+                <div class="flex flex-col items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  <span class="font-medium">Client</span>
+                  <span class="text-xs mt-1 text-gray-500 dark:text-gray-400">Je cherche des experts</span>
+                </div>
+              </button>
+              
+              <button 
+                type="button"
+                @click="form.role = 'expert'"
+                class="p-4 border rounded-xl text-center transition-colors"
+                :class="form.role === 'expert' 
+                  ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800/40 text-primary-700 dark:text-primary-300' 
+                  : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'"
+              >
+                <div class="flex flex-col items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  <span class="font-medium">Expert</span>
+                  <span class="text-xs mt-1 text-gray-500 dark:text-gray-400">Je propose mes services</span>
+                </div>
               </button>
             </div>
           </div>
           
-          <!-- Suggestions et guide -->
-          <div v-if="formData.skills.length === 0" class="mt-2">
-            <p class="text-xs text-gray-500">Sélectionnez vos domaines d'expertise pour aider les autres utilisateurs.</p>
+          <div class="flex items-center space-x-4">
+            <button 
+              type="button" 
+              @click="currentStep = 1"
+              class="flex-1 py-3 px-4 border border-gray-300 dark:border-gray-700 rounded-full text-base font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+            >
+              Retour
+            </button>
+            
+            <button 
+              type="submit" 
+              class="flex-1 py-3 px-4 border border-transparent rounded-full text-base font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
+              :disabled="isLoading"
+            >
+              <span v-if="isLoading" class="flex items-center justify-center">
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Chargement...
+              </span>
+              <span v-else>Terminer</span>
+            </button>
           </div>
-        </div>
-        
-        <!-- Conditions d'utilisation -->
-        <div class="flex items-start mt-6">
-          <div class="flex items-center h-5">
-            <input
-              id="terms"
-              name="terms"
-              type="checkbox"
-              v-model="formData.terms"
-              class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-            />
-          </div>
-          <div class="ml-3 text-sm">
-            <label for="terms" class="text-gray-700">
-              J'accepte les <a href="/terms" class="text-primary-600 hover:text-primary-500">conditions d'utilisation</a> et la <a href="/privacy" class="text-primary-600 hover:text-primary-500">politique de confidentialité</a>
-            </label>
-          </div>
-        </div>
-
-        <!-- Bouton d'inscription -->
-        <div class="mt-6">
-          <button
-            type="submit"
-            :disabled="isLoading"
-            class="flex w-full justify-center items-center rounded-full bg-primary-600 px-6 py-3.5 text-base font-semibold text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            <span v-if="isLoading" class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-current border-t-transparent mr-2"></span>
-            Créer un compte
-          </button>
-        </div>
-      </form>
+        </form>
+      </div>
+      
+      <!-- Lien vers connexion -->
+      <div class="mt-6 text-center">
+        <p class="text-sm text-gray-600 dark:text-gray-400">
+          Vous avez déjà un compte ? 
+          <NuxtLink to="/auth/login" class="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500">
+            Se connecter
+          </NuxtLink>
+        </p>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
-import { useRouter } from '#imports'
-import { useSupabaseClient } from '#imports'
-import FloatingLabelInput from '~/components/ui/FloatingLabelInput.vue'
+import { ref, reactive } from 'vue';
+import { useRouter } from 'vue-router';
+import { useSupabaseClient } from '#imports';
+import TwitterInput from '~/components/ui/TwitterInput.vue';
+// Services
+const router = useRouter();
+const supabase = useSupabaseClient();
 
-// Données du formulaire
-const formData = ref({
-  firstName: '',
-  lastName: '',
+// État du formulaire
+const form = reactive({
   email: '',
   password: '',
-  isExpert: false,
-  skills: [],
-  terms: false
-})
+  firstName: '',
+  lastName: '',
+  phone: '',
+  role: 'client' // Par défaut
+});
 
-// Variables d'état
-const availableSkills = ref([])
-const isLoading = ref(false)
-const emailChecking = ref(false)
-const errorMessage = ref('')
-const skillsError = ref('')
-const emailError = ref('')
-const showPassword = ref(false)
-const selectedSkill = ref('')
+// État de l'interface
+const currentStep = ref(1);
+const isLoading = ref(false);
+const showPassword = ref(false);
+const errorMessage = ref('');
 
-// Services
-const router = useRouter()
-const supabase = useSupabaseClient()
-
-// Chargement des compétences disponibles depuis Supabase
-onMounted(async () => {
-  try {
-    const { data, error } = await supabase
-      .from('skills')
-      .select('name')
-      .order('name')
-    
-    if (error) throw error
-    
-    if (data) {
-      availableSkills.value = data.map(skill => skill.name)
-    }
-  } catch (error) {
-    console.error('Erreur lors du chargement des compétences:', error)
-    // Fallback avec une liste de compétences par défaut
-    availableSkills.value = [
-      'Développement web', 
-      'Design', 
-      'Marketing', 
-      'Finance', 
-      'Droit', 
-      'Ressources humaines',
-      'Communication',
-      'Gestion de projet',
-      'SEO',
-      'Rédaction'
-    ]
+// Validation de l'email
+const validateEmail = () => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!form.email) {
+    errorMessage.value = 'L\'email est requis';
+    return false;
+  } else if (!emailRegex.test(form.email)) {
+    errorMessage.value = 'Veuillez entrer une adresse email valide';
+    return false;
   }
-})
+  return true;
+};
 
-// Vérification de l'email
-const checkEmailExists = async () => {
-  if (!formData.value.email || emailChecking.value) return
+// Validation du mot de passe
+const validatePassword = () => {
+  if (!form.password) {
+    errorMessage.value = 'Le mot de passe est requis';
+    return false;
+  } else if (form.password.length < 6) {
+    errorMessage.value = 'Le mot de passe doit contenir au moins 6 caractères';
+    return false;
+  }
+  return true;
+};
+
+// Passer à l'étape 2
+const goToStep2 = async () => {
+  errorMessage.value = '';
   
-  // Format d'email valide
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (!emailRegex.test(formData.value.email)) {
-    emailError.value = 'Veuillez entrer une adresse email valide'
-    return
+  // Validation des champs
+  if (!validateEmail() || !validatePassword()) {
+    return;
   }
   
-  emailChecking.value = true
-  emailError.value = ''
+  isLoading.value = true;
   
   try {
-    // Using a more reliable method to check if email exists
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('email')
-      .eq('email', formData.value.email)
-      .single()
-    
-    if (error && error.code !== 'PGRST116') {  // PGRST116 is "Not found" error
-      console.error('Error checking email:', error)
-      emailError.value = "Erreur lors de la vérification de l'email"
-    } else if (data) {
-      emailError.value = 'Cette adresse email est déjà utilisée'
-    }
-  } catch (error) {
-    console.error('Erreur lors de la vérification de l\'email:', error)
-  } finally {
-    emailChecking.value = false
-  }
-}
-
-// Méthodes
-const addSkillAndReset = () => {
-  if (selectedSkill.value && !formData.value.skills.includes(selectedSkill.value) && formData.value.skills.length < 5) {
-    formData.value.skills.push(selectedSkill.value)
-    selectedSkill.value = '' // Reset selection
-    skillsError.value = ''
-  }
-}
-
-const removeSkill = (index) => {
-  formData.value.skills.splice(index, 1)
-}
-
-const registerUser = async () => {
-  // Réinitialiser les erreurs
-  errorMessage.value = ''
-  skillsError.value = ''
-  
-  // Vérification des conditions
-  if (!formData.value.terms) {
-    errorMessage.value = 'Vous devez accepter les conditions d\'utilisation'
-    return
-  }
-  
-  // Vérification des compétences pour les experts
-  if (formData.value.isExpert && formData.value.skills.length === 0) {
-    skillsError.value = 'Veuillez ajouter au moins une compétence'
-    return
-  }
-  
-  // Vérification de l'email une dernière fois
-  if (emailError.value) {
-    errorMessage.value = emailError.value
-    return
-  }
-  
-  isLoading.value = true
-  
-  try {
-    // Créer l'utilisateur
-    const { data: authData, error } = await supabase.auth.signUp({
-      email: formData.value.email,
-      password: formData.value.password,
+    // Vérifier si l'email existe déjà
+    const { data, error } = await supabase.auth.signInWithOtp({
+      email: form.email,
       options: {
-        data: {
-          first_name: formData.value.firstName,
-          last_name: formData.value.lastName,
-          is_expert: formData.value.isExpert
-        }
+        shouldCreateUser: false
       }
-    })
+    });
     
-    if (error) throw error
-    
-    if (authData.user) {
-      // Créer le profil dans la base de données
-      const skills = formData.value.skills.length > 0 ? formData.value.skills : null
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: authData.user.id,
-          first_name: formData.value.firstName,
-          last_name: formData.value.lastName,
-          email: formData.value.email,
-          is_expert: formData.value.isExpert,
-        })
-        
-      if (profileError) throw profileError
-      
-      // Rediriger vers login après succès
-      router.push({
-        path: '/auth/login',
-        query: { message: 'Compte créé avec succès! Vérifiez votre email pour confirmer votre inscription.' }
-      })
+    if (error && !error.message.includes('User not found')) {
+      // Si l'erreur n'est pas "User not found", c'est une autre erreur
+      throw error;
     }
+    
+    // Si aucune erreur ou si l'erreur est "User not found", l'email est disponible
+    currentStep.value = 2;
   } catch (error) {
-    console.error('Erreur d\'inscription:', error)
-    errorMessage.value = error.message || 'Une erreur est survenue lors de l\'inscription'
+    console.error('Erreur lors de la vérification de l\'email:', error);
+    errorMessage.value = 'Cet email est déjà utilisé. Veuillez vous connecter ou utiliser un autre email.';
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 
-const socialLogin = async (provider) => {
+// Inscription avec un fournisseur social
+const socialSignup = async (provider) => {
   try {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`
+        redirectTo: `${window.location.origin}/auth/callback?signup=true`
       }
-    })
+    });
     
-    if (error) throw error
+    if (error) throw error;
   } catch (error) {
-    console.error(`Erreur de connexion avec ${provider}:`, error)
-    errorMessage.value = `Erreur de connexion avec ${provider}`
+    console.error(`Erreur de connexion avec ${provider}:`, error);
+    errorMessage.value = `Erreur de connexion avec ${provider}`;
   }
-}
+};
+
+// Finaliser l'inscription
+const completeSignup = async () => {
+  errorMessage.value = '';
+  
+  // Validation des champs
+  if (!form.firstName || !form.lastName) {
+    errorMessage.value = 'Veuillez remplir tous les champs obligatoires';
+    return;
+  }
+  
+  isLoading.value = true;
+  
+  try {
+    // Créer le compte utilisateur
+    const { data, error } = await supabase.auth.signUp({
+      email: form.email,
+      password: form.password,
+      options: {
+        data: {
+          first_name: form.firstName,
+          last_name: form.lastName,
+          role: form.role
+        }
+      }
+    });
+    
+    if (error) throw error;
+    
+    if (!data.user) {
+      throw new Error('Erreur lors de la création du compte');
+    }
+    
+    // Mettre à jour le profil avec des informations supplémentaires
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({
+        phone: form.phone,
+        is_expert: form.role === 'expert'
+      })
+      .eq('id', data.user.id);
+    
+    if (profileError) throw profileError;
+    
+    // Rediriger selon le rôle
+    if (form.role === 'expert') {
+      router.push('/auth/expert-onboarding');
+    } else {
+      // Rediriger vers la page de confirmation
+      router.push('/auth/confirm-email?email=' + encodeURIComponent(form.email));
+    }
+    
+  } catch (error) {
+    console.error('Erreur lors de l\'inscription:', error);
+    errorMessage.value = error.message || 'Une erreur est survenue lors de l\'inscription';
+  } finally {
+    isLoading.value = false;
+  }
+};
 </script>
 
 <style scoped>
-.animate-fade-in {
-  animation: fadeIn 0.2s ease-out;
+/* Animation de transition entre les étapes */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

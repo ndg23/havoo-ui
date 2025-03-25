@@ -1,9 +1,9 @@
 <template>
-  <div class=" mx-auto px-4 py-8">
+  <div class="max-w-3xl mx-auto px-4 py-8">
     <!-- En-tête de la page -->
     <div class="mb-8">
       <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Modifier mon profil</h1>
-      <p class="text-gray-600 dark:text-gray-400 mt-1">Mettez à jour vos informations personnelles et vos préférences</p>
+      <p class="text-gray-600 dark:text-gray-400 mt-1">Personnalisez vos informations pour vous présenter</p>
     </div>
     
     <!-- Alerte de statut -->
@@ -17,35 +17,28 @@
     />
     
     <!-- Section chargement -->
-    <div v-if="isLoading" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-16 animate-pulse shadow-sm">
+    <div v-if="isLoading" class="bg-white dark:bg-gray-800 rounded-xl p-16 shadow-sm">
       <div class="flex flex-col items-center justify-center">
         <div class="h-10 w-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
         <p class="mt-4 text-gray-600 dark:text-gray-400 font-medium">Chargement de vos informations...</p>
       </div>
     </div>
     
-    <form v-else @submit.prevent="updateProfile" class="space-y-8">
+    <form v-else @submit.prevent="updateProfile" class="space-y-6">
       <!-- Photo de profil -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
-        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
-          <h2 class="text-lg font-medium text-gray-900 dark:text-white flex items-center">
-            <Image class="h-5 w-5 mr-2 text-primary-600 dark:text-primary-400" />
-            Photo de profil
-          </h2>
-        </div>
-        
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
         <div class="p-6">
           <div class="flex flex-col md:flex-row items-center gap-6">
             <div class="relative">
               <img 
                 :src="avatarPreview || form.profileImage || '/img/default-avatar.png'" 
                 alt="Photo de profil"
-                class="w-28 h-28 rounded-full object-cover border-2 border-white dark:border-gray-700 shadow-sm"
+                class="w-28 h-28 rounded-full object-cover border-4 border-white dark:border-gray-800 shadow-sm"
               />
               <button 
                 type="button"
                 @click="$refs.fileInput.click()"
-                class="absolute bottom-0 right-0 w-9 h-9 rounded-full bg-primary-600 flex items-center justify-center border-2 border-white dark:border-gray-800 shadow-md hover:bg-primary-700 transition-colors"
+                class="absolute bottom-0 right-0 w-9 h-9 rounded-full bg-primary-600 flex items-center justify-center border-2 border-white dark:border-gray-800 shadow hover:bg-primary-700 transition-all"
               >
                 <Camera class="w-5 h-5 text-white" />
               </button>
@@ -54,15 +47,14 @@
             <div>
               <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Photo de profil</h3>
               <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                Une photo claire de votre visage aidera les clients à vous reconnaître. <br>
-                Formats acceptés: JPG, PNG, GIF (max 2MB)
+                Une photo claire de votre visage aidera les clients à vous reconnaître
               </p>
               
               <div class="flex flex-wrap gap-3">
                 <button 
                   type="button"
                   @click="$refs.fileInput.click()"
-                  class="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-full hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors flex items-center"
+                  class="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-full hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors flex items-center"
                 >
                   <Upload class="h-4 w-4 mr-1.5" />
                   Télécharger
@@ -72,7 +64,7 @@
                   v-if="avatarFile || avatarPreview"
                   type="button"
                   @click="removeAvatar"
-                  class="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-red-600 dark:text-red-400 text-sm font-medium rounded-full hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors flex items-center"
+                  class="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-700 text-red-600 dark:text-red-400 text-sm font-medium rounded-full hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors flex items-center"
                 >
                   <Trash2 class="h-4 w-4 mr-1.5" />
                   Supprimer
@@ -92,131 +84,149 @@
       </div>
       
       <!-- Informations personnelles -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
-        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
-          <h2 class="text-lg font-medium text-gray-900 dark:text-white flex items-center">
-            <User class="h-5 w-5 mr-2 text-primary-600 dark:text-primary-400" />
-            Informations personnelles
-          </h2>
-        </div>
-        
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm">
         <div class="p-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <h2 class="text-xl font-medium text-gray-900 dark:text-white mb-4">Informations personnelles</h2>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <!-- Prénom -->
             <div>
-              <FloatingLabelInput
+              <label for="first_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Prénom
+              </label>
+              <TwitterInput
                 id="first_name"
-                label="Prénom"
                 v-model="form.firstName"
+                placeholder="Votre prénom"
                 required
               />
             </div>
             
             <!-- Nom -->
             <div>
-              <FloatingLabelInput
+              <label for="last_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Nom
+              </label>
+              <TwitterInput
                 id="last_name"
-                label="Nom"
                 v-model="form.lastName"
+                placeholder="Votre nom"
                 required
               />
             </div>
             
             <!-- Email -->
             <div>
-              <FloatingLabelInput
+              <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Email
+              </label>
+              <TwitterInput
                 id="email"
-                label="Email"
-                type="email"
                 v-model="form.email"
+                type="email"
+                placeholder="votre@email.com"
                 disabled
               />
               <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">L'email ne peut pas être modifié</p>
             </div>
             
+            <!-- Téléphone -->
+            <div>
+              <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Téléphone
+              </label>
+              <TwitterInput
+                id="phone"
+                v-model="form.phone"
+                type="tel"
+                placeholder="Votre numéro de téléphone"
+              />
+            </div>
+            
             <!-- Date de naissance -->
             <div>
-              <FloatingLabelInput
+              <label for="birthdate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Date de naissance
+              </label>
+              <TwitterInput
                 id="birthdate"
-                label="Date de naissance"
-                type="date"
                 v-model="form.birthdate"
+                type="date"
               />
             </div>
             
             <!-- Genre -->
             <div>
-              <FloatingLabelInput
+              <label for="gender" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Genre
+              </label>
+              <select
                 id="gender"
-                label="Genre"
                 v-model="form.gender"
-                as="select"
+                class="w-full px-4 py-2.5 rounded-full border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="male">Homme</option>
                 <option value="female">Femme</option>
                 <option value="other">Autre</option>
                 <option value="prefer_not_to_say">Préfère ne pas préciser</option>
-              </FloatingLabelInput>
-            </div>
-            
-            <!-- Téléphone -->
-            <div>
-              <FloatingLabelInput
-                id="phone"
-                label="Téléphone"
-                type="tel"
-                v-model="form.phone"
-              />
+              </select>
             </div>
           </div>
         </div>
       </div>
       
       <!-- Coordonnées -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
-        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
-          <h2 class="text-lg font-medium text-gray-900 dark:text-white flex items-center">
-            <MapPin class="h-5 w-5 mr-2 text-primary-600 dark:text-primary-400" />
-            Coordonnées
-          </h2>
-        </div>
-        
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm">
         <div class="p-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <h2 class="text-xl font-medium text-gray-900 dark:text-white mb-4">Coordonnées</h2>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <!-- Adresse -->
             <div class="md:col-span-2">
-              <FloatingLabelInput
+              <label for="address" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Adresse
+              </label>
+              <TwitterInput
                 id="address"
-                label="Adresse"
                 v-model="form.address"
+                placeholder="Votre adresse"
               />
             </div>
             
             <!-- Ville -->
             <div>
-              <FloatingLabelInput
+              <label for="city" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Ville
+              </label>
+              <TwitterInput
                 id="city"
-                label="Ville"
                 v-model="form.city"
+                placeholder="Votre ville"
               />
             </div>
             
             <!-- Pays -->
             <div>
-              <FloatingLabelInput
+              <label for="country" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Pays
+              </label>
+              <TwitterInput
                 id="country"
-                label="Pays"
                 v-model="form.country"
+                placeholder="Votre pays"
               />
             </div>
             
             <!-- Site web -->
             <div class="md:col-span-2">
-              <FloatingLabelInput
+              <label for="website" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Site web
+              </label>
+              <TwitterInput
                 id="website"
-                label="Site web"
-                type="url"
                 v-model="form.website"
+                type="url"
+                placeholder="https://..."
               />
             </div>
           </div>
@@ -224,132 +234,122 @@
       </div>
       
       <!-- Biographie -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
-        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
-          <h2 class="text-lg font-medium text-gray-900 dark:text-white flex items-center">
-            <FileText class="h-5 w-5 mr-2 text-primary-600 dark:text-primary-400" />
-            Biographie
-          </h2>
-        </div>
-        
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm">
         <div class="p-6">
-          <FloatingLabelInput
-            id="bio"
-            label="Parlez-nous de vous"
-            v-model="form.bio"
-            as="textarea"
-            rows="5"
-          />
-          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            Votre biographie permettra aux autres utilisateurs de mieux vous connaître
-          </p>
+          <h2 class="text-xl font-medium text-gray-900 dark:text-white mb-4">Biographie</h2>
+          
+          <div>
+            <label for="bio" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Parlez-nous de vous
+            </label>
+            <textarea
+              id="bio"
+              v-model="form.bio"
+              rows="4"
+              placeholder="Partagez quelques informations sur vous..."
+              class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            ></textarea>
+            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400 flex justify-between">
+              <span>Votre biographie permettra aux autres utilisateurs de mieux vous connaître</span>
+              <span>{{ form.bio ? form.bio.length : 0 }}/500</span>
+            </p>
+          </div>
         </div>
       </div>
       
-      <!-- Informations professionnelles (pour les experts) -->
-      <div v-if="isExpert" class="p-6-">
-          <!-- Compétences -->
-          <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
-            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
-              <h2 class="text-lg font-medium text-gray-900 dark:text-white flex items-center">
-                <Briefcase class="h-5 w-5 mr-2 text-primary-600 dark:text-primary-400" />
-                Compétences
-              </h2>
-            </div>
-            
-            <div class="p-6">
-              <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                Ajoutez les compétences que vous maîtrisez pour aider les clients à vous trouver plus facilement.
-              </p>
-              
-              <!-- Dropdown style Google -->
-              <div class="relative mb-6">
-                <div class="flex flex-wrap gap-2 p-2 border border-gray-300 dark:border-gray-600 rounded-lg min-h-[56px] focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-primary-500">
-                  <!-- Compétences sélectionnées -->
-                  <div 
-                    v-for="skill in selectedSkills" 
-                    :key="skill.id"
-                    class="inline-flex items-center px-2.5 py-1.5 rounded-full text-sm font-medium bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200"
-                  >
-                    {{ skill.name }}
+      <!-- Compétences (pour les experts) -->
+      <div v-if="isExpert" class="bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+        <div class="p-6">
+          <h2 class="text-xl font-medium text-gray-900 dark:text-white mb-4">Compétences</h2>
+          
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            Ajoutez les compétences que vous maîtrisez pour aider les clients à vous trouver plus facilement.
+          </p>
+          
+          <!-- Sélecteur de compétences -->
+          <div class="mb-6">
+            <div class="flex flex-wrap gap-2 p-3 border border-gray-200 dark:border-gray-700 rounded-xl min-h-[56px] focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-primary-500">
+              <!-- Compétences sélectionnées -->
+              <div 
+                v-for="skill in selectedSkills" 
+                :key="skill.id"
+                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300"
+              >
+                {{ skill.name }}
                 <button 
                   type="button"
-                      @click="removeSkill(skill)"
-                      class="ml-1 inline-flex items-center justify-center w-4 h-4 rounded-full text-primary-600 dark:text-primary-400 hover:bg-primary-200 dark:hover:bg-primary-800 focus:outline-none"
+                  @click="removeSkill(skill)"
+                  class="ml-1.5 inline-flex items-center justify-center w-4 h-4 rounded-full text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-800/50 focus:outline-none"
                 >
-                      <X class="h-3 w-3" />
+                  <X class="h-3 w-3" />
                 </button>
-            </div>
-            
-                  <!-- Dropdown trigger -->
-                  <div class="relative flex-grow">
-                    <select
-                      v-model="selectedSkillId"
-                      @change="addSelectedSkill"
-                      class="w-full py-1.5 px-2 bg-transparent border-0 focus:ring-0 focus:outline-none text-gray-700 dark:text-gray-300 appearance-none"
-                    >
-                      <option value="" disabled selected>Ajouter une compétence...</option>
-                      <optgroup 
-                        v-for="category in skillCategories" 
-                        :key="category.id" 
-                        :label="category.name"
-                      >
-                        <option 
-                          v-for="skill in category.skills" 
-                          :key="skill.id" 
-                          :value="skill.id"
-                          :disabled="isSkillSelected(skill.id)"
-                        >
-                          {{ skill.name }}
-                        </option>
-                      </optgroup>
-                      <optgroup label="Autres compétences">
-                        <option 
-                          v-for="skill in uncategorizedSkills" 
-                          :key="skill.id" 
-                          :value="skill.id"
-                          :disabled="isSkillSelected(skill.id)"
-                        >
-                          {{ skill.name }}
-                        </option>
-                      </optgroup>
-                    </select>
-        </div>
-      </div>
-      
-                <div v-if="selectedSkills.length === 0" class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                  Sélectionnez au moins une compétence pour améliorer votre visibilité
-        </div>
-            </div>
-            
-              <!-- Suggestions de compétences populaires -->
-              <div>
-                <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Suggestions populaires :</h3>
-                <div class="flex flex-wrap gap-2">
-                  <button 
-                    v-for="skill in popularSkills" 
-                    :key="skill.id"
-                    type="button"
-                    @click="addSkill(skill)"
-                    :disabled="isSkillSelected(skill.id)"
-                    class="px-3 py-1 text-sm rounded-full border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              </div>
+              
+              <!-- Dropdown trigger -->
+              <div class="relative flex-grow">
+                <select
+                  v-model="selectedSkillId"
+                  @change="addSelectedSkill"
+                  class="w-full py-1.5 px-2 bg-transparent border-0 focus:ring-0 focus:outline-none text-gray-700 dark:text-gray-300 appearance-none"
+                >
+                  <option value="" disabled selected>Ajouter une compétence...</option>
+                  <optgroup 
+                    v-for="category in skillCategories" 
+                    :key="category.id" 
+                    :label="category.name"
                   >
-                    + {{ skill.name }}
-                  </button>
+                    <option 
+                      v-for="skill in category.skills" 
+                      :key="skill.id" 
+                      :value="skill.id"
+                      :disabled="isSkillSelected(skill.id)"
+                    >
+                      {{ skill.name }}
+                    </option>
+                  </optgroup>
+                  <optgroup label="Autres compétences">
+                    <option 
+                      v-for="skill in uncategorizedSkills" 
+                      :key="skill.id" 
+                      :value="skill.id"
+                      :disabled="isSkillSelected(skill.id)"
+                    >
+                      {{ skill.name }}
+                    </option>
+                  </optgroup>
+                </select>
               </div>
-              </div>
+            </div>
+            
+            <div v-if="selectedSkills.length === 0" class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+              Sélectionnez au moins une compétence pour améliorer votre visibilité
+            </div>
+          </div>
+          
+          <!-- Suggestions de compétences populaires -->
+          <div>
+            <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Suggestions populaires :</h3>
+            <div class="flex flex-wrap gap-2">
+              <button 
+                v-for="skill in popularSkills" 
+                :key="skill.id"
+                type="button"
+                @click="addSkill(skill)"
+                :disabled="isSkillSelected(skill.id)"
+                class="px-3 py-1.5 text-sm rounded-full border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                + {{ skill.name }}
+              </button>
             </div>
           </div>
         </div>
-      
-      
-     
+      </div>
       
       <!-- Boutons d'action -->
       <div class="flex flex-wrap items-center justify-end gap-3 mt-8">
         <NuxtLink 
           to="/account" 
-          class="px-6 py-2.5 border border-gray-300 dark:border-gray-600 rounded-full text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          class="px-6 py-2.5 border border-gray-200 dark:border-gray-700 rounded-full text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
         >
           Annuler
         </NuxtLink>
@@ -357,14 +357,14 @@
         <button 
           type="button" 
           @click="resetForm"
-          class="px-6 py-2.5 border border-gray-300 dark:border-gray-600 rounded-full text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          class="px-6 py-2.5 border border-gray-200 dark:border-gray-700 rounded-full text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
         >
           Réinitialiser
         </button>
         
         <button 
           type="submit"
-          class="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 rounded-full text-white font-medium transition-colors flex items-center"
+          class="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 rounded-full text-white font-medium transition-colors"
           :disabled="isSaving"
         >
           <span v-if="isSaving" class="mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
@@ -394,6 +394,7 @@ import {
   ChevronDown
 } from 'lucide-vue-next'
 import FloatingLabelInput from '~/components/ui/FloatingLabelInput.vue'
+import TwitterInput from '~/components/ui/TwitterInput.vue'
 
 // État
 const user = useSupabaseUser()

@@ -1,778 +1,405 @@
 <template>
-  <div class="min-h-screen bg-white flex flex-col">
-    <!-- Barre de progression subtile -->
-    <div class="fixed top-0 left-0 right-0 h-1 bg-gray-100">
-      <div 
-        class="h-full bg-primary-500 transition-all duration-500 ease-out"
-        :style="{ width: `${(currentStep / totalSteps) * 100}%` }"
-      ></div>
-    </div>
-      
-    <div class="flex-1 flex flex-col items-center pt-16 p-6">
-      <div class="w-full max-w-md">
-        <!-- Étape -->
-        <div class="mb-14 flex justify-end">
-          <div class="text-gray-400 text-sm font-medium">
-            Étape {{ currentStep }} sur {{ totalSteps }}
-          </div>
+  <div class="min-h-screen bg-white dark:bg-gray-900 flex flex-col justify-center px-4 sm:px-6 lg:px-8">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+      <!-- Logo ou icône (optionnel) -->
+      <div class="flex justify-center mb-6">
+        <div class="w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary-600 dark:text-primary-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 4.75L19.25 9L12 13.25L4.75 9L12 4.75Z" />
+            <path d="M9.25 12L4.75 15L12 19.25L19.25 15L14.6722 12" />
+          </svg>
         </div>
+      </div>
+      
+      <h1 class="text-center text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+        Complétez votre profil
+      </h1>
+      
+      <p class="mt-2 text-center text-gray-600 dark:text-gray-400">
+        Ajoutez vos compétences pour être visible auprès des clients
+      </p>
+    </div>
 
-        <!-- Titre et contenu de l'étape actuelle -->
-        <transition 
-          name="slide-fade" 
-          mode="out-in"
-        >
-          <div :key="currentStep">
-            <!-- Étape 1: Prénom -->
-            <div v-if="currentStep === 1" class="space-y-12">
-              <h1 class="text-3xl font-semibold text-gray-900">
-                Comment vous appelez-vous ?
-              </h1>
-              <div class="space-y-6">
-                <div>
-                  <input
-                    v-model="form.firstName"
-                    type="text"
-                    placeholder="Votre prénom"
-                    class="w-full p-4 text-xl border-b-2 border-gray-200 focus:border-primary-500 focus:outline-none transition-colors"
-                    autofocus
-                  />
-                  <p class="mt-2 text-sm text-gray-500">
-                    <InformationCircle class="inline-block h-4 w-4 mr-1 text-gray-400" />
-                    Votre prénom sera visible par les clients potentiels
-                  </p>
-                </div>
-              </div>
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+      <!-- Message d'erreur -->
+      <div v-if="errorMessage" class="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40 text-red-600 dark:text-red-400 rounded-lg p-3 text-sm">
+        {{ errorMessage }}
+      </div>
+      
+      <div class="bg-white dark:bg-gray-800 py-8 px-6 shadow sm:rounded-lg sm:px-10 border border-gray-100 dark:border-gray-700">
+        <!-- État de chargement -->
+        <div v-if="isLoading" class="flex flex-col items-center justify-center py-8">
+          <div class="animate-spin h-8 w-8 text-primary-500 mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </div>
+          <p class="text-gray-500 dark:text-gray-400">Chargement des compétences...</p>
+        </div>
+        
+        <form v-else @submit.prevent="saveSkills" class="space-y-6">
+          <!-- Barre de recherche -->
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              v-model="searchQuery"
+              placeholder="Rechercher une compétence..."
+              class="pl-10 w-full py-3 px-4 border border-gray-300 dark:border-gray-700 rounded-full text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            />
+          </div>
+          
+          <!-- Catégories (affichage horizontal avec scroll) -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Catégories
+            </label>
+            <div class="flex space-x-2 overflow-x-auto pb-2 hide-scrollbar">
+              <button
+                type="button"
+                @click="selectedCategories = []"
+                class="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap"
+                :class="selectedCategories.length === 0 ? 
+                  'bg-primary-500 text-white' : 
+                  'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'"
+              >
+                Toutes
+              </button>
+              <button
+                v-for="category in categories"
+                :key="category.id"
+                type="button"
+                @click="toggleCategory(category)"
+                class="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap"
+                :class="selectedCategories.some(c => c.id === category.id) ? 
+                  'bg-primary-500 text-white' : 
+                  'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'"
+              >
+                {{ category.name }}
+              </button>
+            </div>
+          </div>
+          
+          <!-- Compétences disponibles -->
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Compétences disponibles
+              </label>
+              <span class="text-xs text-gray-500 dark:text-gray-400">
+                {{ filteredSkills.length }} trouvée(s)
+              </span>
             </div>
             
-            <!-- Étape 2: Nom -->
-            <div v-if="currentStep === 2" class="space-y-12">
-              <h1 class="text-3xl font-semibold text-gray-900">
-                Et votre nom de famille ?
-              </h1>
-              <div class="space-y-6">
-                <div>
-                  <input
-                    v-model="form.lastName"
-                    type="text"
-                    placeholder="Votre nom"
-                    class="w-full p-4 text-xl border-b-2 border-gray-200 focus:border-primary-500 focus:outline-none transition-colors"
-                    autofocus
-                  />
-                  <p class="mt-2 text-sm text-gray-500">
-                    <InformationCircle class="inline-block h-4 w-4 mr-1 text-gray-400" />
-                    Utilisé pour la facturation et votre profil professionnel
-                  </p>
-                </div>
+            <div class="max-h-48 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-gray-50 dark:bg-gray-900/30">
+              <div v-if="filteredSkills.length === 0" class="flex items-center justify-center h-24 text-gray-500 dark:text-gray-400">
+                Aucune compétence trouvée
               </div>
-            </div>
-
-            <!-- Étape 3: Localisation -->
-            <div v-if="currentStep === 3" class="space-y-12">
-              <h1 class="text-3xl font-semibold text-gray-900">
-                Où êtes-vous situé ?
-              </h1>
-              <div class="space-y-6">
-                <div>
-                  <input
-                    v-model="form.city"
-                    type="text"
-                    placeholder="Votre ville"
-                    class="w-full p-4 text-xl border-b-2 border-gray-200 focus:border-primary-500 focus:outline-none transition-colors"
-                    autofocus
-                  />
-                  <p class="mt-2 text-sm text-gray-500">
-                    <MapPin class="inline-block h-4 w-4 mr-1 text-gray-400" />
-                    Nous utilisons cette information pour vous connecter avec des clients proches
-                  </p>
-                </div>
-                
-                <div>
-                  <select
-                    v-model="form.country"
-                    class="w-full p-4 text-xl border-b-2 border-gray-200 focus:border-primary-500 focus:outline-none transition-colors appearance-none bg-transparent"
-                  >
-                    <option value="" disabled selected>Sélectionnez votre pays</option>
-                    <option value="FR">France</option>
-                    <option value="BE">Belgique</option>
-                    <option value="CH">Suisse</option>
-                    <option value="CA">Canada</option>
-                    <option value="LU">Luxembourg</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Étape 4: Téléphone -->
-            <div v-if="currentStep === 4" class="space-y-12">
-              <h1 class="text-3xl font-semibold text-gray-900">
-                Quel est votre numéro de téléphone ?
-              </h1>
-              <div class="space-y-6">
-                <div>
-                  <input
-                    v-model="form.phone"
-                    type="tel"
-                    placeholder="Votre numéro"
-                    class="w-full p-4 text-xl border-b-2 border-gray-200 focus:border-primary-500 focus:outline-none transition-colors"
-                    autofocus
-                  />
-                  <p class="mt-2 text-sm text-gray-500">
-                    <Shield class="inline-block h-4 w-4 mr-1 text-gray-400" />
-                    Visible uniquement par vos clients confirmés
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Étape 5: Bio professionnelle -->
-            <div v-if="currentStep === 5" class="space-y-12">
-              <h1 class="text-3xl font-semibold text-gray-900">
-                Parlez-nous de votre expertise
-              </h1>
-              <div class="space-y-6">
-                <div>
-                  <textarea 
-                    v-model="form.bio"
-                    rows="5"
-                    placeholder="Décrivez votre parcours et vos compétences..."
-                    class="w-full p-4 text-lg border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:outline-none transition-colors"
-                    autofocus
-                  ></textarea>
-                  <div class="flex justify-between mt-2">
-                    <p class="text-sm text-gray-500">
-                      <UsersRound class="inline-block h-4 w-4 mr-1 text-gray-400" />
-                      Cette description sera visible sur votre profil public
-                    </p>
-                    <span class="text-xs text-gray-400">
-                      {{ form.bio.length }}/300
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Étape 6: Expérience -->
-            <div v-if="currentStep === 6" class="space-y-12">
-              <h1 class="text-3xl font-semibold text-gray-900">
-                Quelle est votre expérience ?
-              </h1>
-              <div class="space-y-6">
-                <div class="grid grid-cols-1 gap-3">
-                  <button
-                    v-for="option in experienceOptions"
-                    :key="option.value"
-                    type="button"
-                    @click="form.experience = option.value"
-                    :class="[
-                      'p-4 text-left rounded-xl border-2 transition-all flex flex-col',
-                      form.experience === option.value
-                        ? 'border-primary-500 bg-primary-50 text-primary-700'
-                        : 'border-gray-200 hover:border-gray-300'
-                    ]"
-                  >
-                    <span class="font-medium">{{ option.label }}</span>
-                    <span class="text-sm mt-1 text-gray-500">{{ option.description }}</span>
-                  </button>
-                </div>
-                <p class="text-sm text-gray-500 mt-2">
-                  <Award class="inline-block h-4 w-4 mr-1 text-gray-400" />
-                  Cette information aide les clients à mieux comprendre votre profil
-                </p>
-              </div>
-            </div>
-
-            <!-- Étape 7: Tarif horaire -->
-            <div v-if="currentStep === 7" class="space-y-12">
-              <h1 class="text-3xl font-semibold text-gray-900">
-                Quel est votre tarif horaire ?
-              </h1>
-              <div class="space-y-6">
-                <div>
-                  <div class="relative">
-                    <div class="absolute inset-y-0 left-0 flex items-center pl-4">
-                      <span class="text-gray-600 text-xl">FCFA</span>
-                    </div>
-                    <input
-                      v-model="form.hourlyRate"
-                      type="number"
-                      min="0"
-                      step="1"
-                      placeholder="50"
-                      class="w-full p-4 pl-10 text-xl border-b-2 border-gray-200 focus:border-primary-500 focus:outline-none transition-colors"
-                      autofocus
-                    />
-                  </div>
-                  <p class="mt-2 text-sm text-gray-500">
-                    <TrendingUp class="inline-block h-4 w-4 mr-1 text-gray-400" />
-                    Prix suggéré: 35FCFA - 80FCFA selon votre expérience et votre secteur
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Étape 8: Photo de profil -->
-            <div v-if="currentStep === 8" class="space-y-12">
-              <h1 class="text-3xl font-semibold text-gray-900">
-                Ajoutez une photo de profil
-              </h1>
-              <div class="space-y-8 flex flex-col items-center">
-                <div class="relative">
-                  <div 
-                    class="h-32 w-32 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center border-2 border-gray-200 relative"
-                  >
-                    <img 
-                      v-if="avatarPreview" 
-                      :src="avatarPreview" 
-                      alt="Avatar preview" 
-                      class="h-full w-full object-cover"
-                    />
-                    <User v-else class="h-16 w-16 text-gray-400" />
-                    
-                    <div 
-                      v-if="isUploading"
-                      class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center"
-                    >
-                      <Loader2 class="h-10 w-10 text-white animate-spin" />
-                    </div>
-                  </div>
-                  <button 
-                    type="button"
-                    @click="$refs.fileInput.click()"
-                    class="absolute -right-1 bottom-0 h-10 w-10 rounded-full bg-primary-500 flex items-center justify-center border-2 border-white shadow-sm"
-                  >
-                    <Camera class="h-5 w-5 text-white" />
-                  </button>
-                </div>
-                
-                <input 
-                  ref="fileInput"
-                  type="file"
-                  accept="image/*"
-                  class="hidden"
-                  @change="handleAvatarUpload"
-                />
-                
-                <p class="text-center text-sm text-gray-500">
-                  Une photo professionnelle augmente <br>vos chances de trouver des clients
-                </p>
-                
-                <button 
-                  v-if="!avatarPreview"
+              
+              <div class="flex flex-wrap gap-2">
+                <button
+                  v-for="skill in filteredSkills"
+                  :key="skill.id"
                   type="button"
-                  @click="$refs.fileInput.click()"
-                  class="px-5 py-2.5 text-primary-600 font-medium rounded-full border-2 border-primary-200 hover:bg-primary-50 transition-colors"
+                  @click="toggleSkill(skill)"
+                  class="px-3 py-1.5 rounded-full text-sm font-medium transition-colors"
+                  :class="selectedSkills.some(s => s.id === skill.id) ? 
+                    'bg-primary-500 text-white' : 
+                    'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'"
                 >
-                  Choisir une photo
+                  {{ skill.name }}
                 </button>
               </div>
             </div>
-
-            <!-- Étape 9: Disponibilités -->
-            <div v-if="currentStep === 9" class="space-y-12">
-              <h1 class="text-3xl font-semibold text-gray-900">
-                Quelles sont vos disponibilités ?
-              </h1>
-              <div class="space-y-8">
-                <div>
-                  <div class="font-medium text-gray-700 mb-3">Jours disponibles</div>
-                  <div class="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                    <button 
-                      v-for="day in availableDays" 
-                      :key="day.value"
-                      type="button"
-                      @click="toggleDay(day.value)"
-                      :class="[
-                        'p-3 rounded-xl border-2 transition-all text-center',
-                        form.availableDays.includes(day.value)
-                          ? 'border-primary-500 bg-primary-50 text-primary-700'
-                          : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                      ]"
-                    >
-                      {{ day.label }}
-                    </button>
-                  </div>
-                  <p class="mt-3 text-sm text-gray-500">
-                    <Calendar class="inline-block h-4 w-4 mr-1 text-gray-400" />
-                    Vous pourrez ajuster vos disponibilités à tout moment
-                  </p>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4">
-                  <div>
-                    <div class="font-medium text-gray-700 mb-2">De</div>
-                    <select
-                      v-model="form.startHour"
-                      class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 transition-colors"
-                    >
-                      <option v-for="hour in hourOptions" :key="hour.value" :value="hour.value">
-                        {{ hour.label }}
-                      </option>
-                    </select>
-                  </div>
-                  <div>
-                    <div class="font-medium text-gray-700 mb-2">À</div>
-                    <select
-                      v-model="form.endHour"
-                      class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 transition-colors"
-                    >
-                      <option v-for="hour in hourOptions" :key="hour.value" :value="hour.value">
-                        {{ hour.label }}
-                      </option>
-                    </select>
-                  </div>
-                </div>
-              </div>
+          </div>
+          
+          <!-- Compétences sélectionnées -->
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Vos compétences
+              </label>
+              <span class="text-xs text-gray-500 dark:text-gray-400">
+                {{ selectedSkills.length }} sélectionnée(s)
+              </span>
             </div>
-
-            <!-- Étape 10: Vérification d'identité -->
-            <div v-if="currentStep === 10" class="space-y-12">
-              <h1 class="text-3xl font-semibold text-gray-900">
-                Vérifiez votre identité
-              </h1>
-              <div class="space-y-8">
-                <p class="text-gray-600">
-                  Pour garantir la sécurité de notre communauté, nous avons besoin de vérifier votre identité.
-                </p>
-                
-                <div class="p-4 border-2 border-gray-200 rounded-xl">
-                  <div class="flex items-start">
-                    <div class="mt-1 mr-3">
-                      <FileText class="h-6 w-6 text-primary-500" />
-                    </div>
-                    <div>
-                      <h3 class="font-medium text-gray-900">Pièce d'identité</h3>
-                      <p class="text-sm text-gray-500 mb-3">
-                        Passeport, carte d'identité ou permis de conduire
-                      </p>
-                      
-                      <div class="flex items-center">
-                        <input 
-                          ref="idFileInput"
-                          type="file"
-                          accept="image/*,.pdf"
-                          class="hidden"
-                          @change="handleIdUpload"
-                        />
-                        
-                        <button
-                          type="button"
-                          @click="$refs.idFileInput.click()"
-                          class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center"
-                        >
-                          <Upload class="h-4 w-4 mr-1" />
-                          {{ form.idDocument ? 'Changer le fichier' : 'Choisir un fichier' }}
-                        </button>
-                        
-                        <span v-if="form.idDocument" class="ml-3 text-sm text-gray-600">
-                          {{ form.idDocument.name }}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="bg-amber-50 p-4 rounded-xl text-amber-800 text-sm">
-                  <div class="flex">
-                    <ShieldCheck class="h-5 w-5 text-amber-600 mr-2 flex-shrink-0" />
-                    <p>
-                      Vos documents sont stockés de manière sécurisée et ne sont accessibles qu'à notre équipe de vérification.
-                    </p>
-                  </div>
-                </div>
+            
+            <div class="flex flex-wrap gap-2 p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900/30 min-h-[80px]">
+              <div 
+                v-if="selectedSkills.length === 0" 
+                class="flex items-center justify-center w-full h-full text-gray-500 dark:text-gray-400 text-sm"
+              >
+                Sélectionnez au moins une compétence
               </div>
-            </div>
-
-            <!-- Étape 11: CGU -->
-            <div v-if="currentStep === 11" class="space-y-12">
-              <h1 class="text-3xl font-semibold text-gray-900">
-                Dernière étape
-              </h1>
-              <div class="space-y-6">
-                <div class="p-4 bg-gray-50 rounded-xl">
-                  <h3 class="font-medium text-gray-900 mb-2">Résumé de votre profil</h3>
-                  <div class="space-y-2 text-sm text-gray-600">
-                    <p><span class="font-medium">Nom:</span> {{ form.firstName }} {{ form.lastName }}</p>
-                    <p><span class="font-medium">Localisation:</span> {{ form.city }}, {{ getCountryName(form.country) }}</p>
-                    <p><span class="font-medium">Expérience:</span> {{ getExperienceLabel(form.experience) }}</p>
-                    <p><span class="font-medium">Tarif horaire:</span> {{ form.hourlyRate }}FCFA</p>
-                  </div>
-                </div>
-                
-                <div class="flex items-start">
-                  <div class="flex items-center h-5">
-                    <input
-                      id="terms"
-                      v-model="form.acceptTerms"
-                      type="checkbox"
-                      required
-                      class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                    />
-                  </div>
-                  <div class="ml-3 text-sm">
-                    <label for="terms" class="text-gray-600">
-                      J'accepte les <NuxtLink to="/terms" class="text-primary-600 hover:text-primary-700 font-medium">Conditions d'utilisation</NuxtLink> et la <NuxtLink to="/privacy" class="text-primary-600 hover:text-primary-700 font-medium">Politique de confidentialité</NuxtLink>
-                    </label>
-                  </div>
-                </div>
-                
-                <div class="flex items-start">
-                  <div class="flex items-center h-5">
-                    <input
-                      id="marketing"
-                      v-model="form.acceptMarketing"
-                      type="checkbox"
-                      class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                    />
-                  </div>
-                  <div class="ml-3 text-sm">
-                    <label for="marketing" class="text-gray-600">
-                      J'accepte de recevoir des communications marketing (facultatif)
-                    </label>
-                  </div>
-                </div>
+              
+              <div 
+                v-for="skill in selectedSkills" 
+                :key="skill.id"
+                class="bg-white dark:bg-gray-800 px-3 py-1.5 rounded-full text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 flex items-center"
+              >
+                {{ skill.name }}
+                <button 
+                  @click.prevent="toggleSkill(skill)" 
+                  class="ml-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                  </svg>
+                </button>
               </div>
             </div>
           </div>
-        </transition>
-
-        <!-- Boutons de navigation -->
-        <div class="mt-14 space-y-4">
-          <button
-            v-if="currentStep < totalSteps"
-            @click="nextStep"
-            class="w-full py-4 bg-primary-600 text-white font-medium rounded-full
-              hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed
-              transition-colors shadow-md"
-          >
-            Continuer
-          </button>
           
-          <button
-            v-else
-            @click="handleSubmit"
-            :disabled="loading || !form.acceptTerms"
-            class="w-full py-4 bg-primary-600 text-white font-medium rounded-full
-              hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed
-              transition-colors shadow-md flex items-center justify-center"
-          >
-            <Loader2 v-if="loading" class="animate-spin -ml-1 mr-2 h-5 w-5" />
-            {{ loading ? 'Création en cours...' : 'Créer mon profil expert' }}
-          </button>
-          
-          <button
-            v-if="currentStep > 1"
-            @click="currentStep--"
-            type="button"
-            class="w-full py-3 text-gray-600 font-medium hover:text-gray-900 transition-colors"
-          >
-            Retour
-          </button>
-        </div>
+          <div class="flex items-center space-x-4 pt-4">
+            <button
+              type="button"
+              @click="skipOnboarding"
+              class="flex-1 py-2.5 px-4 border border-gray-300 dark:border-gray-700 rounded-full text-base font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
+            >
+              Plus tard
+            </button>
+            
+            <button
+              type="submit"
+              class="flex-1 py-2.5 px-4 border border-transparent rounded-full text-base font-medium text-white bg-primary-600 hover:bg-primary-700"
+              :disabled="isSaving || selectedSkills.length === 0"
+            >
+              <span v-if="isSaving" class="flex items-center justify-center">
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Enregistrement...
+              </span>
+              <span v-else>Enregistrer</span>
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useSupabaseClient } from '#imports'
-import { 
-  Camera, User, Loader2, Upload, FileText, ShieldCheck, 
-  Calendar, MapPin, UsersRound, Award, TrendingUp, Shield,
-  InformationCircle
-} from 'lucide-vue-next'
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { useSupabaseClient, useSupabaseUser } from '#imports';
 
-const client = useSupabaseClient()
-const router = useRouter()
-const fileInput = ref<HTMLInputElement | null>(null)
-const idFileInput = ref<HTMLInputElement | null>(null)
+// Services
+const router = useRouter();
+const supabase = useSupabaseClient();
+const user = useSupabaseUser();
 
-// États
-const currentStep = ref(1)
-const totalSteps = 11
-const loading = ref(false)
-const isUploading = ref(false)
-const avatarPreview = ref<string | null>(null)
+// État
+const isLoading = ref(true);
+const isSaving = ref(false);
+const errorMessage = ref('');
+const searchQuery = ref('');
 
-// Formulaire complet
-const form = ref({
-  // Informations personnelles
-  firstName: '',
-  lastName: '',
-  city: '',
-  country: '',
-  phone: '',
-  
-  // Informations professionnelles
-  bio: '',
-  experience: '',
-  hourlyRate: '',
-  
-  // Disponibilités
-  availableDays: [],
-  startHour: '09:00',
-  endHour: '18:00',
-  responseTime: 'within_day',
-  
-  // Documents
-  avatarFile: null,
-  idDocument: null,
-  
-  // Conditions
-  acceptTerms: false,
-  acceptMarketing: false
-})
+// Données
+const categories = ref([]);
+const skills = ref([]);
+const selectedCategories = ref([]);
+const selectedSkills = ref([]);
 
-// Options pour l'expérience
-const experienceOptions = [
-  { 
-    value: 'beginner', 
-    label: 'Débutant', 
-    description: 'Moins de 2 ans d\'expérience' 
-  },
-  { 
-    value: 'intermediate', 
-    label: 'Intermédiaire', 
-    description: '2-5 ans d\'expérience' 
-  },
-  { 
-    value: 'expert', 
-    label: 'Expert', 
-    description: '5-10 ans d\'expérience' 
-  },
-  { 
-    value: 'master', 
-    label: 'Maître', 
-    description: 'Plus de 10 ans d\'expérience' 
+// Compétences filtrées par recherche et catégories
+const filteredSkills = computed(() => {
+  let result = skills.value;
+  
+  // Filtrer par catégories sélectionnées
+  if (selectedCategories.value.length > 0) {
+    const categoryIds = selectedCategories.value.map(c => c.id);
+    result = result.filter(skill => categoryIds.includes(skill.category_id));
   }
-]
-
-// Options de jours disponibles
-const availableDays = [
-  { value: 'monday', label: 'Lundi' },
-  { value: 'tuesday', label: 'Mardi' },
-  { value: 'wednesday', label: 'Mercredi' },
-  { value: 'thursday', label: 'Jeudi' },
-  { value: 'friday', label: 'Vendredi' },
-  { value: 'saturday', label: 'Samedi' },
-  { value: 'sunday', label: 'Dimanche' }
-]
-
-// Options d'heures
-const hourOptions = Array.from({ length: 24 * 4 }, (_, i) => {
-  const hour = Math.floor(i / 4)
-  const minute = (i % 4) * 15
-  const value = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
   
-  // Formatter pour l'affichage
-  const hour12 = hour % 12 || 12
-  const ampm = hour < 12 ? 'AM' : 'PM'
-  const label = `${hour12}:${minute.toString().padStart(2, '0')} ${ampm}`
+  // Filtrer par recherche
+  if (searchQuery.value.trim()) {
+    const query = searchQuery.value.toLowerCase().trim();
+    result = result.filter(skill => 
+      skill.name.toLowerCase().includes(query)
+    );
+  }
   
-  return { value, label }
-})
+  return result;
+});
 
-// Ajouter un jour à la sélection
-const toggleDay = (day) => {
-  const index = form.value.availableDays.indexOf(day)
+// Récupérer les catégories depuis Supabase
+const fetchCategories = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .eq('is_active', true)
+      .order('name');
+    
+    if (error) throw error;
+    
+    categories.value = data || [];
+  } catch (error) {
+    console.error('Erreur lors du chargement des catégories:', error);
+    errorMessage.value = 'Impossible de charger les catégories';
+  }
+};
+
+// Récupérer les compétences depuis Supabase
+const fetchSkills = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('skills')
+      .select('*')
+      .eq('is_active', true)
+      .order('name');
+    
+    if (error) throw error;
+    
+    skills.value = data || [];
+  } catch (error) {
+    console.error('Erreur lors du chargement des compétences:', error);
+    errorMessage.value = 'Impossible de charger les compétences';
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Sélectionner/désélectionner une catégorie
+const toggleCategory = (category) => {
+  const index = selectedCategories.value.findIndex(c => c.id === category.id);
+  
   if (index === -1) {
-    form.value.availableDays.push(day)
+    selectedCategories.value.push(category);
   } else {
-    form.value.availableDays.splice(index, 1)
+    selectedCategories.value.splice(index, 1);
   }
-}
+};
 
-// Déterminer si l'utilisateur peut passer à l'étape suivante
-const canProceed = computed(() => {
-  switch (currentStep.value) {
-    case 1: return !!form.value.firstName.trim()
-    case 2: return !!form.value.lastName.trim()
-    case 3: return !!form.value.city.trim() && !!form.value.country
-    case 4: return !!form.value.phone && form.value.phone.length >= 8
-    case 5: return !!form.value.bio.trim() && form.value.bio.length >= 10
-    case 6: return !!form.value.experience
-    case 7: return !!form.value.hourlyRate && parseFloat(form.value.hourlyRate) > 0
-    case 8: return true // Photo facultative
-    case 9: return form.value.availableDays.length > 0
-    case 10: return true // Document d'identité facultatif à ce stade
-    case 11: return form.value.acceptTerms
-    default: return true
-  }
-})
-
-// Gérer l'upload de l'avatar
-const handleAvatarUpload = (event) => {
-  const input = event.target
-  if (!input.files || input.files.length === 0) return
+// Sélectionner/désélectionner une compétence
+const toggleSkill = (skill) => {
+  const index = selectedSkills.value.findIndex(s => s.id === skill.id);
   
-  const file = input.files[0]
-  form.value.avatarFile = file
+  if (index === -1) {
+    selectedSkills.value.push(skill);
+  } else {
+    selectedSkills.value.splice(index, 1);
+  }
+};
+
+// Enregistrer les compétences
+const saveSkills = async () => {
+  if (selectedSkills.value.length === 0) {
+    errorMessage.value = 'Veuillez sélectionner au moins une compétence';
+    return;
+  }
   
-  // Prévisualisation
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    avatarPreview.value = e.target.result as string
-  }
-  reader.readAsDataURL(file)
-}
-
-// Gérer l'upload de la pièce d'identité
-const handleIdUpload = (event) => {
-  const input = event.target
-  if (!input.files || input.files.length === 0) return
-  
-  const file = input.files[0]
-  form.value.idDocument = file
-}
-
-// Navigation entre les étapes
-const nextStep = () => {
-  if (currentStep.value < totalSteps && canProceed.value) {
-    currentStep.value++
-    window.scrollTo(0, 0) // Remonter en haut pour la nouvelle étape
-  }
-}
-
-// Obtenir le nom du pays à partir du code
-const getCountryName = (code) => {
-  const countries = {
-    'FR': 'France',
-    'BE': 'Belgique',
-    'CH': 'Suisse',
-    'CA': 'Canada',
-    'LU': 'Luxembourg'
-  }
-  return countries[code] || code
-}
-
-// Obtenir le libellé d'expérience à partir de la valeur
-const getExperienceLabel = (value) => {
-  const option = experienceOptions.find(opt => opt.value === value)
-  return option ? option.label : value
-}
-
-// Soumission finale du formulaire
-const handleSubmit = async () => {
-  if (!canProceed.value) return
+  isSaving.value = true;
+  errorMessage.value = '';
   
   try {
-    loading.value = true
-    const { data: { user }, error: userError } = await client.auth.getUser()
+    // Préparer les données pour l'insertion
+    const userSkillsData = selectedSkills.value.map(skill => ({
+      user_id: user.value.id,
+      skill_id: skill.id
+    }));
     
-    if (userError) throw userError
-    if (!user) throw new Error('Utilisateur non connecté')
-
-    // 1. Mettre à jour le profil avec les nouvelles informations
-    const { error: profileError } = await client
+    // Insérer les compétences de l'utilisateur
+    const { error } = await supabase
+      .from('user_skills')
+      .upsert(userSkillsData);
+    
+    if (error) throw error;
+    
+    // Mettre à jour le pourcentage de complétion du profil
+    const { error: profileError } = await supabase
       .from('profiles')
       .update({
-        first_name: form.value.firstName,
-        last_name: form.value.lastName,
-        city: form.value.city,
-        country: form.value.country,
-        phone: form.value.phone,
-        bio: form.value.bio,
-        is_expert: true,
+        profile_completion_percentage: 60,
         updated_at: new Date().toISOString()
       })
-      .eq('id', user.id)
-
-    if (profileError) throw profileError
-
-    // 2. Mettre à jour ou créer l'entrée expert
-    const expertData = {
-      id: user.id,
-      bio: form.value.bio,
-      hourly_rate: parseFloat(form.value.hourlyRate || 0),
-      experience_level: form.value.experience,
-      available_days: form.value.availableDays,
-      available_hours_start: form.value.startHour,
-      available_hours_end: form.value.endHour,
-      response_time: form.value.responseTime,
-      availability_status: 'available',
-      verification_status: 'pending_review',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }
+      .eq('id', user.value.id);
     
-    const { error: expertError } = await client
-      .from('experts')
-      .upsert(expertData)
-
-    if (expertError) throw expertError
-
-    // 3. Télécharger l'avatar si présent
-    if (form.value.avatarFile) {
-      const fileExt = form.value.avatarFile.name.split('.').pop()
-      const filePath = `avatars/${user.id}-${Date.now()}.${fileExt}`
-      
-      const { error: uploadError } = await client.storage
-        .from('profiles')
-        .upload(filePath, form.value.avatarFile)
-        
-      if (uploadError) throw uploadError
-      
-      // Mettre à jour l'URL de l'avatar dans le profil
-      const { data: { publicUrl } } = client.storage
-        .from('profiles')
-        .getPublicUrl(filePath)
-        
-      await client
-        .from('profiles')
-        .update({ avatar_url: publicUrl })
-        .eq('id', user.id)
-    }
+    if (profileError) throw profileError;
     
-    // 4. Télécharger la pièce d'identité
-    if (form.value.idDocument) {
-      const fileExt = form.value.idDocument.name.split('.').pop()
-      const filePath = `id_documents/${user.id}-${Date.now()}.${fileExt}`
-      
-      await client.storage
-        .from('verification')
-        .upload(filePath, form.value.idDocument)
-      
-      // Enregistrer la référence au document
-      await client
-        .from('expert_verification')
-        .insert({
-          expert_id: user.id,
-          document_type: 'id_card',
-          document_path: filePath,
-          status: 'pending',
-          submitted_at: new Date().toISOString()
-        })
-    }
-
-    // Rediriger vers le tableau de bord expert avec un message de bienvenue
-    router.push('/expert/dashboard?welcome=true')
+    // Rediriger vers le tableau de bord
+    router.push('/account');
+    
   } catch (error) {
-    console.error('Erreur finalisation profil expert:', error)
-    alert('Une erreur est survenue lors de la finalisation de votre profil. Veuillez réessayer.')
+    console.error('Erreur lors de l\'enregistrement des compétences:', error);
+    errorMessage.value = error.message || 'Une erreur est survenue lors de l\'enregistrement de vos compétences';
   } finally {
-    loading.value = false
+    isSaving.value = false;
   }
-}
+};
 
-// Configuration de la page
-definePageMeta({
-  layout: 'auth'
-})
+// Passer l'onboarding
+const skipOnboarding = () => {
+  router.push('/account');
+};
+
+// Initialisation
+onMounted(async () => {
+  if (!user.value) {
+    router.push('/auth/login');
+    return;
+  }
+  
+  // Vérifier si l'utilisateur est un expert
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('is_expert, role')
+    .eq('id', user.value.id)
+    .single();
+  
+  if (!profile || (!profile.is_expert && profile.role !== 'expert')) {
+    router.push('/account');
+    return;
+  }
+  
+  // Charger les données
+  await Promise.all([fetchCategories(), fetchSkills()]);
+});
 </script>
 
 <style scoped>
-.slide-fade-enter-active,
-.slide-fade-leave-active {
-  transition: all 0.3s ease;
+/* Masquer la scrollbar tout en permettant le défilement */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }
-.slide-fade-enter-from {
-  transform: translateX(20px);
-  opacity: 0;
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
 }
-.slide-fade-leave-to {
-  transform: translateX(-20px);
-  opacity: 0;
+
+/* Scrollbar personnalisée pour les zones de défilement vertical */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Animation du spinner */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 </style> 
