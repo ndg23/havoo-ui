@@ -86,91 +86,62 @@
       <!-- Informations personnelles -->
       <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm">
         <div class="p-6">
-          <h2 class="text-xl font-medium text-gray-900 dark:text-white mb-4">Informations personnelles</h2>
+          <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Informations personnelles</h2>
           
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Prénom -->
-            <div>
-              <label for="first_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Prénom
-              </label>
-              <TwitterInput
-                id="first_name"
-                v-model="form.firstName"
-                placeholder="Votre prénom"
-                required
-              />
-            </div>
+            <TwitterInput
+              id="first_name"
+              v-model="form.firstName"
+              placeholder="Prénom"
+              required
+            />
             
             <!-- Nom -->
-            <div>
-              <label for="last_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Nom
-              </label>
-              <TwitterInput
-                id="last_name"
-                v-model="form.lastName"
-                placeholder="Votre nom"
-                required
-              />
-            </div>
+            <TwitterInput
+              id="last_name"
+              v-model="form.lastName"
+              placeholder="Nom"
+              required
+            />
             
             <!-- Email -->
-            <div>
-              <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Email
-              </label>
-              <TwitterInput
-                id="email"
-                v-model="form.email"
-                type="email"
-                placeholder="votre@email.com"
-                disabled
-              />
-              <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">L'email ne peut pas être modifié</p>
-            </div>
-            
-            <!-- Téléphone -->
-            <div>
-              <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Téléphone
-              </label>
-              <TwitterInput
-                id="phone"
-                v-model="form.phone"
-                type="tel"
-                placeholder="Votre numéro de téléphone"
-              />
-            </div>
+            <TwitterInput
+              id="email"
+              v-model="form.email"
+              placeholder="Email"
+              type="email"
+              readonly
+            />
             
             <!-- Date de naissance -->
-            <div>
-              <label for="birthdate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Date de naissance
-              </label>
-              <TwitterInput
-                id="birthdate"
-                v-model="form.birthdate"
-                type="date"
-              />
-            </div>
+            <TwitterInput
+              id="birthdate"
+              v-model="form.birthdate"
+              placeholder="Date de naissance"
+              type="date"
+            />
             
             <!-- Genre -->
-            <div>
-              <label for="gender" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Genre
-              </label>
-              <select
-                id="gender"
-                v-model="form.gender"
-                class="w-full px-4 py-2.5 rounded-full border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              >
-                <option value="male">Homme</option>
-                <option value="female">Femme</option>
-                <option value="other">Autre</option>
-                <option value="prefer_not_to_say">Préfère ne pas préciser</option>
-              </select>
-            </div>
+            <TwitterInput
+              id="gender"
+              v-model="form.gender"
+              placeholder="Genre"
+              :isSelect="true"
+            >
+              <option value="male">Homme</option>
+              <option value="female">Femme</option>
+              <option value="other">Autre</option>
+              <option value="prefer_not_to_say">Préfère ne pas préciser</option>
+            </TwitterInput>
+            
+            <!-- Téléphone -->
+            <TwitterInput
+              id="phone"
+              v-model="form.phone"
+              placeholder="Téléphone"
+              type="tel"
+            />
           </div>
         </div>
       </div>
@@ -178,55 +149,53 @@
       <!-- Coordonnées -->
       <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm">
         <div class="p-6">
-          <h2 class="text-xl font-medium text-gray-900 dark:text-white mb-4">Coordonnées</h2>
+          <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Coordonnées</h2>
           
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Adresse -->
             <div class="md:col-span-2">
-              <label for="address" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Adresse
-              </label>
               <TwitterInput
                 id="address"
                 v-model="form.address"
-                placeholder="Votre adresse"
+                placeholder="Adresse"
               />
             </div>
             
             <!-- Ville -->
-            <div>
-              <label for="city" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Ville
-              </label>
-              <TwitterInput
-                id="city"
-                v-model="form.city"
-                placeholder="Votre ville"
-              />
-            </div>
+            <TwitterInput
+              id="city"
+              v-model="form.city"
+              placeholder="Ville"
+            />
             
             <!-- Pays -->
-            <div>
-              <label for="country" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Pays
-              </label>
-              <TwitterInput
-                id="country"
-                v-model="form.country"
-                placeholder="Votre pays"
-              />
-            </div>
+            <TwitterInput
+              id="country"
+              v-model="form.country"
+              placeholder="Pays"
+              :isSelect="true"
+            >
+              <option value="">Sélectionnez un pays</option>
+              <option value="FR">France</option>
+              <option value="BE">Belgique</option>
+              <option value="CH">Suisse</option>
+              <option value="CA">Canada</option>
+              <option value="SN">Sénégal</option>
+              <option value="CI">Côte d'Ivoire</option>
+              <option value="CM">Cameroun</option>
+              <option value="MA">Maroc</option>
+              <option value="TN">Tunisie</option>
+              <option value="DZ">Algérie</option>
+              <option value="other">Autre</option>
+            </TwitterInput>
             
             <!-- Site web -->
             <div class="md:col-span-2">
-              <label for="website" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Site web
-              </label>
               <TwitterInput
                 id="website"
                 v-model="form.website"
+                placeholder="Site web"
                 type="url"
-                placeholder="https://..."
               />
             </div>
           </div>
@@ -236,98 +205,91 @@
       <!-- Biographie -->
       <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm">
         <div class="p-6">
-          <h2 class="text-xl font-medium text-gray-900 dark:text-white mb-4">Biographie</h2>
+          <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Biographie</h2>
           
-          <div>
-            <label for="bio" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Parlez-nous de vous
-            </label>
-            <textarea
-              id="bio"
-              v-model="form.bio"
-              rows="4"
-              placeholder="Partagez quelques informations sur vous..."
-              class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            ></textarea>
-            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400 flex justify-between">
-              <span>Votre biographie permettra aux autres utilisateurs de mieux vous connaître</span>
-              <span>{{ form.bio ? form.bio.length : 0 }}/500</span>
-            </p>
-          </div>
+          <TwitterInput
+            id="bio"
+            v-model="form.bio"
+            placeholder="Parlez-nous de vous"
+            type="textarea"
+            :rows="5"
+            :maxLength="280"
+            showCount
+          />
+          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+            Votre biographie permettra aux autres utilisateurs de mieux vous connaître
+          </p>
         </div>
       </div>
       
       <!-- Compétences (pour les experts) -->
       <div v-if="isExpert" class="bg-white dark:bg-gray-800 rounded-xl shadow-sm">
         <div class="p-6">
-          <h2 class="text-xl font-medium text-gray-900 dark:text-white mb-4">Compétences</h2>
+          <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Compétences</h2>
           
           <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
             Ajoutez les compétences que vous maîtrisez pour aider les clients à vous trouver plus facilement.
           </p>
           
-          <!-- Sélecteur de compétences -->
-          <div class="mb-6">
-            <div class="flex flex-wrap gap-2 p-3 border border-gray-200 dark:border-gray-700 rounded-xl min-h-[56px] focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-primary-500">
-              <!-- Compétences sélectionnées -->
-              <div 
-                v-for="skill in selectedSkills" 
-                :key="skill.id"
-                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300"
+          <!-- Compétences sélectionnées -->
+          <div class="flex flex-wrap gap-2 mb-4">
+            <div 
+              v-for="skill in selectedSkills" 
+              :key="skill.id"
+              class="inline-flex items-center px-2.5 py-1.5 rounded-full text-sm font-medium bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300"
+            >
+              {{ skill.name }}
+              <button 
+                type="button"
+                @click="removeSkill(skill)"
+                class="ml-1.5 inline-flex items-center justify-center w-4 h-4 rounded-full text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-800 focus:outline-none"
               >
-                {{ skill.name }}
-                <button 
-                  type="button"
-                  @click="removeSkill(skill)"
-                  class="ml-1.5 inline-flex items-center justify-center w-4 h-4 rounded-full text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-800/50 focus:outline-none"
-                >
-                  <X class="h-3 w-3" />
-                </button>
-              </div>
-              
-              <!-- Dropdown trigger -->
-              <div class="relative flex-grow">
-                <select
-                  v-model="selectedSkillId"
-                  @change="addSelectedSkill"
-                  class="w-full py-1.5 px-2 bg-transparent border-0 focus:ring-0 focus:outline-none text-gray-700 dark:text-gray-300 appearance-none"
-                >
-                  <option value="" disabled selected>Ajouter une compétence...</option>
-                  <optgroup 
-                    v-for="category in skillCategories" 
-                    :key="category.id" 
-                    :label="category.name"
-                  >
-                    <option 
-                      v-for="skill in category.skills" 
-                      :key="skill.id" 
-                      :value="skill.id"
-                      :disabled="isSkillSelected(skill.id)"
-                    >
-                      {{ skill.name }}
-                    </option>
-                  </optgroup>
-                  <optgroup label="Autres compétences">
-                    <option 
-                      v-for="skill in uncategorizedSkills" 
-                      :key="skill.id" 
-                      :value="skill.id"
-                      :disabled="isSkillSelected(skill.id)"
-                    >
-                      {{ skill.name }}
-                    </option>
-                  </optgroup>
-                </select>
-              </div>
-            </div>
-            
-            <div v-if="selectedSkills.length === 0" class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-              Sélectionnez au moins une compétence pour améliorer votre visibilité
+                <X class="h-3 w-3" />
+              </button>
             </div>
           </div>
           
+          <!-- Sélecteur de compétences -->
+          <TwitterInput
+            id="skill_selector"
+            v-model="selectedSkillId"
+            placeholder="Ajouter une compétence"
+            :isSelect="true"
+            @update:modelValue="addSelectedSkill"
+          >
+            <option value="" disabled>Sélectionnez une compétence</option>
+            <optgroup 
+              v-for="category in skillCategories" 
+              :key="category.id" 
+              :label="category.name"
+            >
+              <option 
+                v-for="skill in category.skills" 
+                :key="skill.id" 
+                :value="skill.id"
+                :disabled="isSkillSelected(skill.id)"
+              >
+                {{ skill.name }}
+              </option>
+            </optgroup>
+            <optgroup label="Autres compétences">
+              <option 
+                v-for="skill in uncategorizedSkills" 
+                :key="skill.id" 
+                :value="skill.id"
+                :disabled="isSkillSelected(skill.id)"
+              >
+                {{ skill.name }}
+              </option>
+            </optgroup>
+          </TwitterInput>
+          
+          <div v-if="selectedSkills.length === 0" class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+            Sélectionnez au moins une compétence pour améliorer votre visibilité
+          </div>
+          
           <!-- Suggestions de compétences populaires -->
-          <div>
+          <div class="mt-6">
             <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Suggestions populaires :</h3>
             <div class="flex flex-wrap gap-2">
               <button 
