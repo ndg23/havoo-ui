@@ -390,14 +390,17 @@ const checkEmailExists = async () => {
   emailError.value = ''
   
   try {
-    const { data, error } = await supabase.auth.signInWithOtp({
-      email: formData.value.email,
-      options: { shouldCreateUser: false }
-    })
+    // Using a more reliable method to check if email exists
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('email')
+      .eq('email', formData.value.email)
+      .single()
     
-    if (error && !error.message.includes('User not found')) {
+    if (error && error.code !== 'PGRST116') {  // PGRST116 is "Not found" error
+      console.error('Error checking email:', error)
       emailError.value = "Erreur lors de la vérification de l'email"
-    } else if (!error) {
+    } else if (data) {
       emailError.value = 'Cette adresse email est déjà utilisée'
     }
   } catch (error) {
@@ -463,6 +466,7 @@ const registerUser = async () => {
     
     if (authData.user) {
       // Créer le profil dans la base de données
+      const skills = formData.value.skills.length > 0 ? formData.value.skills : null
       const { error: profileError } = await supabase
         .from('profiles')
         .insert({
@@ -471,7 +475,6 @@ const registerUser = async () => {
           last_name: formData.value.lastName,
           email: formData.value.email,
           is_expert: formData.value.isExpert,
-          skills: formData.value.skills
         })
         
       if (profileError) throw profileError

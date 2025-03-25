@@ -442,7 +442,7 @@ const uploadIdentityFiles = async () => {
     const frontExt = idFiles.value.front.name.split('.').pop()
     
     const { data: frontData, error: frontError } = await supabase.storage
-      .from('id_documents')
+      .from('documents')
       .upload(`${currentUser.value.id}/${frontFileName}.${frontExt}`, idFiles.value.front)
     
     if (frontError) throw frontError
@@ -452,7 +452,7 @@ const uploadIdentityFiles = async () => {
     const backExt = idFiles.value.back.name.split('.').pop()
     
     const { data: backData, error: backError } = await supabase.storage
-      .from('id_documents')
+      .from('documents')
       .upload(`${currentUser.value.id}/${backFileName}.${backExt}`, idFiles.value.back)
     
     if (backError) throw backError
@@ -496,7 +496,7 @@ const uploadAddressFile = async () => {
     const ext = addressFile.value.name.split('.').pop()
     
     const { data: fileData, error: fileError } = await supabase.storage
-      .from('address_documents')
+      .from('documents')
       .upload(`${currentUser.value.id}/${fileName}.${ext}`, addressFile.value)
     
     if (fileError) throw fileError

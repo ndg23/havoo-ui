@@ -44,8 +44,8 @@
         </button>
       </div>
 
-      <!-- Already verified -->
-      <div v-else-if="isVerified" class="text-center py-8">
+      <!-- Approved verification -->
+      <div v-else-if="verificationStatus === 'approved'" class="text-center py-8">
         <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
           <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -53,7 +53,7 @@
         </div>
         <h3 class="text-lg font-medium text-gray-900">Identité vérifiée</h3>
         <p class="mt-2 text-sm text-gray-500">
-          Votre identité a déjà été vérifiée. Vous pouvez maintenant proposer vos services en tant qu'expert.
+          Votre identité a été vérifiée avec succès. Vous pouvez maintenant proposer vos services en tant qu'expert.
         </p>
         <div class="mt-6">
           <NuxtLink 
@@ -66,7 +66,7 @@
       </div>
 
       <!-- Pending verification -->
-      <div v-else-if="isPending" class="text-center py-8">
+      <div v-else-if="verificationStatus === 'pending'" class="text-center py-8">
         <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 mb-4">
           <svg class="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -76,6 +76,9 @@
         <p class="mt-2 text-sm text-gray-500">
           Votre demande de vérification est en cours de traitement. Nous vous informerons par email dès que votre identité sera vérifiée.
         </p>
+        <div v-if="verificationSubmittedAt" class="mt-2 text-xs text-gray-400">
+          Soumise le {{ formatDate(verificationSubmittedAt) }}
+        </div>
         <div class="mt-6">
           <NuxtLink 
             to="/account/" 
@@ -83,6 +86,31 @@
           >
             Retour au profil
           </NuxtLink>
+        </div>
+      </div>
+
+      <!-- Rejected verification -->
+      <div v-else-if="verificationStatus === 'rejected'" class="py-8">
+        <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+          <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </div>
+        <h3 class="text-lg font-medium text-gray-900 text-center">Vérification refusée</h3>
+        <div v-if="rejectionReason" class="mt-4 p-4 bg-red-50 rounded-lg">
+          <p class="text-sm text-red-700 font-medium">Motif du refus:</p>
+          <p class="text-sm text-red-600 mt-1">{{ rejectionReason }}</p>
+        </div>
+        <p class="mt-4 text-sm text-gray-500 text-center">
+          Vous pouvez soumettre une nouvelle demande en corrigeant les problèmes mentionnés ci-dessus.
+        </p>
+        <div class="mt-6 text-center">
+          <button 
+            @click="resetVerification" 
+            class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium text-white bg-black hover:bg-gray-800 transition-colors"
+          >
+            Soumettre une nouvelle demande
+          </button>
         </div>
       </div>
 
@@ -158,7 +186,7 @@
                 <button 
                   type="button"
                   class="mt-2 text-sm text-blue-600 hover:text-blue-800"
-                  @click.stop
+                  @click.stop="$refs.idCardInput.click()"
                 >
                   Ajouter plus de fichiers
                 </button>
@@ -226,6 +254,29 @@
             </p>
           </div>
 
+          <!-- Add identity info fields -->
+          <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div>
+              <label for="birthdate" class="block text-sm font-medium text-gray-700">Date de naissance</label>
+              <input
+                id="birthdate"
+                v-model="birthdate"
+                type="date"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-black sm:text-sm"
+              />
+            </div>
+            <div>
+              <label for="address" class="block text-sm font-medium text-gray-700">Adresse</label>
+              <input
+                id="address"
+                v-model="address"
+                type="text"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-black sm:text-sm"
+                placeholder="Votre adresse complète"
+              />
+            </div>
+          </div>
+
           <!-- Consent -->
           <div class="relative flex items-start">
             <div class="flex items-center h-5">
@@ -268,6 +319,8 @@
 import { ref, onMounted } from 'vue';
 import { useSupabaseClient, useSupabaseUser } from '#imports';
 import { useRouter } from 'vue-router';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
@@ -275,11 +328,14 @@ const router = useRouter();
 
 // État
 const isLoading = ref(true);
-const isVerified = ref(false);
-const isPending = ref(false);
 const isSubmitting = ref(false);
 const error = ref(null);
 const profile = ref(null);
+
+// Verification status
+const verificationStatus = ref(null);
+const verificationSubmittedAt = ref(null);
+const rejectionReason = ref(null);
 
 // Formulaire
 const idCardFiles = ref([]);
@@ -287,6 +343,17 @@ const selfieFile = ref(null);
 const consent = ref(false);
 const idCardError = ref('');
 const selfieError = ref('');
+const birthdate = ref('');
+const address = ref('');
+
+// Format date
+const formatDate = (dateString) => {
+  try {
+    return format(new Date(dateString), "d MMMM yyyy 'à' HH:mm", { locale: fr });
+  } catch (e) {
+    return dateString;
+  }
+};
 
 // Récupérer le profil et le statut de vérification
 const fetchProfile = async () => {
@@ -298,7 +365,8 @@ const fetchProfile = async () => {
   isLoading.value = true;
   
   try {
-    const { data, error: profileError } = await supabase
+    // Récupérer le profil
+    const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', user.value.id)
@@ -306,26 +374,35 @@ const fetchProfile = async () => {
     
     if (profileError) throw profileError;
     
-    profile.value = data;
+    profile.value = profileData;
     
-    // Vérifier le statut de vérification
-    const { data: verificationData, error: verificationError } = await supabase
-      .from('verifications')
-      .select('status')
-      .eq('user_id', user.value.id)
-      .single();
-    
-    if (verificationError && verificationError.code !== 'PGRST116') {
-      // PGRST116 est l'erreur "No rows found", ce qui est normal si l'utilisateur n'a pas encore demandé de vérification
-      throw verificationError;
+    // Pré-remplir les champs du formulaire avec les données du profil
+    if (profileData.birthdate) {
+      birthdate.value = profileData.birthdate;
     }
     
-    if (verificationData) {
-      if (verificationData.status === 'verified') {
-        isVerified.value = true;
-      } else if (verificationData.status === 'pending') {
-        isPending.value = true;
+    if (profileData.address) {
+      address.value = profileData.address;
+    }
+    
+    // Récupérer les informations de vérification
+    const { data: verificationData, error: verificationError } = await supabase
+      .from('verifications')
+      .select('*')
+      .eq('user_id', user.value.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+    
+    if (verificationError) {
+      if (verificationError.code !== 'PGRST116') {
+        // PGRST116 est l'erreur "No rows found", ce qui est normal si l'utilisateur n'a pas encore demandé de vérification
+        throw verificationError;
       }
+    } else if (verificationData) {
+      verificationStatus.value = verificationData.status;
+      verificationSubmittedAt.value = verificationData.created_at;
+      rejectionReason.value = verificationData.rejection_reason;
     }
   } catch (err) {
     console.error('Error fetching profile or verification status:', err);
@@ -382,6 +459,12 @@ const removeSelfieFile = () => {
   selfieFile.value = null;
 };
 
+// Réinitialiser une vérification rejetée
+const resetVerification = () => {
+  verificationStatus.value = null;
+  rejectionReason.value = null;
+};
+
 // Soumettre la demande de vérification
 const submitVerification = async () => {
   // Validation
@@ -399,6 +482,16 @@ const submitVerification = async () => {
     return;
   }
   
+  if (!birthdate.value) {
+    error.value = "Veuillez indiquer votre date de naissance.";
+    return;
+  }
+  
+  if (!address.value) {
+    error.value = "Veuillez indiquer votre adresse.";
+    return;
+  }
+  
   if (!consent.value) {
     error.value = "Vous devez consentir au traitement de vos données pour continuer.";
     return;
@@ -407,15 +500,27 @@ const submitVerification = async () => {
   isSubmitting.value = true;
   
   try {
-    // 1. Upload des fichiers
+    // 1. Mettre à jour le profil avec les informations supplémentaires
+    const { error: profileUpdateError } = await supabase
+      .from('profiles')
+      .update({
+        birthdate: birthdate.value,
+        address: address.value,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', user.value.id);
+    
+    if (profileUpdateError) throw profileUpdateError;
+    
+    // 2. Upload des fichiers
     const idCardUrls = [];
     
     // Upload de chaque fichier de carte d'identité
     for (const file of idCardFiles.value) {
       const filePath = `verifications/${user.value.id}/id_card_${Date.now()}_${file.name}`;
       
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('identity_documents')
+      const { error: uploadError } = await supabase.storage
+        .from('documents')
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false
@@ -425,7 +530,7 @@ const submitVerification = async () => {
       
       // Obtenir l'URL publique du fichier
       const { data: { publicUrl } } = supabase.storage
-        .from('identity_documents')
+        .from('documents')
         .getPublicUrl(filePath);
       
       idCardUrls.push(publicUrl);
@@ -434,8 +539,8 @@ const submitVerification = async () => {
     // Upload de la photo selfie
     const selfiePath = `verifications/${user.value.id}/selfie_${Date.now()}_${selfieFile.value.name}`;
     
-    const { data: selfieUploadData, error: selfieUploadError } = await supabase.storage
-      .from('identity_documents')
+    const { error: selfieUploadError } = await supabase.storage
+      .from('documents')
       .upload(selfiePath, selfieFile.value, {
         cacheControl: '3600',
         upsert: false
@@ -445,30 +550,34 @@ const submitVerification = async () => {
     
     // Obtenir l'URL publique du selfie
     const { data: { publicUrl: selfieUrl } } = supabase.storage
-      .from('identity_documents')
+      .from('documents')
       .getPublicUrl(selfiePath);
     
-    // 2. Créer l'entrée de vérification dans la base de données
+    // 3. Créer l'entrée de vérification dans la base de données avec le format JSONB pour les documents
+    const documents = {
+      id_cards: idCardUrls,
+      selfie: selfieUrl
+    };
+    
     const { data: verificationData, error: verificationError } = await supabase
       .from('verifications')
       .insert({
         user_id: user.value.id,
-        id_card_urls: idCardUrls,
-        selfie_url: selfieUrl,
         status: 'pending',
-        submitted_at: new Date().toISOString()
+        documents: documents,
+        created_at: new Date().toISOString()
       })
       .select()
       .single();
     
     if (verificationError) throw verificationError;
     
-    // 3. Mettre à jour le statut
-    isPending.value = true;
+    // 4. Mettre à jour le statut
+    verificationStatus.value = 'pending';
+    verificationSubmittedAt.value = verificationData.created_at;
     
-    // 4. Rediriger avec un message de succès
+    // 5. Message de succès
     alert("Votre demande de vérification a été soumise avec succès. Nous l'examinerons dans les plus brefs délais.");
-    router.push('/account/profile');
     
   } catch (err) {
     console.error('Error submitting verification:', err);
@@ -487,4 +596,4 @@ definePageMeta({
   middleware: ['auth'],
   layout: 'account'
 })
-</script> 
+</script>

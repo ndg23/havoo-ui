@@ -120,14 +120,14 @@
       </div>
       
             <div>
-              <button 
+              <NuxtLink 
                 v-if="canMakeProposal"
-                @click="showProposalForm = true"
-                class="inline-flex items-center px-4 py-2 border border-transparent rounded-full shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                :to="`/proposals/new?id=${request.id}`"
+                class="inline-flex items-center px-4 py-2 border border-transparent rounded-full shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
               >
                 <Send class="h-4 w-4 mr-1.5" />
                 Faire une proposition
-              </button>
+              </NuxtLink>
               
               <button 
                 v-else-if="isOwner"
@@ -410,7 +410,7 @@ const fetchRequest = async () => {
 const fetchProposals = async () => {
   try {
     const { data, error: fetchError } = await supabase
-      .from('proposals')
+      .from('deals')
       .select(`
         *
       `)
@@ -519,14 +519,14 @@ const submitProposal = async () => {
   
   try {
     const { error: submitError } = await supabase
-      .from('proposals')
+      .from('deals')
       .insert({
         request_id: request.value.id,
         expert_id: user.value.id,
         price: proposalForm.value.price,
         duration: proposalForm.value.duration,
         message: proposalForm.value.message,
-        status: 'pending'
+        status: 'proposal'
       })
     
     if (submitError) throw submitError
@@ -549,8 +549,8 @@ const acceptProposal = async (proposalId) => {
   try {
     // Mettre à jour le statut de la proposition
     const { error: proposalError } = await supabase
-      .from('proposals')
-      .update({ status: 'accepted' })
+      .from('deals')
+      .update({ status: 'active' })
       .eq('id', proposalId)
     
     if (proposalError) throw proposalError
@@ -563,18 +563,33 @@ const acceptProposal = async (proposalId) => {
     
     if (requestError) throw requestError
     
+    // Récupérer le contrat créé pour redirection
+    const { data: contractData, error: contractError } = await supabase
+      .from('job_contracts')
+      .select('id')
+      .eq('deal_id', proposalId)
+      .single()
+    
+    if (contractError) throw contractError
+    
     // Rafraîchir les données
     await Promise.all([fetchRequest(), fetchProposals()])
+    
+    // Afficher une notification de succès
+    alert('Proposition acceptée. Un contrat a été créé.')
+    
+    // Optionnel: Rediriger vers la page du contrat
+    // router.push(`/account/contracts/${contractData.id}`)
   } catch (err) {
     console.error('Error accepting proposal:', err)
-    alert('Une erreur est survenue')
+    alert('Une erreur est survenue lors de l\'acceptation de la proposition')
   }
 }
 
 const rejectProposal = async (proposalId) => {
   try {
     const { error } = await supabase
-      .from('proposals')
+      .from('deals')
       .update({ status: 'rejected' })
       .eq('id', proposalId)
     

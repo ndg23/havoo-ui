@@ -11,7 +11,7 @@
         </div>
 
         <!-- Navigation centrale (style Wave) -->
-        <div class="hidden sm:flex space-x-8">
+        <div class="hidden md:flex space-x-8">
           <!-- <NuxtLink 
             to="/" 
             class="flex flex-col items-center pb-1 pt-1 border-b-2"
@@ -39,19 +39,46 @@
             </svg> <span class="text-sm text-gray-800 font-semibold  mt-1">Experts</span>
           </NuxtLink>
 
-          <NuxtLink to="/account/messages" class="flex hidden flex-col items-center pb-1 pt-1 border-b-2 relative"
-            :class="[$route.path.includes('/account/messages') ? 'border-primary-500 text-primary-600 dark:text-primary-400 font-medium' : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400']">
-            <MessageSquare class="h-6 w-6" />
-            <span class="text-sm text-gray-800 font-semibold  mt-1">Messages</span>
-            <span v-if="unreadCount > 0"
-              class="absolute -top-1 -right-1 bg-primary-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-              {{ unreadCount }}
-            </span>
-          </NuxtLink>
+         
         </div>
+
+        <!-- Créer Button -->
+       
 
         <!-- User menu -->
         <div class="flex items-center space-x-4">
+          <div class="relative hidden md:block">
+          <button 
+            @click="showCreateMenu = !showCreateMenu"
+            class="create-menu-button px-5 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-full font-medium transition-colors flex items-center gap-2"
+          >
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m-8-8h16" color="currentColor"/></svg>
+
+            Créer
+          </button>
+          
+          <!-- Dropdown menu for "Créer" button -->
+          <div v-if="showCreateMenu" 
+            class="create-menu absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-20 border border-gray-200 dark:border-gray-700 animate-scaleUp">
+            <NuxtLink to="/requests/new"
+              class="flex items-center px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              @click="showCreateMenu = false">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="mr-3 text-primary-500">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+              </svg>
+              Nouvelle demande
+            </NuxtLink>
+            
+            <NuxtLink v-if="userProfile?.is_expert" to="/account/services/new"
+              class="flex items-center px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              @click="showCreateMenu = false">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="mr-3 text-primary-500">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+              </svg>
+              Nouveau service
+            </NuxtLink>
+          </div>
+        </div>
           <NuxtLink v-if="!user" to="/auth/login"
             class="px-4 py-2.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 font-medium rounded-full transition-colors flex items-center gap-2 shadow-sm">
             Se connecter
@@ -122,21 +149,57 @@
 
         <NuxtLink to="/requests" class="flex flex-col items-center py-2 flex-1"
           :class="[$route.path.includes('/requests') ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400']">
-          <FileText class="h-6 w-6" />
-          <span class="text-xs mt-0.5">Demandes</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24">
+              <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M12.53 2c3.993 0 5.989 0 7.23 1.172C21 4.343 21 6.229 21 10v4c0 3.771 0 5.657-1.24 6.828C18.519 22 16.522 22 12.53 22h-1.06c-3.992 0-5.989 0-7.23-1.172C3 19.657 3 17.771 3 14v-4c0-3.771 0-5.657 1.24-6.828C5.481 2 7.478 2 11.47 2zM8 7h8m-8 5h8m-8 5h4"
+                color="currentColor" />
+            </svg> <span class="text-sm text-gray-800 font-semibold  mt-1">Demandes</span>
         </NuxtLink>
-
+        <button @click="showMobileCreateMenu = !showMobileCreateMenu" class="mobile-create-button flex flex-col items-center py-2 flex-1 relative">
+          <div class="h-12 w-12 bg-primary-600 rounded-full flex items-center justify-center text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m-8-8h16" color="currentColor"/></svg>
+          </div>
+          <span class="text-xs mt-0.5 text-primary-600 font-medium">Créer</span>
+          
+          <!-- Mobile Create Menu -->
+          <div v-if="showMobileCreateMenu" 
+               class="mobile-create-menu absolute bottom-16 left-1/2 transform -translate-x-1/2 w-56 bg-white rounded-lg shadow-lg py-2 z-30 border border-gray-200 animate-rise">
+            <NuxtLink to="/requests/new" 
+                     class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100"
+                     @click="showMobileCreateMenu = false">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="mr-3 text-primary-500">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+              </svg>
+              Nouvelle demande
+            </NuxtLink>
+            
+            <NuxtLink v-if="userProfile?.is_expert" to="/account/services/new"
+                     class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100"
+                     @click="showMobileCreateMenu = false">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="mr-3 text-primary-500">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+              </svg>
+              Nouveau service
+            </NuxtLink>
+          </div>
+        </button>
         <NuxtLink to="/experts" class="flex flex-col items-center py-2 flex-1"
           :class="[$route.path.includes('/experts') ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400']">
-          <Users class="h-6 w-6" />
-          <span class="text-xs mt-0.5">Experts</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24">
+              <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M13 7a4 4 0 1 1-8 0a4 4 0 0 1 8 0m2 4a4 4 0 0 0 0-8m-4 11H7a5 5 0 0 0-5 5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2a5 5 0 0 0-5-5m6 0a5 5 0 0 1 5 5a2 2 0 0 1-2 2h-1.5"
+                color="currentColor" />
+            </svg> <span class="text-sm text-gray-800 font-semibold  mt-1">Experts</span>
         </NuxtLink>
 
-        <NuxtLink to="/account" class="flex flex-col items-center py-2 flex-1"
+        <!-- Create Button for Mobile -->
+      
+
+        <!-- <NuxtLink to="/account" class="flex flex-col items-center py-2 flex-1"
           :class="[$route.path.includes('/account') ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400']">
           <User class="h-6 w-6" />
           <span class="text-xs mt-0.5">Compte</span>
-        </NuxtLink>
+        </NuxtLink> -->
       </div>
     </div>
 
@@ -158,7 +221,8 @@ import {
   FileText,
   Users,
   MessageSquare,
-  User
+  User,
+  PlusIcon
 } from 'lucide-vue-next'
 import Footer from '@/components/Footer.vue'
 
@@ -170,11 +234,19 @@ const router = useRouter()
 const userProfile = ref(null)
 const unreadCount = ref(0)
 const showProfileMenu = ref(false)
+const showCreateMenu = ref(false)
+const showMobileCreateMenu = ref(false)
 
 // Fermer le menu en cliquant ailleurs
 const handleClickOutside = (event) => {
   if (showProfileMenu.value && !event.target.closest('.profile-menu-button') && !event.target.closest('.profile-menu')) {
     showProfileMenu.value = false
+  }
+  if (showCreateMenu.value && !event.target.closest('.create-menu-button') && !event.target.closest('.create-menu')) {
+    showCreateMenu.value = false
+  }
+  if (showMobileCreateMenu.value && !event.target.closest('.mobile-create-button') && !event.target.closest('.mobile-create-menu')) {
+    showMobileCreateMenu.value = false
   }
 }
 
@@ -349,6 +421,23 @@ watch(user, (newUser) => {
 
 .animate-slideDown {
   animation: slideDown 0.3s ease forwards;
+}
+
+/* Animation pour le menu mobile create */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.animate-rise {
+  animation: rise 0.2s ease-out forwards;
 }
 
 /* Style des liens du menu mobile */

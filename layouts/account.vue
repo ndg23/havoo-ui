@@ -1,239 +1,215 @@
 <template>
   <NuxtLayout name="default">
     <template #default>
-      <div class="min-h-screen max-w-4xl mx-auto bg-white dark:bg-gray-900 flex flex-col">
-        <!-- Enhanced Navigation principale with modern design -->
-        <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+      <div class="min-h-screen bg-white dark:bg-gray-900 flex flex-col">
+        <!-- Header fixe avec design Twitter -->
+        <div class="sticky top-0 z-10 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
           <div class="max-w-5xl mx-auto px-4">
-            <!-- Navigation desktop with enhanced styling -->
-            <div class="hidden md:flex">
-              <div class="flex">
+            <!-- Navigation desktop -->
+            <div class="hidden md:flex h-14 items-center">
+              <div class="flex h-full space-x-1">
                 <NuxtLink 
                   to="/account" 
-                  class="account-tab group"
-                  :class="[$route.path === '/account' ? 'active' : '']"
+                  class="twitter-tab group"
+                  :class="[$route.path === '/account' ? 'twitter-tab-active' : '']"
                 >
                   <span>Tableau de bord</span>
-                  <div class="tab-indicator"></div>
+                  <div class="twitter-indicator"></div>
                 </NuxtLink>
                 
                 <NuxtLink 
                   to="/account/requests" 
-                  class="account-tab group"
-                  :class="[$route.path.includes('/account/requests') ? 'active' : '']"
+                  class="twitter-tab group"
+                  :class="[$route.path.includes('/account/requests') ? 'twitter-tab-active' : '']"
                 >
                   <span>Demandes</span>
-                  <div class="tab-indicator"></div>
+                  <div class="twitter-indicator"></div>
                 </NuxtLink>
                 
                 <NuxtLink 
                   v-if="isExpert"
                   to="/account/services" 
-                  class="account-tab group"
-                  :class="[$route.path.includes('/account/services') ? 'active' : '']"
+                  class="twitter-tab group"
+                  :class="[$route.path.includes('/account/services') ? 'twitter-tab-active' : '']"
                 >
                   <span>Services</span>
-                  <div class="tab-indicator"></div>
+                  <div class="twitter-indicator"></div>
                 </NuxtLink>
                 
                 <NuxtLink 
                   to="/account/contracts" 
-                  class="account-tab group"
-                  :class="[$route.path.includes('/account/contracts') ? 'active' : '']"
+                  class="twitter-tab group"
+                  :class="[$route.path.includes('/account/contracts') ? 'twitter-tab-active' : '']"
                 >
                   <span>Contrats</span>
-                  <div class="tab-indicator"></div>
+                  <div class="twitter-indicator"></div>
                 </NuxtLink>
                 
                 <NuxtLink 
                   to="/account/messages" 
-                  class="account-tab group relative"
-                  :class="[$route.path.includes('/account/messages') ? 'active' : '']"
+                  class="twitter-tab group relative"
+                  :class="[$route.path.includes('/account/messages') ? 'twitter-tab-active' : '']"
                 >
                   <span>Messages</span>
-                  <div class="tab-indicator"></div>
+                  <div class="twitter-indicator"></div>
                   <span 
                     v-if="unreadCount > 0" 
-                    class="notification-badge"
+                    class="twitter-badge"
                   >
-                    {{ unreadCount }}
+                    {{ unreadCount > 99 ? '99+' : unreadCount }}
                   </span>
                 </NuxtLink>
               </div>
               
-              <!-- Enhanced action button with dropdown -->
-              <div class="ml-auto relative">
-                <button 
-                  @click="showQuickActions = !showQuickActions"
-                  class="action-button twitter-button mt-2 shadow-sm hover:shadow transition-all"
-                >
-                  <span>Créer</span>
-                  <ChevronDown v-if="showQuickActions" class="h-4 w-4 ml-1 transition-transform" />
-                  <ChevronUp v-else class="h-4 w-4 ml-1 transition-transform" />
-                </button>
-                
-                <!-- Enhanced dropdown menu -->
-                <div 
-                  v-if="showQuickActions" 
-                  class="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-lg py-2 z-20 border border-gray-200 dark:border-gray-700 animate-scaleUp"
-                >
-                  <NuxtLink 
-                    to="/requests/new" 
-                    class="dropdown-item group"
-                    @click="showQuickActions = false"
-                  >
-                    <div class="flex items-center">
-                      <div class="h-9 w-9 rounded-full bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center mr-3 group-hover:bg-primary-100 dark:group-hover:bg-primary-900/50 transition-colors">
-                        <FileText class="h-5 w-5 text-primary-500 dark:text-primary-400" />
-                      </div>
-                      <div>
-                        <span class="block font-medium">Nouvelle demande</span>
-                        <span class="text-xs text-gray-500 dark:text-gray-400">Créer une demande d'expertise</span>
-                      </div>
-                    </div>
-                  </NuxtLink>
-                  
+              <!-- Action button avec bulle d'aide -->
+              <div class="ml-auto">
+                <div class="relative group">
                   <NuxtLink 
                     v-if="isExpert"
-                    to="/account/services/new" 
-                    class="dropdown-item group"
-                    @click="showQuickActions = false"
+                    to="/account/services/create" 
+                    class="twitter-action-button"
                   >
-                    <div class="flex items-center">
-                      <div class="h-9 w-9 rounded-full bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center mr-3 group-hover:bg-primary-100 dark:group-hover:bg-primary-900/50 transition-colors">
-                        <Briefcase class="h-5 w-5 text-primary-500 dark:text-primary-400" />
-                      </div>
-                      <div>
-                        <span class="block font-medium">Nouveau service</span>
-                        <span class="text-xs text-gray-500 dark:text-gray-400">Proposer un service d'expertise</span>
-                      </div>
-                    </div>
+                    <Plus class="h-5 w-5 mr-2" />
+                    <span>Créer un service</span>
+                  </NuxtLink>
+                  <NuxtLink 
+                    v-else
+                    to="/requests/new" 
+                    class="twitter-action-button"
+                  >
+                    <Plus class="h-5 w-5 mr-2" />
+                    <span>Créer une demande</span>
                   </NuxtLink>
                 </div>
               </div>
             </div>
             
-            <!-- Enhanced mobile navigation with smooth scrolling -->
+            <!-- Navigation mobile avec défilement fluide -->
             <div class="md:hidden overflow-x-auto hide-scrollbar">
-              <div class="flex">
+              <div class="flex h-14 items-center space-x-0">
                 <NuxtLink 
                   to="/account" 
-                  class="account-tab-mobile group"
-                  :class="[$route.path === '/account' ? 'active' : '']"
+                  class="twitter-tab-mobile group"
+                  :class="[$route.path === '/account' ? 'twitter-tab-mobile-active' : '']"
                 >
                   <span>Tableau</span>
-                  <div class="tab-indicator-mobile"></div>
+                  <div class="twitter-indicator-mobile"></div>
                 </NuxtLink>
                 
                 <NuxtLink 
                   to="/account/requests" 
-                  class="account-tab-mobile group"
-                  :class="[$route.path.includes('/account/requests') ? 'active' : '']"
+                  class="twitter-tab-mobile group"
+                  :class="[$route.path.includes('/account/requests') ? 'twitter-tab-mobile-active' : '']"
                 >
                   <span>Demandes</span>
-                  <div class="tab-indicator-mobile"></div>
+                  <div class="twitter-indicator-mobile"></div>
                 </NuxtLink>
                 
                 <NuxtLink 
                   v-if="isExpert"
                   to="/account/services" 
-                  class="account-tab-mobile group"
-                  :class="[$route.path.includes('/account/services') ? 'active' : '']"
+                  class="twitter-tab-mobile group"
+                  :class="[$route.path.includes('/account/services') ? 'twitter-tab-mobile-active' : '']"
                 >
                   <span>Services</span>
-                  <div class="tab-indicator-mobile"></div>
+                  <div class="twitter-indicator-mobile"></div>
                 </NuxtLink>
                 
                 <NuxtLink 
                   to="/account/contracts" 
-                  class="account-tab-mobile group"
-                  :class="[$route.path.includes('/account/contracts') ? 'active' : '']"
+                  class="twitter-tab-mobile group"
+                  :class="[$route.path.includes('/account/contracts') ? 'twitter-tab-mobile-active' : '']"
                 >
                   <span>Contrats</span>
-                  <div class="tab-indicator-mobile"></div>
+                  <div class="twitter-indicator-mobile"></div>
                 </NuxtLink>
                 
                 <NuxtLink 
                   to="/account/messages" 
-                  class="account-tab-mobile group relative"
-                  :class="[$route.path.includes('/account/messages') ? 'active' : '']"
+                  class="twitter-tab-mobile group relative"
+                  :class="[$route.path.includes('/account/messages') ? 'twitter-tab-mobile-active' : '']"
                 >
                   <span>Messages</span>
-                  <div class="tab-indicator-mobile"></div>
+                  <div class="twitter-indicator-mobile"></div>
                   <span 
                     v-if="unreadCount > 0" 
-                    class="notification-badge-mobile"
+                    class="twitter-badge-mobile"
                   >
-                    {{ unreadCount }}
+                    {{ unreadCount > 99 ? '99+' : unreadCount }}
                   </span>
                 </NuxtLink>
               </div>
-              </div>
             </div>
           </div>
+        </div>
           
-        <!-- Enhanced alert for unverified experts -->
+        <!-- Alerte de vérification avec style moderne -->
         <div 
           v-if="isExpert && !isVerified" 
-          class="bg-amber-50 dark:bg-amber-900/10 border-b border-amber-100 dark:border-amber-800/30"
+          class="bg-primary-50 dark:bg-primary-900/10 border-b border-primary-100 dark:border-primary-800/30"
         >
           <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
             <div class="flex items-center">
-              <AlertTriangle class="h-4 w-4 text-amber-500 mr-2" />
-              <span class="text-sm text-amber-700 dark:text-amber-400">
+              <AlertTriangle class="h-4 w-4 text-primary-600 dark:text-primary-400 mr-2" />
+              <span class="text-sm text-primary-700 dark:text-primary-300">
                 Votre compte expert n'est pas encore vérifié
               </span>
             </div>
             <NuxtLink 
-              to="/account/verify" 
-              class="text-xs font-medium text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 hover:underline transition-all"
+              to="/account/verification" 
+              class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-800/50 transition-colors"
             >
-              Vérifier maintenant →
+              Vérifier maintenant
+              <ChevronRight class="ml-1 h-3 w-3" />
             </NuxtLink>
           </div>
         </div>
         
-        <!-- Enhanced content area with padding -->
-        <div class="flex-1 px-4 py-4 md:py-6">
+        <!-- Zone de contenu avec transitions -->
+        <div class="flex-1 max-w-5xl w-full mx-auto px-4 py-6 animate-fadeIn">
           <slot />
         </div>
         
-        <!-- Enhanced floating action button with smoother animations -->
-        <div class="fixed bottom-6 right-6 md:hidden z-30">
+        <!-- Bouton d'action flottant sur mobile -->
+        <div class="md:hidden fixed right-6 bottom-6 z-20">
           <button 
-            class="action-fab"
             @click="showMobileActions = !showMobileActions"
+            class="twitter-fab"
+            :class="{ 'rotate-45': showMobileActions }"
           >
-            <Plus v-if="!showMobileActions" class="h-6 w-6 transition-transform" />
-            <X v-else class="h-6 w-6 transition-transform" />
+            <Plus class="h-6 w-6" />
           </button>
           
-          <!-- Enhanced floating actions menu -->
+          <!-- Menu d'actions mobile -->
           <div 
             v-if="showMobileActions" 
-            class="absolute bottom-16 right-0 space-y-3 animate-slideUp"
+            class="absolute right-0 bottom-16 flex flex-col-reverse items-end space-y-reverse space-y-3"
           >
             <NuxtLink 
               to="/requests/new" 
-              class="action-fab-item"
+              class="twitter-fab-item"
               @click="showMobileActions = false"
             >
-              <FileText class="h-4 w-4 mr-2" />
-              Nouvelle demande
+              <span class="twitter-fab-label">Nouvelle demande</span>
+              <div class="twitter-fab-icon bg-green-500">
+                <FileText class="h-4 w-4 text-white" />
+              </div>
             </NuxtLink>
             
             <NuxtLink 
               v-if="isExpert"
-              to="/account/services/new" 
-              class="action-fab-item"
+              to="/account/services/create" 
+              class="twitter-fab-item"
               @click="showMobileActions = false"
             >
-              <Briefcase class="h-4 w-4 mr-2" />
-              Nouveau service
+              <span class="twitter-fab-label">Nouveau service</span>
+              <div class="twitter-fab-icon bg-blue-500">
+                <Briefcase class="h-4 w-4 text-white" />
+              </div>
             </NuxtLink>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
     </template>
   </NuxtLayout>
 </template>
@@ -249,7 +225,8 @@ import {
   X, 
   AlertTriangle,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  ChevronRight
 } from 'lucide-vue-next'
 
 const supabase = useSupabaseClient()
@@ -262,15 +239,10 @@ const unreadCount = ref(0)
 
 // État UI
 const showMobileActions = ref(false)
-const showQuickActions = ref(false)
 
 // Fermer les menus en cliquant ailleurs
 const handleClickOutside = (event) => {
-  if (showQuickActions.value && !event.target.closest('.action-button') && !event.target.closest('.dropdown-item')) {
-    showQuickActions.value = false
-  }
-  
-  if (showMobileActions.value && !event.target.closest('.action-fab') && !event.target.closest('.action-fab-item')) {
+  if (showMobileActions.value && !event.target.closest('.twitter-fab') && !event.target.closest('.twitter-fab-item')) {
     showMobileActions.value = false
   }
 }
@@ -281,50 +253,22 @@ const fetchUserProfile = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) {
-      router.push('/login')
+      router.push('/auth/login')
       return
     }
     
-    const { data, error } = await supabase
+    const { data: profile, error } = await supabase
       .from('profiles')
-      .select('*')
+      .select('is_expert, is_verified')
       .eq('id', user.id)
       .single()
-      
+    
     if (error) throw error
     
-    isExpert.value = data.is_expert
-    
-    // Vérifier le statut de vérification si expert
-    if (data.is_expert) {
-      await checkVerificationStatus()
-    }
-    
-    // Récupérer le nombre de messages non lus
-    await fetchUnreadMessages()
-  } catch (err) {
-    console.error('Error fetching user profile:', err)
-  }
-}
-
-// Vérifier le statut de vérification
-const checkVerificationStatus = async () => {
-  try {
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    const { data, error } = await supabase
-      .from('verifications')
-      .select('status')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single()
-    
-    if (error && error.code !== 'PGRST116') throw error
-    
-    isVerified.value = data?.status === 'approved'
-  } catch (err) {
-    console.error('Error checking verification status:', err)
+    isExpert.value = profile.is_expert
+    isVerified.value = profile.is_verified
+  } catch (error) {
+    console.error('Error fetching user profile:', error)
   }
 }
 
@@ -333,28 +277,26 @@ const fetchUnreadMessages = async () => {
   try {
     const { data: { user } } = await supabase.auth.getUser()
     
-    const { data, error } = await supabase
+    if (!user) return
+    
+    const { count, error } = await supabase
       .from('messages')
       .select('id', { count: 'exact' })
+      .eq('recipient_id', user.id)
       .eq('is_read', false)
-      .in('conversation_id', 
-        supabase
-          .from('conversation_participants')
-          .select('conversation_id')
-          .eq('profile_id', user.id)
-      )
     
     if (error) throw error
     
-    unreadCount.value = data?.length || 0
-  } catch (err) {
-    console.error('Error fetching unread messages:', err)
+    unreadCount.value = count || 0
+  } catch (error) {
+    console.error('Error fetching unread messages:', error)
   }
 }
 
-// Initialisation
+// Lifecycle hooks
 onMounted(() => {
   fetchUserProfile()
+  fetchUnreadMessages()
   document.addEventListener('click', handleClickOutside)
 })
 
@@ -364,119 +306,97 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-/* Enhanced Tabs style */
-.account-tab {
-  @apply px-4 py-4 font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 relative flex items-center justify-center transition-colors;
+/* Animations */
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
 }
 
-.account-tab.active {
-  @apply font-bold text-primary-600 dark:text-primary-400;
+.animate-scaleUp {
+  animation: scaleUp 0.2s ease-out;
 }
 
-.tab-indicator {
-  @apply absolute bottom-0 left-0 right-0 h-1 bg-primary-500 dark:bg-primary-400 rounded-full origin-center scale-x-0 transition-transform duration-200;
-  width: 60%;
-  margin: 0 auto;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-.account-tab.active .tab-indicator,
-.account-tab:hover .tab-indicator {
+@keyframes scaleUp {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* Style Twitter-like tabs */
+.twitter-tab {
+  @apply px-4 h-full flex items-center justify-center font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/60 relative transition-colors;
+}
+
+.twitter-tab-active {
+  @apply text-gray-900 dark:text-white font-semibold;
+}
+
+.twitter-indicator {
+  @apply absolute bottom-0 left-0 w-full h-1 rounded-full scale-x-0 bg-primary-500 dark:bg-primary-400 group-hover:scale-x-75 transition-transform origin-center duration-200;
+}
+
+.twitter-tab-active .twitter-indicator {
   @apply scale-x-100;
 }
 
-.account-tab.active .tab-indicator {
-  @apply bg-primary-500 dark:bg-primary-400;
+.twitter-tab-mobile {
+  @apply px-3 h-full flex items-center justify-center text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white relative transition-colors;
 }
 
-.account-tab:hover:not(.active) .tab-indicator {
-  @apply bg-gray-300 dark:bg-gray-700 scale-x-75;
+.twitter-tab-mobile-active {
+  @apply text-gray-900 dark:text-white font-semibold;
 }
 
-/* Enhanced Tabs mobile */
-.account-tab-mobile {
-  @apply px-3 py-3 font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 relative flex items-center justify-center flex-1 transition-colors;
+.twitter-indicator-mobile {
+  @apply absolute bottom-0 left-0 w-full h-1 rounded-full scale-x-0 bg-primary-500 dark:bg-primary-400 group-hover:scale-x-75 transition-transform origin-center duration-200;
 }
 
-.account-tab-mobile.active {
-  @apply font-bold text-primary-600 dark:text-primary-400;
-}
-
-.tab-indicator-mobile {
-  @apply absolute bottom-0 left-0 right-0 h-1 bg-primary-500 dark:bg-primary-400 rounded-full origin-center scale-x-0 transition-transform duration-200;
-  width: 60%;
-  margin: 0 auto;
-}
-
-.account-tab-mobile.active .tab-indicator-mobile {
+.twitter-tab-mobile-active .twitter-indicator-mobile {
   @apply scale-x-100;
 }
 
-/* Enhanced action button */
-.action-button {
-  @apply py-2 px-4 bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-full flex items-center transition-all duration-200;
+/* Badge de notification */
+.twitter-badge {
+  @apply absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold min-w-[16px] h-4 rounded-full flex items-center justify-center px-1;
 }
 
-/* Enhanced dropdown menu items */
-.dropdown-item {
-  @apply block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200;
+.twitter-badge-mobile {
+  @apply absolute -top-1 right-0 bg-red-500 text-white text-[10px] font-bold min-w-[16px] h-4 rounded-full flex items-center justify-center px-1;
 }
 
-.dropdown-item:hover {
-  @apply translate-x-1;
+/* Bouton d'action style Twitter */
+.twitter-action-button {
+  @apply flex items-center justify-center px-4 py-2 bg-primary-500 hover:bg-primary-600 dark:bg-primary-600 dark:hover:bg-primary-700 text-white font-medium rounded-full transition-colors shadow-sm hover:shadow;
 }
 
-/* Enhanced notification badge */
-.notification-badge {
-  @apply absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 min-w-[1.25rem] flex items-center justify-center shadow-sm;
-}
-
-.notification-badge-mobile {
-  @apply absolute top-1 right-1 bg-red-500 text-white text-xs font-bold rounded-full h-4 min-w-[1rem] flex items-center justify-center shadow-sm;
-}
-
-/* Enhanced floating action button */
-.action-fab {
-  @apply h-14 w-14 rounded-full bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center shadow-lg transition-all duration-300;
-}
-
-.action-fab:hover {
-  @apply transform scale-105 shadow-xl;
-}
-
-/* Enhanced floating action items */
-.action-fab-item {
-  @apply flex items-center bg-primary-500 text-white rounded-full pl-3 pr-5 py-2.5 shadow-md transition-all duration-200 hover:bg-primary-600;
-}
-
-.action-fab-item:hover {
-  @apply transform -translate-y-0.5 shadow-lg;
-}
-
-/* Hide scrollbar */
+/* Masquer la scrollbar tout en gardant la fonctionnalité */
 .hide-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
+  -ms-overflow-style: none;  /* Internet Explorer and Edge */
   scrollbar-width: none;  /* Firefox */
 }
+
 .hide-scrollbar::-webkit-scrollbar {
   display: none;  /* Chrome, Safari and Opera */
 }
 
-/* Enhanced animations */
-@keyframes scaleUp {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+/* Bouton d'action flottant */
+.twitter-fab {
+  @apply h-14 w-14 rounded-full bg-primary-500 hover:bg-primary-600 dark:bg-primary-600 dark:hover:bg-primary-700 text-white flex items-center justify-center shadow-lg transition-all duration-300 focus:outline-none;
 }
 
-.animate-scaleUp {
-  animation: scaleUp 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+.twitter-fab-item {
+  @apply flex items-center space-x-2 mb-2 animate-scaleUp transform-gpu;
+  animation-delay: calc(var(--idx, 0) * 0.05s);
 }
 
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(15px); }
-  to { opacity: 1; transform: translateY(0); }
+.twitter-fab-label {
+  @apply py-2 px-3 bg-gray-800 dark:bg-gray-700 text-white text-sm font-medium rounded-full shadow-md;
 }
 
-.animate-slideUp {
-  animation: slideUp 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+.twitter-fab-icon {
+  @apply h-10 w-10 rounded-full flex items-center justify-center shadow-md;
 }
 </style>

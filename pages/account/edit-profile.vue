@@ -727,20 +727,14 @@ const updateProfile = async () => {
       last_name: form.value.lastName,
       phone: form.value.phone,
       birthdate: form.value.birthdate,
-      gender: form.value.gender,
+      // gender: form.value.gender,
       address: form.value.address,
       city: form.value.city,
       country: form.value.country,
       bio: form.value.bio,
       avatar_url: avatarUrl,
-      email_notifications: form.value.emailNotifications,
-      push_notifications: form.value.pushNotifications,
       website: form.value.website,
-      hourly_rate: form.value.hourlyRate,
-      availability_status: form.value.availabilityStatus,
-      skills: form.value.skills,
-      available_days: form.value.availableDays,
-      available_hours: form.value.availableHours,
+      // skills: form.value.skills,
       updated_at: new Date().toISOString()
     }
     

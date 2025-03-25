@@ -1,55 +1,88 @@
 <template>
-  <div class="max-w-4xl mx-auto px-4 py-6 bg-white">
-    <div class="flex justify-between items-center mb-5">
-      <h1 class="text-xl font-bold text-gray-900">Demandes de services</h1>
-      
-      <!-- Create request button for clients -->
-      <button 
-        v-if="!isExpert"
-        @click="showCreateRequestModal = true" 
-        class="px-4 py-2 bg-primary-600 text-white rounded-full text-sm font-medium shadow-sm hover:bg-primary-700"
-      >
-        Publier une demande
-      </button>
-    </div>
-
-    <!-- Active filters display -->
-    <div v-if="activeFilters.length > 0" class="mb-4">
-      <div class="flex items-center flex-wrap gap-2">
-        <div class="text-sm text-gray-500 mr-1">Filtres actifs:</div>
-        <span 
-          v-for="filter in activeFilters" 
-          :key="filter.id"
-          class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800"
-        >
-          {{ filter.name }}
-          <button 
-            @click="removeFilter(filter)"
-            class="ml-1.5 h-4 w-4 rounded-full inline-flex items-center justify-center text-primary-600 hover:bg-primary-200"
-          >
-            <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-            </svg>
-          </button>
-        </span>
+  <div class="min-h-screen bg-white dark:bg-gray-900">
+    <!-- Twitter-style sticky header with blur effect -->
+    <div class="sticky top-0 z-30 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800">
+      <div class="max-w-3xl mx-auto px-4 py-3 flex justify-between items-center">
+        <h1 class="text-xl font-bold text-gray-900 dark:text-white">Demandes</h1>
+        
+        <!-- Create request button for clients with Twitter style -->
         <button 
+          v-if="!isExpert"
+          @click="showCreateRequestModal = true" 
+          class="rounded-full bg-primary-600 hover:bg-primary-700 px-5 py-2 text-white font-medium text-sm transition-colors shadow-sm"
+          aria-label="Créer une nouvelle demande"
+        >
+          Nouvelle demande
+        </button>
+      </div>
+      
+      <!-- Twitter-style search bar -->
+      <div class="max-w-3xl mx-auto px-4 pb-3">
+        <div class="relative">
+          <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+            <Search class="h-5 w-5 text-gray-400 dark:text-gray-500" />
+          </div>
+          <input 
+            v-model="searchQuery" 
+            type="text" 
+            placeholder="Rechercher une demande..." 
+            class="block w-full bg-gray-100 dark:bg-gray-800 border-none rounded-full pl-10 pr-4 py-2.5 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 transition-all"
+          />
+        </div>
+      </div>
+      
+      <!-- Twitter-style filters row -->
+      <div class="max-w-3xl mx-auto px-4 pb-3 flex gap-2 overflow-x-auto scrollbar-hide">
+        <button 
+          @click="showAdvancedFilters = !showAdvancedFilters"
+          class="flex items-center gap-1.5 px-3.5 py-1.5 text-sm rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+          </svg>
+          Filtres
+          <span v-if="activeFilters.length > 0" class="ml-0.5 flex items-center justify-center h-5 w-5 text-xs bg-primary-500 text-white rounded-full">{{ activeFilters.length }}</span>
+        </button>
+        
+        <!-- Active filters pills with Twitter style -->
+        <div v-for="filter in activeFilters" :key="filter.id" class="inline-flex">
+          <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-primary-50 dark:bg-primary-900/30 text-primary-800 dark:text-primary-200 border border-primary-100 dark:border-primary-800/30 transition-colors">
+            {{ filter.name }}
+            <button 
+              @click="removeFilter(filter)"
+              class="ml-1.5 h-4 w-4 rounded-full inline-flex items-center justify-center hover:bg-primary-200/70 dark:hover:bg-primary-800/70"
+              aria-label="Supprimer le filtre"
+            >
+              <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+              </svg>
+            </button>
+          </span>
+        </div>
+        
+        <!-- Clear filters button with Twitter style -->
+        <button 
+          v-if="activeFilters.length > 0"
           @click="clearFilters"
-          class="text-xs text-gray-500 hover:text-gray-700 ml-1"
+          class="text-xs text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3.5 py-1.5 rounded-full border border-gray-200 dark:border-gray-700 transition-colors"
         >
           Effacer tous
         </button>
       </div>
     </div>
-
-    <!-- Filters -->
-    <div class="bg-white rounded-xl border border-gray-200 mb-5 shadow-sm">
-      <div class="p-4">
-        <div class="flex flex-wrap gap-3 mb-3">
-          <!-- Budget filter -->
-          <div class="relative">
+    
+    <!-- Advanced filters panel with Twitter style -->
+    <div 
+      v-if="showAdvancedFilters" 
+      class="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 shadow-sm animate-slide-down"
+    >
+      <div class="max-w-3xl mx-auto px-4 py-4">
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <!-- Budget filter with Twitter style -->
+          <div>
             <select 
               v-model="filters.budget" 
-              class="pl-3 pr-8 py-2 rounded-full border border-gray-300 bg-white text-sm"
+              class="w-full pl-3 pr-8 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
             >
               <option value="">Budget</option>
               <option value="0-100">Moins de 100FCFA</option>
@@ -59,11 +92,11 @@
             </select>
           </div>
           
-          <!-- Delivery time filter -->
-          <div class="relative">
+          <!-- Delivery time filter with Twitter style -->
+          <div>
             <select 
               v-model="filters.deliveryTime" 
-              class="pl-3 pr-8 py-2 rounded-full border border-gray-300 bg-white text-sm"
+              class="w-full pl-3 pr-8 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
             >
               <option value="">Délai</option>
               <option value="1-3">1-3 jours</option>
@@ -73,11 +106,11 @@
             </select>
           </div>
           
-          <!-- Category filter -->
-          <div class="relative">
+          <!-- Category filter with Twitter style -->
+          <div>
             <select 
               v-model="filters.categoryId" 
-              class="pl-3 pr-8 py-2 rounded-full border border-gray-300 bg-white text-sm"
+              class="w-full pl-3 pr-8 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
             >
               <option value="">Catégorie</option>
               <option v-for="category in categories" :key="category.id" :value="category.id">
@@ -85,72 +118,83 @@
               </option>
             </select>
           </div>
-        </div>
-        
-        <!-- Search and skills -->
-        <div class="flex flex-col sm:flex-row gap-3">
-          <div class="relative flex-grow">
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg class="h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
-              </svg>
-            </div>
-            <input 
-              v-model="searchQuery" 
-              type="text" 
-              placeholder="Rechercher une demande..." 
-              class="w-full pl-10 pr-3 py-2 rounded-full border border-gray-300 bg-white text-sm"
-            />
-          </div>
           
-          <!-- Skills filter -->
-          <div class="relative" data-skills-dropdown>
-            <button 
-              @click="showSkillsDropdown = !showSkillsDropdown"
-              class="px-4 py-2 rounded-full border border-gray-300 bg-white text-sm flex items-center"
-            >
-              Compétences
-              <svg 
-                class="ml-1 h-4 w-4 text-gray-400" 
-                :class="{ 'transform rotate-180': showSkillsDropdown }"
-                xmlns="http://www.w3.org/2000/svg" 
-                viewBox="0 0 20 20" 
-                fill="currentColor"
+          <!-- Skills selector with Twitter style -->
+          <div class="md:col-span-3">
+            <div class="relative" data-skills-dropdown>
+              <button 
+                @click="showSkillsDropdown = !showSkillsDropdown"
+                class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm flex items-center justify-between focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
               >
-                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-              </svg>
-            </button>
-            
-            <!-- Skills dropdown -->
-            <div 
-              v-show="showSkillsDropdown" 
-              class="absolute z-10 mt-1 w-64 bg-white shadow-lg rounded-lg border border-gray-200"
-            >
-              <div class="mb-2">
-                <input 
-                  v-model="skillSearchQuery" 
-                  type="text" 
-                  placeholder="Rechercher des compétences" 
-                  class="w-full px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-sm"
-                />
-              </div>
-              
-              <div class="max-h-40 overflow-y-auto">
-                <div 
-                  v-for="skill in filteredSkills" 
-                  :key="skill.id"
-                  @click="toggleSkillFilter(skill)"
-                  class="flex items-center py-1.5 px-2 hover:bg-gray-100 cursor-pointer"
+                <span class="text-gray-700 dark:text-gray-300">{{ selectedSkillFilters.length > 0 ? `${selectedSkillFilters.length} compétence(s) sélectionnée(s)` : 'Compétences' }}</span>
+                <svg 
+                  class="h-4 w-4 text-gray-400 dark:text-gray-500 transition-transform duration-200 ease-in-out" 
+                  :class="{ 'rotate-180': showSkillsDropdown }"
+                  xmlns="http://www.w3.org/2000/svg" 
+                  viewBox="0 0 20 20" 
+                  fill="currentColor"
                 >
-                  <input 
-                    type="checkbox"
-                    class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                  />
-                  <span class="ml-2 text-sm">{{ skill.name }}</span>
+                  <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </button>
+              
+              <!-- Skills dropdown with Twitter style -->
+              <div 
+                v-show="showSkillsDropdown" 
+                class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 shadow-lg rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden animate-fade-in"
+              >
+                <div class="p-2.5 border-b border-gray-100 dark:border-gray-700">
+                  <div class="relative">
+                    <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                      <Search class="h-4 w-4 text-gray-400" />
+                    </div>
+                    <input 
+                      v-model="skillSearchQuery" 
+                      type="text" 
+                      placeholder="Rechercher des compétences" 
+                      class="w-full pl-9 pr-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                    />
+                  </div>
                 </div>
                 
-                <div v-if="filteredSkills.length === 0" class="py-2 px-2 text-sm text-gray-500">
-                  Aucun résultat
+                <div class="max-h-48 overflow-y-auto p-2">
+                  <div 
+                    v-for="skill in filteredSkills" 
+                    :key="skill.id"
+                    @click="toggleSkillFilter(skill)"
+                    class="flex items-center py-2 px-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer transition-colors"
+                  >
+                    <div class="flex items-center justify-center rounded-md w-5 h-5 border border-gray-300 dark:border-gray-600 mr-3"
+                         :class="{ 'bg-primary-500 border-primary-500': isSkillSelected(skill.id) }">
+                      <svg v-if="isSkillSelected(skill.id)" class="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8.586 10l7.293-7.293a1 1 0 011.414 0z" />
+                      </svg>
+                    </div>
+                    <span class="text-sm text-gray-700 dark:text-gray-300">{{ skill.name }}</span>
+                  </div>
+                  
+                  <div v-if="filteredSkills.length === 0" class="py-3 px-3 text-sm text-gray-500 dark:text-gray-400 text-center">
+                    Aucun résultat
+                  </div>
+                </div>
+                
+                <!-- Selected skills badges -->
+                <div v-if="selectedSkillFilters.length > 0" class="p-2.5 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex flex-wrap gap-1.5">
+                  <span 
+                    v-for="skill in selectedSkillFilters" 
+                    :key="skill.id"
+                    class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-50 dark:bg-primary-900/30 text-primary-800 dark:text-primary-200"
+                  >
+                    {{ skill.name }}
+                    <button 
+                      @click.stop="removeSkillFilter(skill)"
+                      class="ml-1 h-3.5 w-3.5 rounded-full inline-flex items-center justify-center hover:bg-primary-200 dark:hover:bg-primary-800"
+                    >
+                      <svg class="h-2.5 w-2.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                      </svg>
+                    </button>
+                  </span>
                 </div>
               </div>
             </div>
@@ -160,129 +204,169 @@
     </div>
 
     <!-- Loading state -->
-    <div v-if="isLoading" class="flex justify-center items-center py-12">
-      <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600"></div>
+    <div v-if="isLoading" class="max-w-3xl mx-auto flex justify-center items-center py-16">
+      <div class="animate-spin h-10 w-10 text-primary-500">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      </div>
     </div>
 
     <!-- Error state -->
-    <div v-else-if="error" class="bg-red-50 p-4 rounded-lg text-red-700 my-6">
+    <div v-else-if="error" class="max-w-3xl mx-auto bg-red-50 dark:bg-red-900/20 p-5 rounded-xl border border-red-100 dark:border-red-800/40 text-red-700 dark:text-red-400 mx-4 my-6">
       <div class="flex">
-        <svg class="h-5 w-5 text-red-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg class="h-5 w-5 text-red-500 dark:text-red-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
+        </svg>
         <p>{{ error }}</p>
       </div>
       <button 
         @click="fetchRequests" 
-        class="mt-3 text-sm font-medium text-red-600 hover:text-red-500"
+        class="mt-3 text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-500"
       >
         Réessayer
       </button>
     </div>
 
     <!-- Empty state -->
-    <div v-else-if="filteredRequests.length === 0" class="text-center py-12">
-      <div class="mx-auto h-12 w-12 text-gray-400">
-        <Search class="h-12 w-12" />
+    <div v-else-if="filteredRequests.length === 0" class="text-center py-16 max-w-3xl mx-auto px-4">
+      <div class="mx-auto h-16 w-16 text-gray-300 dark:text-gray-600 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center">
+        <Search class="h-8 w-8" />
       </div>
-      <h3 class="mt-2 text-sm font-medium text-gray-900">Aucune demande trouvée</h3>
-      <p class="mt-1 text-sm text-gray-500">
-        Essayez de modifier vos filtres ou revenez plus tard.
+      <h3 class="mt-4 text-base font-medium text-gray-900 dark:text-white">Aucune demande trouvée</h3>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+        Essayez de modifier vos filtres ou revenez plus tard pour découvrir de nouveaux projets.
       </p>
+      <button 
+        @click="clearFilters" 
+        v-if="activeFilters.length > 0"
+        class="mt-4 px-4 py-2 text-sm font-medium text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 hover:bg-primary-100 dark:hover:bg-primary-900/30 rounded-full transition-colors"
+      >
+        Effacer les filtres
+      </button>
     </div>
     
     <!-- Requests list -->
-    <div v-else class="grid grid-cols-1 gap-4">
+    <div v-else class="max-w-3xl mx-auto">
       <div 
         v-for="request in filteredRequests" 
         :key="request.id"
-        class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
+        class="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors animate-fade-in"
       >
-        <div class="flex justify-between items-start">
-          <div>
-            <div class="flex items-center space-x-2 mb-2">
-              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                {{ request.categories?.name || 'Catégorie inconnue' }}
+        <div class="p-5">
+          <!-- Request header with category and date -->
+          <div class="flex items-center justify-between mb-2.5">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-100 dark:border-blue-800/30">
+              {{ request.categories?.name || 'Catégorie inconnue' }}
             </span>
-              <span class="text-xs text-gray-500">{{ formatDate(request.created_at) }}</span>
-          </div>
-            <NuxtLink :to="`/requests/${request.id}`" class="block">
-              <h3 class="text-lg font-medium text-gray-900 hover:text-primary-600 transition-colors mb-2">
-                {{ request.title }}
-              </h3>
-            </NuxtLink>
-            <p class="text-sm text-gray-500 mb-4 line-clamp-2">{{ request.description }}</p>
-              </div>
-          <div class="text-right">
-            <p class="text-lg font-medium text-gray-900">{{ formatPrice(request.budget) }}</p>
-            <p class="text-xs text-gray-500">Date limite: {{ formatDate(request.deadline) }}</p>
-          </div>
-            </div>
-            
-        <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-          <div class="flex items-center">
-            <div v-if="request.profiles?.avatar_url" class="h-8 w-8 rounded-full overflow-hidden">
-              <img :src="request.profiles.avatar_url" alt="Avatar" class="h-full w-full object-cover" />
-            </div>
-            <div v-else class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-medium">
-              {{ getInitials(request.profiles?.first_name, request.profiles?.last_name) }}
-          </div>
-            <span class="ml-2 text-sm text-gray-700">
-              {{ request.profiles?.first_name }} {{ request.profiles?.last_name }}
-            </span>
+            <span class="text-xs text-gray-500 dark:text-gray-400">{{ formatDate(request.created_at) }}</span>
           </div>
           
-          <div>
-            <button 
-              v-if="isExpert && !hasUserSubmittedProposal(request.id)"
-              @click="openProposalModal(request)"
-              class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-full shadow-sm text-white bg-primary-600 hover:bg-primary-700"
-            >
-              Proposition rapide
-            </button>
-            <span 
-              v-else-if="isExpert && hasUserSubmittedProposal(request.id)"
-              class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-full text-primary-700 bg-primary-100"
-            >
-              <CheckCircleIcon class="h-3.5 w-3.5 mr-1" />
-              Proposition envoyée
-            </span>
-            <NuxtLink 
-              v-else
-              :to="`/requests/${request.id}`"
-              class="inline-flex items-center text-sm font-medium text-primary-600 hover:text-primary-500"
-            >
-              Voir les détails
-              <svg class="ml-1 w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          <!-- Title and description -->
+          <NuxtLink :to="`/requests/${request.id}`" class="block group">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors mb-1.5">
+              {{ request.title }}
+            </h3>
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">{{ request.description }}</p>
+          </NuxtLink>
+          
+          <!-- Price and deadline info -->
+          <div class="flex flex-wrap gap-4 mb-4">
+            <div class="inline-flex items-center px-3 py-1 bg-gray-50 dark:bg-gray-800/80 rounded-full">
+              <svg class="h-4 w-4 text-gray-500 dark:text-gray-400 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-            </NuxtLink>
+              <span class="font-medium text-gray-900 dark:text-white">{{ formatPrice(request.budget) }}</span>
+            </div>
+            <div class="inline-flex items-center px-3 py-1 bg-gray-50 dark:bg-gray-800/80 rounded-full">
+              <svg class="h-4 w-4 text-gray-500 dark:text-gray-400 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span class="text-sm text-gray-700 dark:text-gray-300">Échéance: {{ formatDate(request.deadline) }}</span>
+            </div>
+          </div>
+          
+          <!-- User info and action buttons -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <div class="h-10 w-10 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 flex-shrink-0 border border-gray-100 dark:border-gray-600">
+                <img v-if="request.profiles?.avatar_url" :src="request.profiles.avatar_url" alt="Avatar" class="h-full w-full object-cover" />
+                <div v-else class="h-full w-full flex items-center justify-center text-gray-600 dark:text-gray-400 text-sm font-medium">
+                  {{ getInitials(request.profiles?.first_name, request.profiles?.last_name) }}
+                </div>
+              </div>
+              <span class="ml-2.5 text-sm font-medium text-gray-900 dark:text-white">
+                {{ request.profiles?.first_name }} {{ request.profiles?.last_name }}
+              </span>
+            </div>
+            
+            <div>
+              <button 
+                v-if="isExpert && !hasUserSubmittedProposal(request.id)"
+                @click="openProposalModal(request)"
+                class="inline-flex items-center px-4 py-1.5 border border-transparent text-sm font-medium rounded-full shadow-sm text-white bg-primary-600 hover:bg-primary-700 transition-colors"
+              >
+                Proposition rapide
+              </button>
+              <span 
+                v-else-if="isExpert && hasUserSubmittedProposal(request.id)"
+                class="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-full text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/30 border border-green-100 dark:border-green-800/30"
+              >
+                <svg class="h-3.5 w-3.5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Proposition envoyée
+              </span>
+              <NuxtLink 
+                v-else
+                :to="`/requests/${request.id}`"
+                class="inline-flex items-center text-sm font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300"
+              >
+                Voir les détails
+                <svg class="ml-1 w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </NuxtLink>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-    
-    <!-- Load more button -->
-    <div v-if="hasMoreRequests && !isLoading" class="mt-6 text-center">
-      <button 
-        @click="loadMoreRequests" 
-        class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-      >
-        Charger plus de demandes
-      </button>
+      
+      <!-- Load more button -->
+      <div v-if="hasMoreRequests" class="p-5 text-center">
+        <button 
+          @click="loadMoreRequests" 
+          class="px-6 py-2.5 border border-gray-200 dark:border-gray-700 rounded-full text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-sm"
+          :disabled="isLoadingMore"
+        >
+          <span v-if="isLoadingMore" class="flex items-center justify-center">
+            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-600 dark:text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Chargement...
+          </span>
+          <span v-else>Charger plus de demandes</span>
+        </button>
+      </div>
     </div>
 
     <!-- Quick Proposal Modal -->
     <Teleport to="body">
       <div 
         v-if="showingProposalModal" 
-        class="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center"
+        class="fixed inset-0 z-50 overflow-y-auto bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center"
         @click.self="closeProposalModal"
       >
-        <div class="bg-white rounded-xl max-w-lg w-full mx-4 p-5 shadow-xl">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-lg w-full mx-4 p-5 shadow-xl animate-slide-up">
           <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-medium">Proposition rapide</h3>
-            <button @click="closeProposalModal" class="text-gray-400 hover:text-gray-600">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Proposition rapide</h3>
+            <button 
+              @click="closeProposalModal" 
+              class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              aria-label="Fermer"
+            >
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
               </svg>
@@ -290,74 +374,89 @@
           </div>
           
           <div class="mb-5">
-            <div class="mb-4 p-4 bg-gray-50 rounded-lg">
-              <div class="font-medium text-gray-900">{{ selectedRequest?.title }}</div>
-              <div class="text-sm text-gray-500 mt-1">Budget client: {{ formatPrice(selectedRequest?.budget) }}</div>
-              <div class="text-sm text-gray-500">Catégorie: {{ selectedRequest?.categories?.name }}</div>
-              <div class="text-sm text-gray-500">Date limite: {{ formatDate(selectedRequest?.deadline) }}</div>
+            <div class="mb-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700">
+              <div class="font-medium text-gray-900 dark:text-white">{{ selectedRequest?.title }}</div>
+              <div class="mt-2 flex flex-wrap gap-2">
+                <div class="inline-flex items-center px-2.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-full text-xs text-gray-800 dark:text-gray-300">
+                  <svg class="h-3.5 w-3.5 mr-1.5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {{ formatPrice(selectedRequest?.budget) }}
+                </div>
+                <div class="inline-flex items-center px-2.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-full text-xs text-gray-800 dark:text-gray-300">
+                  <svg class="h-3.5 w-3.5 mr-1.5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  {{ formatDate(selectedRequest?.deadline) }}
+                </div>
+                <div class="inline-flex items-center px-2.5 py-0.5 bg-blue-50 dark:bg-blue-900/20 rounded-full text-xs text-blue-700 dark:text-blue-300 border border-blue-100 dark:border-blue-800/30">
+                  {{ selectedRequest?.categories?.name }}
+                </div>
+              </div>
+              <div class="mt-2 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">{{ selectedRequest?.description }}</div>
             </div>
             
             <form @submit.prevent="submitProposal" class="space-y-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Votre tarif</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Votre tarif</label>
                 <div class="relative">
                   <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span class="text-gray-500">FCFA</span>
+                    <span class="text-gray-500 dark:text-gray-400">FCFA</span>
                   </div>
                   <input
                     v-model.number="proposalForm.price"
                     type="number"
                     min="0"
                     required
-                    class="w-full pl-12 pr-3 py-2 border border-gray-300 rounded-lg focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                    class="w-full pl-12 pr-3 py-2.5 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
                   />
                 </div>
               </div>
               
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Délai de livraison (jours)</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Délai de livraison (jours)</label>
                 <input
                   v-model.number="proposalForm.estimatedDays"
                   type="number"
                   min="1"
                   required
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                  class="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
                 />
               </div>
               
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Message</label>
                 <textarea
                   v-model="proposalForm.message"
                   rows="4"
                   required
                   placeholder="Décrivez votre approche et pourquoi vous êtes la personne idéale pour ce projet..."
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                  class="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
                 ></textarea>
-          </div>
-          
+              </div>
+              
               <div class="flex justify-end space-x-3 pt-4">
-            <button 
+                <button 
                   type="button"
-              @click="closeProposalModal" 
-                  class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50"
-            >
-              Annuler
-            </button>
-            <button 
+                  @click="closeProposalModal" 
+                  class="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-full text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                >
+                  Annuler
+                </button>
+                <button 
                   type="submit"
-                  class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-              :disabled="isSubmitting"
-            >
+                  class="px-4 py-2 bg-primary-600 text-white rounded-full hover:bg-primary-700 dark:hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
+                  :disabled="isSubmitting"
+                >
                   <span v-if="isSubmitting" class="flex items-center">
                     <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
                     Envoi en cours...
                   </span>
                   <span v-else>Envoyer la proposition</span>
-            </button>
+                </button>
               </div>
             </form>
           </div>
@@ -369,13 +468,17 @@
     <Teleport to="body">
       <div 
         v-if="showCreateRequestModal" 
-        class="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center"
+        class="fixed inset-0 z-50 overflow-y-auto bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center"
         @click.self="closeCreateRequestModal"
       >
-        <div class="bg-white dark:bg-gray-800 rounded-xl max-w-lg w-full mx-4 p-5">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-medium">Publier une demande de service</h3>
-            <button @click="closeCreateRequestModal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-lg w-full mx-4 p-5 shadow-xl animate-slide-up">
+          <div class="flex justify-between items-center mb-5">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Publier une demande de service</h3>
+            <button 
+              @click="closeCreateRequestModal" 
+              class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              aria-label="Fermer"
+            >
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
               </svg>
@@ -460,13 +563,13 @@
                 <!-- Skills dropdown -->
                 <div 
                   v-if="showRequestSkillResults && filteredRequestSkills.length > 0" 
-                  class="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-lg border border-gray-200"
+                  class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700"
                 >
                   <div 
                     v-for="skill in filteredRequestSkills" 
                     :key="skill.id"
                     @click="addRequestSkill(skill)"
-                    class="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                    class="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md cursor-pointer"
                   >
                     {{ skill.name }}
                   </div>
@@ -495,17 +598,17 @@
             </div>
           </div>
           
-          <div class="flex justify-end">
+          <div class="flex justify-end space-x-3">
             <button 
               @click="closeCreateRequestModal" 
-              class="px-4 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg mr-3 hover:bg-gray-50 dark:hover:bg-gray-700"
+              class="px-4 py-2 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-full hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               Annuler
             </button>
             <button 
               @click="submitRequest" 
               :disabled="isSubmitting"
-              class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg flex items-center"
+              class="px-5 py-2 bg-primary-600 hover:bg-primary-700 dark:hover:bg-primary-500 text-white rounded-full transition-colors shadow-sm flex items-center"
               :class="{ 'opacity-75 cursor-not-allowed': isSubmitting }"
             >
               <svg v-if="isSubmitting" class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -523,16 +626,28 @@
 
 <script setup>
 import { ref, computed, reactive, onMounted, onBeforeUnmount, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useSupabaseClient, useSupabaseUser } from '#imports'
-// import { useToast } from 'vue-toastification'
 import { Search, CheckCircleIcon, UserIcon, BoxIcon, ClipboardIcon } from 'lucide-vue-next'
 
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
-const toast = useToast()
+
+// Create a toast utility
+const toast = {
+  success: (message) => {
+    console.log('Success:', message);
+    // In a real implementation, you would use a proper toast notification system
+  },
+  error: (message) => {
+    console.error('Error:', message);
+    // In a real implementation, you would use a proper toast notification system
+  }
+}
 
 // States
 const isLoading = ref(true)
+const isLoadingMore = ref(false)
 const isSubmitting = ref(false)
 const error = ref(null)
 const requests = ref([])
@@ -556,6 +671,7 @@ const filters = reactive({
 const skillSearchQuery = ref('')
 const selectedSkillFilters = ref([])
 const showSkillsDropdown = ref(false)
+const showAdvancedFilters = ref(false)
 
 // Modals
 const showingProposalModal = ref(false)
@@ -572,13 +688,12 @@ const requestForm = reactive({
   title: '',
   description: '',
   budget: 0,
-  deliveryTime: 7,
+  deliveryTime: 1,
   categoryId: '',
   skills: []
 })
 const requestSkillSearch = ref('')
 const showRequestSkillResults = ref(false)
-// const filteredRequestSkills = ref([])
 
 // Computed
 const filteredRequests = computed(() => {
@@ -780,7 +895,7 @@ const fetchSkills = async () => {
 const fetchUserProposals = async () => {
   try {
     const { data, error } = await supabase
-      .from('proposals')
+      .from('deals')
       .select('request_id')
       .eq('expert_id', user.value.id)
     
@@ -793,10 +908,49 @@ const fetchUserProposals = async () => {
 }
 
 const loadMoreRequests = async () => {
-  if (!hasMoreRequests.value) return
+  if (!hasMoreRequests.value || isLoadingMore.value) return;
   
-  currentPage.value++
-  await fetchRequests()
+  isLoadingMore.value = true;
+  currentPage.value++;
+  
+  try {
+    // Récupérer les demandes avec les informations du client et de la catégorie
+    const { data, error: requestsError } = await supabase
+      .from('requests')
+      .select(`
+        *,
+        profiles:client_id (
+          first_name,
+          last_name,
+          avatar_url
+        ),
+        categories:category_id (
+          name
+        )
+      `)
+      .eq('status', 'open')
+      .order('created_at', { ascending: false })
+      .range((currentPage.value - 1) * pageSize, currentPage.value * pageSize);
+    
+    if (requestsError) throw requestsError;
+    
+    requests.value = [...requests.value, ...data];
+    
+    // Check for more requests
+    const { count, error: countError } = await supabase
+      .from('requests')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'open');
+    
+    if (countError) throw countError;
+    
+    hasMoreRequests.value = count > currentPage.value * pageSize;
+  } catch (err) {
+    console.error('Error fetching more requests:', err);
+    toast.error("Une erreur est survenue lors du chargement des demandes supplémentaires.");
+  } finally {
+    isLoadingMore.value = false;
+  }
 }
 
 const formatDate = (dateString) => {
@@ -918,14 +1072,14 @@ const submitProposal = async () => {
   
   try {
     const { error } = await supabase
-      .from('proposals')
+      .from('deals')
       .insert({
         request_id: selectedRequest.value.id,
         expert_id: user.value.id,
         price: proposalForm.price,
         duration: proposalForm.estimatedDays,
         message: proposalForm.message,
-        status: 'pending'
+        status: 'proposal'
       })
     
     if (error) throw error
@@ -951,7 +1105,7 @@ const openCreateRequestModal = () => {
   requestForm.title = ''
   requestForm.description = ''
   requestForm.budget = 0
-  requestForm.deliveryTime = 7
+  requestForm.deliveryTime = 1
   requestForm.categoryId = ''
   requestForm.skills = []
 }
@@ -1068,6 +1222,28 @@ const applyFilters = () => {
   console.log('Selected skills:', selectedSkillFilters.value)
   console.log('Search query:', searchQuery.value)
 }
+
+// Fix the isSkillSelected function and add the toggleSkillFilter function 
+const isSkillSelected = (skillId) => {
+  return selectedSkillFilters.value.some(skill => skill.id === skillId);
+}
+
+const toggleSkillFilter = (skill) => {
+  if (isSkillSelected(skill.id)) {
+    removeSkillFilter(skill);
+  } else {
+    addSkillFilter(skill);
+  }
+}
+
+// Rename to match function calls in the template
+const addRequestSkill = (skill) => {
+  addSkillToRequest(skill);
+}
+
+const removeRequestSkill = (skill) => {
+  removeSkillFromRequest(skill);
+}
 </script>
 
 <style scoped>
@@ -1076,5 +1252,123 @@ const applyFilters = () => {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* Hide scrollbars but keep functionality */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Animation for dropdown */
+@keyframes slideDown {
+  from { 
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-down {
+  animation: slideDown 0.2s ease-out forwards;
+}
+
+/* Animation for modal */
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.2s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.15s ease-out forwards;
+}
+
+/* Smooth transition effects */
+button, a, .transition-colors {
+  transition: all 0.2s ease;
+}
+
+/* Hover effects */
+.hover\:bg-gray-50:hover {
+  transition: background-color 0.15s ease;
+}
+
+/* Card animation on hover */
+.border-b {
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.border-b:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+/* Floating action button animation */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(79, 70, 229, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(79, 70, 229, 0);
+  }
+}
+
+.bg-primary-600 {
+  position: relative;
+  overflow: hidden;
+}
+
+.bg-primary-600:after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%);
+  transform-origin: 50% 50%;
+}
+
+.bg-primary-600:hover:after {
+  animation: ripple 0.6s ease-out;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0, 0);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(25, 25);
+    opacity: 0;
+  }
 }
 </style>

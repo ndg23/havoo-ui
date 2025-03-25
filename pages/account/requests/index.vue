@@ -182,7 +182,7 @@ const fetchRequests = async () => {
       .select(`
         *,
         category:category_id (*),
-        proposals(count)
+        deals(count)
       `)
       .eq('client_id', user.value.id)
       .order('created_at', { ascending: false });

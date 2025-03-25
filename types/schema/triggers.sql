@@ -208,16 +208,28 @@ CREATE INDEX idx_payments_deal_id ON payments(deal_id);
 -- Row Level Security (RLS) policies
 ALTER TABLE verifications ENABLE ROW LEVEL SECURITY;
 
+-- Users can view their own verification
 CREATE POLICY "Users can view their own verification" 
   ON verifications FOR SELECT USING (auth.uid() = user_id);
     
+-- Users can create their own verification
 CREATE POLICY "Users can create their own verification" 
   ON verifications FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Users can update their own verification if it's in 'pending' status
+CREATE POLICY "Users can update their own pending verification" 
+  ON verifications FOR UPDATE USING (auth.uid() = user_id AND status = 'pending')
+  WITH CHECK (auth.uid() = user_id AND status = 'pending');
     
+-- Admins can manage all verifications
 CREATE POLICY "Admins can manage all verifications" 
   ON verifications USING (EXISTS (
     SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true
   ));
+
+-- Core triggers and functions for Havoo UI
+-- Make sure UUID extension is available
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Triggers for automatic updates
 CREATE OR REPLACE FUNCTION handle_updated_at()
@@ -259,13 +271,18 @@ CREATE TRIGGER set_services_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION handle_updated_at();
 
-CREATE TRIGGER set_verifications_updated_at
-  BEFORE UPDATE ON verifications
+CREATE TRIGGER set_reviews_updated_at
+  BEFORE UPDATE ON reviews
   FOR EACH ROW
   EXECUTE FUNCTION handle_updated_at();
 
-CREATE TRIGGER set_payments_updated_at
-  BEFORE UPDATE ON payments
+CREATE TRIGGER set_conversations_updated_at
+  BEFORE UPDATE ON conversations
+  FOR EACH ROW
+  EXECUTE FUNCTION handle_updated_at();
+
+CREATE TRIGGER set_messages_updated_at
+  BEFORE UPDATE ON messages
   FOR EACH ROW
   EXECUTE FUNCTION handle_updated_at();
 
@@ -294,21 +311,42 @@ CREATE TRIGGER calculate_profile_completion_trigger
   FOR EACH ROW
   EXECUTE FUNCTION calculate_profile_completion();
 
--- Expert status update on verification approval
-CREATE OR REPLACE FUNCTION update_expert_status()
+-- SIMPLIFIED EXPERT VERIFICATION PROCESS
+-- This function handles expert verification in a simple way
+CREATE OR REPLACE FUNCTION verify_expert()
 RETURNS TRIGGER AS $$
 BEGIN
-  IF NEW.status = 'approved' AND OLD.status != 'approved' THEN
-    UPDATE profiles SET is_expert = true WHERE id = NEW.user_id;
+  -- If verification is approved, automatically set the user as an expert
+  IF NEW.status = 'approved' AND (OLD IS NULL OR OLD.status != 'approved') THEN
+    UPDATE profiles 
+    SET 
+      is_expert = TRUE,
+      is_verified = TRUE
+    WHERE id = NEW.user_id;
+    
+    -- Optionally create a notification for the user
+    INSERT INTO notifications (
+      profile_id, 
+      title, 
+      content, 
+      type, 
+      action_url
+    ) VALUES (
+      NEW.user_id,
+      'Verification Approved',
+      'Your expert verification has been approved. You can now offer services and respond to requests.',
+      'verification',
+      '/account/profile'
+    );
   END IF;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER update_expert_status_on_verification
-  AFTER UPDATE ON verifications
+CREATE TRIGGER expert_verification_trigger
+  AFTER INSERT OR UPDATE ON verifications
   FOR EACH ROW
-  EXECUTE FUNCTION update_expert_status();
+  EXECUTE FUNCTION verify_expert();
 
 -- Update request status when deal is activated
 CREATE OR REPLACE FUNCTION update_request_status_on_deal_acceptance()
@@ -318,6 +356,21 @@ BEGIN
     UPDATE requests
     SET status = 'assigned'
     WHERE id = NEW.request_id;
+    
+    -- Create a notification for the expert
+    INSERT INTO notifications (
+      profile_id, 
+      title, 
+      content, 
+      type, 
+      action_url
+    ) VALUES (
+      NEW.expert_id,
+      'Proposal Accepted',
+      'Your proposal has been accepted. The job is now assigned to you.',
+      'deal_accepted',
+      '/account/contracts/' || NEW.id
+    );
   END IF;
   RETURN NEW;
 END;
@@ -356,7 +409,7 @@ RETURNS TRIGGER AS $$
 BEGIN
   UPDATE profiles 
   SET rating = (
-    SELECT AVG(rating) 
+    SELECT AVG(rating)::numeric(3,2)
     FROM reviews 
     WHERE reviewee_id = NEW.reviewee_id
   )
@@ -373,18 +426,30 @@ CREATE TRIGGER expert_rating_update_trigger
 -- Create notification when a new deal is proposed
 CREATE OR REPLACE FUNCTION create_notification_on_deal_proposal()
 RETURNS TRIGGER AS $$
+DECLARE
+  request_title TEXT;
+  client_id UUID;
 BEGIN
-  IF NEW.status = 'proposal' THEN
-    INSERT INTO notifications (profile_id, title, content, type, action_url)
-    SELECT 
-      r.client_id, 
-      'New proposal', 
-      'An expert has made a proposal for your request "' || r.title || '"',
-      'proposal',
-      '/requests/' || r.id
-    FROM requests r
-    WHERE r.id = NEW.request_id;
-  END IF;
+  -- Get request info
+  SELECT title, client_id INTO request_title, client_id
+  FROM requests
+  WHERE id = NEW.request_id;
+  
+  -- Create notification
+  INSERT INTO notifications (
+    profile_id, 
+    title, 
+    content, 
+    type, 
+    action_url
+  ) VALUES (
+    client_id, 
+    'New proposal', 
+    'An expert has made a proposal for your request "' || request_title || '"',
+    'proposal',
+    '/requests/' || NEW.request_id
+  );
+  
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -400,9 +465,49 @@ CREATE OR REPLACE FUNCTION update_expert_completed_projects()
 RETURNS TRIGGER AS $$
 BEGIN
   IF NEW.status = 'completed' AND OLD.status <> 'completed' THEN
+    -- Update completed_projects counter
     UPDATE profiles
     SET completed_projects = COALESCE(completed_projects, 0) + 1
     WHERE id = NEW.expert_id;
+    
+    -- Setup for ratings - add default values to enable ratings
+    UPDATE deals
+    SET 
+      client_has_rated = FALSE,
+      expert_has_rated = FALSE,
+      ratings_complete = FALSE
+    WHERE id = NEW.id;
+    
+    -- Notify both parties
+    -- Notify expert
+    INSERT INTO notifications (
+      profile_id, 
+      title, 
+      content, 
+      type, 
+      action_url
+    ) VALUES (
+      NEW.expert_id,
+      'Contract Completed',
+      'A contract has been marked as completed. Please rate your experience.',
+      'contract_completed',
+      '/account/contracts/' || NEW.id || '/rate'
+    );
+    
+    -- Notify client
+    INSERT INTO notifications (
+      profile_id, 
+      title, 
+      content, 
+      type, 
+      action_url
+    ) VALUES (
+      NEW.client_id,
+      'Contract Completed',
+      'You have marked a contract as completed. Please rate your experience with the expert.',
+      'contract_completed',
+      '/account/contracts/' || NEW.id || '/rate'
+    );
   END IF;
   RETURN NEW;
 END;
@@ -414,38 +519,40 @@ CREATE TRIGGER deal_completion_trigger
   WHEN (NEW.status = 'completed' AND OLD.status <> 'completed')
   EXECUTE FUNCTION update_expert_completed_projects();
 
--- Create payment record on deal completion
-CREATE OR REPLACE FUNCTION create_payment_on_deal_completion()
-RETURNS TRIGGER AS $$
-BEGIN
-  IF NEW.status = 'completed' AND OLD.status <> 'completed' THEN
-    INSERT INTO payments (deal_id, payer_id, payee_id, amount, status)
-    VALUES (NEW.id, NEW.client_id, NEW.expert_id, NEW.price, 'completed');
-  END IF;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER payment_on_completion_trigger
-  AFTER UPDATE OF status ON deals
-  FOR EACH ROW
-  WHEN (NEW.status = 'completed' AND OLD.status <> 'completed')
-  EXECUTE FUNCTION create_payment_on_deal_completion();
-
 -- Check for approaching deadlines
 CREATE OR REPLACE FUNCTION check_approaching_deadlines()
 RETURNS TRIGGER AS $$
 BEGIN
   -- Create notification for deals approaching their deadline
-  IF NEW.end_date IS NOT NULL AND NEW.end_date - CURRENT_DATE <= 3 THEN
+  IF NEW.end_date IS NOT NULL AND NEW.end_date - CURRENT_DATE <= 3 AND NEW.status = 'active' THEN
     -- Notification for the expert
-    INSERT INTO notifications (profile_id, title, content, type, action_url)
-    VALUES (
+    INSERT INTO notifications (
+      profile_id, 
+      title, 
+      content, 
+      type, 
+      action_url
+    ) VALUES (
       NEW.expert_id, 
       'Approaching deadline', 
-      'A deal is approaching its deadline in 3 days or less',
+      'A contract is approaching its deadline in 3 days or less',
       'deadline',
-      '/account/deals/' || NEW.id
+      '/account/contracts/' || NEW.id
+    );
+    
+    -- Notification for the client
+    INSERT INTO notifications (
+      profile_id, 
+      title, 
+      content, 
+      type, 
+      action_url
+    ) VALUES (
+      NEW.client_id, 
+      'Approaching deadline', 
+      'One of your contracts is approaching its deadline in 3 days or less',
+      'deadline',
+      '/account/contracts/' || NEW.id
     );
   END IF;
   RETURN NEW;
@@ -462,8 +569,9 @@ CREATE OR REPLACE FUNCTION update_conversation_last_message()
 RETURNS TRIGGER AS $$
 BEGIN
   UPDATE conversations
-  SET last_message = NEW.content,
-      last_message_at = NEW.created_at
+  SET 
+    last_message = NEW.content,
+    last_message_at = NEW.created_at
   WHERE id = NEW.conversation_id;
   RETURN NEW;
 END;
@@ -477,8 +585,8 @@ CREATE TRIGGER trigger_update_conversation_last_message
 -- Search function for experts
 CREATE OR REPLACE FUNCTION search_experts(
   search_term TEXT DEFAULT NULL,
-  category_id_filter INTEGER DEFAULT NULL,
-  skill_ids_filter INTEGER[] DEFAULT NULL
+  category_id_filter UUID DEFAULT NULL,
+  skill_ids_filter UUID[] DEFAULT NULL
 )
 RETURNS TABLE (
   id UUID,
@@ -486,7 +594,8 @@ RETURNS TABLE (
   last_name VARCHAR,
   bio TEXT,
   avatar_url TEXT,
-  rating DECIMAL
+  rating DECIMAL,
+  completed_projects INTEGER
 ) AS $$
 BEGIN
   RETURN QUERY
@@ -496,7 +605,8 @@ BEGIN
     p.last_name,
     p.bio,
     p.avatar_url,
-    p.rating
+    p.rating,
+    p.completed_projects
   FROM profiles p
   WHERE p.is_expert = TRUE
     AND (search_term IS NULL OR
@@ -526,15 +636,17 @@ $$ LANGUAGE plpgsql;
 -- Search function for services
 CREATE OR REPLACE FUNCTION search_services(
   search_term TEXT DEFAULT NULL,
-  category_id_filter INTEGER DEFAULT NULL,
-  skill_ids_filter INTEGER[] DEFAULT NULL
+  category_id_filter UUID DEFAULT NULL,
+  skill_ids_filter UUID[] DEFAULT NULL
 )
 RETURNS TABLE (
-  id INTEGER,
+  id UUID,
   title VARCHAR,
   description TEXT,
   price DECIMAL,
-  expert_id UUID
+  expert_id UUID,
+  expert_name VARCHAR,
+  expert_rating DECIMAL
 ) AS $$
 BEGIN
   RETURN QUERY
@@ -543,8 +655,11 @@ BEGIN
     s.title,
     s.description,
     s.price,
-    s.expert_id
+    s.expert_id,
+    (p.first_name || ' ' || p.last_name) AS expert_name,
+    p.rating
   FROM services s
+  JOIN profiles p ON s.expert_id = p.id
   WHERE s.is_active = TRUE
     AND (search_term IS NULL OR
       s.title ILIKE '%' || search_term || '%' OR
@@ -553,9 +668,47 @@ BEGIN
     AND (skill_ids_filter IS NULL OR EXISTS (
       SELECT 1
       FROM service_skills ss
-      JOIN user_skills us ON us.skill_id = ss.skill_id
       WHERE ss.service_id = s.id
         AND ss.skill_id = ANY(skill_ids_filter)
     ));
 END;
 $$ LANGUAGE plpgsql;
+
+-- Function to mark a contract as completed (simplified)
+CREATE OR REPLACE FUNCTION complete_contract(
+  p_contract_id UUID,
+  p_user_id UUID
+)
+RETURNS BOOLEAN AS $$
+DECLARE
+  v_deal RECORD;
+  v_is_client BOOLEAN;
+BEGIN
+  -- Get deal info
+  SELECT * INTO v_deal FROM deals 
+  WHERE id = p_contract_id;
+  
+  IF v_deal IS NULL THEN
+    RAISE EXCEPTION 'Contract not found';
+  END IF;
+  
+  -- Check if user is the client for this deal
+  v_is_client := (v_deal.client_id = p_user_id);
+  
+  -- Only client can mark contract as completed
+  IF NOT v_is_client THEN
+    RAISE EXCEPTION 'Only the client can mark a contract as completed';
+  END IF;
+  
+  -- Mark as completed
+  UPDATE deals
+  SET 
+    status = 'completed',
+    updated_at = NOW()
+  WHERE id = p_contract_id;
+  
+  -- The deal_completion_trigger will handle notifications and setup for ratings
+  
+  RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;

@@ -1,5 +1,8 @@
 -- Core tables
 
+-- Make sure UUID extension is available
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 -- User profiles
 CREATE TABLE profiles (
   id UUID REFERENCES auth.users(id) PRIMARY KEY,
@@ -29,7 +32,7 @@ CREATE TABLE profiles (
 
 -- Categories
 CREATE TABLE categories (
-  id SERIAL PRIMARY KEY,
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   is_active BOOLEAN DEFAULT TRUE,
   name VARCHAR(255) NOT NULL UNIQUE,
   description TEXT,
@@ -39,10 +42,10 @@ CREATE TABLE categories (
 
 -- Skills linked to categories
 CREATE TABLE skills (
-  id SERIAL PRIMARY KEY,
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   is_active BOOLEAN DEFAULT TRUE,
   name VARCHAR(255) NOT NULL UNIQUE,
-  category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
+  category_id UUID REFERENCES categories(id) ON DELETE SET NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -50,28 +53,28 @@ CREATE TABLE skills (
 -- User skills
 CREATE TABLE user_skills (
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
-  skill_id INTEGER REFERENCES skills(id) ON DELETE CASCADE,
+  skill_id UUID REFERENCES skills(id) ON DELETE CASCADE,
   PRIMARY KEY (user_id, skill_id)
 );
 
 -- Client requests
 CREATE TABLE requests (
-  id SERIAL PRIMARY KEY,
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   client_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   title VARCHAR(255) NOT NULL,
   description TEXT NOT NULL,
   budget DECIMAL(10, 2),
   deadline DATE,
   status VARCHAR(50) DEFAULT 'open' CHECK (status IN ('open', 'assigned', 'completed', 'cancelled')),
-  category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
+  category_id UUID REFERENCES categories(id) ON DELETE SET NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Combined proposals and contracts into deals
 CREATE TABLE deals (
-  id SERIAL PRIMARY KEY,
-  request_id INTEGER REFERENCES requests(id) ON DELETE CASCADE,
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  request_id UUID REFERENCES requests(id) ON DELETE CASCADE,
   expert_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   client_id UUID REFERENCES profiles(id),
   price DECIMAL(10, 2) NOT NULL,
@@ -85,9 +88,9 @@ CREATE TABLE deals (
 
 -- Expert services
 CREATE TABLE services (
-  id SERIAL PRIMARY KEY,
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   expert_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
-  category_id INTEGER REFERENCES categories(id),
+  category_id UUID REFERENCES categories(id),
   title VARCHAR(255) NOT NULL,
   description TEXT NOT NULL,
   price DECIMAL(10, 2) NOT NULL,
@@ -102,15 +105,15 @@ CREATE TABLE services (
 
 -- Service skills
 CREATE TABLE service_skills (
-  service_id INTEGER REFERENCES services(id) ON DELETE CASCADE,
-  skill_id INTEGER REFERENCES skills(id) ON DELETE CASCADE,
+  service_id UUID REFERENCES services(id) ON DELETE CASCADE,
+  skill_id UUID REFERENCES skills(id) ON DELETE CASCADE,
   PRIMARY KEY (service_id, skill_id)
 );
 
 -- Reviews
 CREATE TABLE reviews (
-  id SERIAL PRIMARY KEY,
-  deal_id INTEGER REFERENCES deals(id) ON DELETE CASCADE,
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  deal_id UUID REFERENCES deals(id) ON DELETE CASCADE,
   reviewer_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   reviewee_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
@@ -121,9 +124,9 @@ CREATE TABLE reviews (
 
 -- Conversations
 CREATE TABLE conversations (
-  id SERIAL PRIMARY KEY,
-  request_id INTEGER REFERENCES requests(id) ON DELETE SET NULL,
-  deal_id INTEGER REFERENCES deals(id) ON DELETE SET NULL,
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  request_id UUID REFERENCES requests(id) ON DELETE SET NULL,
+  deal_id UUID REFERENCES deals(id) ON DELETE SET NULL,
   last_message TEXT,
   last_message_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -132,15 +135,15 @@ CREATE TABLE conversations (
 
 -- Conversation participants
 CREATE TABLE conversation_participants (
-  conversation_id INTEGER REFERENCES conversations(id) ON DELETE CASCADE,
+  conversation_id UUID REFERENCES conversations(id) ON DELETE CASCADE,
   profile_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   PRIMARY KEY (conversation_id, profile_id)
 );
 
 -- Messages
 CREATE TABLE messages (
-  id SERIAL PRIMARY KEY,
-  conversation_id INTEGER REFERENCES conversations(id) ON DELETE CASCADE,
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  conversation_id UUID REFERENCES conversations(id) ON DELETE CASCADE,
   sender_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   content TEXT NOT NULL,
   is_read BOOLEAN DEFAULT FALSE,
@@ -249,9 +252,7 @@ CREATE TRIGGER update_expert_status_on_verification
   FOR EACH ROW
   EXECUTE FUNCTION update_expert_status();
 
-
-
-  CREATE TABLE settings (
+CREATE TABLE settings (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   key TEXT NOT NULL UNIQUE,
   value JSONB,

@@ -612,10 +612,19 @@ const { error } = await supabase
             </button>
           </div>
         </div>
+        
+        <!-- Twitter-style input field -->
+        <div class="flex items-center p-4 bg-gray-50 rounded-xl border border-gray-100">
+          <Switch v-model="settings.twitter_style_input" />
+          <div class="ml-3">
+            <span class="font-medium text-gray-900">Interface style Twitter</span>
+            <p class="text-sm text-gray-500 mt-0.5">Activer l'interface de saisie style Twitter pour les nouvelles demandes</p>
           </div>
         </div>
       </div>
-      
+    </div>
+  </div>
+  
   <!-- Footer avec diagnostic -->
   <div class="mt-8 bg-gray-50 border-t border-gray-100 py-4 px-4 sm:px-6 lg:px-8">
     <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">

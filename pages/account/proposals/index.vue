@@ -218,7 +218,7 @@ const fetchProposals = async () => {
   
   try {
     const { data, error: proposalError } = await supabase
-      .from('proposals')
+      .from('deals')
       .select(`
         *,
         request:request_id (

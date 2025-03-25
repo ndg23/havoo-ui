@@ -42,26 +42,27 @@
               </span>
             </div>
             
-            <h2 class="text-xl font-bold text-gray-900 dark:text-white">{{ contract.title }}</h2>
+            <h2 class="text-xl font-bold text-gray-900 dark:text-white">{{ contract.job_title }}</h2>
             
             <div class="flex items-center mt-2 text-sm text-gray-600 dark:text-gray-400">
               <CalendarIcon class="h-4 w-4 mr-1.5" />
-              <span>Créé le {{ formatDate(contract.created_at) }}</span>
+              <span>Créé le {{ formatDate(contract.start_date) }}</span>
             </div>
           </div>
           
           <!-- Actions principales -->
           <div class="flex flex-wrap gap-2">
-            <NuxtLink 
-              v-if="contract.status === 'in_progress'"
-              :to="`/account/contracts/${contractId}/complete`"
+            <button 
+              v-if="contract.status === 'active' && isClient"
+              @click="completeContract"
               class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-md shadow-sm transition-colors whitespace-nowrap"
             >
               <CheckIcon class="h-4 w-4 inline-block mr-1.5" />
-              Finaliser
-            </NuxtLink>
+              Marquer comme terminé
+            </button>
             
             <button 
+              @click="contactOtherParty"
               class="px-4 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-md border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors whitespace-nowrap"
             >
               <MessageSquare class="h-4 w-4 inline-block mr-1.5" />
@@ -82,7 +83,7 @@
                 {{ isClient ? 'Expert' : 'Client' }}
               </h3>
               <p class="text-sm font-bold text-gray-900 dark:text-white">
-                {{ isClient ? contract.expert_name : contract.client_name }}
+                {{ otherPartyName }}
               </p>
               
               <button class="mt-2 text-xs text-primary-600 dark:text-primary-400 font-medium hover:underline">
@@ -101,12 +102,12 @@
                 Service
               </h3>
               <p class="text-sm font-bold text-gray-900 dark:text-white">
-                {{ contract.service_name }}
+                {{ contract.job_title }}
               </p>
               
               <div class="mt-1 flex items-center text-sm text-gray-600 dark:text-gray-400">
                 <CurrencyIcon class="h-4 w-4 mr-1.5" />
-                <span class="font-medium">{{ contract.amount }}FCFA</span>
+                <span class="font-medium">{{ formatPrice(contract.agreed_price) }}</span>
               </div>
             </div>
           </div>
@@ -139,44 +140,98 @@
       
       <!-- Section des évaluations -->
       <div v-if="contract.status === 'completed'" class="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
-        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Évaluation</h3>
+        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Évaluations</h3>
         
-        <div v-if="review" class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
-          <div class="flex items-center mb-2">
-            <div class="flex">
-              <StarIcon 
-                v-for="i in 5" 
-                :key="i"
-                :class="[
-                  'h-5 w-5', 
-                  i <= review.rating 
-                    ? 'text-yellow-500 fill-current' 
-                    : 'text-gray-300 dark:text-gray-600'
-                ]"
-              />
-            </div>
-            <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">
-              {{ review.rating }}/5
-            </span>
-            
-            <span v-if="review.recommend" class="ml-4 text-xs font-medium text-green-600 dark:text-green-400">
-              <CheckIcon class="h-3.5 w-3.5 inline-block mr-1" />
-              Recommandé
-            </span>
+        <div v-if="ratingStatusMessage" class="mb-6 p-4 rounded-lg" :class="ratingStatusBgClass">
+          <div class="flex items-center">
+            <InformationCircleIcon class="h-5 w-5 mr-2" :class="ratingStatusIconClass" />
+            <p class="text-sm" :class="ratingStatusTextClass">{{ ratingStatusMessage }}</p>
           </div>
-          
-          <p v-if="review.comment" class="text-gray-700 dark:text-gray-300">
-            {{ review.comment }}
-          </p>
-          <p v-else class="text-gray-500 dark:text-gray-400 italic">
-            Aucun commentaire laissé.
-          </p>
         </div>
         
-        <div v-else class="text-center p-4 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
-          <p class="text-gray-500 dark:text-gray-400">
-            Aucune évaluation n'a été laissée pour ce contrat.
-          </p>
+        <!-- Évaluation laissée par l'utilisateur -->
+        <div class="mb-6">
+          <h4 class="text-md font-medium text-gray-800 dark:text-gray-200 mb-3">Votre évaluation</h4>
+          
+          <div v-if="hasRated" class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+            <div class="flex items-center mb-2">
+              <div class="flex">
+                <StarIcon 
+                  v-for="i in 5" 
+                  :key="i"
+                  :class="[
+                    'h-5 w-5', 
+                    i <= userRating 
+                      ? 'text-yellow-400 fill-current' 
+                      : 'text-gray-300 dark:text-gray-600'
+                  ]"
+                />
+              </div>
+              <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">
+                {{ userRating }}/5
+              </span>
+            </div>
+            
+            <p v-if="userReview" class="text-gray-700 dark:text-gray-300 mt-3">
+              {{ userReview }}
+            </p>
+            <p v-else class="text-gray-500 dark:text-gray-400 italic mt-3">
+              Aucun commentaire laissé.
+            </p>
+          </div>
+          
+          <div v-else class="text-center p-4 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+            <p class="text-gray-500 dark:text-gray-400 mb-3">
+              Vous n'avez pas encore évalué {{ isClient ? 'cet expert' : 'ce client' }}.
+            </p>
+            <NuxtLink 
+              :to="`/account/contracts/${contractId}/rate`"
+              class="inline-flex items-center px-3 py-1.5 border border-transparent rounded-full shadow-sm text-xs font-medium text-white bg-primary-600 hover:bg-primary-700"
+            >
+              <StarIcon class="h-3.5 w-3.5 mr-1" />
+              Laisser une évaluation
+            </NuxtLink>
+          </div>
+        </div>
+        
+        <!-- Évaluation laissée par l'autre partie -->
+        <div>
+          <h4 class="text-md font-medium text-gray-800 dark:text-gray-200 mb-3">
+            Évaluation de {{ isClient ? 'l\'expert' : 'du client' }}
+          </h4>
+          
+          <div v-if="otherHasRated" class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+            <div class="flex items-center mb-2">
+              <div class="flex">
+                <StarIcon 
+                  v-for="i in 5" 
+                  :key="i"
+                  :class="[
+                    'h-5 w-5', 
+                    i <= otherRating 
+                      ? 'text-yellow-400 fill-current' 
+                      : 'text-gray-300 dark:text-gray-600'
+                  ]"
+                />
+              </div>
+              <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">
+                {{ otherRating }}/5
+              </span>
+            </div>
+            
+            <p v-if="otherReview" class="text-gray-700 dark:text-gray-300 mt-3">
+              {{ otherReview }}
+            </p>
+            <p v-else class="text-gray-500 dark:text-gray-400 italic mt-3">
+              Aucun commentaire laissé.
+            </p>
+          </div>
+          
+          <div v-else class="text-center p-4 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+            <p class="text-gray-500 dark:text-gray-400">
+              {{ isClient ? 'L\'expert' : 'Le client' }} n'a pas encore laissé d'évaluation.
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -194,103 +249,234 @@ import {
   CurrencyIcon, 
   ChevronLeft,
   StarIcon,
-  CheckCircle
-} from 'lucide-vue-next'
+  CheckCircle} from 'lucide-vue-next'
 import AccountHeader from '~/components/account/AccountHeader.vue'
 
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 const route = useRoute()
+const router = useRouter()
 const contractId = route.params.id
 
 // États
 const isLoading = ref(true)
 const error = ref(null)
 const contract = ref(null)
-const review = ref(null)
+const contractRating = ref(null)
+const successMessage = ref(route.query.rated === 'success' ? 'Votre évaluation a été soumise avec succès.' : null)
 
 // Propriétés calculées
 const isClient = computed(() => {
-  if (!contract.value || !user.value) return false
-  return contract.value.client_id === user.value.id
-})
+  if (!contract.value || !user.value) return false;
+  return contract.value.client_id === user.value.id;
+});
+
+const otherPartyName = computed(() => {
+  if (!contract.value) return '';
+  return isClient.value ? contract.value.worker_name : contract.value.client_name;
+});
+
+const ratingStatusMessage = computed(() => {
+  if (!contract.value || contract.value.status !== 'completed') return null;
+  
+  if (contract.value.ratings_complete) {
+    return 'Les évaluations ont été finalisées';
+  }
+  
+  if (contract.value.client_has_rated && contract.value.expert_has_rated) {
+    return 'Les deux parties ont évalué ce contrat';
+  }
+  
+  if (isClient.value) {
+    if (contract.value.client_has_rated) {
+      return 'Vous avez évalué ce contrat. En attente de l\'évaluation de l\'expert.';
+    } else {
+      return contract.value.expert_has_rated 
+        ? 'L\'expert a évalué ce contrat. Votre évaluation est en attente.' 
+        : 'Aucune évaluation n\'a été laissée pour ce contrat.';
+    }
+  } else {
+    if (contract.value.expert_has_rated) {
+      return 'Vous avez évalué ce contrat. En attente de l\'évaluation du client.';
+    } else {
+      return contract.value.client_has_rated 
+        ? 'Le client a évalué ce contrat. Votre évaluation est en attente.' 
+        : 'Aucune évaluation n\'a été laissée pour ce contrat.';
+    }
+  }
+});
+
+const ratingStatusBgClass = computed(() => {
+  if (!contract.value) return '';
+  
+  if (contract.value.ratings_complete) {
+    return 'bg-green-50 dark:bg-green-900/20';
+  }
+  
+  if (contract.value.client_has_rated && contract.value.expert_has_rated) {
+    return 'bg-green-50 dark:bg-green-900/20';
+  }
+  
+  if ((isClient.value && contract.value.client_has_rated) || 
+      (!isClient.value && contract.value.expert_has_rated)) {
+    return 'bg-amber-50 dark:bg-amber-900/20';
+  }
+  
+  if ((isClient.value && contract.value.expert_has_rated) || 
+      (!isClient.value && contract.value.client_has_rated)) {
+    return 'bg-amber-50 dark:bg-amber-900/20';
+  }
+  
+  return 'bg-gray-50 dark:bg-gray-700/50';
+});
+
+const ratingStatusIconClass = computed(() => {
+  if (!contract.value) return '';
+  
+  if (contract.value.ratings_complete || 
+      (contract.value.client_has_rated && contract.value.expert_has_rated)) {
+    return 'text-green-500 dark:text-green-400';
+  }
+  
+  if ((isClient.value && contract.value.client_has_rated) || 
+      (!isClient.value && contract.value.expert_has_rated) ||
+      (isClient.value && contract.value.expert_has_rated) || 
+      (!isClient.value && contract.value.client_has_rated)) {
+    return 'text-amber-500 dark:text-amber-400';
+  }
+  
+  return 'text-gray-500 dark:text-gray-400';
+});
+
+const ratingStatusTextClass = computed(() => {
+  if (!contract.value) return '';
+  
+  if (contract.value.ratings_complete || 
+      (contract.value.client_has_rated && contract.value.expert_has_rated)) {
+    return 'text-green-700 dark:text-green-300';
+  }
+  
+  if ((isClient.value && contract.value.client_has_rated) || 
+      (!isClient.value && contract.value.expert_has_rated) ||
+      (isClient.value && contract.value.expert_has_rated) || 
+      (!isClient.value && contract.value.client_has_rated)) {
+    return 'text-amber-700 dark:text-amber-300';
+  }
+  
+  return 'text-gray-700 dark:text-gray-300';
+});
+
+const hasRated = computed(() => {
+  if (!contract.value) return false;
+  return isClient.value ? contract.value.client_has_rated : contract.value.expert_has_rated;
+});
+
+const otherHasRated = computed(() => {
+  if (!contract.value) return false;
+  return isClient.value ? contract.value.expert_has_rated : contract.value.client_has_rated;
+});
+
+const userRating = computed(() => {
+  if (!contract.value || !hasRated.value) return 0;
+  return isClient.value ? contract.value.client_rating : contract.value.expert_rating;
+});
+
+const userReview = computed(() => {
+  if (!contract.value || !hasRated.value) return '';
+  return isClient.value ? contract.value.client_review : contract.value.expert_review;
+});
+
+const otherRating = computed(() => {
+  if (!contract.value || !otherHasRated.value) return 0;
+  return isClient.value ? contract.value.expert_rating : contract.value.client_rating;
+});
+
+const otherReview = computed(() => {
+  if (!contract.value || !otherHasRated.value) return '';
+  return isClient.value ? contract.value.expert_review : contract.value.client_review;
+});
 
 // Charger les données du contrat
 const fetchContract = async () => {
-  isLoading.value = true
-  error.value = null
+  isLoading.value = true;
+  error.value = null;
   
   try {
+    // Récupérer les informations du contrat depuis la table deals
     const { data, error: contractError } = await supabase
-      .from('contracts')
+      .from('deals')
       .select(`
         *,
-        services (
-          title,
-          id
-        ),
-        client:client_id (
-          first_name,
-          last_name
-        ),
-        expert:expert_id (
-          first_name,
-          last_name
-        )
+        client:client_id (*),
+        expert:expert_id (*),
+        request:request_id (title, description)
       `)
       .eq('id', contractId)
-      .single()
+      .in('status', ['active', 'completed'])
+      .single();
     
-    if (contractError) throw contractError
+    if (contractError) throw contractError;
     
     if (!data) {
-      throw new Error('Contrat non trouvé')
+      throw new Error('Contrat non trouvé');
     }
     
     // Vérifier que l'utilisateur est autorisé à voir ce contrat
     if (data.client_id !== user.value.id && data.expert_id !== user.value.id) {
-      throw new Error('Vous n\'êtes pas autorisé à accéder à ce contrat')
+      throw new Error('Vous n\'êtes pas autorisé à accéder à ce contrat');
     }
     
-    // Préparer les données du contrat
+    // Préparer les données pour l'affichage
     contract.value = {
-      ...data,
-      client_name: `${data.client.first_name} ${data.client.last_name}`,
-      expert_name: `${data.expert.first_name} ${data.expert.last_name}`,
-      service_name: data.services?.title || 'Service non spécifié',
-      title: data.title || data.services?.title || 'Contrat'
-    }
-    
-    // Charger l'évaluation si le contrat est terminé
-    if (data.status === 'completed') {
-      await fetchReview()
-    }
+      contract_id: data.id,
+      deal_id: data.id,
+      request_id: data.request_id,
+      client_id: data.client_id,
+      worker_id: data.expert_id,
+      status: data.status,
+      agreed_price: data.price,
+      start_date: data.created_at,
+      end_date: new Date(new Date(data.created_at).getTime() + data.duration * 24 * 60 * 60 * 1000),
+      completed_at: data.status === 'completed' ? data.updated_at : null,
+      created_at: data.created_at,
+      client_name: `${data.client.first_name || ''} ${data.client.last_name || ''}`.trim(),
+      worker_name: `${data.expert.first_name || ''} ${data.expert.last_name || ''}`.trim(),
+      job_title: data.request?.title || 'Contrat',
+      description: data.request?.description || '',
+      // Informations d'évaluation
+      client_rating: data.client_rating,
+      expert_rating: data.expert_rating,
+      client_review: data.client_review,
+      expert_review: data.expert_review,
+      client_has_rated: data.client_has_rated || false,
+      expert_has_rated: data.expert_has_rated || false,
+      ratings_complete: data.ratings_complete || false
+    };
     
   } catch (err) {
-    console.error('Erreur lors du chargement du contrat:', err)
-    error.value = err.message || 'Impossible de charger le contrat'
+    console.error('Erreur lors du chargement du contrat:', err);
+    error.value = err.message || 'Impossible de charger le contrat';
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
 }
 
-// Charger l'évaluation
-const fetchReview = async () => {
+// Charger les évaluations
+const fetchRatings = async () => {
   try {
-    const { data, error: reviewError } = await supabase
-      .from('reviews')
+    const { data, error: ratingError } = await supabase
+      .from('contract_ratings')
       .select('*')
       .eq('contract_id', contractId)
-      .eq('reviewer_id', user.value.id)
       .single()
     
-    if (reviewError && !reviewError.message.includes('No rows found')) {
-      throw reviewError
+    if (ratingError && !ratingError.message.includes('No rows found')) {
+      throw ratingError
     }
     
-    review.value = data
+    contractRating.value = data
   } catch (err) {
-    console.error('Erreur lors du chargement de l\'évaluation:', err)
+    console.error('Erreur lors du chargement des évaluations:', err)
   }
 }
 
@@ -306,12 +492,22 @@ const formatDate = (dateString) => {
   }).format(date)
 }
 
+// Formater un prix
+const formatPrice = (price) => {
+  if (!price) return 'Prix non défini';
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'XOF',
+    maximumFractionDigits: 0
+  }).format(price);
+};
+
 // Formater le statut d'un contrat
 const formatStatus = (status) => {
   switch (status) {
     case 'pending':
       return 'En attente'
-    case 'in_progress':
+    case 'active':
       return 'En cours'
     case 'completed':
       return 'Terminé'
@@ -327,7 +523,7 @@ const getStatusClass = (status) => {
   switch (status) {
     case 'pending':
       return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
-    case 'in_progress':
+    case 'active':
       return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
     case 'completed':
       return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
@@ -337,6 +533,38 @@ const getStatusClass = (status) => {
       return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400'
   }
 }
+
+// Marquer un contrat comme terminé
+const completeContract = async () => {
+  try {
+    const { error: updateError } = await supabase
+      .from('deals')
+      .update({ status: 'completed' })
+      .eq('id', contractId);
+    
+    if (updateError) throw updateError;
+    
+    // Rafraîchir les données
+    await fetchContract();
+    
+    // Afficher un message de succès
+    alert('Le contrat a été marqué comme terminé. Vous pouvez maintenant laisser une évaluation.');
+  } catch (err) {
+    console.error('Error completing contract:', err);
+    alert('Une erreur est survenue lors de la mise à jour du contrat');
+  }
+};
+
+// Contacter l'autre partie
+const contactOtherParty = () => {
+  if (!contract.value) return;
+  
+  const otherPartyId = isClient.value 
+    ? contract.value.worker_id 
+    : contract.value.client_id;
+  
+  router.push(`/messages/${otherPartyId}`);
+};
 
 // Initialisation
 onMounted(() => {

@@ -577,9 +577,9 @@ onMounted(async () => {
   }
 });
 
-definePageMeta({
-  middleware: ['auth']
-})
+// definePageMeta({
+//   layout: 'default'
+// })
 </script>
 
 <style scoped>
