@@ -1,7 +1,6 @@
 <template>
-  <div class="min-h-screen bg-white flex flex-col justify-center px-4 sm:px-6 lg:px-8">
+  <div class="min-h-[60vh] bg-white flex flex-col justify-center px-4 sm:px-6 lg:px-8">
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
-      <!-- <img class="mx-auto h-14 w-auto" src="/logo.svg" alt="Logo" /> -->
       <h1 class="mt-8 text-center text-3xl font-bold tracking-tight text-gray-900">
         Connectez-vous
       </h1>
@@ -202,4 +201,9 @@ const socialLogin = async (provider) => {
     messageType.value = 'error'
   }
 }
+
+// definePageMeta({
+//   layout: 'auth'
+// })
+
 </script>

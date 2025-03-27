@@ -80,7 +80,7 @@
         
         <!-- Feed items -->
         <div class="space-y-4 px-3">
-          <!-- New request card -->
+          <!-- New mission card -->
           <div v-for="item in feedItems" :key="item.id" class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
             <!-- Card header -->
             <div class="p-4">
@@ -95,8 +95,8 @@
                     <div class="text-xs text-gray-500 flex items-center">
                       <span>{{ formatTimeAgo(item.created_at) }}</span>
                       <span class="mx-1">•</span>
-                      <span :class="item.type === 'request' ? 'text-primary-500' : 'text-emerald-500'">
-                        {{ item.type === 'request' ? 'Demande' : 'Service' }}
+                      <span :class="item.type === 'mission' ? 'text-primary-500' : 'text-emerald-500'">
+                        {{ item.type === 'mission' ? 'Demande' : 'Service' }}
                       </span>
                     </div>
                   </div>
@@ -224,7 +224,7 @@
   const feedItems = ref([
     {
       id: 1,
-      type: 'request',
+      type: 'mission',
       title: 'Recherche développeur frontend Vue.js pour un projet de 3 mois',
       description: 'Nous sommes à la recherche d\'un développeur frontend expérimenté avec Vue.js pour rejoindre notre équipe pendant 3 mois. Le projet concerne la refonte de notre plateforme e-commerce.',
       price: 5000,

@@ -460,7 +460,7 @@ const supabase = useSupabaseClient();
 const router = useRouter();
 
 // État des données
-const categories = ref([]);
+const professions = ref([]);
 const isLoading = ref(true);
 const search = ref('');
 const statusFilter = ref('all');
@@ -520,9 +520,9 @@ const columns = [
 
 // Computed properties
 const filteredCategories = computed(() => {
-  if (!categories.value) return [];
+  if (!professions.value) return [];
   
-  let result = [...categories.value];
+  let result = [...professions.value];
   
   // Filtre de recherche
   if (search.value) {
@@ -559,7 +559,7 @@ const loadData = async () => {
   
   try {
     const { data, error } = await supabase
-      .from('categories')
+      .from('professions')
       .select(`
         *,
         services_count:services(count)
@@ -569,7 +569,7 @@ const loadData = async () => {
     if (error) throw error;
     
     // Transformer les données pour l'affichage
-    categories.value = data.map(category => ({
+    professions.value = data.map(category => ({
       ...category,
       services_count: category.services_count[0]?.count || 0
     }));
@@ -628,7 +628,7 @@ const saveCategory = async () => {
     if (editMode.value) {
       // Mettre à jour une catégorie existante
       const { error } = await supabase
-        .from('categories')
+        .from('professions')
         .update({
           name: categoryForm.value.name,
           description: categoryForm.value.description,
@@ -644,7 +644,7 @@ const saveCategory = async () => {
     } else {
       // Créer une nouvelle catégorie
       const { error } = await supabase
-        .from('categories')
+        .from('professions')
         .insert({
           name: categoryForm.value.name,
           description: categoryForm.value.description,
@@ -680,7 +680,7 @@ const toggleCategoryStatus = async (category) => {
   
   try {
     const { error } = await supabase
-      .from('categories')
+      .from('professions')
       .update({ 
         is_active: newStatus,
         updated_at: new Date().toISOString()
@@ -731,7 +731,7 @@ const confirmDeleteCategory = async () => {
     }
     
     const { error } = await supabase
-      .from('categories')
+      .from('professions')
       .delete()
       .eq('id', selectedCategory.value.id);
     

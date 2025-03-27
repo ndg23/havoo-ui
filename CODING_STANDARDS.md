@@ -22,7 +22,7 @@ Ce document définit les normes de codage et les meilleures pratiques à suivre 
 Exemple de définition de table avec UUID :
 
 ```sql
-CREATE TABLE categories (
+CREATE TABLE professions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name TEXT NOT NULL,
     description TEXT,
@@ -34,7 +34,7 @@ CREATE TABLE skills (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name TEXT NOT NULL,
     description TEXT,
-    category_id UUID REFERENCES categories(id) ON DELETE SET NULL,
+    profession_id UUID REFERENCES professions(id) ON DELETE SET NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -42,7 +42,7 @@ CREATE TABLE skills (
 
 ### Tables
 
-- Nommez les tables au pluriel (ex: `users`, `categories`, `skills`)
+- Nommez les tables au pluriel (ex: `users`, `professions`, `skills`)
 - Incluez toujours les colonnes `created_at` et `updated_at` pour suivre l'historique des modifications
 - Définissez des contraintes appropriées pour garantir l'intégrité des données
 - Documentez clairement la structure et le but de chaque table

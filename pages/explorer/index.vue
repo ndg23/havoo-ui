@@ -33,7 +33,7 @@
             @change="fetchServices"
           >
             <option value="">Toutes les catégories</option>
-            <option v-for="category in categories" :key="category.id" :value="category.id">
+            <option v-for="category in professions" :key="category.id" :value="category.id">
               {{ category.name }}
             </option>
           </select>
@@ -264,7 +264,7 @@ const supabase = useSupabaseClient()
 
 // State
 const services = ref([])
-const categories = ref([])
+const professions = ref([])
 const isLoading = ref(false)
 const selectedCategory = ref('')
 const searchQuery = ref('')
@@ -328,7 +328,7 @@ const fetchServices = async () => {
     
     // Apply filters
     if (selectedCategory.value) {
-      query = query.eq('category_id', selectedCategory.value)
+      query = query.eq('profession_id', selectedCategory.value)
     }
     
     if (searchQuery.value) {
@@ -381,15 +381,15 @@ const fetchServices = async () => {
 const fetchCategories = async () => {
   try {
     const { data, error } = await supabase
-      .from('categories')
+      .from('professions')
       .select('*')
       .order('name')
     
     if (error) throw error
     
-    categories.value = data
+    professions.value = data
   } catch (error) {
-    console.error('Error fetching categories:', error)
+    console.error('Error fetching professions:', error)
   }
 }
 

@@ -115,13 +115,13 @@
                     />
                   </div>
                   <div>
-                    <label for="address" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label for="location" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Adresse
                     </label>
                     <input
-                      v-model="form.address"
+                      v-model="form.location"
                       type="text"
-                      id="address"
+                      id="location"
                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
                     />
                   </div>
@@ -281,7 +281,7 @@ const defaultForm = {
   last_name: '',
   email: '',
   phone: '',
-  address: '',
+  location: '',
   city: '',
   country: 'Sénégal',
   role: 'client',
@@ -381,7 +381,7 @@ const saveUser = async () => {
           first_name: form.value.first_name,
           last_name: form.value.last_name,
           phone: form.value.phone,
-          address: form.value.address,
+          location: form.value.location,
           city: form.value.city,
           country: form.value.country,
           role: form.value.role,

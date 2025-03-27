@@ -88,7 +88,7 @@
             class="px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-full focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white appearance-none"
           >
             <option value="all">Toutes les catégories</option>
-            <option v-for="category in categories" :key="category.id" :value="category.id">
+            <option v-for="category in professions" :key="category.id" :value="category.id">
               {{ category.name }}
             </option>
           </select>
@@ -156,76 +156,76 @@
       <!-- Lignes du tableau -->
       <div class="divide-y divide-gray-100 dark:divide-gray-700">
         <div 
-          v-for="request in paginatedRequests" 
-          :key="request.id"
+          v-for="mission in paginatedRequests" 
+          :key="mission.id"
           class="grid grid-cols-6 gap-4 px-6 py-4 items-center hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
         >
           <!-- Service -->
           <div class="flex items-center gap-3">
             <div 
               class="h-10 w-10 rounded-full flex items-center justify-center"
-              :class="getCategoryColorClass(request.category_id)"
+              :class="getCategoryColorClass(mission.profession_id)"
             >
-              <component :is="getCategoryIcon(request.category_id)" class="h-5 w-5 text-white" />
+              <component :is="getCategoryIcon(mission.profession_id)" class="h-5 w-5 text-white" />
             </div>
             <div>
-              <p class="text-sm font-medium text-gray-900 dark:text-white line-clamp-1">{{ request.title }}</p>
-              <p class="text-xs text-gray-500 dark:text-gray-400">{{ getCategoryName(request.category_id) }}</p>
+              <p class="text-sm font-medium text-gray-900 dark:text-white line-clamp-1">{{ mission.title }}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">{{ getCategoryName(mission.profession_id) }}</p>
             </div>
           </div>
           
           <!-- Client -->
           <div>
-            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ request.client_name }}</p>
+            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ mission.client_name }}</p>
             <div class="flex items-center text-xs text-gray-500 dark:text-gray-400">
               <MapPin class="h-3 w-3 mr-1" /> 
-              {{ request.location || 'Non spécifié' }}
+              {{ mission.location || 'Non spécifié' }}
             </div>
           </div>
           
           <!-- Budget -->
           <div>
             <span class="inline-flex items-center px-2.5 py-1 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 rounded-full text-xs font-bold">
-              {{ request.budget ? `${request.budget}FCFA` : 'Non défini' }}
+              {{ mission.budget ? `${mission.budget}FCFA` : 'Non défini' }}
             </span>
           </div>
           
           <!-- Date limite -->
           <div class="text-sm text-gray-600 dark:text-gray-400">
-            {{ formatDate(request.deadline) }}
+            {{ formatDate(mission.deadline) }}
           </div>
           
           <!-- Statut -->
           <div>
             <span 
               class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium"
-              :class="getStatusClass(request.status)"
+              :class="getStatusClass(mission.status)"
             >
-              <span class="w-1.5 h-1.5 rounded-full mr-1.5" :class="getStatusDotClass(request.status)"></span>
-              {{ formatStatus(request.status) }}
+              <span class="w-1.5 h-1.5 rounded-full mr-1.5" :class="getStatusDotClass(mission.status)"></span>
+              {{ formatStatus(mission.status) }}
             </span>
           </div>
           
           <!-- Actions -->
           <div class="flex justify-end gap-2">
             <button 
-              @click="viewRequestDetails(request)"
+              @click="viewRequestDetails(mission)"
               class="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
               title="Voir les détails"
             >
               <Eye class="h-5 w-5" />
             </button>
             <button 
-              v-if="request.status === 'open'"
-              @click="openAssignModal(request)"
+              v-if="mission.status === 'open'"
+              @click="openAssignModal(mission)"
               class="p-1.5 text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-full"
               title="Assigner un expert"
             >
               <UserPlus class="h-5 w-5" />
             </button>
             <button 
-              v-if="['open', 'assigned'].includes(request.status)"
-              @click="cancelRequest(request)"
+              v-if="['open', 'assigned'].includes(mission.status)"
+              @click="cancelRequest(mission)"
               class="p-1.5 text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full"
               title="Annuler"
             >
@@ -294,7 +294,7 @@
           </h3>
           <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-4">
             <Tag class="h-4 w-4" />
-            <span>{{ getCategoryName(selectedRequest.category_id) }}</span>
+            <span>{{ getCategoryName(selectedRequest.profession_id) }}</span>
             <span class="mx-2">•</span>
             <MapPin class="h-4 w-4" /> 
             <span>{{ selectedRequest.location || 'Non spécifié' }}</span>
@@ -391,8 +391,8 @@ import {
 const supabase = useSupabaseClient()
 
 // États
-const requests = ref([])
-const categories = ref([])
+const missions = ref([])
+const professions = ref([])
 const experts = ref([])
 const search = ref('')
 const statusFilter = ref('all')
@@ -448,27 +448,27 @@ const stats = ref([
 
 // Filtrer les demandes
 const filteredRequests = computed(() => {
-  let filtered = [...requests.value]
+  let filtered = [...missions.value]
   
   // Filtre de recherche
   if (search.value) {
     const searchLower = search.value.toLowerCase()
-    filtered = filtered.filter(request => 
-      request.title?.toLowerCase().includes(searchLower) ||
-      request.description?.toLowerCase().includes(searchLower) ||
-      request.client_name?.toLowerCase().includes(searchLower)
+    filtered = filtered.filter(mission => 
+      mission.title?.toLowerCase().includes(searchLower) ||
+      mission.description?.toLowerCase().includes(searchLower) ||
+      mission.client_name?.toLowerCase().includes(searchLower)
     )
   }
   
   // Filtre de statut
   if (statusFilter.value !== 'all') {
-    filtered = filtered.filter(request => request.status === statusFilter.value)
+    filtered = filtered.filter(mission => mission.status === statusFilter.value)
   }
   
   // Filtre de catégorie
   if (categoryFilter.value !== 'all') {
-    filtered = filtered.filter(request => 
-      request.category_id === parseInt(categoryFilter.value)
+    filtered = filtered.filter(mission => 
+      mission.profession_id === parseInt(categoryFilter.value)
     )
   }
   
@@ -525,23 +525,23 @@ const showNotification = (type, title, message = '') => {
 
 // Mettre à jour les statistiques
 const updateStats = () => {
-  if (!requests.value.length) return
+  if (!missions.value.length) return
   
   // Total des demandes
-  stats.value[0].value = requests.value.length.toString()
+  stats.value[0].value = missions.value.length.toString()
   
   // Nouvelles demandes
-  stats.value[1].value = requests.value.filter(
+  stats.value[1].value = missions.value.filter(
     r => r.status === 'open'
   ).length.toString()
   
   // Demandes en cours
-  stats.value[2].value = requests.value.filter(
+  stats.value[2].value = missions.value.filter(
     r => r.status === 'in_progress' || r.status === 'assigned'
   ).length.toString()
   
   // Demandes terminées
-  stats.value[3].value = requests.value.filter(
+  stats.value[3].value = missions.value.filter(
     r => r.status === 'completed'
   ).length.toString()
 }
@@ -552,21 +552,21 @@ const fetchRequests = async () => {
   
   try {
     // Récupérer les catégories
-    const { data: categoriesData, error: categoriesError } = await supabase
-      .from('services_categories')
+    const { data: professionsData, error: professionsError } = await supabase
+      .from('services_professions')
       .select('*')
     
-    if (categoriesError) throw categoriesError
-    categories.value = categoriesData
+    if (professionsError) throw professionsError
+    professions.value = professionsData
     
     // Récupérer les demandes
-    const { data: requestsData, error: requestsError } = await supabase
-      .from('requests')
+    const { data: missionsData, error: missionsError } = await supabase
+      .from('missions')
       .select('*')
       .order('created_at', { ascending: false })
     
-    if (requestsError) throw requestsError
-    requests.value = requestsData
+    if (missionsError) throw missionsError
+    missions.value = missionsData
     
     // Récupérer les experts
     const { data: expertsData, error: expertsError } = await supabase
@@ -644,7 +644,7 @@ const getStatusDotClass = (status) => {
 
 // Obtenir le nom de la catégorie
 const getCategoryName = (categoryId) => {
-  const category = categories.value.find(c => c.id === categoryId)
+  const category = professions.value.find(c => c.id === categoryId)
   return category ? category.name : 'Service général'
 }
 
@@ -673,14 +673,14 @@ const getCategoryColorClass = (categoryId) => {
 }
 
 // Voir les détails d'une demande
-const viewRequestDetails = (request) => {
-  selectedRequest.value = request
+const viewRequestDetails = (mission) => {
+  selectedRequest.value = mission
   showDetailsModal.value = true
 }
 
 // Ouvrir le modal d'assignation
-const openAssignModal = (request) => {
-  selectedRequest.value = request
+const openAssignModal = (mission) => {
+  selectedRequest.value = mission
   selectedExpertId.value = ''
   assignmentNotes.value = ''
   showAssignModal.value = true
@@ -694,8 +694,8 @@ const assignExpert = async () => {
   
   try {
     // Mettre à jour la demande avec l'expert assigné
-    const { error: requestError } = await supabase
-      .from('requests')
+    const { error: missionError } = await supabase
+      .from('missions')
       .update({ 
         expert_id: selectedExpertId.value,
         admin_notes: assignmentNotes.value,
@@ -704,7 +704,7 @@ const assignExpert = async () => {
       })
       .eq('id', selectedRequest.value.id)
     
-    if (requestError) throw requestError
+    if (missionError) throw missionError
     
     // Rafraîchir les données
     await fetchRequests()
@@ -720,17 +720,17 @@ const assignExpert = async () => {
 }
 
 // Annuler une demande
-const cancelRequest = async (request) => {
-  if (!confirm(`Êtes-vous sûr de vouloir annuler la demande "${request.title}" ?`)) return
+const cancelRequest = async (mission) => {
+  if (!confirm(`Êtes-vous sûr de vouloir annuler la demande "${mission.title}" ?`)) return
   
   try {
     const { error } = await supabase
-      .from('requests')
+      .from('missions')
       .update({ 
         status: 'cancelled',
         updated_at: new Date()
       })
-      .eq('id', request.id)
+      .eq('id', mission.id)
     
     if (error) throw error
     

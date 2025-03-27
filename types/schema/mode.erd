@@ -27,7 +27,7 @@ erDiagram
     SKILLS {
         serial id PK
         varchar name
-        int category_id FK
+        int profession_id FK
         text description
         boolean is_active
     }
@@ -42,12 +42,12 @@ erDiagram
         date deadline
         varchar status
         text[] skills_required
-        int category_id FK
+        int profession_id FK
     }
     
     PROPOSALS {
         serial id PK
-        int request_id FK
+        int mission_id FK
         uuid expert_id FK
         decimal price
         varchar price_type
@@ -58,7 +58,7 @@ erDiagram
     
     CONTRACTS {
         serial id PK
-        int request_id FK
+        int mission_id FK
         int proposal_id FK
         uuid client_id FK
         uuid expert_id FK
@@ -71,7 +71,7 @@ erDiagram
     SERVICES {
         serial id PK
         uuid expert_id FK
-        int category_id FK
+        int profession_id FK
         varchar title
         text description
         decimal price
@@ -93,7 +93,7 @@ erDiagram
     CONVERSATIONS {
         serial id PK
         varchar title
-        int request_id FK
+        int mission_id FK
         int contract_id FK
         timestamp last_message_at
     }

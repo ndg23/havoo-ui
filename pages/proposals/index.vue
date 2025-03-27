@@ -119,7 +119,7 @@
             <div class="flex items-start justify-between mb-3">
               <div>
                 <h3 class="font-medium text-gray-900 dark:text-white">
-                  {{ proposal.request?.title || 'Demande sans titre' }}
+                  {{ proposal.mission?.title || 'Demande sans titre' }}
                 </h3>
                 <div class="flex flex-wrap items-center gap-2 mt-1">
                   <span 
@@ -129,10 +129,10 @@
                     {{ getStatusLabel(proposal.status) }}
                   </span>
                   <span 
-                    v-if="proposal.request?.category"
+                    v-if="proposal.mission?.category"
                     class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
                   >
-                    {{ proposal.request.category.name }}
+                    {{ proposal.mission.category.name }}
                   </span>
                 </div>
               </div>
@@ -154,8 +154,8 @@
               <div class="flex items-center">
                 <div class="flex-shrink-0">
                   <img 
-                    v-if="proposal.request?.client?.avatar_url" 
-                    :src="proposal.request.client.avatar_url" 
+                    v-if="proposal.mission?.client?.avatar_url" 
+                    :src="proposal.mission.client.avatar_url" 
                     alt="Client" 
                     class="h-8 w-8 rounded-full"
                   />
@@ -163,12 +163,12 @@
                     v-else 
                     class="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 text-sm font-medium"
                   >
-                    {{ getInitials(proposal.request?.client?.first_name, proposal.request?.client?.last_name) }}
+                    {{ getInitials(proposal.mission?.client?.first_name, proposal.mission?.client?.last_name) }}
                   </div>
                 </div>
                 <div class="ml-2">
                   <p class="text-xs font-medium text-gray-900 dark:text-white">
-                    {{ proposal.request?.client?.first_name }} {{ proposal.request?.client?.last_name }}
+                    {{ proposal.mission?.client?.first_name }} {{ proposal.mission?.client?.last_name }}
                   </p>
                   <p class="text-xs text-gray-500 dark:text-gray-400">
                     {{ formatRelativeDate(proposal.created_at) }}
@@ -177,7 +177,7 @@
               </div>
               
               <NuxtLink 
-                :to="`/requests/${proposal.request_id}`"
+                :to="`/requests/${proposal.mission_id}`"
                 class="inline-flex items-center text-xs font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
               >
                 Voir la demande
@@ -225,11 +225,11 @@ const filteredProposals = computed(() => {
   const search = searchQuery.value.toLowerCase();
   return proposals.value.filter(proposal => {
     return (
-      (proposal.request?.title && proposal.request.title.toLowerCase().includes(search)) ||
+      (proposal.mission?.title && proposal.mission.title.toLowerCase().includes(search)) ||
       (proposal.message && proposal.message.toLowerCase().includes(search)) ||
-      (proposal.request?.category?.name && proposal.request.category.name.toLowerCase().includes(search)) ||
-      (proposal.request?.client?.first_name && proposal.request.client.first_name.toLowerCase().includes(search)) ||
-      (proposal.request?.client?.last_name && proposal.request.client.last_name.toLowerCase().includes(search))
+      (proposal.mission?.category?.name && proposal.mission.category.name.toLowerCase().includes(search)) ||
+      (proposal.mission?.client?.first_name && proposal.mission.client.first_name.toLowerCase().includes(search)) ||
+      (proposal.mission?.client?.last_name && proposal.mission.client.last_name.toLowerCase().includes(search))
     );
   });
 });
@@ -244,10 +244,10 @@ const fetchProposals = async () => {
       .from('deals')
       .select(`
         *,
-        request:request_id (
+        mission:mission_id (
           *,
           client:client_id (*),
-          category:category_id (*)
+          category:profession_id (*)
         )
       `)
       .eq('expert_id', user.value?.id)

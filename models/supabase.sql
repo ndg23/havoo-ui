@@ -6,7 +6,7 @@ CREATE TYPE service_status AS ENUM ('pending', 'accepted', 'in_progress', 'compl
 CREATE TYPE expert_status AS ENUM ('pending', 'active', 'inactive', 'suspended');
 CREATE TYPE payment_status AS ENUM ('pending', 'paid', 'failed', 'refunded');
 CREATE TYPE notification_type AS ENUM ('message', 'service_update', 'payment', 'system');
-CREATE TYPE request_status AS ENUM ('pending', 'accepted', 'in_progress', 'completed', 'cancelled');
+CREATE TYPE mission_status AS ENUM ('pending', 'accepted', 'in_progress', 'completed', 'cancelled');
 CREATE TYPE payment_method AS ENUM ('mobile_money', 'card', 'cash');
 
 -- Table des utilisateurs (étend auth.users de Supabase)
@@ -18,7 +18,7 @@ CREATE TABLE public.profiles (
     email VARCHAR(255) NOT NULL,
     phone VARCHAR(20),
     avatar_url TEXT,
-    address TEXT,
+    location TEXT,
     city VARCHAR(100),
     country VARCHAR(100) DEFAULT 'Bénin',
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -42,7 +42,7 @@ CREATE TABLE public.experts (
 );
 
 -- Table des catégories de services
-CREATE TABLE public.service_categories (
+CREATE TABLE public.service_professions (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     icon TEXT,
@@ -71,12 +71,12 @@ CREATE TABLE public.expert_services (
 );
 
 -- Table des demandes de service
-CREATE TABLE public.service_requests (
+CREATE TABLE public.service_missions (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     client_id UUID REFERENCES public.profiles(id),
     service_id UUID REFERENCES public.services(id),
     expert_id UUID REFERENCES public.experts(id),
-    status request_status DEFAULT 'pending',
+    status mission_status DEFAULT 'pending',
     description TEXT,
     date_needed DATE NOT NULL,
     time_needed TIME NOT NULL,
@@ -90,19 +90,19 @@ CREATE TABLE public.service_requests (
 -- Table des propositions des experts
 CREATE TABLE public.expert_proposals (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    request_id UUID REFERENCES public.service_requests(id),
+    mission_id UUID REFERENCES public.service_missions(id),
     expert_id UUID REFERENCES public.experts(id),
     price INTEGER NOT NULL,
     message TEXT,
     status VARCHAR(50) DEFAULT 'pending',
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(request_id, expert_id)
+    UNIQUE(mission_id, expert_id)
 );
 
 -- Table des missions
 CREATE TABLE public.jobs (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    request_id UUID REFERENCES public.service_requests(id),
+    mission_id UUID REFERENCES public.service_missions(id),
     expert_id UUID REFERENCES public.experts(id),
     status service_status DEFAULT 'pending',
     start_time TIMESTAMPTZ,
@@ -117,7 +117,7 @@ CREATE TABLE public.jobs (
 -- Table des paiements
 CREATE TABLE public.payments (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    request_id UUID REFERENCES public.service_requests(id),
+    mission_id UUID REFERENCES public.service_missions(id),
     client_id UUID REFERENCES public.profiles(id),
     expert_id UUID REFERENCES public.experts(id),
     amount INTEGER NOT NULL,
@@ -161,8 +161,8 @@ CREATE TABLE public.favorites (
 );
 
 -- Indexes pour optimiser les performances
-CREATE INDEX idx_service_requests_client ON service_requests(client_id);
-CREATE INDEX idx_service_requests_status ON service_requests(status);
+CREATE INDEX idx_service_missions_client ON service_missions(client_id);
+CREATE INDEX idx_service_missions_status ON service_missions(status);
 CREATE INDEX idx_jobs_expert ON jobs(expert_id);
 CREATE INDEX idx_jobs_status ON jobs(status);
 CREATE INDEX idx_messages_receiver ON messages(receiver_id, read);
@@ -187,7 +187,7 @@ CREATE TRIGGER update_profiles_updated_at
 -- RLS (Row Level Security) Policies
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.experts ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.service_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.service_missions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.jobs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;

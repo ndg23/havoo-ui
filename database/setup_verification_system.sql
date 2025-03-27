@@ -150,7 +150,7 @@ GRANT SELECT ON storage.objects TO anon;
 -- =============================================================================
 
 -- Fonction pour que les experts demandent une vérification
-CREATE OR REPLACE FUNCTION request_expert_verification(
+CREATE OR REPLACE FUNCTION mission_expert_verification(
   p_documents JSONB -- Format JSON avec les URLs des documents
 )
 RETURNS BOOLEAN AS $$

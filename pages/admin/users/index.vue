@@ -497,10 +497,10 @@
         
         <!-- Adresse -->
         <div>
-          <label for="address" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Adresse</label>
+          <label for="location" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Adresse</label>
           <textarea 
-            id="address"
-            v-model="userForm.address"
+            id="location"
+            v-model="userForm.location"
             rows="2"
             class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
             placeholder="Adresse complète"
@@ -905,7 +905,7 @@ const userForm = ref({
   role: 'client',
   is_active: true,
   is_verified: false,
-  address: ''
+  location: ''
 });
 
 // Ouvrir la modal d'ajout d'utilisateur
@@ -920,7 +920,7 @@ const openAddUserModal = () => {
     role: 'client',
     is_active: true,
     is_verified: false,
-    address: ''
+    location: ''
   };
   showUserModal.value = true;
 };
@@ -937,7 +937,7 @@ const editUser = (user) => {
     role: user.role || 'client',
     is_active: user.is_active !== false, // Default to true if undefined
     is_verified: user.is_verified || false,
-    address: user.address || ''
+    location: user.location || ''
   };
   showUserModal.value = true;
 };
@@ -969,7 +969,7 @@ const saveUser = async () => {
           role: userForm.value.role,
           is_active: userForm.value.is_active,
           is_verified: userForm.value.role === 'expert' ? userForm.value.is_verified : false,
-          address: userForm.value.address,
+          location: userForm.value.location,
           updated_at: new Date().toISOString()
         })
         .eq('id', userForm.value.id);
@@ -1004,7 +1004,7 @@ const saveUser = async () => {
           phone: userForm.value.phone,
           is_active: userForm.value.is_active,
           is_verified: userForm.value.role === 'expert' ? userForm.value.is_verified : false,
-          address: userForm.value.address
+          location: userForm.value.location
         })
         .eq('id', authData.user.id);
       

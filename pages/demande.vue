@@ -306,7 +306,7 @@ const availableHours = [
   '18:00'
 ]
 
-const categories = [
+const professions = [
   {
     id: 'maison',
     name: 'Maison',
@@ -352,9 +352,9 @@ const categories = [
 ]
 
 const filteredCategories = computed(() => {
-  if (!searchQuery.value) return categories
+  if (!searchQuery.value) return professions
   
-  return categories.map(category => ({
+  return professions.map(category => ({
     ...category,
     services: category.services.filter(service => 
       service.name.toLowerCase().includes(searchQuery.value.toLowerCase())

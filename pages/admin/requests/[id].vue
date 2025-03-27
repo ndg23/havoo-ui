@@ -12,7 +12,7 @@
         
         <div class="flex flex-wrap gap-3">
           <button 
-            v-if="request && request.status === 'open'"
+            v-if="mission && mission.status === 'open'"
             @click="openAssignModal"
             class="btn-primary rounded-xl flex items-center gap-2 transition-all hover:scale-105"
             :disabled="isLoading"
@@ -22,7 +22,7 @@
           </button>
           
           <button 
-            v-if="request && ['open', 'assigned'].includes(request.status)"
+            v-if="mission && ['open', 'assigned'].includes(mission.status)"
             @click="cancelRequest"
             class="btn-danger rounded-xl flex items-center gap-2 transition-all hover:scale-105"
             :disabled="isLoading"
@@ -99,7 +99,7 @@
       </div>
   
       <!-- Message demande non trouvée -->
-      <div v-else-if="!request" class="bg-amber-50 dark:bg-amber-900/20 p-8 rounded-2xl text-center border border-amber-100 dark:border-amber-800/30 shadow-sm">
+      <div v-else-if="!mission" class="bg-amber-50 dark:bg-amber-900/20 p-8 rounded-2xl text-center border border-amber-100 dark:border-amber-800/30 shadow-sm">
         <div class="inline-flex items-center justify-center h-20 w-20 rounded-full bg-amber-100 dark:bg-amber-800/30 mb-6">
           <FileX class="h-10 w-10 text-amber-500 dark:text-amber-400" />
         </div>
@@ -124,28 +124,28 @@
               <div class="flex items-center gap-4">
                 <div 
                   class="h-12 w-12 rounded-xl flex items-center justify-center"
-                  :class="getCategoryColorClass(request.category_id)"
+                  :class="getCategoryColorClass(mission.profession_id)"
                 >
-                  <component :is="getCategoryIcon(request.category_id)" class="h-6 w-6 text-white" />
+                  <component :is="getCategoryIcon(mission.profession_id)" class="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h2 class="text-xl font-bold text-gray-900 dark:text-white">{{ request.title }}</h2>
-                  <p class="text-sm text-gray-500 dark:text-gray-400">{{ getCategoryName(request.category_id) }}</p>
+                  <h2 class="text-xl font-bold text-gray-900 dark:text-white">{{ mission.title }}</h2>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">{{ getCategoryName(mission.profession_id) }}</p>
                 </div>
               </div>
               <span 
                 class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium"
-                :class="getStatusClass(request.status)"
+                :class="getStatusClass(mission.status)"
               >
-                <span class="w-2 h-2 rounded-full mr-2" :class="getStatusDotClass(request.status)"></span>
-                {{ formatStatus(request.status) }}
+                <span class="w-2 h-2 rounded-full mr-2" :class="getStatusDotClass(mission.status)"></span>
+                {{ formatStatus(mission.status) }}
               </span>
             </div>
             
             <div class="p-6 space-y-6">
               <div>
                 <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Description</h3>
-                <p class="text-gray-700 dark:text-gray-300 whitespace-pre-line">{{ request.description }}</p>
+                <p class="text-gray-700 dark:text-gray-300 whitespace-pre-line">{{ mission.description }}</p>
               </div>
               
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -179,25 +179,25 @@
               <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Date de création</h3>
-                  <p class="text-gray-700 dark:text-gray-300">{{ formatDate(request.created_at) }}</p>
+                  <p class="text-gray-700 dark:text-gray-300">{{ formatDate(mission.created_at) }}</p>
                 </div>
                 
                 <div>
                   <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Date limite</h3>
-                  <p class="text-gray-700 dark:text-gray-300">{{ formatDate(request.deadline) }}</p>
+                  <p class="text-gray-700 dark:text-gray-300">{{ formatDate(mission.deadline) }}</p>
                 </div>
                 
                 <div>
                   <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Budget</h3>
-                  <p class="text-gray-700 dark:text-gray-300">{{ request.budget ? `${request.budget} FCFA` : 'Non spécifié' }}</p>
+                  <p class="text-gray-700 dark:text-gray-300">{{ mission.budget ? `${mission.budget} FCFA` : 'Non spécifié' }}</p>
                 </div>
               </div>
               
-              <div v-if="request.attachments && request.attachments.length > 0">
+              <div v-if="mission.attachments && mission.attachments.length > 0">
                 <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Pièces jointes</h3>
                 <div class="flex flex-wrap gap-3">
                   <a 
-                    v-for="(attachment, index) in request.attachments" 
+                    v-for="(attachment, index) in mission.attachments" 
                     :key="index"
                     :href="attachment.url"
                     target="_blank"
@@ -259,36 +259,36 @@
                     <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Statut actuel</span>
                     <span 
                       class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium"
-                      :class="getStatusClass(request.status)"
+                      :class="getStatusClass(mission.status)"
                     >
-                      {{ formatStatus(request.status) }}
+                      {{ formatStatus(mission.status) }}
                     </span>
                   </div>
                   
                   <div class="relative pt-1">
                     <div class="flex mb-2 items-center justify-between">
                       <div>
-                        <span class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full" :class="getProgressTextClass(request.status)">
-                          {{ getProgressText(request.status) }}
+                        <span class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full" :class="getProgressTextClass(mission.status)">
+                          {{ getProgressText(mission.status) }}
                         </span>
                       </div>
                     </div>
                     <div class="flex h-2 mb-4 overflow-hidden rounded bg-gray-200 dark:bg-gray-700">
                       <div
-                        :style="`width: ${getProgressPercentage(request.status)}%`"
+                        :style="`width: ${getProgressPercentage(mission.status)}%`"
                         class="flex flex-col justify-center rounded"
-                        :class="getProgressBarClass(request.status, request.status)"
+                        :class="getProgressBarClass(mission.status, mission.status)"
                       ></div>
                     </div>
                   </div>
                 </div>
                 
-                <div v-if="request.status === 'completed'" class="flex items-center gap-2 text-green-600 dark:text-green-400">
+                <div v-if="mission.status === 'completed'" class="flex items-center gap-2 text-green-600 dark:text-green-400">
                   <CheckCircle class="h-5 w-5" />
                   <span class="font-medium">Demande terminée</span>
                 </div>
                 
-                <div v-else-if="request.status === 'cancelled'" class="flex items-center gap-2 text-red-600 dark:text-red-400">
+                <div v-else-if="mission.status === 'cancelled'" class="flex items-center gap-2 text-red-600 dark:text-red-400">
                   <XCircle class="h-5 w-5" />
                   <span class="font-medium">Demande annulée</span>
                 </div>
@@ -398,9 +398,9 @@
               </div>
               
               <div class="p-6 space-y-6">
-                <div v-if="request" class="mb-6">
-                  <h4 class="text-lg font-bold text-gray-900 dark:text-white">{{ request.title }}</h4>
-                  <p class="text-gray-500 dark:text-gray-400">{{ getCategoryName(request.category_id) }}</p>
+                <div v-if="mission" class="mb-6">
+                  <h4 class="text-lg font-bold text-gray-900 dark:text-white">{{ mission.title }}</h4>
+                  <p class="text-gray-500 dark:text-gray-400">{{ getCategoryName(mission.profession_id) }}</p>
                 </div>
                 
                 <div>
@@ -463,13 +463,13 @@
   const supabase = useSupabaseClient();
   const route = useRoute();
   const router = useRouter();
-  const requestId = route.params.id;
+  const missionId = route.params.id;
   
   // État
-  const request = ref(null);
+  const mission = ref(null);
   const client = ref(null);
   const expert = ref(null);
-  const categories = ref([]);
+  const professions = ref([]);
   const proposals = ref([]);
   const history = ref([]);
   const experts = ref([]);
@@ -495,20 +495,20 @@
     
     try {
       // Récupérer la demande
-      const { data, error: requestError } = await supabase
-        .from('requests')
+      const { data, error: missionError } = await supabase
+        .from('missions')
         .select('*')
-        .eq('id', requestId)
+        .eq('id', missionId)
         .single();
       
-      if (requestError) throw requestError;
+      if (missionError) throw missionError;
       
       if (!data) {
         error.value = "Demande non trouvée";
         return;
       }
       
-      request.value = data;
+      mission.value = data;
       
       // Récupérer les données associées
       await Promise.all([
@@ -530,13 +530,13 @@
   
   // Récupérer le client
   const fetchClient = async () => {
-    if (!request.value || !request.value.client_id) return;
+    if (!mission.value || !mission.value.client_id) return;
     
     try {
       const { data, error: clientError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', request.value.client_id)
+        .eq('id', mission.value.client_id)
         .single();
       
       if (clientError) throw clientError;
@@ -549,13 +549,13 @@
   
   // Récupérer l'expert
   const fetchExpert = async () => {
-    if (!request.value || !request.value.expert_id) return;
+    if (!mission.value || !mission.value.expert_id) return;
     
     try {
       const { data, error: expertError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', request.value.expert_id)
+        .eq('id', mission.value.expert_id)
         .single();
       
       if (expertError) throw expertError;
@@ -569,14 +569,14 @@
   // Récupérer les catégories
   const fetchCategories = async () => {
     try {
-      const { data, error: categoriesError } = await supabase
-        .from('categories')
+      const { data, error: professionsError } = await supabase
+        .from('professions')
         .select('*')
         .order('name');
       
-      if (categoriesError) throw categoriesError;
+      if (professionsError) throw professionsError;
       
-      categories.value = data || [];
+      professions.value = data || [];
     } catch (err) {
       console.error('Erreur lors de la récupération des catégories:', err);
     }
@@ -584,13 +584,13 @@
   
   // Récupérer les propositions
   const fetchProposals = async () => {
-    if (!request.value) return;
+    if (!mission.value) return;
     
     try {
       const { data, error: proposalsError } = await supabase
         .from('proposals')
         .select('*, expert:profiles(*)')
-        .eq('request_id', requestId)
+        .eq('mission_id', missionId)
         .order('created_at', { ascending: false });
       
       if (proposalsError) throw proposalsError;
@@ -603,13 +603,13 @@
   
   // Récupérer l'historique
   const fetchHistory = async () => {
-    if (!request.value) return;
+    if (!mission.value) return;
     
     try {
       const { data, error: historyError } = await supabase
-        .from('request_history')
+        .from('mission_history')
         .select('*, user:profiles(*)')
-        .eq('request_id', requestId)
+        .eq('mission_id', missionId)
         .order('created_at', { ascending: false });
       
       if (historyError) throw historyError;
@@ -653,19 +653,19 @@
   
   // Obtenir le nom de la catégorie
   const getCategoryName = (categoryId) => {
-    const category = categories.value.find(c => c.id === categoryId);
+    const category = professions.value.find(c => c.id === categoryId);
     return category ? category.name : 'Catégorie inconnue';
   };
   
   // Obtenir l'icône de la catégorie
   const getCategoryIcon = (categoryId) => {
-    const category = categories.value.find(c => c.id === categoryId);
+    const category = professions.value.find(c => c.id === categoryId);
     return category?.icon || 'FileText';
   };
   
   // Obtenir la classe de couleur de la catégorie
   const getCategoryColorClass = (categoryId) => {
-    const category = categories.value.find(c => c.id === categoryId);
+    const category = professions.value.find(c => c.id === categoryId);
     return category?.color_class || 'bg-gray-500';
   };
   
@@ -724,28 +724,28 @@
   
   // Assigner un expert à la demande
   const assignExpert = async () => {
-    if (!request.value || !selectedExpertId.value) return;
+    if (!mission.value || !selectedExpertId.value) return;
     
     isAssigning.value = true;
     
     try {
       // Mettre à jour la demande
       const { error: updateError } = await supabase
-        .from('requests')
+        .from('missions')
         .update({
           expert_id: selectedExpertId.value,
           status: 'assigned',
           updated_at: new Date().toISOString()
         })
-        .eq('id', requestId);
+        .eq('id', missionId);
       
       if (updateError) throw updateError;
       
       // Ajouter une entrée dans l'historique
       const { error: historyError } = await supabase
-        .from('request_history')
+        .from('mission_history')
         .insert({
-          request_id: requestId,
+          mission_id: missionId,
           action: 'assign',
           details: {
             expert_id: selectedExpertId.value,
@@ -781,7 +781,7 @@
   
   // Annuler la demande
   const cancelRequest = async () => {
-    if (!request.value) return;
+    if (!mission.value) return;
     
     if (!confirm('Êtes-vous sûr de vouloir annuler cette demande ?')) {
       return;
@@ -792,20 +792,20 @@
     try {
       // Mettre à jour la demande
       const { error: updateError } = await supabase
-        .from('requests')
+        .from('missions')
         .update({
           status: 'cancelled',
           updated_at: new Date().toISOString()
         })
-        .eq('id', requestId);
+        .eq('id', missionId);
       
       if (updateError) throw updateError;
       
       // Ajouter une entrée dans l'historique
       const { error: historyError } = await supabase
-        .from('request_history')
+        .from('mission_history')
         .insert({
-          request_id: requestId,
+          mission_id: missionId,
           action: 'cancel',
           details: {
             reason: 'Annulée par l\'administrateur'

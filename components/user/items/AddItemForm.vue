@@ -81,7 +81,7 @@
                        transition-all duration-300 text-base appearance-none"
               >
                 <option value="">Sélectionner une catégorie</option>
-                <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+                <option v-for="cat in professions" :key="cat.id" :value="cat.id">
                   {{ cat.name }}
                 </option>
               </select>
@@ -232,7 +232,7 @@
 import { ref, computed } from 'vue'
 import { XMarkIcon, PhotoIcon, ChevronDownIcon } from '@heroicons/vue/24/outline'
 
-const categories = [
+const professions = [
   { id: 'tools', name: 'Bricolage' },
   { id: 'sport', name: 'Sport' },
   { id: 'camping', name: 'Camping' },

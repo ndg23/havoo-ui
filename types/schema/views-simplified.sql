@@ -18,7 +18,7 @@ SELECT
   COUNT(DISTINCT r.id) AS review_count,
   COUNT(DISTINCT s.id) AS service_count,
   array_agg(DISTINCT sk.name) FILTER (WHERE sk.name IS NOT NULL) AS skills,
-  array_agg(DISTINCT c.name) FILTER (WHERE c.name IS NOT NULL) AS categories,
+  array_agg(DISTINCT c.name) FILTER (WHERE c.name IS NOT NULL) AS professions,
   -- Pour la recherche full-text
   to_tsvector('french', 
     p.first_name || ' ' || 
@@ -30,7 +30,7 @@ FROM profiles p
 LEFT JOIN user_skills us ON p.id = us.user_id
 LEFT JOIN skills sk ON us.skill_id = sk.id
 LEFT JOIN services s ON p.id = s.expert_id
-LEFT JOIN categories c ON s.category_id = c.id
+LEFT JOIN professions c ON s.profession_id = c.id
 LEFT JOIN deals d ON p.id = d.expert_id
 LEFT JOIN reviews r ON d.id = r.deal_id AND p.id = r.reviewee_id
 WHERE p.is_expert = TRUE
@@ -47,7 +47,7 @@ SELECT
   s.is_active,
   s.location,
   s.created_at,
-  c.id AS category_id,
+  c.id AS profession_id,
   c.name AS category_name,
   p.id AS expert_id,
   p.first_name || ' ' || p.last_name AS expert_name,
@@ -64,7 +64,7 @@ SELECT
   ) AS search_document
 FROM services s
 JOIN profiles p ON s.expert_id = p.id
-LEFT JOIN categories c ON s.category_id = c.id
+LEFT JOIN professions c ON s.profession_id = c.id
 LEFT JOIN service_skills ss ON s.id = ss.service_id
 LEFT JOIN skills sk ON ss.skill_id = sk.id
 LEFT JOIN deals d ON p.id = d.expert_id
@@ -73,7 +73,7 @@ WHERE s.is_active = TRUE
 GROUP BY s.id, c.id, c.name, p.id, p.first_name, p.last_name, p.avatar_url;
 
 -- Vue pour les demandes avec recherche
-CREATE OR REPLACE VIEW request_search_view AS
+CREATE OR REPLACE VIEW mission_search_view AS
 SELECT 
   r.id,
   r.title,
@@ -82,7 +82,7 @@ SELECT
   r.deadline,
   r.status,
   r.created_at,
-  c.id AS category_id,
+  c.id AS profession_id,
   c.name AS category_name,
   p.id AS client_id,
   p.first_name || ' ' || p.last_name AS client_name,
@@ -93,10 +93,10 @@ SELECT
     r.description || ' ' || 
     c.name
   ) AS search_document
-FROM requests r
+FROM missions r
 JOIN profiles p ON r.client_id = p.id
-LEFT JOIN categories c ON r.category_id = c.id
-LEFT JOIN deals d ON r.id = d.request_id
+LEFT JOIN professions c ON r.profession_id = c.id
+LEFT JOIN deals d ON r.id = d.mission_id
 WHERE r.status = 'open'
 GROUP BY r.id, c.id, c.name, p.id, p.first_name, p.last_name, p.avatar_url;
 
@@ -107,7 +107,7 @@ GROUP BY r.id, c.id, c.name, p.id, p.first_name, p.last_name, p.avatar_url;
 -- Index pour la recherche de texte intégral
 CREATE INDEX idx_expert_search_document ON expert_search_view USING gin(search_document);
 CREATE INDEX idx_service_search_document ON service_search_view USING gin(search_document);
-CREATE INDEX idx_request_search_document ON request_search_view USING gin(search_document);
+CREATE INDEX idx_mission_search_document ON mission_search_view USING gin(search_document);
 
 -- =============================================
 -- FONCTIONS POUR LA RECHERCHE
@@ -116,7 +116,7 @@ CREATE INDEX idx_request_search_document ON request_search_view USING gin(search
 -- Fonction pour rechercher des experts avec filtres
 CREATE OR REPLACE FUNCTION search_experts(
   search_query TEXT DEFAULT NULL,
-  category_id INTEGER DEFAULT NULL,
+  profession_id INTEGER DEFAULT NULL,
   skill_ids INTEGER[] DEFAULT NULL,
   min_rating NUMERIC DEFAULT NULL,
   location_radius NUMERIC DEFAULT NULL,
@@ -133,8 +133,8 @@ BEGIN
     (search_query IS NULL OR 
      search_document @@ to_tsquery('french', regexp_replace(search_query, '\s+', ':* & ', 'g') || ':*'))
     -- Filtre par catégorie
-    AND (category_id IS NULL OR 
-         category_id = ANY(SELECT c.id FROM categories c WHERE c.name = ANY(e.categories)))
+    AND (profession_id IS NULL OR 
+         profession_id = ANY(SELECT c.id FROM professions c WHERE c.name = ANY(e.professions)))
     -- Filtre par compétences
     AND (skill_ids IS NULL OR 
          (SELECT COUNT(*) FROM user_skills us WHERE us.user_id = e.id AND us.skill_id = ANY(skill_ids)) = array_length(skill_ids, 1))
@@ -160,7 +160,7 @@ $$ LANGUAGE plpgsql;
 -- Fonction pour rechercher des services avec filtres
 CREATE OR REPLACE FUNCTION search_services(
   search_query TEXT DEFAULT NULL,
-  category_id INTEGER DEFAULT NULL,
+  profession_id INTEGER DEFAULT NULL,
   skill_ids INTEGER[] DEFAULT NULL,
   min_price NUMERIC DEFAULT NULL,
   max_price NUMERIC DEFAULT NULL,
@@ -176,7 +176,7 @@ BEGIN
     (search_query IS NULL OR 
      search_document @@ to_tsquery('french', regexp_replace(search_query, '\s+', ':* & ', 'g') || ':*'))
     -- Filtre par catégorie
-    AND (category_id IS NULL OR s.category_id = category_id)
+    AND (profession_id IS NULL OR s.profession_id = profession_id)
     -- Filtre par compétences
     AND (skill_ids IS NULL OR 
          skill_ids <@ (SELECT array_agg(sk.id) FROM skills sk WHERE sk.name = ANY(s.skills)))
@@ -193,24 +193,24 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Fonction pour rechercher des demandes avec filtres
-CREATE OR REPLACE FUNCTION search_requests(
+CREATE OR REPLACE FUNCTION search_missions(
   search_query TEXT DEFAULT NULL,
-  category_id INTEGER DEFAULT NULL,
+  profession_id INTEGER DEFAULT NULL,
   min_budget NUMERIC DEFAULT NULL,
   max_budget NUMERIC DEFAULT NULL,
   days_remaining INTEGER DEFAULT NULL,
   sort_by TEXT DEFAULT 'created_at' -- 'created_at', 'budget', 'deadline'
 )
-RETURNS SETOF request_search_view AS $$
+RETURNS SETOF mission_search_view AS $$
 BEGIN
   RETURN QUERY
-  SELECT * FROM request_search_view r
+  SELECT * FROM mission_search_view r
   WHERE 
     -- Filtre de recherche textuelle
     (search_query IS NULL OR 
      search_document @@ to_tsquery('french', regexp_replace(search_query, '\s+', ':* & ', 'g') || ':*'))
     -- Filtre par catégorie
-    AND (category_id IS NULL OR r.category_id = category_id)
+    AND (profession_id IS NULL OR r.profession_id = profession_id)
     -- Filtre par fourchette de budget
     AND (min_budget IS NULL OR r.budget >= min_budget)
     AND (max_budget IS NULL OR r.budget <= max_budget)
@@ -247,10 +247,10 @@ CREATE OR REPLACE FUNCTION notify_matching_experts()
 RETURNS TRIGGER AS $$
 DECLARE
   matching_expert_id UUID;
-  request_category_id INTEGER;
+  mission_profession_id INTEGER;
 BEGIN
   -- Récupérer la catégorie de la demande
-  SELECT category_id INTO request_category_id FROM requests WHERE id = NEW.id;
+  SELECT profession_id INTO mission_profession_id FROM missions WHERE id = NEW.id;
   
   -- Trouver les experts qui correspondent à cette catégorie
   FOR matching_expert_id IN
@@ -259,12 +259,12 @@ BEGIN
     JOIN user_skills us ON p.id = us.user_id
     JOIN skills s ON us.skill_id = s.id
     WHERE p.is_expert = TRUE
-    AND s.category_id = request_category_id
+    AND s.profession_id = mission_profession_id
   LOOP
     -- Ici vous pourriez insérer une notification dans une table de notifications
     -- ou envoyer un email via une fonction externe
     -- INSERT INTO notifications (user_id, type, content, related_id)
-    -- VALUES (matching_expert_id, 'new_matching_request', 'Une nouvelle demande correspond à vos compétences', NEW.id);
+    -- VALUES (matching_expert_id, 'new_matching_mission', 'Une nouvelle demande correspond à vos compétences', NEW.id);
     
     -- Pour l'exemple, nous allons juste placer un message dans les logs PostgreSQL
     RAISE NOTICE 'Une demande (%) correspond aux compétences de l''expert (%)', NEW.id, matching_expert_id;
@@ -274,7 +274,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER notify_experts_on_new_request
-AFTER INSERT ON requests
+CREATE TRIGGER notify_experts_on_new_mission
+AFTER INSERT ON missions
 FOR EACH ROW
 EXECUTE FUNCTION notify_matching_experts();

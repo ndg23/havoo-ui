@@ -22,7 +22,7 @@ bun install
 
 ## Changelog
 
-We maintain a detailed changelog to track all notable changes to the project.
+We maintain a detailed changelog to track all notable changes to the mission.
 
 - Current version: 1.1.0
 - View the full [CHANGELOG.md](./CHANGELOG.md) for a detailed history of changes
@@ -116,7 +116,7 @@ Ce script configure:
 
 #### Frontend (Vue)
 - Interface de soumission de documents via `pages/account/verification.vue`
-- Processus simplifié utilisant la fonction `request_expert_verification`
+- Processus simplifié utilisant la fonction `mission_expert_verification`
 
 ### Documentation technique
 

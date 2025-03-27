@@ -10,7 +10,7 @@
       
       <SharedUiSelect
         v-model="form.category"
-        :options="categories"
+        :options="professions"
         label="Catégorie"
         required
         :error="errors.category"
@@ -91,7 +91,7 @@ const emit = defineEmits<{
   cancel: []
 }>()
 
-const categories = [
+const professions = [
   { value: 'tools', label: 'Outils' },
   { value: 'sports', label: 'Sports' },
   { value: 'electronics', label: 'Électronique' },

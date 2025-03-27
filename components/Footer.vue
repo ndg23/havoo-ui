@@ -43,7 +43,7 @@
         <div class="col-span-1">
           <h3 class="text-gray-900 dark:text-white font-semibold mb-4">Ressources</h3>
           <ul class="space-y-2">
-            <li>
+            <!-- <li>
               <NuxtLink to="/blog" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 text-sm">
                 Blog
               </NuxtLink>
@@ -57,7 +57,7 @@
               <NuxtLink to="/support" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 text-sm">
                 Support
               </NuxtLink>
-            </li>
+            </li> -->
             <li>
               <NuxtLink to="/contact" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 text-sm">
                 Contact

@@ -563,7 +563,7 @@
                   <div class="bg-gray-50 dark:bg-gray-750 rounded-lg p-4 space-y-3">
                     <div>
                       <span class="text-xs text-gray-500 dark:text-gray-400 block">Demandes</span>
-                      <span class="text-sm text-gray-900 dark:text-white">{{ selectedUser?.requests_count || 0 }}</span>
+                      <span class="text-sm text-gray-900 dark:text-white">{{ selectedUser?.missions_count || 0 }}</span>
                     </div>
                     <div>
                       <span class="text-xs text-gray-500 dark:text-gray-400 block">Propositions</span>

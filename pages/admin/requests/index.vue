@@ -117,7 +117,7 @@
               class="px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white appearance-none"
             >
               <option value="all">Toutes les catégories</option>
-              <option v-for="category in categories" :key="category.id" :value="category.id">
+              <option v-for="category in professions" :key="category.id" :value="category.id">
                 {{ category.name }}
               </option>
             </select>
@@ -169,13 +169,13 @@
             <div class="flex items-center gap-3">
               <div 
                 class="h-12 w-12 rounded-xl flex items-center justify-center"
-                :class="getCategoryColorClass(row.category_id)"
+                :class="getCategoryColorClass(row.profession_id)"
               >
-                <component :is="getCategoryIcon(row.category_id)" class="h-6 w-6 text-white" />
+                <component :is="getCategoryIcon(row.profession_id)" class="h-6 w-6 text-white" />
               </div>
               <div>
                 <p class="text-sm font-medium text-gray-900 dark:text-white line-clamp-1">{{ row.title }}</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">{{ getCategoryName(row.category_id) }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">{{ getCategoryName(row.profession_id) }}</p>
               </div>
             </div>
           </template>
@@ -315,7 +315,7 @@
                 <div class="p-6 space-y-6">
                   <div v-if="selectedRequest" class="mb-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
                     <p class="font-medium text-gray-900 dark:text-white">{{ selectedRequest.title }}</p>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ getCategoryName(selectedRequest.category_id) }}</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ getCategoryName(selectedRequest.profession_id) }}</p>
                   </div>
                   
                   <div class="space-y-4">
@@ -392,8 +392,8 @@
   const router = useRouter();
   
   // État des données
-  const requests = ref([]);
-  const categories = ref([]);
+  const missions = ref([]);
+  const professions = ref([]);
   const experts = ref([]);
   const isLoading = ref(true);
   const showAssignModal = ref(false);
@@ -485,9 +485,9 @@
   
   // Computed properties
   const filteredRequests = computed(() => {
-    if (!requests.value) return [];
+    if (!missions.value) return [];
     
-    let result = [...requests.value];
+    let result = [...missions.value];
     
     // Filtre par recherche
     if (search.value) {
@@ -505,7 +505,7 @@
     
     // Filtre par catégorie
     if (categoryFilter.value !== 'all') {
-      result = result.filter(req => req.category_id === categoryFilter.value);
+      result = result.filter(req => req.profession_id === categoryFilter.value);
     }
     
     return result;
@@ -533,29 +533,29 @@
     
     try {
       // Charger les demandes
-      const { data: requestsData, error: requestsError } = await supabase
-        .from('requests')
+      const { data: missionsData, error: missionsError } = await supabase
+        .from('missions')
         .select(`*`)
         .order('created_at', { ascending: false });
       
-      if (requestsError) throw requestsError;
+      if (missionsError) throw missionsError;
       
       // Transformer les données pour l'affichage
-      requests.value = (requestsData || []).map(req => ({
+      missions.value = (missionsData || []).map(req => ({
         ...req,
         client_name: 'Client', // Valeur par défaut
         expert_name: req.expert_id ? 'Expert assigné' : 'Non assigné'
       }));
       
       // Charger les catégories
-      const { data: categoriesData, error: categoriesError } = await supabase
-        .from('categories')
+      const { data: professionsData, error: professionsError } = await supabase
+        .from('professions')
         .select('*')
         .order('name');
       
-      if (categoriesError) throw categoriesError;
+      if (professionsError) throw professionsError;
       
-      categories.value = categoriesData || [];
+      professions.value = professionsData || [];
       
       // Mettre à jour les statistiques
       updateStats();
@@ -570,19 +570,19 @@
   
   // Mettre à jour les statistiques
   const updateStats = () => {
-    if (!requests.value) return;
+    if (!missions.value) return;
     
     // Total des demandes
-    stats.value[0].value = requests.value.length;
+    stats.value[0].value = missions.value.length;
     
     // Demandes en attente
-    stats.value[1].value = requests.value.filter(req => req.status === 'open').length;
+    stats.value[1].value = missions.value.filter(req => req.status === 'open').length;
     
     // Demandes en cours
-    stats.value[2].value = requests.value.filter(req => ['assigned', 'in_progress'].includes(req.status)).length;
+    stats.value[2].value = missions.value.filter(req => ['assigned', 'in_progress'].includes(req.status)).length;
     
     // Demandes terminées
-    stats.value[3].value = requests.value.filter(req => req.status === 'completed').length;
+    stats.value[3].value = missions.value.filter(req => req.status === 'completed').length;
   };
   
   // Réinitialiser les filtres
@@ -594,7 +594,7 @@
   };
   
   // Annuler une demande
-  const cancelRequest = async (request) => {
+  const cancelRequest = async (mission) => {
     if (!confirm('Êtes-vous sûr de vouloir annuler cette demande ?')) {
       return;
     }
@@ -602,20 +602,20 @@
     try {
       // Mettre à jour la demande
       const { error: updateError } = await supabase
-        .from('requests')
+        .from('missions')
         .update({
           status: 'cancelled',
           updated_at: new Date().toISOString()
         })
-        .eq('id', request.id);
+        .eq('id', mission.id);
       
       if (updateError) throw updateError;
       
       // Ajouter une entrée dans l'historique
       const { error: historyError } = await supabase
-        .from('request_history')
+        .from('mission_history')
         .insert({
-          request_id: request.id,
+          mission_id: mission.id,
           action: 'cancel',
           details: {
             reason: 'Annulée par l\'administrateur'
@@ -647,8 +647,8 @@
   
   // Obtenir le nom de la catégorie
   const getCategoryName = (categoryId) => {
-    if (!categories.value) return 'Non catégorisé';
-    const category = categories.value.find(cat => cat.id === categoryId);
+    if (!professions.value) return 'Non catégorisé';
+    const category = professions.value.find(cat => cat.id === categoryId);
     return category ? category.name : 'Non catégorisé';
   };
   
@@ -748,8 +748,8 @@ const showNotification = (type, title, message) => {
 };
 
 // Ouvrir la modal d'assignation
-const openAssignModal = async (request) => {
-  selectedRequest.value = request;
+const openAssignModal = async (mission) => {
+  selectedRequest.value = mission;
   selectedExpertId.value = '';
   assignmentNotes.value = '';
   
@@ -782,7 +782,7 @@ const assignExpert = async () => {
   try {
     // Mettre à jour la demande
     const { error: updateError } = await supabase
-      .from('requests')
+      .from('missions')
       .update({
         expert_id: selectedExpertId.value,
         status: 'assigned',
@@ -794,9 +794,9 @@ const assignExpert = async () => {
     
     // Ajouter une entrée dans l'historique
     const { error: historyError } = await supabase
-      .from('request_history')
+      .from('mission_history')
       .insert({
-        request_id: selectedRequest.value.id,
+        mission_id: selectedRequest.value.id,
         action: 'assign',
         details: {
           expert_id: selectedExpertId.value,
@@ -831,31 +831,31 @@ const assignExpert = async () => {
 };
 
 // Voir les détails d'une demande
-const viewRequestDetails = (request) => {
-  router.push(`/admin/requests/${request.id}`);
+const viewRequestDetails = (mission) => {
+  router.push(`/admin/requests/${mission.id}`);
 };
 
 // Exporter les données
 const exportData = async () => {
   try {
-    if (!requests.value || requests.value.length === 0) {
+    if (!missions.value || missions.value.length === 0) {
       showNotification('info', 'Information', 'Aucune donnée à exporter');
       return;
     }
     
     // Transformer les données pour l'export
-    const exportData = requests.value.map(request => ({
-      ID: request.id,
-      Titre: request.title,
-      Description: request.description,
-      Catégorie: getCategoryName(request.category_id),
-      Client: request.client_name,
-      Expert: request.expert_name,
-      Statut: formatStatus(request.status),
-      Budget: request.budget ? `${request.budget}FCFA` : 'Non défini',
-      'Date limite': formatDate(request.deadline),
-      'Date de création': formatDate(request.created_at),
-      'Dernière mise à jour': formatDate(request.updated_at)
+    const exportData = missions.value.map(mission => ({
+      ID: mission.id,
+      Titre: mission.title,
+      Description: mission.description,
+      Catégorie: getCategoryName(mission.profession_id),
+      Client: mission.client_name,
+      Expert: mission.expert_name,
+      Statut: formatStatus(mission.status),
+      Budget: mission.budget ? `${mission.budget}FCFA` : 'Non défini',
+      'Date limite': formatDate(mission.deadline),
+      'Date de création': formatDate(mission.created_at),
+      'Dernière mise à jour': formatDate(mission.updated_at)
     }));
     
     // Convertir en CSV

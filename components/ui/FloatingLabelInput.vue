@@ -1,41 +1,89 @@
 <template>
   <div class="input-container relative w-full">
-    <!-- Préfixe (devise) -->
-    <div v-if="currency && type === 'number'" class="absolute left-4 top-6 text-sm text-gray-500 pointer-events-none z-10">
-      {{ currency }}
+    <div class="relative">
+      <!-- Préfixe (devise) -->
+      <div v-if="currency && type === 'number'" class="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 pointer-events-none z-10">
+        {{ currency }}
+      </div>
+      
+      <!-- Input ou Select -->
+      <template v-if="type === 'select'">
+        <select
+          :id="id"
+          ref="input"
+          :value="modelValue"
+          @input="handleInput"
+          @blur="handleBlur"
+          @focus="handleFocus"
+          class="block w-full px-4 pt-6 pb-2 text-base text-gray-900 border rounded-lg appearance-none transition-all duration-200 ease-in-out focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500 focus:ring-opacity-30"
+          :class="{
+            'border-red-500': error,
+            'border-gray-300': !error && !isFocused,
+            'border-primary-500': isFocused && !error,
+            'text-gray-500': !modelValue
+          }"
+          :aria-required="required"
+          v-bind="$attrs"
+        >
+          <option value="" disabled selected>{{ placeholder || 'Sélectionner...' }}</option>
+          <slot></slot>
+        </select>
+        <!-- Icône select -->
+        <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+          <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </template>
+      <template v-else>
+        <input 
+          :id="id"
+          ref="input"
+          :type="type === 'number' ? 'text' : type"
+          :value="type === 'number' ? displayValue : modelValue"
+          @input="handleInput"
+          @blur="handleBlur"
+          @focus="handleFocus"
+          class="block w-full px-4 pt-6 pb-2 text-base text-gray-900 border rounded-lg transition-all duration-200 ease-in-out focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500 focus:ring-opacity-30"
+          :class="{
+            'border-red-500': error,
+            'border-gray-300': !error && !isFocused,
+            'border-primary-500': isFocused && !error,
+            'pl-12': currency && type === 'number',
+            'pr-10': suffix && type === 'number'
+          }"
+          :aria-required="required"
+          v-bind="$attrs"
+        />
+      </template>
+      
+      <!-- Label flottant -->
+      <label 
+        :for="id" 
+        class="absolute left-4 top-2 z-20 pointer-events-none transition-all duration-200 ease-in-out flex items-center gap-1"
+        :class="{
+          'transform-active': modelValue || isFocused,
+          'transform-inactive': !modelValue && !isFocused,
+          'text-primary-500': isFocused && !error,
+          'text-red-500': error,
+          'text-gray-400': !isFocused && !error,
+          'left-12': currency && type === 'number'
+        }"
+      >
+        {{ label }}
+        <span v-if="required" class="text-red-500">*</span>
+      </label>
+      
+      <!-- Suffixe (unité) -->
+      <div v-if="suffix && type === 'number'" class="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 pointer-events-none z-10">
+        {{ suffix }}
+      </div>
     </div>
     
-    <!-- Champ de saisie -->
-    <input 
-      :id="id"
-      ref="input"
-      :type="type === 'number' ? 'text' : type"
-      :value="type === 'number' ? displayValue : modelValue"
-      @input="handleInput"
-      @blur="handleBlur"
-      @focus="handleFocus"
-      placeholder=" " 
-      class="input-field w-full border border-1 border-[#363636] rounded-lg px-4 pt-6 pb-2 transition-all focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500 focus:ring-opacity-30"
-      :class="{
-        'border-red-500': error,
-        'pl-12': currency && type === 'number',
-        'pr-10': suffix && type === 'number'
-      }"
-      :aria-required="required"
-      v-bind="$attrs"
-    />
-    
-    <!-- Suffixe (unité) -->
-    <div v-if="suffix && type === 'number'" class="absolute right-4 top-6 text-sm text-gray-500 pointer-events-none z-10">
-      {{ suffix }}
+    <!-- Message d'erreur -->
+    <div v-if="error && errorMessage" class="mt-1 text-sm text-red-500">
+      {{ errorMessage }}
     </div>
-    
-    <label 
-      :for="id" 
-      class="input-label absolute left-4 top-2 text-sm text-zinc-500 pointer-events-none transition-all"
-    >
-      {{ label }}
-    </label>
   </div>
 </template>
 
@@ -57,7 +105,8 @@ const props = defineProps({
   },
   type: {
     type: String,
-    default: 'text'
+    default: 'text',
+    validator: (value) => ['text', 'number', 'email', 'password', 'select'].includes(value)
   },
   required: {
     type: Boolean,
@@ -66,6 +115,14 @@ const props = defineProps({
   error: {
     type: Boolean,
     default: false
+  },
+  errorMessage: {
+    type: String,
+    default: ''
+  },
+  placeholder: {
+    type: String,
+    default: ''
   },
   min: {
     type: Number,
@@ -207,56 +264,77 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Styles de base */
-.input-field {
-  width: 100%;
-  padding: 1.5rem 1rem 0.5rem;
-  transition: all 0.2s ease;
-  border-color: rgb(184, 184, 184);
-  border-width: 1px;
+.transform-inactive {
+  transform: translateY(0.7rem);
+  font-size: 1rem;
+  color: #6b7280;
 }
 
-.input-label {
+.transform-active {
+  transform: translateY(0) scale(0.85);
   font-size: 0.875rem;
-  transition: all 0.2s ease;
+}
+
+/* Animation fluide */
+label {
+  transform-origin: 0 0;
+  line-height: 1;
 }
 
 /* État focus */
-.input-field:focus {
+input:focus {
   border-color: theme('colors.primary.500');
   box-shadow: 0 0 0 2px rgba(var(--color-primary-500), 0.3);
 }
 
-.input-field:focus + .input-label {
-  color: theme('colors.primary.500');
-}
-
-/* État avec valeur */
-.input-field:not(:placeholder-shown) + .input-label {
-  color: theme('colors.zinc.500');
-}
-
 /* État d'erreur */
-.input-field.error {
+input.error {
   border-color: theme('colors.red.500');
 }
 
-.input-field.error + .input-label {
-  color: theme('colors.red.500');
-}
-
-.input-field.error:focus {
+input.error:focus {
   box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3);
 }
 
 /* Support pour les champs désactivés */
-.input-field:disabled {
+input:disabled {
   background-color: theme('colors.gray.100');
   border-color: theme('colors.gray.300');
   cursor: not-allowed;
 }
 
-.input-field:disabled + .input-label {
+input:disabled + label {
   color: theme('colors.gray.400');
+}
+
+/* Ajustement de la hauteur du conteneur pour éviter les sauts */
+.input-container {
+  min-height: 3.5rem;
+}
+
+input {
+  height: 56px; /* Hauteur fixe pour l'input */
+}
+
+/* Styles spécifiques pour le select */
+select {
+  background-color: transparent;
+}
+
+select:required:invalid {
+  color: gray;
+}
+
+option {
+  color: #2d3748;
+}
+
+option[value=""][disabled] {
+  display: none;
+}
+
+/* Ajustement pour l'astérisque required */
+.transform-active span {
+  transform: scale(1.15);
 }
 </style> 

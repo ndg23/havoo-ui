@@ -25,11 +25,11 @@ async function generateMockData() {
     try {
         // Générer des catégories
         console.log('📂 Génération des catégories...');
-        const categories = await generateCategories();
+        const professions = await generateCategories();
 
         // Générer des compétences
         console.log('🔧 Génération des compétences...');
-        const skills = await generateSkills(categories);
+        const skills = await generateSkills(professions);
 
         // Générer des utilisateurs
         console.log('👤 Génération des utilisateurs...');
@@ -41,19 +41,19 @@ async function generateMockData() {
 
         // Générer des demandes
         console.log('📝 Génération des demandes...');
-        const requests = await generateRequests(users, categories);
+        const missions = await generateRequests(users, professions);
 
         // Générer des services
         console.log('🛠️ Génération des services...');
-        await generateServices(users, categories, skills);
+        await generateServices(users, professions, skills);
 
         // Générer des propositions
         console.log('📨 Génération des propositions...');
-        await generateProposals(requests, users);
+        await generateProposals(missions, users);
 
         // Générer des contrats
         console.log('📄 Génération des contrats...');
-        await generateContracts(requests, users);
+        await generateContracts(missions, users);
 
         console.log('✅ Génération des données terminée avec succès!');
     } catch (error) {
@@ -63,18 +63,18 @@ async function generateMockData() {
 
 // Générer des catégories
 async function generateCategories() {
-    const categories = [];
+    const professions = [];
 
     for (let i = 0; i < NUM_CATEGORIES; i++) {
-        categories.push({
+        professions.push({
             name: faker.commerce.department(),
             description: faker.lorem.paragraph()
         });
     }
 
     const { data, error } = await supabase
-        .from('categories')
-        .insert(categories)
+        .from('professions')
+        .insert(professions)
         .select();
 
     if (error) throw error;
@@ -82,14 +82,14 @@ async function generateCategories() {
 }
 
 // Générer des compétences
-async function generateSkills(categories) {
+async function generateSkills(professions) {
     const skills = [];
 
-    for (const category of categories) {
+    for (const category of professions) {
         for (let i = 0; i < NUM_SKILLS_PER_CATEGORY; i++) {
             skills.push({
                 name: faker.lorem.word(),
-                category_id: category.id
+                profession_id: category.id
             });
         }
     }
@@ -136,7 +136,7 @@ async function generateUsers() {
             city: faker.location.city(),
             zip_code: faker.location.zipCode(),
             country: 'France',
-            address: faker.location.streetAddress(),
+            location: faker.location.streetAddress(),
             birthdate: faker.date.past({ years: 40 }).toISOString().split('T')[0],
             gender: Math.random() > 0.5 ? 'male' : 'female',
             website: faker.internet.url(),
@@ -201,30 +201,30 @@ async function assignSkillsToUsers(users, skills) {
 }
 
 // Générer des demandes
-async function generateRequests(users, categories) {
+async function generateRequests(users, professions) {
     const clients = users.filter(user => !user.is_expert);
-    const requests = [];
+    const missions = [];
 
     for (let i = 0; i < NUM_REQUESTS; i++) {
         const client = faker.helpers.arrayElement(clients);
-        const category = faker.helpers.arrayElement(categories);
+        const category = faker.helpers.arrayElement(professions);
         const createdAt = faker.date.recent({ days: 60 });
 
-        requests.push({
+        missions.push({
             client_id: client.id,
             title: faker.lorem.sentence({ min: 3, max: 8 }),
             description: faker.lorem.paragraphs(3),
             budget: faker.number.int({ min: 100, max: 5000 }),
             deadline: faker.date.future({ years: 0.5, refDate: createdAt }).toISOString().split('T')[0],
             status: faker.helpers.arrayElement(['open', 'assigned', 'completed', 'cancelled']),
-            category_id: category.id,
+            profession_id: category.id,
             created_at: createdAt.toISOString()
         });
     }
 
     const { data, error } = await supabase
-        .from('requests')
-        .insert(requests)
+        .from('missions')
+        .insert(missions)
         .select();
 
     if (error) throw error;
@@ -232,17 +232,17 @@ async function generateRequests(users, categories) {
 }
 
 // Générer des services
-async function generateServices(users, categories, skills) {
+async function generateServices(users, professions, skills) {
     const experts = users.filter(user => user.is_expert);
     const services = [];
 
     for (let i = 0; i < NUM_SERVICES; i++) {
         const expert = faker.helpers.arrayElement(experts);
-        const category = faker.helpers.arrayElement(categories);
+        const category = faker.helpers.arrayElement(professions);
 
         services.push({
             expert_id: expert.id,
-            category_id: category.id,
+            profession_id: category.id,
             title: faker.lorem.sentence({ min: 3, max: 8 }),
             description: faker.lorem.paragraphs(2),
             price: faker.number.int({ min: 50, max: 1000 }),
@@ -281,23 +281,23 @@ async function generateServices(users, categories, skills) {
 }
 
 // Générer des propositions
-async function generateProposals(requests, users) {
+async function generateProposals(missions, users) {
     const experts = users.filter(user => user.is_expert);
     const proposals = [];
 
     for (let i = 0; i < NUM_PROPOSALS; i++) {
-        const request = faker.helpers.arrayElement(requests);
+        const mission = faker.helpers.arrayElement(missions);
         const expert = faker.helpers.arrayElement(experts);
 
         // Éviter les doublons
-        if (proposals.some(p => p.request_id === request.id && p.expert_id === expert.id)) {
+        if (proposals.some(p => p.mission_id === mission.id && p.expert_id === expert.id)) {
             continue;
         }
 
         proposals.push({
-            request_id: request.id,
+            mission_id: mission.id,
             expert_id: expert.id,
-            price: faker.number.int({ min: 100, max: request.budget || 3000 }),
+            price: faker.number.int({ min: 100, max: mission.budget || 3000 }),
             duration: faker.number.int({ min: 1, max: 30 }),
             message: faker.lorem.paragraphs(1),
             status: faker.helpers.arrayElement(['pending', 'accepted', 'rejected']),
@@ -313,23 +313,23 @@ async function generateProposals(requests, users) {
 }
 
 // Générer des contrats
-async function generateContracts(requests, users) {
+async function generateContracts(missions, users) {
     const contracts = [];
 
     // Sélectionner des demandes assignées ou complétées
-    const assignedRequests = requests.filter(r => ['assigned', 'completed'].includes(r.status));
+    const assignedRequests = missions.filter(r => ['assigned', 'completed'].includes(r.status));
 
-    for (const request of assignedRequests.slice(0, NUM_CONTRACTS)) {
+    for (const mission of assignedRequests.slice(0, NUM_CONTRACTS)) {
         // Trouver un expert aléatoire
         const expert = faker.helpers.arrayElement(users.filter(u => u.is_expert));
 
         contracts.push({
-            request_id: request.id,
-            client_id: request.client_id,
+            mission_id: mission.id,
+            client_id: mission.client_id,
             expert_id: expert.id,
-            title: `Contrat: ${request.title}`,
-            price: faker.number.int({ min: 100, max: request.budget || 3000 }),
-            status: request.status === 'completed' ? 'completed' : 'active',
+            title: `Contrat: ${mission.title}`,
+            price: faker.number.int({ min: 100, max: mission.budget || 3000 }),
+            status: mission.status === 'completed' ? 'completed' : 'active',
             created_at: faker.date.recent({ days: 20 }).toISOString()
         });
     }

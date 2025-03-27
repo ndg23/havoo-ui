@@ -117,7 +117,7 @@
               class="px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white appearance-none"
             >
               <option value="all">Toutes les catégories</option>
-              <option v-for="category in categories" :key="category.id" :value="category.id">
+              <option v-for="category in professions" :key="category.id" :value="category.id">
                 {{ category.name }}
               </option>
             </select>
@@ -171,76 +171,76 @@
         <!-- Lignes du tableau avec hover effect -->
         <div class="divide-y divide-gray-100 dark:divide-gray-700">
           <div 
-            v-for="request in paginatedRequests" 
-            :key="request.id"
+            v-for="mission in paginatedRequests" 
+            :key="mission.id"
             class="grid grid-cols-6 gap-4 px-6 py-5 items-center hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
           >
             <!-- Service avec icône -->
             <div class="flex items-center gap-3">
               <div 
                 class="h-12 w-12 rounded-xl flex items-center justify-center"
-                :class="getCategoryColorClass(request.category_id)"
+                :class="getCategoryColorClass(mission.profession_id)"
               >
-                <component :is="getCategoryIcon(request.category_id)" class="h-6 w-6 text-white" />
+                <component :is="getCategoryIcon(mission.profession_id)" class="h-6 w-6 text-white" />
               </div>
               <div>
-                <p class="text-sm font-medium text-gray-900 dark:text-white line-clamp-1">{{ request.title }}</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">{{ getCategoryName(request.category_id) }}</p>
+                <p class="text-sm font-medium text-gray-900 dark:text-white line-clamp-1">{{ mission.title }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">{{ getCategoryName(mission.profession_id) }}</p>
               </div>
             </div>
             
             <!-- Client avec localisation -->
             <div>
-              <p class="text-sm font-medium text-gray-900 dark:text-white">{{ request.client_name }}</p>
+              <p class="text-sm font-medium text-gray-900 dark:text-white">{{ mission.client_name }}</p>
               <div class="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-1">
                 <MapPin class="h-3 w-3 mr-1" /> 
-                {{ request.location || 'Non spécifié' }}
+                {{ mission.location || 'Non spécifié' }}
               </div>
             </div>
             
             <!-- Budget avec badge -->
             <div>
               <span class="inline-flex items-center px-3 py-1.5 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 rounded-full text-xs font-bold">
-                {{ request.budget ? `${request.budget}FCFA` : 'Non défini' }}
+                {{ mission.budget ? `${mission.budget}FCFA` : 'Non défini' }}
               </span>
             </div>
             
             <!-- Date limite -->
             <div class="text-sm text-gray-600 dark:text-gray-400">
-              {{ formatDate(request.deadline) }}
+              {{ formatDate(mission.deadline) }}
             </div>
             
             <!-- Statut avec badge et indicateur -->
             <div>
               <span 
                 class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium"
-                :class="getStatusClass(request.status)"
+                :class="getStatusClass(mission.status)"
               >
-                <span class="w-2 h-2 rounded-full mr-2" :class="getStatusDotClass(request.status)"></span>
-                {{ formatStatus(request.status) }}
+                <span class="w-2 h-2 rounded-full mr-2" :class="getStatusDotClass(mission.status)"></span>
+                {{ formatStatus(mission.status) }}
               </span>
             </div>
             
             <!-- Actions avec boutons modernes -->
             <div class="flex justify-end gap-2">
               <button 
-                @click="viewRequestDetails(request)"
+                @click="viewRequestDetails(mission)"
                 class="p-2 text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors"
                 title="Voir les détails"
               >
                 <Eye class="h-5 w-5" />
               </button>
               <button 
-                v-if="request.status === 'open'"
-                @click="openAssignModal(request)"
+                v-if="mission.status === 'open'"
+                @click="openAssignModal(mission)"
                 class="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                 title="Assigner un expert"
               >
                 <UserPlus class="h-5 w-5" />
               </button>
               <button 
-                v-if="['open', 'assigned'].includes(request.status)"
-                @click="cancelRequest(request)"
+                v-if="['open', 'assigned'].includes(mission.status)"
+                @click="cancelRequest(mission)"
                 class="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                 title="Annuler la demande"
               >
@@ -329,7 +329,7 @@
                   <div class="flex justify-between items-start">
                     <div>
                       <h4 class="text-lg font-bold text-gray-900 dark:text-white">{{ selectedRequest.title }}</h4>
-                      <p class="text-gray-500 dark:text-gray-400 mt-1">{{ getCategoryName(selectedRequest.category_id) }}</p>
+                      <p class="text-gray-500 dark:text-gray-400 mt-1">{{ getCategoryName(selectedRequest.profession_id) }}</p>
                     </div>
                     <span 
                       class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium"
@@ -456,7 +456,7 @@
               <div class="p-6 space-y-6">
                 <div v-if="selectedRequest" class="mb-6">
                   <h4 class="text-lg font-bold text-gray-900 dark:text-white">{{ selectedRequest.title }}</h4>
-                  <p class="text-gray-500 dark:text-gray-400">{{ getCategoryName(selectedRequest.category_id) }}</p>
+                  <p class="text-gray-500 dark:text-gray-400">{{ getCategoryName(selectedRequest.profession_id) }}</p>
                 </div>
                 
                 <div>
@@ -523,8 +523,8 @@ const supabase = useSupabaseClient();
 const router = useRouter();
 
 // État des données
-const requests = ref([]);
-const categories = ref([]);
+const missions = ref([]);
+const professions = ref([]);
 const experts = ref([]);
 const isLoading = ref(true);
 const showAssignModal = ref(false);
@@ -581,9 +581,9 @@ const totalItems = ref(0);
 
 // Computed properties
 const filteredRequests = computed(() => {
-  if (!requests.value) return [];
+  if (!missions.value) return [];
   
-  let result = [...requests.value];
+  let result = [...missions.value];
   
   // Filtre par recherche
   if (search.value) {
@@ -601,7 +601,7 @@ const filteredRequests = computed(() => {
   
   // Filtre par catégorie
   if (categoryFilter.value !== 'all') {
-    result = result.filter(req => req.category_id === categoryFilter.value);
+    result = result.filter(req => req.profession_id === categoryFilter.value);
   }
   
   return result;
@@ -629,29 +629,29 @@ const loadData = async () => {
   
   try {
     // Charger les demandes
-    const { data: requestsData, error: requestsError } = await supabase
-      .from('requests')
+    const { data: missionsData, error: missionsError } = await supabase
+      .from('missions')
       .select(`*`)
       .order('created_at', { ascending: false });
     
-    if (requestsError) throw requestsError;
+    if (missionsError) throw missionsError;
     
     // Transformer les données pour l'affichage
-    requests.value = (requestsData || []).map(req => ({
+    missions.value = (missionsData || []).map(req => ({
       ...req,
       client_name: 'Client', // Valeur par défaut
       expert_name: req.expert_id ? 'Expert assigné' : 'Non assigné'
     }));
     
     // Charger les catégories
-    const { data: categoriesData, error: categoriesError } = await supabase
-      .from('categories')
+    const { data: professionsData, error: professionsError } = await supabase
+      .from('professions')
       .select('*')
       .order('name');
     
-    if (categoriesError) throw categoriesError;
+    if (professionsError) throw professionsError;
     
-    categories.value = categoriesData || [];
+    professions.value = professionsData || [];
     
     // Mettre à jour les statistiques
     updateStats();
@@ -666,21 +666,21 @@ const loadData = async () => {
 
 // Mettre à jour les statistiques
 const updateStats = () => {
-  if (!requests.value) return;
+  if (!missions.value) return;
   
   // Total des demandes
-  stats.value[0].value = requests.value.length;
+  stats.value[0].value = missions.value.length;
   
   // Demandes en attente (open)
-  stats.value[1].value = requests.value.filter(req => req.status === 'open').length;
+  stats.value[1].value = missions.value.filter(req => req.status === 'open').length;
   
   // Demandes en cours (assigned + in_progress)
-  stats.value[2].value = requests.value.filter(req => 
+  stats.value[2].value = missions.value.filter(req => 
     req.status === 'assigned' || req.status === 'in_progress'
   ).length;
   
   // Demandes terminées
-  stats.value[3].value = requests.value.filter(req => req.status === 'completed').length;
+  stats.value[3].value = missions.value.filter(req => req.status === 'completed').length;
 };
 
 // Réinitialiser les filtres
@@ -693,8 +693,8 @@ const resetFilters = () => {
 
 // Obtenir le nom de la catégorie
 const getCategoryName = (categoryId) => {
-  if (!categories.value) return 'Non catégorisé';
-  const category = categories.value.find(cat => cat.id === categoryId);
+  if (!professions.value) return 'Non catégorisé';
+  const category = professions.value.find(cat => cat.id === categoryId);
   return category ? category.name : 'Non catégorisé';
 };
 
@@ -794,8 +794,8 @@ const showNotification = (type, title, message) => {
 };
 
 // Ouvrir la modal d'assignation
-const openAssignModal = async (request) => {
-  selectedRequest.value = request;
+const openAssignModal = async (mission) => {
+  selectedRequest.value = mission;
   selectedExpertId.value = '';
   assignmentNotes.value = '';
   
@@ -828,7 +828,7 @@ const assignExpert = async () => {
   try {
     // Mettre à jour la demande
     const { error: updateError } = await supabase
-      .from('requests')
+      .from('missions')
       .update({
         expert_id: selectedExpertId.value,
         status: 'assigned',
@@ -840,9 +840,9 @@ const assignExpert = async () => {
     
     // Ajouter une entrée dans l'historique
     const { error: historyError } = await supabase
-      .from('request_history')
+      .from('mission_history')
       .insert({
-        request_id: selectedRequest.value.id,
+        mission_id: selectedRequest.value.id,
         action: 'assign',
         details: {
           expert_id: selectedExpertId.value,
@@ -877,31 +877,31 @@ const assignExpert = async () => {
 };
 
 // Voir les détails d'une demande
-const viewRequestDetails = (request) => {
-  router.push(`/admin/requests/${request.id}`);
+const viewRequestDetails = (mission) => {
+  router.push(`/admin/requests/${mission.id}`);
 };
 
 // Exporter les données
 const exportData = async () => {
   try {
-    if (!requests.value || requests.value.length === 0) {
+    if (!missions.value || missions.value.length === 0) {
       showNotification('info', 'Information', 'Aucune donnée à exporter');
       return;
     }
     
     // Transformer les données pour l'export
-    const exportData = requests.value.map(request => ({
-      ID: request.id,
-      Titre: request.title,
-      Description: request.description,
-      Catégorie: getCategoryName(request.category_id),
-      Client: request.client_name,
-      Expert: request.expert_name,
-      Statut: formatStatus(request.status),
-      Budget: request.budget ? `${request.budget}FCFA` : 'Non défini',
-      'Date limite': formatDate(request.deadline),
-      'Date de création': formatDate(request.created_at),
-      'Dernière mise à jour': formatDate(request.updated_at)
+    const exportData = missions.value.map(mission => ({
+      ID: mission.id,
+      Titre: mission.title,
+      Description: mission.description,
+      Catégorie: getCategoryName(mission.profession_id),
+      Client: mission.client_name,
+      Expert: mission.expert_name,
+      Statut: formatStatus(mission.status),
+      Budget: mission.budget ? `${mission.budget}FCFA` : 'Non défini',
+      'Date limite': formatDate(mission.deadline),
+      'Date de création': formatDate(mission.created_at),
+      'Dernière mise à jour': formatDate(mission.updated_at)
     }));
     
     // Convertir en CSV

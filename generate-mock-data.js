@@ -13,7 +13,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Fonction pour générer des catégories de services
 async function generateCategories() {
-    const categories = [
+    const professions = [
         { id: faker.string.numeric(3), name: 'Photographie' },
         { id: faker.string.numeric(3), name: 'Cuisine et repas' },
         { id: faker.string.numeric(3), name: 'Jardinage de maison' },
@@ -25,8 +25,8 @@ async function generateCategories() {
 
     console.log('Insertion des catégories...');
     const { data, error } = await supabase
-        .from('service_categories')
-        .insert(categories)
+        .from('service_professions')
+        .insert(professions)
         .select();
 
     if (error) throw error;
@@ -34,24 +34,24 @@ async function generateCategories() {
 }
 
 // Fonction pour générer des services
-async function generateServices(categories) {
+async function generateServices(professions) {
     const services = [];
 
     // Créer des services pour chaque catégorie
-    for (const category of categories) {
+    for (const category of professions) {
         // Services pour Ménage
         if (category.name === 'Ménage') {
-            services.push({ id: faker.string.uuid(), category_id: category.id, name: 'Ménage complet' }, { id: faker.string.uuid(), category_id: category.id, name: 'Nettoyage de vitres' }, { id: faker.string.uuid(), category_id: category.id, name: 'Repassage' }, { id: faker.string.uuid(), category_id: category.id, name: 'Nettoyage en profondeur' });
+            services.push({ id: faker.string.uuid(), profession_id: category.id, name: 'Ménage complet' }, { id: faker.string.uuid(), profession_id: category.id, name: 'Nettoyage de vitres' }, { id: faker.string.uuid(), profession_id: category.id, name: 'Repassage' }, { id: faker.string.uuid(), profession_id: category.id, name: 'Nettoyage en profondeur' });
         }
 
         // Services pour Jardinage
         else if (category.name === 'Jardinage') {
-            services.push({ id: faker.string.uuid(), category_id: category.id, name: 'Tonte de pelouse' }, { id: faker.string.uuid(), category_id: category.id, name: 'Taille de haies' }, { id: faker.string.uuid(), category_id: category.id, name: 'Désherbage' }, { id: faker.string.uuid(), category_id: category.id, name: 'Plantation' });
+            services.push({ id: faker.string.uuid(), profession_id: category.id, name: 'Tonte de pelouse' }, { id: faker.string.uuid(), profession_id: category.id, name: 'Taille de haies' }, { id: faker.string.uuid(), profession_id: category.id, name: 'Désherbage' }, { id: faker.string.uuid(), profession_id: category.id, name: 'Plantation' });
         }
 
         // Services pour Bricolage
         else if (category.name === 'Bricolage') {
-            services.push({ id: faker.string.uuid(), category_id: category.id, name: 'Petites réparations' }, { id: faker.string.uuid(), category_id: category.id, name: 'Montage de meubles' }, { id: faker.string.uuid(), category_id: category.id, name: 'Peinture' }, { id: faker.string.uuid(), category_id: category.id, name: 'Plomberie basique' });
+            services.push({ id: faker.string.uuid(), profession_id: category.id, name: 'Petites réparations' }, { id: faker.string.uuid(), profession_id: category.id, name: 'Montage de meubles' }, { id: faker.string.uuid(), profession_id: category.id, name: 'Peinture' }, { id: faker.string.uuid(), profession_id: category.id, name: 'Plomberie basique' });
         }
 
         // Services pour d'autres catégories
@@ -61,7 +61,7 @@ async function generateServices(categories) {
             for (let i = 0; i < numServices; i++) {
                 services.push({
                     id: faker.string.uuid(),
-                    category_id: category.id,
+                    profession_id: category.id,
                     name: `${category.name} - ${faker.commerce.productName()}`,
                     description: faker.lorem.sentence()
                 });
@@ -148,7 +148,7 @@ async function generateUsers(count = 10, skills) {
                 email: email,
                 role: role,
                 phone: faker.phone.number('+33 6 ## ## ## ##'),
-                address: faker.location.streetAddress(),
+                location: faker.location.streetAddress(),
                 city: faker.location.city(),
                 country: 'France',
                 avatar_url: `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName+'+'+lastName)}&background=random&size=256`,
@@ -268,7 +268,7 @@ async function generateExpertServices(expertIds, services) {
 
 // Fonction pour générer des demandes de service
 async function generateRequests(users, services, categoryIds, count = 20) {
-    const requests = [];
+    const missions = [];
     const statuses = ['active', 'pending', 'completed', 'cancelled'];
 
     console.log(`Génération de ${count} demandes...`);
@@ -295,11 +295,11 @@ async function generateRequests(users, services, categoryIds, count = 20) {
             users[0].id;
 
         // Créer la demande
-        const request = {
+        const mission = {
             id: faker.string.uuid(),
             client_id: clientId,
             service_id: service.id,
-            // category_id: service.category_id, // Ajout du champ category_id
+            // profession_id: service.profession_id, // Ajout du champ profession_id
             title: faker.helpers.arrayElement([
                 `Besoin de ${service.name}`,
                 `Recherche personne pour ${service.name}`,
@@ -317,28 +317,28 @@ async function generateRequests(users, services, categoryIds, count = 20) {
             created_at: faker.date.recent({ days: 30 }).toISOString()
         };
 
-        requests.push(request);
+        missions.push(mission);
     }
 
     // Insérer les demandes
     const { error } = await supabase
-        .from('requests')
-        .insert(requests);
+        .from('missions')
+        .insert(missions);
 
     if (error) throw error;
 
-    return requests;
+    return missions;
 }
 
 // Fonction pour générer des propositions
-async function generateProposals(requests, expertIds) {
+async function generateProposals(missions, expertIds) {
     const proposals = [];
     const statuses = ['pending', 'accepted', 'rejected'];
 
     console.log('Génération des propositions...');
 
     // Pour chaque demande active, générer 0-3 propositions
-    for (const request of requests.filter(r => r.status === 'active')) {
+    for (const mission of missions.filter(r => r.status === 'active')) {
         const numProposals = faker.number.int({ min: 0, max: 3 });
 
         // Sélectionner des experts aléatoires
@@ -347,9 +347,9 @@ async function generateProposals(requests, expertIds) {
         for (const expertId of selectedExperts) {
             proposals.push({
                 id: faker.string.uuid(),
-                request_id: request.id,
+                mission_id: mission.id,
                 expert_id: expertId,
-                price: faker.number.float({ min: request.budget * 0.8, max: request.budget * 1.2, precision: 0.01 }),
+                price: faker.number.float({ min: mission.budget * 0.8, max: mission.budget * 1.2, precision: 0.01 }),
                 message: faker.lorem.paragraph(),
                 status: faker.helpers.arrayElement(statuses),
                 created_at: faker.date.recent({ days: 10 }).toISOString()
@@ -377,23 +377,23 @@ async function generateContracts(proposals) {
 
     // Pour chaque proposition acceptée, créer un contrat
     for (const proposal of proposals.filter(p => p.status === 'accepted')) {
-        const request = await supabase
-            .from('requests')
+        const mission = await supabase
+            .from('missions')
             .select('client_id, date')
-            .eq('id', proposal.request_id)
+            .eq('id', proposal.mission_id)
             .single();
 
-        if (request.error || !request.data) continue;
+        if (mission.error || !mission.data) continue;
 
-        const startDate = new Date(request.data.date);
+        const startDate = new Date(mission.data.date);
         const endDate = new Date(startDate);
         endDate.setDate(endDate.getDate() + faker.number.int({ min: 1, max: 30 }));
 
         contracts.push({
             id: faker.string.uuid(),
-            request_id: proposal.request_id,
+            mission_id: proposal.mission_id,
             proposal_id: proposal.id,
-            client_id: request.data.client_id,
+            client_id: mission.data.client_id,
             expert_id: proposal.expert_id,
             start_date: startDate.toISOString().split('T')[0],
             end_date: endDate.toISOString().split('T')[0],
@@ -445,20 +445,20 @@ async function generateReviews(contracts) {
 }
 
 // Fonction pour générer des conversations
-async function generateConversations(requests, clientIds, expertIds) {
+async function generateConversations(missions, clientIds, expertIds) {
     const conversations = [];
     const participants = [];
     const messages = [];
 
     console.log('Génération des conversations...');
 
-    for (const request of requests) {
+    for (const mission of missions) {
         // Créer une conversation pour chaque demande
         const conversationId = faker.string.uuid();
 
         conversations.push({
             id: conversationId,
-            request_id: request.id,
+            mission_id: mission.id,
             created_at: faker.date.recent({ days: 15 }).toISOString()
         });
 
@@ -466,7 +466,7 @@ async function generateConversations(requests, clientIds, expertIds) {
         participants.push({
             id: faker.string.uuid(),
             conversation_id: conversationId,
-            profile_id: request.client_id,
+            profile_id: mission.client_id,
             created_at: faker.date.recent({ days: 15 }).toISOString()
         });
 
@@ -482,7 +482,7 @@ async function generateConversations(requests, clientIds, expertIds) {
         // Générer 1-10 messages pour cette conversation
         const numMessages = faker.number.int({ min: 1, max: 10 });
         for (let i = 0; i < numMessages; i++) {
-            const senderId = faker.helpers.arrayElement([request.client_id, expertId]);
+            const senderId = faker.helpers.arrayElement([mission.client_id, expertId]);
             messages.push({
                 id: faker.string.uuid(),
                 conversation_id: conversationId,
@@ -592,11 +592,11 @@ async function generateAllData() {
         console.log(`${skills.length} compétences créées`);
 
         // Génération des catégories
-        const categories = await generateCategories();
-        console.log(`${categories.length} catégories créées`);
+        const professions = await generateCategories();
+        console.log(`${professions.length} catégories créées`);
 
         // Génération des services
-        const services = await generateServices(categories);
+        const services = await generateServices(professions);
         console.log(`${services.length} services créés`);
 
         // Génération des utilisateurs (clients et experts)
@@ -608,11 +608,11 @@ async function generateAllData() {
         console.log(`${expertServices.length} liaisons experts-services créées`);
 
         // Génération des demandes
-        const requests = await generateRequests(users, services, categories.map(c => c.id), 30);
-        console.log(`${requests.length} demandes créées`);
+        const missions = await generateRequests(users, services, professions.map(c => c.id), 30);
+        console.log(`${missions.length} demandes créées`);
 
         // Génération des propositions
-        const proposals = await generateProposals(requests, expertIds);
+        const proposals = await generateProposals(missions, expertIds);
         console.log(`${proposals.length} propositions créées`);
 
         // Génération des contrats
@@ -625,7 +625,7 @@ async function generateAllData() {
 
         // Génération des conversations et messages
         const { conversations, messages } = await generateConversations(
-            requests,
+            missions,
             users.filter(u => !expertIds.includes(u.id)).map(u => u.id),
             expertIds
         );

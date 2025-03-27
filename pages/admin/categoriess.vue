@@ -192,7 +192,7 @@
             </div>
             <div>
               <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Demandes</div>
-              <div class="mt-1 text-xl font-bold text-gray-900 dark:text-white">{{ category.requests_count || 0 }}</div>
+              <div class="mt-1 text-xl font-bold text-gray-900 dark:text-white">{{ category.missions_count || 0 }}</div>
             </div>
           </div>
         </div>
@@ -414,7 +414,7 @@ import {
 } from 'lucide-vue-next'
 
 // État
-const categories = ref([])
+const professions = ref([])
 const isLoading = ref(true)
 const isSaving = ref(false)
 const isDeleting = ref(false)
@@ -448,7 +448,7 @@ const supabase = useSupabaseClient()
 
 // Filtrer les catégories
 const filteredCategories = computed(() => {
-  let filtered = [...categories.value]
+  let filtered = [...professions.value]
   
   // Filtre par recherche
   if (search.value) {
@@ -483,7 +483,7 @@ const filteredCategories = computed(() => {
       filtered.sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0))
       break
     case 'popular':
-      filtered.sort((a, b) => (b.services_count + b.requests_count) - (a.services_count + a.requests_count))
+      filtered.sort((a, b) => (b.services_count + b.missions_count) - (a.services_count + a.missions_count))
       break
   }
   
@@ -503,18 +503,18 @@ const fetchCategories = async () => {
   isLoading.value = true
   
   try {
-    // Version simplifiée qui ne tente pas de joindre les tables services et requests
+    // Version simplifiée qui ne tente pas de joindre les tables services et missions
     const { data, error } = await supabase
-      .from('service_categories')
+      .from('service_professions')
       .select('*')
     
     if (error) throw error
     
     // Transformation des données
-    categories.value = data || []
+    professions.value = data || []
     
     // Si vous avez besoin des comptages, récupérez-les séparément
-    if (categories.value.length > 0) {
+    if (professions.value.length > 0) {
       await fetchRelatedCounts()
     }
   } catch (error) {
@@ -532,30 +532,30 @@ const fetchRelatedCounts = async () => {
     // Note: adapté pour utiliser la table correcte selon l'erreur
     const { data: serviceData, error: serviceError } = await supabase
       .from('services') // Utilise le nom suggéré dans l'erreur
-      .select('category_id, count')
+      .select('profession_id, count')
       .eq('is_active', true)
-      .groupBy('category_id')
+      .groupBy('profession_id')
     
     if (serviceError) throw serviceError
     
     // Récupérer les comptages des demandes
-    const { data: requestData, error: requestError } = await supabase
-      .from('requests')
-      .select('category_id, count')
+    const { data: missionData, error: missionError } = await supabase
+      .from('missions')
+      .select('profession_id, count')
       .eq('is_active', true)
-      .groupBy('category_id')
+      .groupBy('profession_id')
     
-    if (requestError) throw requestError
+    if (missionError) throw missionError
     
     // Mettre à jour les comptages dans les catégories
-    categories.value = categories.value.map(category => {
-      const serviceCount = serviceData?.find(s => s.category_id === category.id)?.count || 0
-      const requestCount = requestData?.find(r => r.category_id === category.id)?.count || 0
+    professions.value = professions.value.map(category => {
+      const serviceCount = serviceData?.find(s => s.profession_id === category.id)?.count || 0
+      const missionCount = missionData?.find(r => r.profession_id === category.id)?.count || 0
       
       return {
         ...category,
         services_count: parseInt(serviceCount),
-        requests_count: parseInt(requestCount)
+        missions_count: parseInt(missionCount)
       }
     })
   } catch (error) {
@@ -623,7 +623,7 @@ const saveCategory = async () => {
     if (editMode.value) {
       // Mise à jour d'une catégorie existante
       const { error } = await supabase
-        .from('categories')
+        .from('professions')
         .update({
           ...categoryData,
           updated_at: new Date().toISOString()
@@ -636,7 +636,7 @@ const saveCategory = async () => {
     } else {
       // Ajout d'une nouvelle catégorie
       const { error } = await supabase
-        .from('categories')
+        .from('professions')
         .insert([{
           ...categoryData,
           created_at: new Date().toISOString(),
@@ -667,14 +667,14 @@ const deleteCategory = async () => {
   
   try {
     const { error } = await supabase
-      .from('categories')
+      .from('professions')
       .delete()
       .eq('id', deleteTarget.value.id)
     
     if (error) throw error
     
     // Mise à jour de la liste locale
-    categories.value = categories.value.filter(c => c.id !== deleteTarget.value.id)
+    professions.value = professions.value.filter(c => c.id !== deleteTarget.value.id)
     
     showStatusMessage('success', 'Catégorie supprimée avec succès')
     showDeleteModal.value = false

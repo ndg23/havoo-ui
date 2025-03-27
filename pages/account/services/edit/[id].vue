@@ -64,13 +64,13 @@
               <!-- Category -->
               <FloatInputLabel
                 id="category"
-                v-model="form.category_id"
+                v-model="form.profession_id"
                 label="Catégorie"
                 type="select"
                 required
               >
                 <option value="" disabled>Sélectionnez une catégorie</option>
-                <option v-for="category in categories" :key="category.id" :value="category.id">
+                <option v-for="category in professions" :key="category.id" :value="category.id">
                   {{ category.name }}
                 </option>
               </FloatInputLabel>
@@ -223,12 +223,12 @@ const serviceId = route.params.id
 const isLoading = ref(true)
 const isSubmitting = ref(false)
 const error = ref(null)
-const categories = ref([])
+const professions = ref([])
 
 const form = ref({
   title: '',
   description: '',
-  category_id: '',
+  profession_id: '',
   price: 0,
   price_type: 'fixed',
   location: '',
@@ -256,7 +256,7 @@ const fetchService = async () => {
     form.value = {
       title: data.title || '',
       description: data.description || '',
-      category_id: data.category_id || '',
+      profession_id: data.profession_id || '',
       price: data.price || 0,
       price_type: data.price_type || 'fixed',
       location: data.location || '',
@@ -278,16 +278,16 @@ const fetchService = async () => {
 // Récupérer les catégories
 const fetchCategories = async () => {
   try {
-    const { data, error: categoriesError } = await supabase
-      .from('categories')
+    const { data, error: professionsError } = await supabase
+      .from('professions')
       .select('id, name')
       .order('name')
     
-    if (categoriesError) throw categoriesError
+    if (professionsError) throw professionsError
     
-    categories.value = data || []
+    professions.value = data || []
   } catch (err) {
-    console.error('Error fetching categories:', err)
+    console.error('Error fetching professions:', err)
   }
 }
 
@@ -351,7 +351,7 @@ const updateService = async () => {
       .update({
         title: form.value.title,
         description: form.value.description,
-        category_id: form.value.category_id,
+        profession_id: form.value.profession_id,
         price: form.value.price,
         price_type: form.value.price_type,
         location: form.value.location,

@@ -133,7 +133,7 @@
           </div>
         </div>
         
-        <!-- Latest requests with Twitter timeline aesthetic -->
+        <!-- Latest missions with Twitter timeline aesthetic -->
         <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-xs">
           <div class="px-6 py-4 border-b border-gray-100">
             <div class="flex justify-between items-center">
@@ -159,16 +159,16 @@
             
             <div 
               v-else
-              v-for="request in latestRequests" 
-              :key="request.id"
+              v-for="mission in latestRequests" 
+              :key="mission.id"
               class="hover:bg-gray-50 transition-colors"
             >
               <div class="p-5">
                 <div class="flex items-start gap-4">
                   <div class="h-12 w-12 rounded-full overflow-hidden bg-gray-100 border border-gray-100 flex-shrink-0">
                     <img 
-                      v-if="request.client.avatar" 
-                      :src="request.client.avatar" 
+                      v-if="mission.client.avatar" 
+                      :src="mission.client.avatar" 
                       alt="Client avatar" 
                       class="h-full w-full object-cover"
                     />
@@ -179,24 +179,24 @@
                     <div class="flex items-center justify-between mb-2">
                       <div>
                         <div class="flex items-center mb-1">
-                          <p class="font-medium text-gray-900">{{ request.client.name }}</p>
+                          <p class="font-medium text-gray-900">{{ mission.client.name }}</p>
                           <span class="mx-2 text-gray-300">•</span>
-                          <span class="text-sm text-gray-500">{{ request.date }}</span>
+                          <span class="text-sm text-gray-500">{{ mission.date }}</span>
                         </div>
-                        <p class="text-gray-900 font-medium">{{ request.service }}</p>
+                        <p class="text-gray-900 font-medium">{{ mission.service }}</p>
                       </div>
                       
                       <span 
                         class="text-xs font-medium px-3 py-1 rounded-full"
-                        :class="getStatusClass(request.status)"
+                        :class="getStatusClass(mission.status)"
                       >
-                        {{ getStatusLabel(request.status) }}
+                        {{ getStatusLabel(mission.status) }}
                       </span>
                     </div>
                     
                     <div class="flex items-center mt-3 gap-3">
                       <NuxtLink 
-                        :to="`/admin/requests/${request.id}`" 
+                        :to="`/admin/requests/${mission.id}`" 
                         class="flex items-center text-gray-700 hover:text-primary-600 transition-colors"
                       >
                         <EyeIcon class="h-4 w-4 mr-1.5" />
@@ -346,10 +346,10 @@ const loadDashboardData = async () => {
     const activitiesPromise = fetchRecentActivities()
     
     // 3. Chargement des dernières demandes
-    const requestsPromise = fetchLatestRequests()
+    const missionsPromise = fetchLatestRequests()
     
     // Attendre toutes les promesses
-    await Promise.all([statsPromise, activitiesPromise, requestsPromise])
+    await Promise.all([statsPromise, activitiesPromise, missionsPromise])
     
   } catch (error) {
     console.error('Erreur lors du chargement des données du dashboard:', error)
@@ -376,11 +376,11 @@ const fetchSummaryStats = async () => {
     if (servicesError) throw servicesError
     
     // Pour les demandes: Compter toutes les demandes
-    const { count: requestsCount, error: requestsError } = await supabase
-      .from('requests')
+    const { count: missionsCount, error: missionsError } = await supabase
+      .from('missions')
       .select('*', { count: 'exact', head: true })
     
-    if (requestsError) throw requestsError
+    if (missionsError) throw missionsError
     
     // Pour les experts vérifiés
     const { count: verifiedExpertsCount, error: verifiedError } = await supabase
@@ -395,7 +395,7 @@ const fetchSummaryStats = async () => {
       { name: 'Utilisateurs', value: usersCount, trend: 12, icon: UserPlusIcon },
       { name: 'Experts', value: verifiedExpertsCount, trend: 8, icon: ShieldCheckIcon },
       { name: 'Services', value: servicesCount, trend: 15, icon: BriefcaseIcon },
-      { name: 'Demandes', value: requestsCount, trend: 5, icon: MessageSquareIcon }
+      { name: 'Demandes', value: missionsCount, trend: 5, icon: MessageSquareIcon }
     ]
     
   } catch (error) {
@@ -442,7 +442,7 @@ const fetchRecentActivities = async () => {
 const fetchLatestRequests = async () => {
   try {
     const { data, error } = await supabase
-      .from('requests')
+      .from('missions')
       .select(`
         id,
         created_at,
@@ -456,14 +456,14 @@ const fetchLatestRequests = async () => {
     
     if (error) throw error
     
-    latestRequests.value = data.map(request => ({
-      id: request.id,
-      service: request.title || 'Service inconnu',
-      date: formatDate(request.created_at),
-      status: request.status,
+    latestRequests.value = data.map(mission => ({
+      id: mission.id,
+      service: mission.title || 'Service inconnu',
+      date: formatDate(mission.created_at),
+      status: mission.status,
       client: {
-        name: request.profiles ? `${request.profiles.first_name} ${request.profiles.last_name}` : 'Utilisateur inconnu',
-        avatar: request.profiles?.avatar_url
+        name: mission.profiles ? `${mission.profiles.first_name} ${mission.profiles.last_name}` : 'Utilisateur inconnu',
+        avatar: mission.profiles?.avatar_url
       }
     }))
     
@@ -496,7 +496,7 @@ const formatTimeAgo = (dateString) => {
 const getActivityColorClass = (type) => {
   switch (type) {
     case 'new_user': return 'bg-green-500'
-    case 'new_request': return 'bg-blue-500'
+    case 'new_mission': return 'bg-blue-500'
     case 'service_completed': return 'bg-purple-500'
     case 'payment': return 'bg-amber-500'
     case 'service_created': return 'bg-indigo-500'
@@ -512,7 +512,7 @@ const getActivityColorClass = (type) => {
 const getActivityIcon = (type) => {
   switch (type) {
     case 'new_user': return UserPlusIcon
-    case 'new_request': return MessageSquareIcon
+    case 'new_mission': return MessageSquareIcon
     case 'service_completed': return CheckSquareIcon
     case 'payment': return CreditCardIcon
     case 'service_created': return BriefcaseIcon

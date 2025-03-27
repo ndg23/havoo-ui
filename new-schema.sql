@@ -19,13 +19,13 @@ CREATE TABLE users (
     bio TEXT,
     phone TEXT,
     location TEXT,
-    address TEXT,
+    location TEXT,
     city VARCHAR(100),
     country VARCHAR(100) DEFAULT 'Sénégal',
     zip_code VARCHAR(20),
     birthdate DATE,
     gender VARCHAR(20),
-    proof_address TEXT,
+    proof_location TEXT,
     rating DECIMAL(3,2),
     reviews_count INTEGER DEFAULT 0,
     hourly_rate DECIMAL(10, 2),
@@ -42,7 +42,7 @@ FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
 
 -- Table des catégories de services
-CREATE TABLE categories (
+CREATE TABLE professions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name TEXT NOT NULL,
     description TEXT,
@@ -52,8 +52,8 @@ CREATE TABLE categories (
 );
 
 -- Trigger pour mettre à jour la date de modification des catégories
-CREATE TRIGGER update_categories_updated_at
-BEFORE UPDATE ON categories
+CREATE TRIGGER update_professions_updated_at
+BEFORE UPDATE ON professions
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
 
@@ -62,7 +62,7 @@ CREATE TABLE services (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     title TEXT NOT NULL,
     description TEXT NOT NULL,
-    category_id UUID NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+    profession_id UUID NOT NULL REFERENCES professions(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     price DECIMAL(10, 2) NOT NULL,
     price_type TEXT NOT NULL CHECK (price_type IN ('hourly', 'fixed')),
@@ -79,12 +79,12 @@ FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
 
 -- Table des demandes de services
-CREATE TABLE requests (
+CREATE TABLE missions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     title TEXT NOT NULL,
     description TEXT NOT NULL,
     client_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    category_id UUID NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+    profession_id UUID NOT NULL REFERENCES professions(id) ON DELETE CASCADE,
     budget DECIMAL(10, 2),
     location TEXT,
     deadline DATE,
@@ -95,15 +95,15 @@ CREATE TABLE requests (
 );
 
 -- Trigger pour mettre à jour la date de modification des demandes
-CREATE TRIGGER update_requests_updated_at
-BEFORE UPDATE ON requests
+CREATE TRIGGER update_missions_updated_at
+BEFORE UPDATE ON missions
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
 
 -- Table des propositions des experts
 CREATE TABLE proposals (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    request_id UUID NOT NULL REFERENCES requests(id) ON DELETE CASCADE,
+    mission_id UUID NOT NULL REFERENCES missions(id) ON DELETE CASCADE,
     expert_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     message TEXT NOT NULL,
     price DECIMAL(10, 2) NOT NULL,
@@ -111,7 +111,7 @@ CREATE TABLE proposals (
     status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'rejected')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    UNIQUE(request_id, expert_id)
+    UNIQUE(mission_id, expert_id)
 );
 
 -- Trigger pour mettre à jour la date de modification des propositions
@@ -125,11 +125,11 @@ CREATE TABLE reviews (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     client_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     expert_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    request_id UUID REFERENCES requests(id) ON DELETE SET NULL,
+    mission_id UUID REFERENCES missions(id) ON DELETE SET NULL,
     rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
     comment TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    UNIQUE(client_id, expert_id, request_id)
+    UNIQUE(client_id, expert_id, mission_id)
 );
 
 -- Table des messages
@@ -137,7 +137,7 @@ CREATE TABLE messages (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     sender_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     receiver_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    request_id UUID REFERENCES requests(id) ON DELETE SET NULL,
+    mission_id UUID REFERENCES missions(id) ON DELETE SET NULL,
     content TEXT NOT NULL,
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -148,7 +148,7 @@ CREATE TABLE skills (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name TEXT NOT NULL UNIQUE,
     description TEXT,
-    category_id UUID REFERENCES categories(id) ON DELETE SET NULL,
+    profession_id UUID REFERENCES professions(id) ON DELETE SET NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -174,19 +174,19 @@ CREATE INDEX idx_user_skills_skill ON user_skills(skill_id);
 
 -- Création des index pour améliorer les performances
 CREATE INDEX idx_services_user ON services(user_id);
-CREATE INDEX idx_services_category ON services(category_id);
-CREATE INDEX idx_requests_client ON requests(client_id);
-CREATE INDEX idx_requests_category ON requests(category_id);
-CREATE INDEX idx_requests_status ON requests(status);
-CREATE INDEX idx_proposals_request ON proposals(request_id);
+CREATE INDEX idx_services_category ON services(profession_id);
+CREATE INDEX idx_missions_client ON missions(client_id);
+CREATE INDEX idx_missions_category ON missions(profession_id);
+CREATE INDEX idx_missions_status ON missions(status);
+CREATE INDEX idx_proposals_mission ON proposals(mission_id);
 CREATE INDEX idx_proposals_expert ON proposals(expert_id);
 CREATE INDEX idx_reviews_expert ON reviews(expert_id);
 CREATE INDEX idx_messages_sender ON messages(sender_id);
 CREATE INDEX idx_messages_receiver ON messages(receiver_id);
-CREATE INDEX idx_messages_request ON messages(request_id);
+CREATE INDEX idx_messages_mission ON messages(mission_id);
 
 -- Vue pour afficher les détails des demandes avec les informations du client et de la catégorie
-CREATE OR REPLACE VIEW request_details AS
+CREATE OR REPLACE VIEW mission_details AS
 SELECT 
     r.id,
     r.title,
@@ -201,16 +201,16 @@ SELECT
     u.id AS client_id,
     u.first_name || ' ' || u.last_name AS client_name,
     u.avatar_url AS client_avatar,
-    c.id AS category_id,
+    c.id AS profession_id,
     c.name AS category_name,
     c.icon AS category_icon,
-    (SELECT COUNT(*) FROM proposals p WHERE p.request_id = r.id) AS proposals_count
+    (SELECT COUNT(*) FROM proposals p WHERE p.mission_id = r.id) AS proposals_count
 FROM 
-    requests r
+    missions r
 JOIN 
     users u ON r.client_id = u.id
 JOIN 
-    categories c ON r.category_id = c.id;
+    professions c ON r.profession_id = c.id;
 
 -- Vue pour afficher les profils des experts avec leurs compétences
 CREATE OR REPLACE VIEW expert_profiles AS
@@ -312,14 +312,14 @@ CREATE TABLE views (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES users(id) ON DELETE SET NULL,
     service_id UUID REFERENCES services(id) ON DELETE CASCADE,
-    request_id UUID REFERENCES requests(id) ON DELETE CASCADE,
+    mission_id UUID REFERENCES missions(id) ON DELETE CASCADE,
     viewed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    CHECK ((service_id IS NULL) != (request_id IS NULL)) -- Soit service_id, soit request_id doit être non-null
+    CHECK ((service_id IS NULL) != (mission_id IS NULL)) -- Soit service_id, soit mission_id doit être non-null
 );
 
 -- Ajouter des index GIN pour la recherche textuelle
 CREATE INDEX idx_services_fulltext ON services USING gin(to_tsvector('french', title || ' ' || description));
-CREATE INDEX idx_requests_fulltext ON requests USING gin(to_tsvector('french', title || ' ' || description));
+CREATE INDEX idx_missions_fulltext ON missions USING gin(to_tsvector('french', title || ' ' || description));
 
 -- Créer un index sur le rôle pour des recherches efficaces
 CREATE INDEX idx_users_role ON users(role);
@@ -330,7 +330,7 @@ CREATE INDEX idx_payments_status ON payments(status);
 -- Table des paiements
 CREATE TABLE payments (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    request_id UUID NOT NULL REFERENCES requests(id) ON DELETE CASCADE,
+    mission_id UUID NOT NULL REFERENCES missions(id) ON DELETE CASCADE,
     client_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     expert_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     amount DECIMAL(10, 2) NOT NULL,
@@ -442,7 +442,7 @@ BEGIN
         
         -- Notifier aussi le client
         PERFORM create_notification(
-            (SELECT client_id FROM requests WHERE id = NEW.request_id),
+            (SELECT client_id FROM missions WHERE id = NEW.mission_id),
             'Confirmation d''expert',
             'Vous avez accepté une proposition d''expert.',
             'info',
@@ -470,7 +470,7 @@ FOR EACH ROW
 EXECUTE FUNCTION notify_on_proposal_status_change();
 
 -- Index pour optimiser les recherches supplémentaires
-CREATE INDEX idx_payments_request ON payments(request_id);
+CREATE INDEX idx_payments_mission ON payments(mission_id);
 CREATE INDEX idx_payments_client ON payments(client_id);
 CREATE INDEX idx_payments_expert ON payments(expert_id);
 CREATE INDEX idx_payments_status ON payments(status);
@@ -483,7 +483,7 @@ CREATE INDEX idx_favorites_expert ON favorites(expert_id);
 -- Suppression des données de test explicites avec IDs et restructuration
 
 -- Insertion de quelques catégories
-INSERT INTO categories (name, description, icon) VALUES
+INSERT INTO professions (name, description, icon) VALUES
 ('Ménage', 'Services de nettoyage et d''entretien', 'mdi-broom'),
 ('Bricolage', 'Petits travaux de réparation et d''amélioration', 'mdi-hammer'),
 ('Jardinage', 'Entretien et aménagement d''espaces verts', 'mdi-flower'),
@@ -513,9 +513,9 @@ DECLARE
     peinture_skill_id UUID;
     plomberie_skill_id UUID;
     tonte_skill_id UUID;
-    request1_id UUID;
-    request2_id UUID;
-    request3_id UUID;
+    mission1_id UUID;
+    mission2_id UUID;
+    mission3_id UUID;
 BEGIN
     -- Création des utilisateurs (dans un environnement réel, ils seraient créés via auth.users)
     -- Simulation pour le développement uniquement
@@ -546,22 +546,22 @@ BEGIN
     (client2_id, 'client2@example.com', 'Aïda', 'Fall', 'client', 'https://api.dicebear.com/7.x/avataaars/svg?seed=client2', NULL, '+221 77 678 90 12', 'Mbour', 'Mbour', 'Sénégal', 0, NULL);
     
     -- Récupérer les IDs des catégories
-    SELECT id INTO menage_id FROM categories WHERE name = 'Ménage';
-    SELECT id INTO bricolage_id FROM categories WHERE name = 'Bricolage';
-    SELECT id INTO jardinage_id FROM categories WHERE name = 'Jardinage';
-    SELECT id INTO informatique_id FROM categories WHERE name = 'Informatique';
-    SELECT id INTO cours_id FROM categories WHERE name = 'Cours particuliers';
+    SELECT id INTO menage_id FROM professions WHERE name = 'Ménage';
+    SELECT id INTO bricolage_id FROM professions WHERE name = 'Bricolage';
+    SELECT id INTO jardinage_id FROM professions WHERE name = 'Jardinage';
+    SELECT id INTO informatique_id FROM professions WHERE name = 'Informatique';
+    SELECT id INTO cours_id FROM professions WHERE name = 'Cours particuliers';
     
     -- Insertion des compétences
-    INSERT INTO skills (name, description, category_id) VALUES
+    INSERT INTO skills (name, description, profession_id) VALUES
     ('Nettoyage maison', 'Nettoyage complet de maison ou appartement', menage_id) RETURNING id INTO nettoyage_skill_id;
-    INSERT INTO skills (name, description, category_id) VALUES
+    INSERT INTO skills (name, description, profession_id) VALUES
     ('Repassage', 'Service de repassage de vêtements', menage_id) RETURNING id INTO repassage_skill_id;
-    INSERT INTO skills (name, description, category_id) VALUES
+    INSERT INTO skills (name, description, profession_id) VALUES
     ('Peinture', 'Travaux de peinture intérieure et extérieure', bricolage_id) RETURNING id INTO peinture_skill_id;
-    INSERT INTO skills (name, description, category_id) VALUES
+    INSERT INTO skills (name, description, profession_id) VALUES
     ('Plomberie', 'Réparation et installation de plomberie', bricolage_id) RETURNING id INTO plomberie_skill_id;
-INSERT INTO skills (name, description, category_id) VALUES
+INSERT INTO skills (name, description, profession_id) VALUES
     ('Tonte de pelouse', 'Entretien régulier de pelouse', jardinage_id) RETURNING id INTO tonte_skill_id;
 
 -- Associer des compétences aux experts
@@ -573,7 +573,7 @@ INSERT INTO user_skills (user_id, skill_id, level) VALUES
     (expert3_id, tonte_skill_id, 5);
 
 -- Insérer des services proposés par les experts
-    INSERT INTO services (title, description, category_id, user_id, price, price_type, location, status) VALUES
+    INSERT INTO services (title, description, profession_id, user_id, price, price_type, location, status) VALUES
     ('Nettoyage complet maison/appartement', 'Service de nettoyage approfondi incluant toutes les pièces de vie, cuisine et sanitaires', menage_id, expert1_id, 3500, 'hourly', 'Dakar', 'active'),
     ('Repassage à domicile', 'Service de repassage professionnel pour tous types de vêtements', menage_id, expert1_id, 2000, 'hourly', 'Dakar', 'active'),
     ('Peinture intérieure', 'Travaux de peinture intérieure pour toutes les pièces de votre logement', bricolage_id, expert2_id, 6000, 'hourly', 'Thiès', 'active'),
@@ -581,12 +581,12 @@ INSERT INTO user_skills (user_id, skill_id, level) VALUES
     ('Entretien jardin complet', 'Service d''entretien complet de jardin : tonte, taille, désherbage', jardinage_id, expert3_id, 4000, 'hourly', 'Saint-Louis', 'active');
 
 -- Insérer des demandes de services
-    INSERT INTO requests (title, description, client_id, category_id, budget, location, deadline, status, is_urgent) VALUES
-    ('Besoin de nettoyage après déménagement', 'Je viens d''emménager et j''ai besoin d''un nettoyage complet de l''appartement', client1_id, menage_id, 15000, 'Dakar', '2023-12-15', 'open', TRUE) RETURNING id INTO request1_id;
-    INSERT INTO requests (title, description, client_id, category_id, budget, location, deadline, status, is_urgent) VALUES
-    ('Réparation fuite lavabo', 'Fuite importante sous le lavabo de la salle de bain', client2_id, bricolage_id, 8000, 'Mbour', '2023-12-10', 'open', TRUE) RETURNING id INTO request2_id;
-    INSERT INTO requests (title, description, client_id, category_id, budget, location, deadline, status, is_urgent) VALUES
-    ('Tonte de pelouse hebdomadaire', 'Recherche jardinier pour entretien régulier de mon jardin', client1_id, jardinage_id, 5000, 'Dakar', '2023-12-20', 'open', FALSE) RETURNING id INTO request3_id;
+    INSERT INTO missions (title, description, client_id, profession_id, budget, location, deadline, status, is_urgent) VALUES
+    ('Besoin de nettoyage après déménagement', 'Je viens d''emménager et j''ai besoin d''un nettoyage complet de l''appartement', client1_id, menage_id, 15000, 'Dakar', '2023-12-15', 'open', TRUE) RETURNING id INTO mission1_id;
+    INSERT INTO missions (title, description, client_id, profession_id, budget, location, deadline, status, is_urgent) VALUES
+    ('Réparation fuite lavabo', 'Fuite importante sous le lavabo de la salle de bain', client2_id, bricolage_id, 8000, 'Mbour', '2023-12-10', 'open', TRUE) RETURNING id INTO mission2_id;
+    INSERT INTO missions (title, description, client_id, profession_id, budget, location, deadline, status, is_urgent) VALUES
+    ('Tonte de pelouse hebdomadaire', 'Recherche jardinier pour entretien régulier de mon jardin', client1_id, jardinage_id, 5000, 'Dakar', '2023-12-20', 'open', FALSE) RETURNING id INTO mission3_id;
     
     -- Le reste des insertions suit la même logique...
 END;

@@ -63,7 +63,7 @@ else
   echo -e "${BLUE}Fonctionnalités disponibles:${NC}"
   echo "✓ Politiques RLS pour la table verifications"
   echo "✓ Politiques RLS pour le bucket de stockage documents"
-  echo "✓ Fonction request_expert_verification pour les utilisateurs"
+  echo "✓ Fonction mission_expert_verification pour les utilisateurs"
   echo "✓ Fonctions admin_verify_expert et admin_process_verification pour les administrateurs"
   echo "✓ Triggers pour les mises à jour automatiques"
   echo
@@ -73,7 +73,7 @@ fi
 # Instructions supplémentaires
 echo
 echo -e "${YELLOW}Prochaines étapes:${NC}"
-echo "1. Assurez-vous que votre frontend utilise correctement la fonction request_expert_verification"
+echo "1. Assurez-vous que votre frontend utilise correctement la fonction mission_expert_verification"
 echo "2. Créez une interface d'administration pour gérer les demandes de vérification"
 echo "3. Testez le téléchargement de documents via le bucket 'documents'"
 echo

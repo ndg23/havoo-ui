@@ -74,7 +74,7 @@ CREATE TABLE public.profiles (
     last_name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     phone VARCHAR(50),
-    address TEXT,
+    location TEXT,
     city VARCHAR(100),
     country VARCHAR(100) DEFAULT 'Sénégal',
     zip_code VARCHAR(20),
@@ -91,7 +91,7 @@ CREATE TABLE public.profiles (
     verified_at TIMESTAMPTZ,
     id_front TEXT,
     id_back TEXT,
-    proof_address TEXT,
+    proof_location TEXT,
     rating DECIMAL(3,2),
     reviews_count INTEGER DEFAULT 0,
     hourly_rate DECIMAL(10, 2),
@@ -118,7 +118,7 @@ CREATE TABLE public.profile_skills (
 );
 
 -- SERVICE_CATEGORIES - Catégories de services
-CREATE TABLE public.service_categories (
+CREATE TABLE public.service_professions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(100) NOT NULL,
     icon TEXT,
@@ -130,7 +130,7 @@ CREATE TABLE public.service_categories (
 -- SERVICES - Services
 CREATE TABLE public.services (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    category_id UUID,
+    profession_id UUID,
     name VARCHAR(100) NOT NULL,
     icon TEXT,
     description TEXT,
@@ -175,13 +175,13 @@ CREATE TABLE public.expert_certifications (
 );
 
 -- REQUESTS - Demandes de service
-CREATE TABLE public.requests (
+CREATE TABLE public.missions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     client_id UUID,
     title VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
     service_id UUID,
-    category_id UUID,
+    profession_id UUID,
     location VARCHAR(255),
     budget DECIMAL(10, 2),
     status VARCHAR(50) DEFAULT 'active',
@@ -196,7 +196,7 @@ CREATE TABLE public.requests (
 -- PROPOSALS - Propositions des experts
 CREATE TABLE public.proposals (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    request_id UUID,
+    mission_id UUID,
     expert_id UUID,
     price DECIMAL(10, 2) NOT NULL,
     description TEXT NOT NULL,
@@ -209,7 +209,7 @@ CREATE TABLE public.proposals (
 -- CONTRACTS - Contrats
 CREATE TABLE public.contracts (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    request_id UUID,
+    mission_id UUID,
     proposal_id UUID,
     client_id UUID,
     expert_id UUID,
@@ -227,7 +227,7 @@ CREATE TABLE public.contracts (
 CREATE TABLE public.reviews (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     contract_id UUID,
-    request_id UUID,
+    mission_id UUID,
     client_id UUID,
     expert_id UUID,
     rating INTEGER CHECK (rating >= 1 AND rating <= 5),
@@ -261,7 +261,7 @@ CREATE TABLE public.review_reactions (
 -- CONVERSATIONS
 CREATE TABLE public.conversations (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    request_id UUID,
+    mission_id UUID,
     title VARCHAR(255),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -348,8 +348,8 @@ FOREIGN KEY (skill_id) REFERENCES public.skills(id) ON DELETE CASCADE;
 
 -- Relation SERVICES avec CATEGORIES
 ALTER TABLE public.services
-ADD CONSTRAINT services_category_id_fkey
-FOREIGN KEY (category_id) REFERENCES public.service_categories(id) ON DELETE SET NULL;
+ADD CONSTRAINT services_profession_id_fkey
+FOREIGN KEY (profession_id) REFERENCES public.service_professions(id) ON DELETE SET NULL;
 
 -- Relation EXPERTS avec PROFILES
 ALTER TABLE public.experts
@@ -371,22 +371,22 @@ ADD CONSTRAINT expert_certifications_expert_id_fkey
 FOREIGN KEY (expert_id) REFERENCES public.experts(id) ON DELETE CASCADE;
 
 -- Relations REQUESTS
-ALTER TABLE public.requests
-ADD CONSTRAINT requests_client_id_fkey
+ALTER TABLE public.missions
+ADD CONSTRAINT missions_client_id_fkey
 FOREIGN KEY (client_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
 
-ALTER TABLE public.requests
-ADD CONSTRAINT requests_service_id_fkey
+ALTER TABLE public.missions
+ADD CONSTRAINT missions_service_id_fkey
 FOREIGN KEY (service_id) REFERENCES public.services(id) ON DELETE SET NULL;
 
-ALTER TABLE public.requests
-ADD CONSTRAINT requests_category_id_fkey
-FOREIGN KEY (category_id) REFERENCES public.service_categories(id) ON DELETE SET NULL;
+ALTER TABLE public.missions
+ADD CONSTRAINT missions_profession_id_fkey
+FOREIGN KEY (profession_id) REFERENCES public.service_professions(id) ON DELETE SET NULL;
 
 -- Relations PROPOSALS
 ALTER TABLE public.proposals
-ADD CONSTRAINT proposals_request_id_fkey
-FOREIGN KEY (request_id) REFERENCES public.requests(id) ON DELETE CASCADE;
+ADD CONSTRAINT proposals_mission_id_fkey
+FOREIGN KEY (mission_id) REFERENCES public.missions(id) ON DELETE CASCADE;
 
 ALTER TABLE public.proposals
 ADD CONSTRAINT proposals_expert_id_fkey
@@ -394,8 +394,8 @@ FOREIGN KEY (expert_id) REFERENCES public.experts(id) ON DELETE CASCADE;
 
 -- Relations CONTRACTS
 ALTER TABLE public.contracts
-ADD CONSTRAINT contracts_request_id_fkey
-FOREIGN KEY (request_id) REFERENCES public.requests(id) ON DELETE SET NULL;
+ADD CONSTRAINT contracts_mission_id_fkey
+FOREIGN KEY (mission_id) REFERENCES public.missions(id) ON DELETE SET NULL;
 
 ALTER TABLE public.contracts
 ADD CONSTRAINT contracts_proposal_id_fkey
@@ -415,8 +415,8 @@ ADD CONSTRAINT reviews_contract_id_fkey
 FOREIGN KEY (contract_id) REFERENCES public.contracts(id) ON DELETE CASCADE;
 
 ALTER TABLE public.reviews
-ADD CONSTRAINT reviews_request_id_fkey
-FOREIGN KEY (request_id) REFERENCES public.requests(id) ON DELETE CASCADE;
+ADD CONSTRAINT reviews_mission_id_fkey
+FOREIGN KEY (mission_id) REFERENCES public.missions(id) ON DELETE CASCADE;
 
 ALTER TABLE public.reviews
 ADD CONSTRAINT reviews_client_id_fkey
@@ -446,8 +446,8 @@ FOREIGN KEY (profile_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
 
 -- Relations CONVERSATIONS
 ALTER TABLE public.conversations
-ADD CONSTRAINT conversations_request_id_fkey
-FOREIGN KEY (request_id) REFERENCES public.requests(id) ON DELETE SET NULL;
+ADD CONSTRAINT conversations_mission_id_fkey
+FOREIGN KEY (mission_id) REFERENCES public.missions(id) ON DELETE SET NULL;
 
 -- Relations CONVERSATION_PARTICIPANTS
 ALTER TABLE public.conversation_participants
@@ -569,8 +569,8 @@ BEFORE UPDATE ON public.services
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_service_categories_updated_at
-BEFORE UPDATE ON public.service_categories
+CREATE TRIGGER update_service_professions_updated_at
+BEFORE UPDATE ON public.service_professions
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
 
@@ -579,8 +579,8 @@ BEFORE UPDATE ON public.experts
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_requests_updated_at
-BEFORE UPDATE ON public.requests
+CREATE TRIGGER update_missions_updated_at
+BEFORE UPDATE ON public.missions
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
 
@@ -623,18 +623,18 @@ EXECUTE FUNCTION update_expert_stats();
 -- Créer les index
 CREATE INDEX idx_profile_skills_profile ON public.profile_skills (profile_id);
 CREATE INDEX idx_profile_skills_skill ON public.profile_skills (skill_id);
-CREATE INDEX idx_services_category ON public.services (category_id);
-CREATE INDEX idx_requests_client ON public.requests (client_id);
-CREATE INDEX idx_requests_service ON public.requests (service_id);
-CREATE INDEX idx_requests_category ON public.requests (category_id);
-CREATE INDEX idx_proposals_request ON public.proposals (request_id);
+CREATE INDEX idx_services_category ON public.services (profession_id);
+CREATE INDEX idx_missions_client ON public.missions (client_id);
+CREATE INDEX idx_missions_service ON public.missions (service_id);
+CREATE INDEX idx_missions_category ON public.missions (profession_id);
+CREATE INDEX idx_proposals_mission ON public.proposals (mission_id);
 CREATE INDEX idx_proposals_expert ON public.proposals (expert_id);
-CREATE INDEX idx_contracts_request ON public.contracts (request_id);
+CREATE INDEX idx_contracts_mission ON public.contracts (mission_id);
 CREATE INDEX idx_contracts_client ON public.contracts (client_id);
 CREATE INDEX idx_contracts_expert ON public.contracts (expert_id);
 CREATE INDEX idx_reviews_expert ON public.reviews (expert_id);
 CREATE INDEX idx_reviews_client ON public.reviews (client_id);
-CREATE INDEX idx_reviews_request ON public.reviews (request_id);
+CREATE INDEX idx_reviews_mission ON public.reviews (mission_id);
 CREATE INDEX idx_reviews_contract ON public.reviews (contract_id);
 CREATE INDEX idx_public_reviews ON public.reviews (is_public) WHERE is_public = TRUE;
 CREATE INDEX idx_messages_conversation ON public.messages (conversation_id);
@@ -648,12 +648,12 @@ CREATE INDEX idx_notifications_profile ON public.notifications (profile_id);
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.skills ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.profile_skills ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.service_categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.service_professions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.services ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.experts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.expert_services ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.expert_certifications ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.missions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.proposals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contracts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
@@ -681,7 +681,7 @@ ON public.services FOR SELECT
 USING (true);
 
 CREATE POLICY "Lecture publique des catégories"
-ON public.service_categories FOR SELECT
+ON public.service_professions FOR SELECT
 USING (true);
 
 -- Permettre à un utilisateur authentifié de créer son propre profil
@@ -721,8 +721,8 @@ USING (true);
 
 ---VUE---
 
--- Création de la vue request_details pour l'administration
-CREATE OR REPLACE VIEW request_details AS
+-- Création de la vue mission_details pour l'administration
+CREATE OR REPLACE VIEW mission_details AS
 SELECT 
     r.id,
     r.title,
@@ -734,7 +734,7 @@ SELECT
     r.created_at,
     r.updated_at,
     r.status,
-    r.category_id,
+    r.profession_id,
     r.client_id,
     
     -- Informations sur le client
@@ -750,7 +750,7 @@ SELECT
     c.color AS category_color,
     
     -- Statistiques
-    (SELECT COUNT(*) FROM proposals WHERE request_id = r.id) AS proposals_count,
+    (SELECT COUNT(*) FROM proposals WHERE mission_id = r.id) AS proposals_count,
     
     -- Compétences requises (si stockées en JSON)
     r.skills,
@@ -768,19 +768,19 @@ SELECT
         ELSE 0
     END AS days_remaining
 FROM 
-    requests r
+    missions r
 LEFT JOIN 
     profiles p ON r.client_id = p.id
 LEFT JOIN 
     auth.users u ON p.id = u.id
 LEFT JOIN 
-    service_categories c ON r.category_id = c.id;
+    service_professions c ON r.profession_id = c.id;
 
 -- Ajouter les autorisations nécessaires
-ALTER VIEW request_details OWNER TO postgres;
-GRANT SELECT ON request_details TO service_role;
-GRANT SELECT ON request_details TO anon;
-GRANT SELECT ON request_details TO authenticated;
+ALTER VIEW mission_details OWNER TO postgres;
+GRANT SELECT ON mission_details TO service_role;
+GRANT SELECT ON mission_details TO anon;
+GRANT SELECT ON mission_details TO authenticated;
 
 -- ===========================================
 -- PHASE 5: DONNÉES INITIALES
@@ -790,7 +790,7 @@ GRANT SELECT ON request_details TO authenticated;
 SET session_replication_role = 'origin';
 
 -- Insertion des catégories de services initiales
-INSERT INTO public.service_categories (id, name, icon, description)
+INSERT INTO public.service_professions (id, name, icon, description)
 SELECT uuid_generate_v4(), name, icon, description
 FROM (VALUES
     ('Ménage', '🧹', 'Services de nettoyage et d''entretien'),
@@ -801,7 +801,7 @@ FROM (VALUES
     ('Informatique', '💻', 'Assistance et dépannage informatique')
 ) AS data(name, icon, description)
 WHERE NOT EXISTS (
-    SELECT 1 FROM public.service_categories WHERE name = data.name
+    SELECT 1 FROM public.service_professions WHERE name = data.name
 );
 
 -- Insertion des compétences initiales
@@ -831,18 +831,18 @@ VALUES
 ('maintenance_mode', 'false', 'Mode maintenance du site', true),
 ('currency', '"XOF"', 'Devise par défaut', true),
 ('platform_fee_percent', '5', 'Pourcentage de commission de la plateforme', false),
-('default_request_duration_days', '30', 'Durée par défaut pour les demandes (jours)', true),
-('featured_categories', '["1", "2", "3"]', 'IDs des catégories mises en avant', true),
+('default_mission_duration_days', '30', 'Durée par défaut pour les demandes (jours)', true),
+('featured_professions', '["1", "2", "3"]', 'IDs des catégories mises en avant', true),
 ('max_proposal_count', '5', 'Nombre maximum de propositions par expert par jour', false)
 ON CONFLICT (key) DO NOTHING; 
 
 -- Insertion des services courants
-INSERT INTO public.services (id, name, description, category_id, icon) 
+INSERT INTO public.services (id, name, description, profession_id, icon) 
 SELECT 
   uuid_generate_v4(), 
   name, 
   description, 
-  (SELECT id FROM service_categories WHERE name = category_name LIMIT 1),
+  (SELECT id FROM service_professions WHERE name = category_name LIMIT 1),
   icon
 FROM (VALUES
   ('Ménage complet', 'Nettoyage complet de votre domicile, incluant sols, surfaces et salle de bain', 'Ménage', '🧹'),

@@ -80,7 +80,7 @@
               class="pl-3 pr-8 py-2 rounded-full border border-gray-300 bg-white text-sm"
             >
               <option value="">Catégorie</option>
-              <option v-for="category in categories" :key="category.id" :value="category.id">
+              <option v-for="category in professions" :key="category.id" :value="category.id">
                 {{ category.name }}
               </option>
             </select>
@@ -282,7 +282,7 @@ const isExpert = computed(() => profile.isExpert)
 // States
 const isLoading = ref(true)
 const services = ref([])
-const categories = ref([])
+const professions = ref([])
 const skills = ref([])
 const searchQuery = ref('')
 const hasMoreServices = ref(false)
@@ -340,7 +340,7 @@ const filteredServices = computed(() => {
   
   // Category filter
   if (filters.categoryId) {
-    result = result.filter(service => service.category_id === filters.categoryId)
+    result = result.filter(service => service.profession_id === filters.categoryId)
   }
   
   // Skills filter
@@ -392,7 +392,7 @@ const activeFilters = computed(() => {
   
   // Category filter
   if (filters.categoryId) {
-    const category = categories.value.find(c => c.id === filters.categoryId)
+    const category = professions.value.find(c => c.id === filters.categoryId)
     if (category) {
       result.push({ id: 'category', name: category.name })
     }
@@ -421,8 +421,8 @@ const fetchServices = async () => {
         delivery_time,
         cover_image,
         created_at,
-        category_id,
-        categories(name),
+        profession_id,
+        professions(name),
         service_skills(skills(id, name)),
         expert_id,
         profiles(first_name, last_name, avatar_url, reviews(rating))
@@ -451,8 +451,8 @@ const fetchServices = async () => {
         delivery_time: service.delivery_time,
         cover_image: service.cover_image,
         created_at: service.created_at,
-        category_id: service.category_id,
-        category_name: service.categories?.name || 'Non catégorisé',
+        profession_id: service.profession_id,
+        category_name: service.professions?.name || 'Non catégorisé',
         skills: service.service_skills.map(ss => ss.skills),
         expert_id: service.expert_id,
         expert_name: `${service.profiles.first_name} ${service.profiles.last_name}`,
@@ -481,15 +481,15 @@ const fetchServices = async () => {
 const fetchCategories = async () => {
   try {
     const { data, error } = await supabase
-      .from('categories')
+      .from('professions')
       .select('id, name')
       .order('name')
     
     if (error) throw error
     
-    categories.value = data
+    professions.value = data
   } catch (error) {
-    console.error('Error fetching categories:', error)
+    console.error('Error fetching professions:', error)
   }
 }
 

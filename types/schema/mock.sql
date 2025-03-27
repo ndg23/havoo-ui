@@ -6,13 +6,13 @@ DROP POLICY IF EXISTS "Admins can do everything" ON expert_verifications;
 -- Désactiver RLS sur toutes les tables pertinentes
 ALTER TABLE IF EXISTS expert_verifications DISABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS profiles DISABLE ROW LEVEL SECURITY;
-ALTER TABLE IF EXISTS requests DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS missions DISABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS proposals DISABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS contracts DISABLE ROW LEVEL SECURITY;
 
 -- Supprimer les triggers existants
 DROP TRIGGER IF EXISTS update_profiles_timestamp ON profiles;
-DROP TRIGGER IF EXISTS update_requests_timestamp ON requests;
+DROP TRIGGER IF EXISTS update_missions_timestamp ON missions;
 DROP TRIGGER IF EXISTS update_proposals_timestamp ON proposals;
 DROP TRIGGER IF EXISTS update_contracts_timestamp ON contracts;
 DROP TRIGGER IF EXISTS update_services_timestamp ON services;
@@ -32,7 +32,7 @@ DROP FUNCTION IF EXISTS update_expert_status();
 
 -- Supprimer les vues existantes
 DROP VIEW IF EXISTS expert_profiles;
-DROP VIEW IF EXISTS request_details;
+DROP VIEW IF EXISTS mission_details;
 DROP VIEW IF EXISTS active_contracts;
 DROP VIEW IF EXISTS expert_stats;
 DROP VIEW IF EXISTS user_conversations;
@@ -48,7 +48,7 @@ TRUNCATE TABLE IF EXISTS messages CASCADE;
 TRUNCATE TABLE IF EXISTS services CASCADE;
 TRUNCATE TABLE IF EXISTS contracts CASCADE;
 TRUNCATE TABLE IF EXISTS proposals CASCADE;
-TRUNCATE TABLE IF EXISTS requests CASCADE;
+TRUNCATE TABLE IF EXISTS missions CASCADE;
 TRUNCATE TABLE IF EXISTS user_skills CASCADE;
 TRUNCATE TABLE IF EXISTS expert_verifications CASCADE;
 TRUNCATE TABLE IF EXISTS skills CASCADE;
@@ -57,7 +57,7 @@ TRUNCATE TABLE IF EXISTS skills CASCADE;
 -- Réinitialiser les séquences
 ALTER SEQUENCE IF EXISTS skills_id_seq RESTART WITH 1;
 ALTER SEQUENCE IF EXISTS user_skills_id_seq RESTART WITH 1;
-ALTER SEQUENCE IF EXISTS requests_id_seq RESTART WITH 1;
+ALTER SEQUENCE IF EXISTS missions_id_seq RESTART WITH 1;
 ALTER SEQUENCE IF EXISTS proposals_id_seq RESTART WITH 1;
 ALTER SEQUENCE IF EXISTS contracts_id_seq RESTART WITH 1;
 ALTER SEQUENCE IF EXISTS messages_id_seq RESTART WITH 1;
@@ -88,8 +88,8 @@ BEGIN
     'proposal',
     NEW.id,
     'proposal'
-  FROM requests r
-  WHERE r.id = NEW.request_id;
+  FROM missions r
+  WHERE r.id = NEW.mission_id;
   
   RETURN NEW;
 END;
@@ -195,8 +195,8 @@ CREATE TRIGGER update_profiles_timestamp
 BEFORE UPDATE ON profiles
 FOR EACH ROW EXECUTE PROCEDURE update_timestamp();
 
-CREATE TRIGGER update_requests_timestamp
-BEFORE UPDATE ON requests
+CREATE TRIGGER update_missions_timestamp
+BEFORE UPDATE ON missions
 FOR EACH ROW EXECUTE PROCEDURE update_timestamp();
 
 CREATE TRIGGER update_proposals_timestamp
@@ -254,7 +254,7 @@ LEFT JOIN reviews r ON p.id = r.reviewee_id
 WHERE p.is_expert = TRUE
 GROUP BY p.id;
 
-CREATE OR REPLACE VIEW request_details AS
+CREATE OR REPLACE VIEW mission_details AS
 SELECT 
   r.id,
   r.title,
@@ -271,9 +271,9 @@ SELECT
   COUNT(prop.id) AS proposals_count,
   MIN(prop.price) AS lowest_proposal_price,
   MAX(prop.price) AS highest_proposal_price
-FROM requests r
+FROM missions r
 JOIN profiles p ON r.client_id = p.id
-LEFT JOIN proposals prop ON r.id = prop.request_id
+LEFT JOIN proposals prop ON r.id = prop.mission_id
 GROUP BY r.id, p.id;
 
 CREATE OR REPLACE VIEW active_contracts AS
@@ -286,9 +286,9 @@ SELECT
   c.end_date,
   c.status,
   c.created_at,
-  c.request_id,
+  c.mission_id,
   c.proposal_id,
-  r.title AS request_title,
+  r.title AS mission_title,
   client.id AS client_id,
   client.first_name AS client_first_name,
   client.last_name AS client_last_name,
@@ -299,7 +299,7 @@ SELECT
   expert.avatar_url AS expert_avatar,
   expert.profession AS expert_profession
 FROM contracts c
-JOIN requests r ON c.request_id = r.id
+JOIN missions r ON c.mission_id = r.id
 JOIN profiles client ON c.client_id = client.id
 JOIN profiles expert ON c.expert_id = expert.id
 WHERE c.status = 'active';
@@ -315,10 +315,10 @@ SELECT
   p.is_verified,
   p.is_available,
   array_agg(DISTINCT s.name) AS skills,
-  array_agg(DISTINCT s.category) AS skill_categories,
+  array_agg(DISTINCT s.category) AS skill_professions,
   COALESCE(AVG(r.rating), 0) AS rating,
   COUNT(DISTINCT r.id) AS reviews_count,
-  COUNT(DISTINCT CASE WHEN c.status = 'completed' THEN c.id END) AS completed_projects,
+  COUNT(DISTINCT CASE WHEN c.status = 'completed' THEN c.id END) AS completed_missions,
   MIN(ser.price) AS min_price
 FROM profiles p
 LEFT JOIN user_skills us ON p.id = us.user_id
@@ -421,6 +421,6 @@ INSERT INTO expert_verifications (user_id, document_url, document_type, status, 
 ('2a4c6e8d-b90f-4gh7-i152-j3k4l5m6n7o8', 'https://example.com/docs/sophie_certification.pdf', 'Certification', 'approved', NOW() - INTERVAL '48 days', NULL, NOW() - INTERVAL '50 days', NOW() - INTERVAL '48 days'),
 ('3b5d7f9h-c12e-4jk6-l345-m7n8p9q0r1s2', 'https://example.com/docs/marc_portfolio.pdf', 'Portfolio', 'approved', NOW() - INTERVAL '43 days', NULL, NOW() - INTERVAL '45 days', NOW() - INTERVAL '43 days'),
 ('4c6e8g0i-d23f-5lm7-n456-o8p9q0r1s2t3', 'https://example.com/docs/julie_samples.pdf', 'Échantillons', 'approved', NOW() - INTERVAL '38 days', NULL, NOW() - INTERVAL '40 days', NOW() - INTERVAL '38 days'),
-('5d7f9h1j-e34g-6no8-p567-q9r0s1t2u3v4', 'https://example.com/docs/antoine_projects.pdf', 'Projets', 'approved', NOW() - INTERVAL '33 days', NULL, NOW() - INTERVAL '35 days', NOW() - INTERVAL '33 days'),
+('5d7f9h1j-e34g-6no8-p567-q9r0s1t2u3v4', 'https://example.com/docs/antoine_missions.pdf', 'Projets', 'approved', NOW() - INTERVAL '33 days', NULL, NOW() - INTERVAL '35 days', NOW() - INTERVAL '33 days'),
 ('6e8g0i2k-f45h-7pq9-r678-s0t1u2v3w4x5', 'https://example.com/docs/celine_certifications.pdf', 'Certifications', 'approved', NOW() - INTERVAL '28 days', NULL, NOW() - INTERVAL '30 days', NOW() - INTERVAL '28 days'),
 ('7f9h1j3l-g56i-8rs0-t789-u1v2w3x4y5z6', 'https://example.com/docs/nicolas_diploma.pdf', 'Diplôme', 'approved', NOW() - INTERVAL '23 days', NULL, NOW() - INTERVAL '25 days', NOW() - INTERVAL '23 days'))

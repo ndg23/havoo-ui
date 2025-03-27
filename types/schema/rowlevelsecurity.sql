@@ -1,6 +1,6 @@
 -- Enable RLS on all tables
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE missions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE proposals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contracts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
@@ -20,15 +20,15 @@ CREATE POLICY "Users can update own profile"
 
 -- Requests policy examples
 CREATE POLICY "Requests are viewable by everyone"
-  ON requests FOR SELECT
+  ON missions FOR SELECT
   USING (true);
 
-CREATE POLICY "Users can insert own requests"
-  ON requests FOR INSERT
+CREATE POLICY "Users can insert own missions"
+  ON missions FOR INSERT
   WITH CHECK (auth.uid() = client_id);
 
-CREATE POLICY "Users can update own requests"
-  ON requests FOR UPDATE
+CREATE POLICY "Users can update own missions"
+  ON missions FOR UPDATE
   USING (auth.uid() = client_id);
 
 -- Activer RLS sur la table expert_verifications
@@ -54,7 +54,7 @@ USING (EXISTS (
 
 -- Demandes publiques: permettre à tous de voir uniquement les demandes ouvertes
 CREATE POLICY "Demandes ouvertes visibles par tous" 
-ON requests FOR SELECT
+ON missions FOR SELECT
 USING (status = 'open');
 
 -- Profils publics: les profils experts vérifiés sont visibles par tous
@@ -84,9 +84,9 @@ CREATE POLICY "Comptage des propositions visible par tous"
 ON proposals FOR SELECT
 USING (
   EXISTS (
-    SELECT 1 FROM requests 
-    WHERE requests.id = proposals.request_id 
-    AND requests.status = 'open'
+    SELECT 1 FROM missions 
+    WHERE missions.id = proposals.mission_id 
+    AND missions.status = 'open'
   )
 );
 

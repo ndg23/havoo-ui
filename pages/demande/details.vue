@@ -53,7 +53,7 @@
                 Adresse *
               </label>
               <input 
-                v-model="form.address"
+                v-model="form.location"
                 type="text"
                 class="w-full h-12 px-4 rounded-xl border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 placeholder="Numéro et nom de rue"
@@ -164,7 +164,7 @@
 const form = ref({
   serviceType: 'menage', // À récupérer de la page précédente
   description: '',
-  address: '',
+  location: '',
   zipCode: '',
   city: '',
   firstName: '',

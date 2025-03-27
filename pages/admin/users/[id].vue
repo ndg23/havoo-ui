@@ -176,7 +176,7 @@
               <div>
                 <div class="text-sm font-medium text-gray-500 mb-1">Adresse</div>
                 <div class="text-gray-900">
-                  <div>{{ user.address || '—' }}</div>
+                  <div>{{ user.location || '—' }}</div>
                   <div v-if="user.city || user.zip_code" class="mt-1">
                     {{ user.zip_code || '' }} {{ user.city || '' }}
                   </div>
@@ -258,7 +258,7 @@
                   <div class="flex justify-between items-start">
                     <div>
                       <div class="text-sm text-gray-500 mb-1">Demandes</div>
-                      <div class="text-2xl font-bold text-gray-900 group-hover:text-primary-600 transition-colors">{{ stats.requests || 0 }}</div>
+                      <div class="text-2xl font-bold text-gray-900 group-hover:text-primary-600 transition-colors">{{ stats.missions || 0 }}</div>
                     </div>
                     <div class="h-9 w-9 rounded-full bg-primary-50 flex items-center justify-center group-hover:bg-primary-100 transition-colors">
                       <FileText class="h-4 w-4 text-primary-600" />
@@ -424,10 +424,10 @@
                 </div>
                 
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1" for="address">Adresse</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-1" for="location">Adresse</label>
                   <input
-                    id="address"
-                    v-model="editedUser.address"
+                    id="location"
+                    v-model="editedUser.location"
                     type="text"
                     class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
                     placeholder="Adresse"
@@ -752,7 +752,7 @@ const showDeleteModal = ref(false)
 const deleting = ref(false)
 const activities = ref([])
 const stats = ref({
-  requests: 0,
+  missions: 0,
   proposals: 0,
   contracts: 0,
   reviews: 0
@@ -842,7 +842,7 @@ const saveChanges = async () => {
 
 // Generate mock activities
 const generateMockActivities = () => {
-  const types = ['message', 'contract', 'request', 'proposal', 'review']
+  const types = ['message', 'contract', 'mission', 'proposal', 'review']
   const results = []
   
   const count = Math.floor(Math.random() * 5) + 1
@@ -865,7 +865,7 @@ const fetchUserStats = async () => {
   // In a real app, you would query the database
   // For this example, we generate random data
   return {
-    requests: Math.floor(Math.random() * 20),
+    missions: Math.floor(Math.random() * 20),
     proposals: Math.floor(Math.random() * 15),
     contracts: Math.floor(Math.random() * 10),
     reviews: Math.floor(Math.random() * 8)
@@ -879,7 +879,7 @@ const getActivityTitle = (type) => {
       return 'A envoyé un message'
     case 'contract':
       return 'A signé un contrat'
-    case 'request':
+    case 'mission':
       return 'A créé une nouvelle demande'
     case 'proposal':
       return 'A envoyé une proposition'
@@ -897,7 +897,7 @@ const getActivityIcon = (type) => {
       return MessageCircle
     case 'contract':
       return FileText
-    case 'request':
+    case 'mission':
       return ShoppingBag
     case 'proposal':
       return Briefcase

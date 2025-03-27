@@ -71,13 +71,13 @@
                       </label>
                       <div class="relative">
                         <select
-                          v-model="form.category_id"
+                          v-model="form.profession_id"
                           class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl appearance-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
                           required
                         >
                           <option disabled value="">Sélectionner une catégorie</option>
                           <option 
-                            v-for="category in categories" 
+                            v-for="category in professions" 
                             :key="category.id" 
                             :value="category.id"
                           >
@@ -342,13 +342,13 @@ const client = useSupabaseClient()
 const currentStep = ref(1)
 const totalSteps = 3
 const loading = ref(false)
-const categories = ref([])
+const professions = ref([])
 const newSkill = ref('')
 
 // Formulaire
 const form = ref({
   title: '',
-  category_id: '',
+  profession_id: '',
   description: '',
   price: '',
   price_type: 'hourly',
@@ -370,11 +370,11 @@ const progress = computed(() => (currentStep.value / totalSteps) * 100)
 const fetchCategories = async () => {
   try {
     const { data, error } = await client
-      .from('categories')
+      .from('professions')
       .select('id, name')
     
     if (error) throw error
-    categories.value = data || []
+    professions.value = data || []
   } catch (error) {
     console.error('Erreur lors du chargement des catégories:', error)
   }
@@ -385,7 +385,7 @@ const initForm = () => {
   if (props.service) {
     form.value = {
       title: props.service.title || '',
-      category_id: props.service.category_id || '',
+      profession_id: props.service.profession_id || '',
       description: props.service.description || '',
       price: props.service.price || '',
       price_type: props.service.price_type || 'hourly',
@@ -400,7 +400,7 @@ const initForm = () => {
     // Réinitialiser pour un nouveau service
     form.value = {
       title: '',
-      category_id: '',
+      profession_id: '',
       description: '',
       price: '',
       price_type: 'hourly',
@@ -421,7 +421,7 @@ const initForm = () => {
 const goToNextStep = () => {
   if (currentStep.value === 1) {
     // Valider les champs de l'étape 1
-    if (!form.value.title || !form.value.category_id || !form.value.description) {
+    if (!form.value.title || !form.value.profession_id || !form.value.description) {
       alert('Veuillez remplir tous les champs obligatoires.')
       return
     }

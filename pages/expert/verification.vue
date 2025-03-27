@@ -87,7 +87,7 @@
               v-model="proofAddress"
               accept="image/*,.pdf"
               :preview="true"
-              @change="uploadDocument('proof_address', $event)"
+              @change="uploadDocument('proof_location', $event)"
             />
           </div>
         </div>

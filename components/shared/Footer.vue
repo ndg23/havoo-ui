@@ -16,11 +16,11 @@
                 Nous contacter
               </NuxtLink>
             </li>
-            <li>
+            <!-- <li>
               <NuxtLink to="/blog" class="text-sm text-gray-600 hover:text-gray-900">
                 Blog
               </NuxtLink>
-            </li>
+            </li> -->
           </ul>
         </div>
 

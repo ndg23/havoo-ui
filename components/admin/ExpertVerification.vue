@@ -63,7 +63,7 @@
         </h4>
         <div class="border border-gray-200 rounded-lg p-4">
           <img 
-            :src="expert.proof_address" 
+            :src="expert.proof_location" 
             alt="Justificatif de domicile"
             class="w-full h-48 object-cover rounded-lg"
           />

@@ -17,10 +17,10 @@ CREATE TABLE activities (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
   action_type VARCHAR(50) NOT NULL, -- 'create', 'update', 'delete', 'login', 'logout', etc.
-  entity_type VARCHAR(50) NOT NULL, -- 'profile', 'request', 'deal', 'service', etc.
+  entity_type VARCHAR(50) NOT NULL, -- 'profile', 'mission', 'deal', 'service', etc.
   entity_id UUID, -- ID de l'objet concerné
   details JSONB, -- Détails supplémentaires sur l'action
-  ip_address VARCHAR(45), -- Pour suivre l'adresse IP (IPv4/IPv6)
+  ip_location VARCHAR(45), -- Pour suivre l'adresse IP (IPv4/IPv6)
   user_agent TEXT, -- Pour suivre le navigateur/appareil
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -43,7 +43,7 @@ CREATE OR REPLACE FUNCTION log_activity(
   p_entity_type VARCHAR(50),
   p_entity_id UUID,
   p_details JSONB DEFAULT NULL,
-  p_ip_address VARCHAR(45) DEFAULT NULL,
+  p_ip_location VARCHAR(45) DEFAULT NULL,
   p_user_agent TEXT DEFAULT NULL
 )
 RETURNS UUID AS $$
@@ -56,7 +56,7 @@ BEGIN
     entity_type,
     entity_id,
     details,
-    ip_address,
+    ip_location,
     user_agent
   ) VALUES (
     p_user_id,
@@ -64,7 +64,7 @@ BEGIN
     p_entity_type,
     p_entity_id,
     p_details,
-    p_ip_address,
+    p_ip_location,
     p_user_agent
   ) RETURNING id INTO v_activity_id;
   
@@ -97,8 +97,8 @@ BEGIN
     p_entity_type,
     p_entity_id,
     p_details,
-    request.header('X-Forwarded-For'),
-    request.header('User-Agent')
+    mission.header('X-Forwarded-For'),
+    mission.header('User-Agent')
   );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -244,7 +244,7 @@ CREATE TRIGGER track_verification_changes_trigger
   EXECUTE FUNCTION track_verification_changes();
 
 -- Fonction pour le trigger de suivi des demandes
-CREATE OR REPLACE FUNCTION track_request_changes()
+CREATE OR REPLACE FUNCTION track_mission_changes()
 RETURNS TRIGGER AS $$
 DECLARE
   v_details JSONB;
@@ -256,7 +256,7 @@ BEGIN
     v_details := jsonb_build_object(
       'title', NEW.title,
       'client_id', NEW.client_id,
-      'category_id', NEW.category_id,
+      'profession_id', NEW.profession_id,
       'status', NEW.status
     );
   ELSIF TG_OP = 'UPDATE' THEN
@@ -273,11 +273,11 @@ BEGIN
       
       -- Ajouter des informations supplémentaires pour les changements de statut importants
       IF NEW.status = 'assigned' AND OLD.status = 'open' THEN
-        v_action_type := 'assign_request';
+        v_action_type := 'assign_mission';
       ELSIF NEW.status = 'completed' AND OLD.status = 'assigned' THEN
-        v_action_type := 'complete_request';
+        v_action_type := 'complete_mission';
       ELSIF NEW.status = 'cancelled' THEN
-        v_action_type := 'cancel_request';
+        v_action_type := 'cancel_mission';
       END IF;
     END IF;
     
@@ -298,7 +298,7 @@ BEGIN
   PERFORM log_activity(
     COALESCE(auth.uid(), CASE WHEN TG_OP = 'DELETE' OR TG_OP = 'UPDATE' THEN OLD.client_id ELSE NEW.client_id END),
     v_action_type,
-    'request',
+    'mission',
     CASE WHEN TG_OP = 'DELETE' THEN OLD.id ELSE NEW.id END,
     v_details
   );
@@ -308,10 +308,10 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Trigger pour suivre les modifications des demandes
-CREATE TRIGGER track_request_changes_trigger
-  AFTER INSERT OR UPDATE OR DELETE ON requests
+CREATE TRIGGER track_mission_changes_trigger
+  AFTER INSERT OR UPDATE OR DELETE ON missions
   FOR EACH ROW
-  EXECUTE FUNCTION track_request_changes();
+  EXECUTE FUNCTION track_mission_changes();
 
 -- Fonction pour le trigger de suivi des deals
 CREATE OR REPLACE FUNCTION track_deal_changes()
@@ -324,7 +324,7 @@ BEGIN
   IF TG_OP = 'INSERT' THEN
     v_action_type := 'create';
     v_details := jsonb_build_object(
-      'request_id', NEW.request_id,
+      'mission_id', NEW.mission_id,
       'expert_id', NEW.expert_id,
       'client_id', NEW.client_id,
       'price', NEW.price,
@@ -385,7 +385,7 @@ BEGIN
   ELSIF TG_OP = 'DELETE' THEN
     v_action_type := 'delete';
     v_details := jsonb_build_object(
-      'request_id', OLD.request_id,
+      'mission_id', OLD.mission_id,
       'expert_id', OLD.expert_id,
       'client_id', OLD.client_id,
       'status', OLD.status
@@ -459,7 +459,7 @@ ORDER BY a.created_at DESC;
 
 -- Vue pour les activités liées aux deals
 CREATE OR REPLACE VIEW deal_activities AS
-SELECT a.*, d.request_id, d.client_id, d.expert_id, d.status AS deal_status
+SELECT a.*, d.mission_id, d.client_id, d.expert_id, d.status AS deal_status
 FROM activities a
 JOIN deals d ON a.entity_id = d.id
 WHERE a.entity_type = 'deal'

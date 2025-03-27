@@ -385,7 +385,7 @@ const getPageTitle = () => {
   if (route.path === '/admin') return 'Tableau de bord'
   if (route.path.includes('/admin/users')) return 'Gestion des utilisateurs'
   if (route.path.includes('/admin/requests')) return 'Demandes de service'
-  if (route.path.includes('/admin/categories')) return 'Catégories'
+  if (route.path.includes('/admin/professions')) return 'Catégories'
   if (route.path.includes('/admin/services')) return 'Services'
   if (route.path.includes('/admin/settings')) return 'Paramètres'
   return 'Administration'
@@ -401,7 +401,7 @@ const managementItems = computed(() => [
   { to: '/admin/users', label: 'Utilisateurs', icon: Users },
   { to: '/admin/requests', label: 'Demandes', icon: FileText },
   { to: '/admin/services', label: 'Services', icon: ShoppingBag },
-  { to: '/admin/categories', label: 'Catégories', icon: Layers },
+  { to: '/admin/professions', label: 'Catégories', icon: Layers },
   { to: '/admin/documents', label: 'Documents', icon: FileText },
   { to: '/admin/proposals', label: 'Propositions', icon: FileText },
 ])

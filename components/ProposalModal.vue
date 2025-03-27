@@ -9,7 +9,7 @@
       </div>
       
       <p class="text-gray-600 dark:text-gray-400 mb-4">
-        Envoyez une proposition à <span class="font-medium text-gray-800 dark:text-gray-200">{{ request.client_name }}</span> pour la demande <span class="font-medium text-gray-800 dark:text-gray-200">{{ request.title }}</span>
+        Envoyez une proposition à <span class="font-medium text-gray-800 dark:text-gray-200">{{ mission.client_name }}</span> pour la demande <span class="font-medium text-gray-800 dark:text-gray-200">{{ mission.title }}</span>
       </p>
       
       <div class="space-y-4">
@@ -77,7 +77,7 @@ import { X } from 'lucide-vue-next'
 
 const props = defineProps({
   isOpen: Boolean,
-  request: Object
+  mission: Object
 })
 
 const emit = defineEmits(['close', 'submit'])
@@ -107,7 +107,7 @@ const submitProposal = async () => {
     await new Promise(resolve => setTimeout(resolve, 1000))
     
     emit('submit', {
-      requestId: props.request.id,
+      missionId: props.mission.id,
       ...proposal.value
     })
     

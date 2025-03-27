@@ -15,7 +15,7 @@ SET session_replication_role = 'replica';
 -- Supprimer les triggers personnalisés
 DROP TRIGGER IF EXISTS update_profiles_modtime ON public.profiles;
 DROP TRIGGER IF EXISTS update_experts_modtime ON public.experts;
-DROP TRIGGER IF EXISTS update_requests_modtime ON public.requests;
+DROP TRIGGER IF EXISTS update_missions_modtime ON public.missions;
 DROP TRIGGER IF EXISTS update_proposals_modtime ON public.proposals;
 DROP TRIGGER IF EXISTS update_contracts_modtime ON public.contracts;
 DROP TRIGGER IF EXISTS after_review_insert ON public.reviews;
@@ -40,7 +40,7 @@ DROP FUNCTION IF EXISTS get_expert_availability() CASCADE;
 -- Supprimer les index problématiques
 DROP INDEX IF EXISTS idx_public_reviews;
 DROP INDEX IF EXISTS idx_reviews_expert_id;
-DROP INDEX IF EXISTS idx_reviews_request_id;
+DROP INDEX IF EXISTS idx_reviews_mission_id;
 
 -- Supprimer toutes les tables dans le bon ordre
 DROP TABLE IF EXISTS public.review_reactions CASCADE;
@@ -53,7 +53,7 @@ DROP TABLE IF EXISTS public.conversation_participants CASCADE;
 DROP TABLE IF EXISTS public.conversations CASCADE;
 DROP TABLE IF EXISTS public.contracts CASCADE;
 DROP TABLE IF EXISTS public.proposals CASCADE;
-DROP TABLE IF EXISTS public.requests CASCADE;
+DROP TABLE IF EXISTS public.missions CASCADE;
 DROP TABLE IF EXISTS public.expert_certifications CASCADE;
 DROP TABLE IF EXISTS public.expert_invitations CASCADE;
 DROP TABLE IF EXISTS public.expert_services CASCADE;
@@ -63,7 +63,7 @@ DROP TABLE IF EXISTS public.expert_profiles CASCADE;
 DROP TABLE IF EXISTS public.experts CASCADE;
 DROP TABLE IF EXISTS public.profile_skills CASCADE;
 DROP TABLE IF EXISTS public.services CASCADE;
-DROP TABLE IF EXISTS public.service_categories CASCADE;
+DROP TABLE IF EXISTS public.service_professions CASCADE;
 DROP TABLE IF EXISTS public.skills CASCADE;
 DROP TABLE IF EXISTS public.profiles CASCADE;
 DROP TABLE IF EXISTS public.activities CASCADE;
@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     last_name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     phone VARCHAR(50),
-    address TEXT,
+    location TEXT,
     city VARCHAR(100),
     country VARCHAR(100) DEFAULT 'France',
     zip_code VARCHAR(20),
@@ -107,7 +107,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     verified_at TIMESTAMPTZ,
     id_front TEXT,
     id_back TEXT,
-    proof_address TEXT,
+    proof_location TEXT,
     rating DECIMAL(3,2),
     reviews_count INTEGER DEFAULT 0,
     hourly_rate DECIMAL(10, 2),
@@ -125,7 +125,7 @@ CREATE TABLE IF NOT EXISTS public.skills (
 );
 
 -- Catégories de services
-CREATE TABLE IF NOT EXISTS public.service_categories (
+CREATE TABLE IF NOT EXISTS public.service_professions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(100) NOT NULL,
     icon TEXT,
@@ -137,7 +137,7 @@ CREATE TABLE IF NOT EXISTS public.service_categories (
 -- Services
 CREATE TABLE IF NOT EXISTS public.services (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    category_id UUID,
+    profession_id UUID,
     name VARCHAR(100) NOT NULL,
     icon TEXT,
     description TEXT,
@@ -172,12 +172,12 @@ CREATE TABLE IF NOT EXISTS public.expert_certifications (
 );
 
 -- Demandes
-CREATE TABLE IF NOT EXISTS public.requests (
+CREATE TABLE IF NOT EXISTS public.missions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     client_id UUID,
     title VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
-    category_id UUID,
+    profession_id UUID,
     service_id UUID,
     budget DECIMAL(10, 2),
     location VARCHAR(255),
@@ -195,7 +195,7 @@ CREATE TABLE IF NOT EXISTS public.requests (
 -- Propositions
 CREATE TABLE IF NOT EXISTS public.proposals (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    request_id UUID,
+    mission_id UUID,
     expert_id UUID,
     price DECIMAL(10, 2) NOT NULL,
     message TEXT,
@@ -207,7 +207,7 @@ CREATE TABLE IF NOT EXISTS public.proposals (
 -- Contrats
 CREATE TABLE IF NOT EXISTS public.contracts (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    request_id UUID,
+    mission_id UUID,
     proposal_id UUID,
     client_id UUID,
     expert_id UUID,
@@ -226,7 +226,7 @@ CREATE TABLE IF NOT EXISTS public.contracts (
 -- Avis
 CREATE TABLE IF NOT EXISTS public.reviews (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    request_id UUID,
+    mission_id UUID,
     expert_id UUID,
     client_id UUID,
     rating INTEGER CHECK (rating >= 1 AND rating <= 5),
@@ -345,8 +345,8 @@ FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 -- Contraintes pour services
 ALTER TABLE public.services
-ADD CONSTRAINT services_category_id_fkey
-FOREIGN KEY (category_id) REFERENCES public.service_categories(id) ON DELETE CASCADE;
+ADD CONSTRAINT services_profession_id_fkey
+FOREIGN KEY (profession_id) REFERENCES public.service_professions(id) ON DELETE CASCADE;
 
 -- Contraintes pour experts
 ALTER TABLE public.experts
@@ -358,23 +358,23 @@ ALTER TABLE public.expert_certifications
 ADD CONSTRAINT expert_certifications_expert_id_fkey
 FOREIGN KEY (expert_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
 
--- Contraintes pour requests
-ALTER TABLE public.requests
-ADD CONSTRAINT requests_client_id_fkey
+-- Contraintes pour missions
+ALTER TABLE public.missions
+ADD CONSTRAINT missions_client_id_fkey
 FOREIGN KEY (client_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
 
-ALTER TABLE public.requests
-ADD CONSTRAINT requests_service_id_fkey
+ALTER TABLE public.missions
+ADD CONSTRAINT missions_service_id_fkey
 FOREIGN KEY (service_id) REFERENCES public.services(id) ON DELETE SET NULL;
 
-ALTER TABLE public.requests
-ADD CONSTRAINT requests_category_id_fkey
-FOREIGN KEY (category_id) REFERENCES public.service_categories(id) ON DELETE SET NULL;
+ALTER TABLE public.missions
+ADD CONSTRAINT missions_profession_id_fkey
+FOREIGN KEY (profession_id) REFERENCES public.service_professions(id) ON DELETE SET NULL;
 
 -- Contraintes pour proposals
 ALTER TABLE public.proposals
-ADD CONSTRAINT proposals_request_id_fkey
-FOREIGN KEY (request_id) REFERENCES public.requests(id) ON DELETE CASCADE;
+ADD CONSTRAINT proposals_mission_id_fkey
+FOREIGN KEY (mission_id) REFERENCES public.missions(id) ON DELETE CASCADE;
 
 ALTER TABLE public.proposals
 ADD CONSTRAINT proposals_expert_id_fkey
@@ -382,8 +382,8 @@ FOREIGN KEY (expert_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
 
 -- Contraintes pour contracts
 ALTER TABLE public.contracts
-ADD CONSTRAINT contracts_request_id_fkey
-FOREIGN KEY (request_id) REFERENCES public.requests(id) ON DELETE SET NULL;
+ADD CONSTRAINT contracts_mission_id_fkey
+FOREIGN KEY (mission_id) REFERENCES public.missions(id) ON DELETE SET NULL;
 
 ALTER TABLE public.contracts
 ADD CONSTRAINT contracts_proposal_id_fkey
@@ -399,8 +399,8 @@ FOREIGN KEY (expert_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
 
 -- Contraintes pour reviews
 ALTER TABLE public.reviews
-ADD CONSTRAINT reviews_request_id_fkey
-FOREIGN KEY (request_id) REFERENCES public.requests(id) ON DELETE SET NULL;
+ADD CONSTRAINT reviews_mission_id_fkey
+FOREIGN KEY (mission_id) REFERENCES public.missions(id) ON DELETE SET NULL;
 
 ALTER TABLE public.reviews
 ADD CONSTRAINT reviews_expert_id_fkey
@@ -610,7 +610,7 @@ EXECUTE FUNCTION update_updated_at_column();
 
 -- Index pour les recherches fréquentes
 CREATE INDEX idx_reviews_expert_id ON reviews(expert_id);
-CREATE INDEX idx_reviews_request_id ON reviews(request_id);
+CREATE INDEX idx_reviews_mission_id ON reviews(mission_id);
 CREATE INDEX idx_public_reviews ON reviews(is_public) WHERE is_public = true;
 
 -- Index pour la recherche d'experts par compétence
@@ -618,7 +618,7 @@ CREATE INDEX idx_profile_skills_skill ON profile_skills(skill_id);
 CREATE INDEX idx_profile_skills_profile ON profile_skills(profile_id);
 
 -- Index pour les recherches de services
-CREATE INDEX idx_services_category ON services(category_id);
+CREATE INDEX idx_services_category ON services(profession_id);
 
 -- ===============================
 -- PARTIE 8: POLITIQUES DE SÉCURITÉ (RLS)
@@ -628,12 +628,12 @@ CREATE INDEX idx_services_category ON services(category_id);
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.skills ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.profile_skills ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.service_categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.service_professions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.services ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.experts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.expert_services ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.expert_certifications ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.missions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.proposals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contracts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
@@ -692,7 +692,7 @@ USING (auth.jwt() ->> 'role' = 'service_role' OR auth.jwt() ->> 'role' = 'admin'
 SET session_replication_role = 'origin';
 
 -- Insertion des catégories de services initiales
-INSERT INTO public.service_categories (id, name, icon, description)
+INSERT INTO public.service_professions (id, name, icon, description)
 SELECT uuid_generate_v4(), name, icon, description
 FROM (VALUES
     ('Ménage', '🧹', 'Services de nettoyage et d''entretien'),
@@ -703,7 +703,7 @@ FROM (VALUES
     ('Informatique', '💻', 'Assistance et dépannage informatique')
 ) AS data(name, icon, description)
 WHERE NOT EXISTS (
-    SELECT 1 FROM public.service_categories WHERE name = data.name
+    SELECT 1 FROM public.service_professions WHERE name = data.name
 );
 
 -- Insertion des compétences initiales
@@ -733,7 +733,7 @@ VALUES
 ('maintenance_mode', 'false', 'Mode maintenance du site', true),
 ('currency', '"XOF"', 'Devise par défaut', true),
 ('platform_fee_percent', '5', 'Pourcentage de commission de la plateforme', false),
-('default_request_duration_days', '30', 'Durée par défaut pour les demandes (jours)', true),
-('featured_categories', '["1", "2", "3"]', 'IDs des catégories mises en avant', true),
+('default_mission_duration_days', '30', 'Durée par défaut pour les demandes (jours)', true),
+('featured_professions', '["1", "2", "3"]', 'IDs des catégories mises en avant', true),
 ('max_proposal_count', '5', 'Nombre maximum de propositions par expert par jour', false)
 ON CONFLICT (key) DO NOTHING; 

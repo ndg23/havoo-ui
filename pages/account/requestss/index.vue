@@ -68,34 +68,34 @@
     </div>
 
     <div v-else class="space-y-4">
-      <div v-for="request in filteredRequests" :key="request.id" 
+      <div v-for="mission in filteredRequests" :key="mission.id" 
         class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-200">
         <div class="p-5">
           <div class="flex items-start justify-between">
             <div>
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">{{ request.title }}</h3>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">{{ mission.title }}</h3>
               <div class="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400 mb-3">
                 <span class="flex items-center">
                   <Calendar class="h-4 w-4 mr-1" />
-                  {{ formatDate(request.created_at) }}
+                  {{ formatDate(mission.created_at) }}
                 </span>
                 <span class="flex items-center">
                   <Tag class="h-4 w-4 mr-1" />
-                  {{ request.category }}
+                  {{ mission.category }}
                 </span>
                 <span class="flex items-center">
                   <MapPin class="h-4 w-4 mr-1" />
-                  {{ request.location }}
+                  {{ mission.location }}
                 </span>
               </div>
               <p class="text-gray-700 dark:text-gray-300 mb-4 line-clamp-2">
-                {{ request.description }}
+                {{ mission.description }}
               </p>
             </div>
             <div>
               <span class="px-3 py-1 rounded-full text-xs font-bold" 
-                :class="getStatusClass(request.status)">
-                {{ request.status }}
+                :class="getStatusClass(mission.status)">
+                {{ mission.status }}
               </span>
             </div>
           </div>
@@ -103,11 +103,11 @@
           <div class="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
             <div class="flex-1">
               <span class="text-sm text-gray-600 dark:text-gray-400">
-                {{ request.proposal_count }} proposition{{ request.proposal_count !== 1 ? 's' : '' }} reçue{{ request.proposal_count !== 1 ? 's' : '' }}
+                {{ mission.proposal_count }} proposition{{ mission.proposal_count !== 1 ? 's' : '' }} reçue{{ mission.proposal_count !== 1 ? 's' : '' }}
               </span>
             </div>
             
-            <NuxtLink :to="`/account/requests/${request.id}`" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-full shadow-sm">
+            <NuxtLink :to="`/account/requests/${mission.id}`" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-full shadow-sm">
               Voir les détails
             </NuxtLink>
           </div>
@@ -134,28 +134,28 @@ import {
 const user = useSupabaseUser()
 const supabase = useSupabaseClient()
 const isLoading = ref(true)
-const requests = ref([])
+const missions = ref([])
 const activeFilter = ref('all')
 const searchQuery = ref('')
 
 // Filtrer les demandes selon les critères
 const filteredRequests = computed(() => {
-  let filtered = [...requests.value]
+  let filtered = [...missions.value]
   
   // Filtrer par statut
   if (activeFilter.value === 'active') {
-    filtered = filtered.filter(request => ['En attente', 'En cours'].includes(request.status))
+    filtered = filtered.filter(mission => ['En attente', 'En cours'].includes(mission.status))
   } else if (activeFilter.value === 'completed') {
-    filtered = filtered.filter(request => ['Terminée', 'Annulée'].includes(request.status))
+    filtered = filtered.filter(mission => ['Terminée', 'Annulée'].includes(mission.status))
   }
   
   // Recherche textuelle
   if (searchQuery.value.trim()) {
     const query = searchQuery.value.toLowerCase().trim()
-    filtered = filtered.filter(request => 
-      request.title.toLowerCase().includes(query) || 
-      request.description.toLowerCase().includes(query) ||
-      request.category.toLowerCase().includes(query)
+    filtered = filtered.filter(mission => 
+      mission.title.toLowerCase().includes(query) || 
+      mission.description.toLowerCase().includes(query) ||
+      mission.category.toLowerCase().includes(query)
     )
   }
   
@@ -168,7 +168,7 @@ const fetchRequests = async () => {
   
   try {
     let query = supabase
-      .from('requests')
+      .from('missions')
       .select(`
         *,
         client:client_id(id, first_name, last_name, avatar_url),
@@ -191,11 +191,11 @@ const fetchRequests = async () => {
     
     if (error) throw error
     
-    requests.value = data.map(request => ({
-      ...request,
-      proposals_count: request.proposals ? request.proposals.length : 0,
-      client_name: `${request.client.first_name} ${request.client.last_name}`,
-      client_avatar: request.client.avatar_url
+    missions.value = data.map(mission => ({
+      ...mission,
+      proposals_count: mission.proposals ? mission.proposals.length : 0,
+      client_name: `${mission.client.first_name} ${mission.client.last_name}`,
+      client_avatar: mission.client.avatar_url
     }))
   } catch (error) {
     console.error('Erreur lors du chargement des demandes:', error)

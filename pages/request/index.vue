@@ -1,5 +1,5 @@
 <template>
-  <div class="request-container">
+  <div class="mission-container">
     <h1 class="text-2xl font-bold mb-6">Requests Management</h1>
     
     <div class="filters mb-6">
@@ -38,8 +38,8 @@
       <div class="loader">Loading...</div>
     </div>
     
-    <div v-else-if="requests.length === 0" class="text-center py-10">
-      <p class="text-gray-500">No requests found. Try adjusting your filters or create a new request.</p>
+    <div v-else-if="missions.length === 0" class="text-center py-10">
+      <p class="text-gray-500">No missions found. Try adjusting your filters or create a new mission.</p>
       <button 
         @click="navigateToNewRequest" 
         class="mt-4 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark"
@@ -48,34 +48,34 @@
       </button>
     </div>
     
-    <div v-else class="requests-list">
-      <div v-for="request in filteredRequests" :key="request.id" class="request-card bg-white p-6 rounded-lg shadow-md mb-4 hover:shadow-lg transition-shadow">
+    <div v-else class="missions-list">
+      <div v-for="mission in filteredRequests" :key="mission.id" class="mission-card bg-white p-6 rounded-lg shadow-md mb-4 hover:shadow-lg transition-shadow">
         <div class="flex justify-between items-start">
           <div>
-            <h2 class="text-xl font-semibold">{{ request.title }}</h2>
+            <h2 class="text-xl font-semibold">{{ mission.title }}</h2>
             <div class="mt-2 text-gray-600">
-              <p class="line-clamp-2">{{ request.description }}</p>
+              <p class="line-clamp-2">{{ mission.description }}</p>
             </div>
           </div>
           <div class="flex flex-col items-end">
-            <span class="status-badge" :class="getStatusClass(request.status)">
-              {{ request.status }}
+            <span class="status-badge" :class="getStatusClass(mission.status)">
+              {{ mission.status }}
             </span>
-            <span class="mt-2 font-medium">{{ formatCurrency(request.budget) }}</span>
-            <span class="text-sm text-gray-500">Deadline: {{ formatDate(request.deadline) }}</span>
+            <span class="mt-2 font-medium">{{ formatCurrency(mission.budget) }}</span>
+            <span class="text-sm text-gray-500">Deadline: {{ formatDate(mission.deadline) }}</span>
           </div>
         </div>
         
         <div class="mt-4 flex flex-wrap gap-2">
-          <span v-for="(skill, index) in request.skills_required" :key="index" class="skill-tag">
+          <span v-for="(skill, index) in mission.skills_required" :key="index" class="skill-tag">
             {{ skill }}
           </span>
         </div>
         
         <div class="mt-4 pt-4 border-t flex justify-between">
-          <span class="text-sm text-gray-500">Posted: {{ formatDate(request.created_at) }}</span>
+          <span class="text-sm text-gray-500">Posted: {{ formatDate(mission.created_at) }}</span>
           <button 
-            @click="viewRequest(request.id)" 
+            @click="viewRequest(mission.id)" 
             class="px-4 py-1 bg-primary text-white rounded-md text-sm hover:bg-primary-dark"
           >
             View Details
@@ -84,7 +84,7 @@
       </div>
     </div>
     
-    <div v-if="requests.length > 0" class="pagination mt-8 flex justify-center">
+    <div v-if="missions.length > 0" class="pagination mt-8 flex justify-center">
       <!-- Pagination controls -->
       <button 
         @click="page > 1 && (page--)" 
@@ -112,7 +112,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
-const requests = ref([]);
+const missions = ref([]);
 const loading = ref(true);
 const page = ref(1);
 const perPage = ref(10);
@@ -128,8 +128,8 @@ const filters = ref({
 const totalPages = computed(() => Math.ceil(totalItems.value / perPage.value));
 
 const filteredRequests = computed(() => {
-  // Filter requests based on filters
-  let filtered = [...requests.value];
+  // Filter missions based on filters
+  let filtered = [...missions.value];
   
   // Filter by status
   if (filters.value.status) {
@@ -169,7 +169,7 @@ function fetchRequests() {
     // Example: const { data } = await useFetch('/api/requests')
     
     // Mock data array for development and testing
-    requests.value = [
+    missions.value = [
       {
         id: 1,
         client_id: 'c1b8a3d4-e5f6-7890-a1b2-c3d4e5f67890',
@@ -268,7 +268,7 @@ function fetchRequests() {
       }
     ];
     
-    totalItems.value = requests.value.length;
+    totalItems.value = missions.value.length;
     loading.value = false;
   }, 1000);
 }
@@ -307,7 +307,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.request-container {
+.mission-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 1.5rem;

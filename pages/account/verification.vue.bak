@@ -412,7 +412,7 @@ const fetchSkills = async () => {
   try {
     const { data: skills, error: skillsError } = await supabase
       .from('skills')
-      .select('id, name, category_id');
+      .select('id, name, profession_id');
     
     if (skillsError) throw skillsError;
     
@@ -595,14 +595,14 @@ const submitVerification = async () => {
     };
     
     // 3. Soumettre la demande avec la fonction simplifiée
-    const { error: requestError } = await supabase.rpc(
-      'request_expert_verification',
+    const { error: missionError } = await supabase.rpc(
+      'mission_expert_verification',
       {
         p_documents: documentsData
       }
     );
     
-    if (requestError) throw requestError;
+    if (missionError) throw missionError;
     
     // 4. Mettre à jour la bio du profil
     const { error: profileError } = await supabase

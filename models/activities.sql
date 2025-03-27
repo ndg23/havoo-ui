@@ -3,7 +3,7 @@
 -- Création d'un type ENUM pour les types d'activités
 CREATE TYPE activity_type AS ENUM (
     'new_user',
-    'new_request',
+    'new_mission',
     'service_completed',
     'payment',
     'service_created',
@@ -19,7 +19,7 @@ CREATE TABLE public.activities (
     description TEXT NOT NULL,
     user_id UUID REFERENCES public.profiles(id),
     related_id UUID, -- ID de l'objet concerné (utilisateur, demande, etc.)
-    related_type VARCHAR(50), -- Type de l'objet concerné (user, request, etc.)
+    related_type VARCHAR(50), -- Type de l'objet concerné (user, mission, etc.)
     metadata JSONB, -- Données supplémentaires en format JSON
     created_at TIMESTAMPTZ DEFAULT NOW(),
     created_by UUID REFERENCES public.profiles(id)
@@ -81,7 +81,7 @@ FOR EACH ROW
 EXECUTE PROCEDURE log_new_user_activity();
 
 -- Fonction pour enregistrer automatiquement une activité lors d'une nouvelle demande
-CREATE OR REPLACE FUNCTION log_new_request_activity()
+CREATE OR REPLACE FUNCTION log_new_mission_activity()
 RETURNS TRIGGER AS $$
 BEGIN
     INSERT INTO public.activities (
@@ -92,22 +92,22 @@ BEGIN
         related_id,
         related_type
     ) VALUES (
-        'new_request',
+        'new_mission',
         'Nouvelle demande créée',
         'Une nouvelle demande a été soumise',
         NEW.client_id,
         NEW.id,
-        'request'
+        'mission'
     );
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
 -- Trigger pour enregistrer l'activité d'une nouvelle demande
-CREATE TRIGGER log_new_request_activity_trigger
-AFTER INSERT ON public.service_requests
+CREATE TRIGGER log_new_mission_activity_trigger
+AFTER INSERT ON public.service_missions
 FOR EACH ROW
-EXECUTE PROCEDURE log_new_request_activity();
+EXECUTE PROCEDURE log_new_mission_activity();
 
 -- Fonction pour enregistrer automatiquement une activité lors d'un paiement
 CREATE OR REPLACE FUNCTION log_payment_activity()

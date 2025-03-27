@@ -485,7 +485,7 @@
     try {
       const { data, error } = await supabase
         .from('skills')
-        .select('id, name, category_id')
+        .select('id, name, profession_id')
         .order('name');
         
       if (error) throw error;

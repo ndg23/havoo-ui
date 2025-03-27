@@ -1,9 +1,9 @@
 # Changelog
 
-All notable changes to the Havoo UI project will be documented in this file.
+All notable changes to the Havoo UI mission will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+and this mission adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Module d'activités complet pour le suivi des actions utilisateurs dans l'application
   - Nouvelle table `activities` pour enregistrer les actions des utilisateurs
   - Fonctions `log_activity` et `log_user_activity` pour l'enregistrement des activités
-  - Triggers automatiques pour le suivi des modifications sur les tables principales (profiles, verifications, requests, deals)
+  - Triggers automatiques pour le suivi des modifications sur les tables principales (profiles, verifications, missions, deals)
   - Vues pour simplifier l'analyse des activités (user_recent_activities, deal_activities, etc.)
   - Politiques RLS pour la sécurisation des données d'activité
 - Guide d'administration pour le nouveau processus de vérification d'experts
@@ -96,7 +96,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial release of the UI framework
 - Authentication system with login and registration
 - Expert profile management
-- Service request functionality
+- Service mission functionality
 - User dashboard
 - Basic messaging system
 

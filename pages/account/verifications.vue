@@ -136,15 +136,15 @@
             </div>
           </div>
           
-          <div v-if="uploadStatus.address === 'verified'" class="flex items-center text-sm font-medium text-green-600 dark:text-green-400">
+          <div v-if="uploadStatus.location === 'verified'" class="flex items-center text-sm font-medium text-green-600 dark:text-green-400">
             <CheckCircle class="h-4 w-4 mr-1.5" />
             Vérifié
           </div>
-          <div v-else-if="uploadStatus.address === 'pending'" class="flex items-center text-sm font-medium text-amber-600 dark:text-amber-400">
+          <div v-else-if="uploadStatus.location === 'pending'" class="flex items-center text-sm font-medium text-amber-600 dark:text-amber-400">
             <Clock class="h-4 w-4 mr-1.5" />
             En cours de vérification
           </div>
-          <div v-else-if="uploadStatus.address === 'rejected'" class="flex items-center text-sm font-medium text-red-600 dark:text-red-400">
+          <div v-else-if="uploadStatus.location === 'rejected'" class="flex items-center text-sm font-medium text-red-600 dark:text-red-400">
             <XCircle class="h-4 w-4 mr-1.5" />
             Rejeté
             <button 
@@ -263,7 +263,7 @@
             Facture récente (moins de 3 mois)
           </label>
           <div 
-            @click="triggerFileInput('address')"
+            @click="triggerFileInput('location')"
             class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           >
             <Upload class="h-8 w-8 text-gray-400 mx-auto mb-2" />
@@ -274,15 +274,15 @@
               Facture d'électricité, de gaz, d'eau, de téléphone, quittance de loyer...
             </p>
             <input 
-              ref="addressInput"
+              ref="locationInput"
               type="file" 
               accept="image/*,.pdf" 
               class="hidden"
-              @change="handleFileChange('address', $event)"
+              @change="handleFileChange('location', $event)"
             />
           </div>
-          <div v-if="addressFile" class="mt-2 text-sm text-gray-700 dark:text-gray-300">
-            {{ addressFile.name }}
+          <div v-if="locationFile" class="mt-2 text-sm text-gray-700 dark:text-gray-300">
+            {{ locationFile.name }}
           </div>
         </div>
         
@@ -295,7 +295,7 @@
           </button>
           <button 
             @click="uploadAddressFile"
-            :disabled="!addressFile || uploading"
+            :disabled="!locationFile || uploading"
             class="px-4 py-2 bg-primary-600 text-white rounded-md text-sm font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Loader2 v-if="uploading" class="h-4 w-4 mr-2 inline animate-spin" />
@@ -326,13 +326,13 @@ const showIdUploadModal = ref(false)
 const showAddressUploadModal = ref(false)
 const idFrontInput = ref(null)
 const idBackInput = ref(null)
-const addressInput = ref(null)
+const locationInput = ref(null)
 const idFiles = ref({ front: null, back: null })
-const addressFile = ref(null)
+const locationFile = ref(null)
 const uploading = ref(false)
 const uploadStatus = ref({
   id: 'none', // none, pending, verified, rejected
-  address: 'none'
+  location: 'none'
 })
 
 // Méthodes
@@ -353,8 +353,8 @@ const fetchUserData = async () => {
       uploadStatus.value.id = data.id_verification_status || 'pending'
     }
     
-    if (data.proof_address) {
-      uploadStatus.value.address = data.address_verification_status || 'pending'
+    if (data.proof_location) {
+      uploadStatus.value.location = data.location_verification_status || 'pending'
     }
   } catch (error) {
     console.error('Erreur lors de la récupération des données utilisateur:', error)
@@ -411,8 +411,8 @@ const triggerFileInput = (type) => {
     idFrontInput.value.click()
   } else if (type === 'idBack' && idBackInput.value) {
     idBackInput.value.click()
-  } else if (type === 'address' && addressInput.value) {
-    addressInput.value.click()
+  } else if (type === 'location' && locationInput.value) {
+    locationInput.value.click()
   }
 }
 
@@ -425,8 +425,8 @@ const handleFileChange = (type, event) => {
     idFiles.value.front = file
   } else if (type === 'idBack') {
     idFiles.value.back = file
-  } else if (type === 'address') {
-    addressFile.value = file
+  } else if (type === 'location') {
+    locationFile.value = file
   }
 }
 
@@ -486,18 +486,18 @@ const uploadIdentityFiles = async () => {
 
 // Télécharger le justificatif de domicile
 const uploadAddressFile = async () => {
-  if (!addressFile.value) return
+  if (!locationFile.value) return
   
   uploading.value = true
   
   try {
     // Télécharger le fichier
-    const fileName = `address_proof_${currentUser.value.id}_${uuidv4()}`
-    const ext = addressFile.value.name.split('.').pop()
+    const fileName = `location_proof_${currentUser.value.id}_${uuidv4()}`
+    const ext = locationFile.value.name.split('.').pop()
     
     const { data: fileData, error: fileError } = await supabase.storage
       .from('documents')
-      .upload(`${currentUser.value.id}/${fileName}.${ext}`, addressFile.value)
+      .upload(`${currentUser.value.id}/${fileName}.${ext}`, locationFile.value)
     
     if (fileError) throw fileError
     
@@ -505,8 +505,8 @@ const uploadAddressFile = async () => {
     const { data, error } = await supabase
       .from('profiles')
       .update({
-        proof_address: fileData.path,
-        address_verification_status: 'pending',
+        proof_location: fileData.path,
+        location_verification_status: 'pending',
         verification_status: 'pending'
       })
       .eq('id', currentUser.value.id)
@@ -514,7 +514,7 @@ const uploadAddressFile = async () => {
     if (error) throw error
     
     // Mise à jour des états
-    uploadStatus.value.address = 'pending'
+    uploadStatus.value.location = 'pending'
     showAddressUploadModal.value = false
     
     // Rafraîchir les données

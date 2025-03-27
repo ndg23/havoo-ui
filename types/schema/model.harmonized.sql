@@ -20,7 +20,7 @@ CREATE TABLE profiles (
   city VARCHAR(255),
   zip_code VARCHAR(255),
   country VARCHAR(255),
-  address TEXT,
+  location TEXT,
   birthdate DATE,
   website VARCHAR(255),
   hourly_rate DECIMAL(10, 2),
@@ -31,7 +31,7 @@ CREATE TABLE profiles (
 );
 
 -- Categories
-CREATE TABLE categories (
+CREATE TABLE professions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   is_active BOOLEAN DEFAULT TRUE,
   name VARCHAR(255) NOT NULL UNIQUE,
@@ -40,12 +40,12 @@ CREATE TABLE categories (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Skills linked to categories
+-- Skills linked to professions
 CREATE TABLE skills (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   is_active BOOLEAN DEFAULT TRUE,
   name VARCHAR(255) NOT NULL UNIQUE,
-  category_id UUID REFERENCES categories(id) ON DELETE SET NULL,
+  profession_id UUID REFERENCES professions(id) ON DELETE SET NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -57,8 +57,8 @@ CREATE TABLE user_skills (
   PRIMARY KEY (user_id, skill_id)
 );
 
--- Client requests
-CREATE TABLE requests (
+-- Client missions
+CREATE TABLE missions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   client_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   title VARCHAR(255) NOT NULL,
@@ -66,7 +66,7 @@ CREATE TABLE requests (
   budget DECIMAL(10, 2),
   deadline DATE,
   status VARCHAR(50) DEFAULT 'open' CHECK (status IN ('open', 'assigned', 'completed', 'cancelled')),
-  category_id UUID REFERENCES categories(id) ON DELETE SET NULL,
+  profession_id UUID REFERENCES professions(id) ON DELETE SET NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -74,7 +74,7 @@ CREATE TABLE requests (
 -- Combined proposals and contracts into deals
 CREATE TABLE deals (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  request_id UUID REFERENCES requests(id) ON DELETE CASCADE,
+  mission_id UUID REFERENCES missions(id) ON DELETE CASCADE,
   expert_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   client_id UUID REFERENCES profiles(id),
   price DECIMAL(10, 2) NOT NULL,
@@ -83,14 +83,14 @@ CREATE TABLE deals (
   status VARCHAR(50) DEFAULT 'proposal' CHECK (status IN ('proposal', 'active', 'completed', 'rejected', 'cancelled')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  UNIQUE(request_id, expert_id)
+  UNIQUE(mission_id, expert_id)
 );
 
 -- Expert services
 CREATE TABLE services (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   expert_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
-  category_id UUID REFERENCES categories(id),
+  profession_id UUID REFERENCES professions(id),
   title VARCHAR(255) NOT NULL,
   description TEXT NOT NULL,
   price DECIMAL(10, 2) NOT NULL,
@@ -125,7 +125,7 @@ CREATE TABLE reviews (
 -- Conversations
 CREATE TABLE conversations (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  request_id UUID REFERENCES requests(id) ON DELETE SET NULL,
+  mission_id UUID REFERENCES missions(id) ON DELETE SET NULL,
   deal_id UUID REFERENCES deals(id) ON DELETE SET NULL,
   last_message TEXT,
   last_message_at TIMESTAMP WITH TIME ZONE,
@@ -165,9 +165,9 @@ CREATE TABLE verifications (
 );
 
 -- Indices for performance optimization
-CREATE INDEX idx_requests_client_id ON requests(client_id);
+CREATE INDEX idx_missions_client_id ON missions(client_id);
 CREATE INDEX idx_deals_expert_id ON deals(expert_id);
-CREATE INDEX idx_deals_request_id ON deals(request_id);
+CREATE INDEX idx_deals_mission_id ON deals(mission_id);
 CREATE INDEX idx_services_expert_id ON services(expert_id);
 CREATE INDEX idx_user_skills_user_id ON user_skills(user_id);
 CREATE INDEX idx_messages_conversation_id ON messages(conversation_id);

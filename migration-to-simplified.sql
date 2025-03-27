@@ -7,8 +7,8 @@ BEGIN;
 CREATE TEMP TABLE temp_profiles AS 
 SELECT * FROM profiles;
 
-CREATE TEMP TABLE temp_requests AS 
-SELECT * FROM requests;
+CREATE TEMP TABLE temp_missions AS 
+SELECT * FROM missions;
 
 -- 2. Mise à jour de la table profiles pour y intégrer is_verified
 ALTER TABLE profiles 
@@ -27,19 +27,19 @@ ALTER TABLE profiles
   DROP COLUMN IF EXISTS verified_at,
   DROP COLUMN IF EXISTS id_front,
   DROP COLUMN IF EXISTS id_back,
-  DROP COLUMN IF EXISTS proof_address;
+  DROP COLUMN IF EXISTS proof_location;
 
 -- 4. Migrer les données des avis (si la table reviews existe)
 DO $$ 
 BEGIN
   IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'reviews') THEN
-    -- Adapter les données des avis dans la table requests
-    UPDATE requests r
+    -- Adapter les données des avis dans la table missions
+    UPDATE missions r
     SET 
       review = rev.comment,
       rating = rev.rating
     FROM reviews rev
-    WHERE r.id = rev.request_id;
+    WHERE r.id = rev.mission_id;
   END IF;
 END $$;
 
@@ -49,8 +49,8 @@ DROP TABLE IF EXISTS review_responses;
 DROP TABLE IF EXISTS reviews;
 DROP TABLE IF EXISTS expert_certifications;
 
--- 6. Simplifier les champs dans requests
-ALTER TABLE requests
+-- 6. Simplifier les champs dans missions
+ALTER TABLE missions
   DROP COLUMN IF EXISTS photos,
   DROP COLUMN IF EXISTS is_public,
   DROP COLUMN IF EXISTS resolution_notes,
@@ -74,23 +74,23 @@ CREATE TRIGGER update_app_settings_updated_at
 DO $$
 DECLARE
   profile_count INT;
-  request_count INT;
+  mission_count INT;
 BEGIN
   SELECT COUNT(*) INTO profile_count FROM profiles;
-  SELECT COUNT(*) INTO request_count FROM requests;
+  SELECT COUNT(*) INTO mission_count FROM missions;
   
   IF profile_count != (SELECT COUNT(*) FROM temp_profiles) THEN
     RAISE EXCEPTION 'Erreur de migration: comptage de profils incorrect';
   END IF;
   
-  IF request_count != (SELECT COUNT(*) FROM temp_requests) THEN
+  IF mission_count != (SELECT COUNT(*) FROM temp_missions) THEN
     RAISE EXCEPTION 'Erreur de migration: comptage de requêtes incorrect';
   END IF;
 END $$;
 
 -- 10. Nettoyage des tables temporaires
 DROP TABLE temp_profiles;
-DROP TABLE temp_requests;
+DROP TABLE temp_missions;
 
 -- 11. Initialiser quelques paramètres d'application
 INSERT INTO app_settings (id, value)

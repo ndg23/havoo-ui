@@ -15,7 +15,7 @@
     
     <div class="p-6">
       <!-- État non résolu -->
-      <div v-if="!request.resolved_at" class="space-y-8">
+      <div v-if="!mission.resolved_at" class="space-y-8">
         <!-- Étapes de résolution -->
         <div class="flex justify-between">
           <div 
@@ -203,7 +203,7 @@
           </div>
           <h4 class="text-lg font-medium text-gray-900">Demande finalisée</h4>
           <p class="text-sm text-gray-500 mt-1">
-            Le {{ formatDate(request.resolved_at) }}
+            Le {{ formatDate(mission.resolved_at) }}
           </p>
         </div>
         
@@ -214,7 +214,7 @@
               :key="star"
               :class="[
                 'h-6 w-6',
-                star <= request.rating 
+                star <= mission.rating 
                   ? 'text-yellow-400 fill-yellow-400' 
                   : 'text-gray-300'
               ]"
@@ -223,14 +223,14 @@
         </div>
         
         <!-- Commentaire -->
-        <div v-if="request.review" class="bg-gray-50 rounded-xl p-4 text-sm text-gray-700">
-          {{ request.review }}
+        <div v-if="mission.review" class="bg-gray-50 rounded-xl p-4 text-sm text-gray-700">
+          {{ mission.review }}
         </div>
         
         <!-- Photos -->
-        <div v-if="request.photos?.length" class="flex gap-4 mt-4">
+        <div v-if="mission.photos?.length" class="flex gap-4 mt-4">
           <img 
-            v-for="(photo, index) in request.photos"
+            v-for="(photo, index) in mission.photos"
             :key="index"
             :src="photo.url"
             class="w-20 h-20 object-cover rounded-lg border border-gray-200"
@@ -250,7 +250,7 @@ import {
 import { Switch } from '@headlessui/vue'
 
 const props = defineProps({
-  request: {
+  mission: {
     type: Object,
     required: true
   }
@@ -327,8 +327,8 @@ const submitResolution = async () => {
     const client = useSupabaseClient()
     
     // Mettre à jour la demande
-    const { error: requestError } = await client
-      .from('requests')
+    const { error: missionError } = await client
+      .from('missions')
       .update({
         resolved_at: new Date().toISOString(),
         rating: rating.value,
@@ -336,15 +336,15 @@ const submitResolution = async () => {
         photos: photos.value,
         is_public: isPublic.value
       })
-      .eq('id', props.request.id)
+      .eq('id', props.mission.id)
     
-    if (requestError) throw requestError
+    if (missionError) throw missionError
     
     // Mettre à jour la note moyenne de l'expert
     const { data: expertData, error: expertError } = await client
       .from('profiles')
       .select('rating, reviews_count')
-      .eq('id', props.request.expert_id)
+      .eq('id', props.mission.expert_id)
       .single()
     
     if (expertError) throw expertError
@@ -360,18 +360,18 @@ const submitResolution = async () => {
         rating: newRating,
         reviews_count: newCount
       })
-      .eq('id', props.request.expert_id)
+      .eq('id', props.mission.expert_id)
     
     if (updateError) throw updateError
     
     // Envoyer une notification à l'expert
     await client.from('notifications').insert({
-      user_id: props.request.expert_id,
-      type: 'request_resolved',
+      user_id: props.mission.expert_id,
+      type: 'mission_resolved',
       title: 'Nouvelle évaluation reçue',
       message: `Vous avez reçu une note de ${rating.value}/5 étoiles`,
       data: { 
-        request_id: props.request.id,
+        mission_id: props.mission.id,
         rating: rating.value,
         is_public: isPublic.value
       }

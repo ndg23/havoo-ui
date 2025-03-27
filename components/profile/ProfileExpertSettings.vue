@@ -83,14 +83,14 @@
         </label>
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <label 
-            v-for="category in categories" 
+            v-for="category in professions" 
             :key="category.id"
             class="flex items-start p-3 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
           >
             <input 
               type="checkbox" 
               :value="category.id" 
-              v-model="form.categories"
+              v-model="form.professions"
               class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded mt-0.5"
             />
             <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">
@@ -183,7 +183,7 @@ const { updateExpertProfile } = useProfile()
 const isSubmitting = ref(false)
 
 // Données simulées pour les catégories (à remplacer par votre propre source de données)
-const categories = ref([
+const professions = ref([
   { id: 1, name: 'Ménage' },
   { id: 2, name: 'Jardinage' },
   { id: 3, name: 'Bricolage' },
@@ -199,7 +199,7 @@ const form = ref({
   bio: '',
   experience: 0,
   isAvailable: true,
-  categories: [],
+  professions: [],
   skills: []
 })
 
@@ -235,7 +235,7 @@ onMounted(() => {
       bio: details.bio || '',
       experience: details.experience || 0,
       isAvailable: details.isAvailable !== undefined ? details.isAvailable : true,
-      categories: details.categories?.map(cat => cat.id) || [],
+      professions: details.professions?.map(cat => cat.id) || [],
       skills: []
     }
     
@@ -256,7 +256,7 @@ const resetExpertForm = () => {
       bio: details.bio || '',
       experience: details.experience || 0,
       isAvailable: details.isAvailable !== undefined ? details.isAvailable : true,
-      categories: details.categories?.map(cat => cat.id) || [],
+      professions: details.professions?.map(cat => cat.id) || [],
       skills: []
     }
     
@@ -277,7 +277,7 @@ const saveExpertProfile = async () => {
       bio: form.value.bio,
       experience: form.value.experience,
       isAvailable: form.value.isAvailable,
-      categories: form.value.categories,
+      professions: form.value.professions,
       skills: form.value.skills
     })
     

@@ -27,7 +27,7 @@
         <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
           <div class="flex justify-between items-start">
             <div>
-              <h3 class="font-medium text-gray-900 dark:text-white">{{ proposal.request_title }}</h3>
+              <h3 class="font-medium text-gray-900 dark:text-white">{{ proposal.mission_title }}</h3>
               <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Proposé à {{ proposal.client_name }} · {{ formatDate(proposal.created_at) }}
               </p>
@@ -64,7 +64,7 @@
           
           <div class="flex justify-between items-center">
             <NuxtLink 
-              :to="`/requests/${proposal.request_id}`"
+              :to="`/requests/${proposal.mission_id}`"
               class="text-sm text-primary-600 hover:text-primary-500 dark:text-primary-400 font-medium"
             >
               Voir la demande
@@ -137,8 +137,8 @@ const currentFilter = ref('all')
 const proposals = ref([
   {
     id: 1,
-    request_id: 101,
-    request_title: "Développement d'un site e-commerce",
+    mission_id: 101,
+    mission_title: "Développement d'un site e-commerce",
     client_name: "Sophie Koné",
     price: 2800,
     delivery_time: 30,
@@ -148,8 +148,8 @@ const proposals = ref([
   },
   {
     id: 2,
-    request_id: 102,
-    request_title: "Conception de logo pour une entreprise locale",
+    mission_id: 102,
+    mission_title: "Conception de logo pour une entreprise locale",
     client_name: "Ibrahim Diallo",
     price: 350,
     delivery_time: 7,
@@ -159,8 +159,8 @@ const proposals = ref([
   },
   {
     id: 3,
-    request_id: 103,
-    request_title: "Rédaction d'articles SEO pour site de nutrition",
+    mission_id: 103,
+    mission_title: "Rédaction d'articles SEO pour site de nutrition",
     client_name: "Aminata Touré",
     price: 450,
     delivery_time: 14,
@@ -170,8 +170,8 @@ const proposals = ref([
   },
   {
     id: 4,
-    request_id: 104,
-    request_title: "Développement d'application mobile de recettes",
+    mission_id: 104,
+    mission_title: "Développement d'application mobile de recettes",
     client_name: "Moussa Camara",
     price: 3500,
     delivery_time: 45,

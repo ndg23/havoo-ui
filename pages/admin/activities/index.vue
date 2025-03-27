@@ -29,7 +29,7 @@
             >
               <option value="">Tous les types</option>
               <option value="new_user">Nouveaux utilisateurs</option>
-              <option value="new_request">Nouvelles demandes</option>
+              <option value="new_mission">Nouvelles demandes</option>
               <option value="service_completed">Services terminés</option>
               <option value="payment">Paiements</option>
               <option value="service_created">Services créés</option>
@@ -378,7 +378,7 @@ const exportActivities = () => {
 const formatActivityType = (type) => {
   switch (type) {
     case 'new_user': return 'Nouvel utilisateur'
-    case 'new_request': return 'Nouvelle demande'
+    case 'new_mission': return 'Nouvelle demande'
     case 'service_completed': return 'Service terminé'
     case 'payment': return 'Paiement'
     case 'service_created': return 'Service créé'
@@ -392,7 +392,7 @@ const formatActivityType = (type) => {
 const formatRelatedType = (type) => {
   switch (type) {
     case 'user': return 'Utilisateur'
-    case 'request': return 'Demande'
+    case 'mission': return 'Demande'
     case 'service': return 'Service'
     case 'payment': return 'Paiement'
     default: return type
@@ -414,7 +414,7 @@ const formatDetailDate = (dateString) => {
 const getActivityTypeIcon = (type) => {
   switch (type) {
     case 'new_user': return UserPlus
-    case 'new_request': return MessageSquare
+    case 'new_mission': return MessageSquare
     case 'service_completed': return CheckCircle
     case 'payment': return DollarSign
     case 'service_created': return Package
@@ -428,7 +428,7 @@ const getActivityTypeIcon = (type) => {
 const getActivityTypeClass = (type) => {
   switch (type) {
     case 'new_user': return 'bg-green-500'
-    case 'new_request': return 'bg-blue-500'
+    case 'new_mission': return 'bg-blue-500'
     case 'service_completed': return 'bg-purple-500'
     case 'payment': return 'bg-amber-500'
     case 'service_created': return 'bg-indigo-500'

@@ -1,402 +1,310 @@
 <template>
   <NuxtLayout name="default">
     <template #default>
-      <div class="min-h-screen bg-white dark:bg-gray-900 flex flex-col">
+      <!-- Loading state -->
+      <div v-if="isLoading" class="min-h-screen flex items-center justify-center">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+      </div>
+
+      <!-- Content when loaded -->
+      <div v-else class="min-h-screen bg-white dark:bg-gray-900">
         <!-- Header fixe avec design Twitter -->
-        <div class="sticky top-0 z-10 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
-          <div class="max-w-5xl mx-auto px-4">
-            <!-- Navigation desktop -->
-            <div class="hidden md:flex h-14 items-center">
-              <div class="flex h-full space-x-1">
-                <NuxtLink 
-                  to="/account" 
-                  class="twitter-tab group"
-                  :class="[$route.path === '/account' ? 'twitter-tab-active' : '']"
-                >
-                  <span>Tableau de bord</span>
-                  <div class="twitter-indicator"></div>
-                </NuxtLink>
-                
-                <NuxtLink 
-                  to="/account/requests" 
-                  class="twitter-tab group"
-                  :class="[$route.path.includes('/account/requests') ? 'twitter-tab-active' : '']"
-                >
-                  <span>Demandes</span>
-                  <div class="twitter-indicator"></div>
-                </NuxtLink>
-                
-                <NuxtLink 
-                  v-if="isExpert"
-                  to="/account/services" 
-                  class="twitter-tab group"
-                  :class="[$route.path.includes('/account/services') ? 'twitter-tab-active' : '']"
-                >
-                  <span>Services</span>
-                  <div class="twitter-indicator"></div>
-                </NuxtLink>
-                
-                <NuxtLink 
-                  to="/account/contracts" 
-                  class="twitter-tab group"
-                  :class="[$route.path.includes('/account/contracts') ? 'twitter-tab-active' : '']"
-                >
-                  <span>Contrats</span>
-                  <div class="twitter-indicator"></div>
-                </NuxtLink>
-                
-                <NuxtLink 
-                  to="/account/messages" 
-                  class="twitter-tab group relative"
-                  :class="[$route.path.includes('/account/messages') ? 'twitter-tab-active' : '']"
-                >
-                  <span>Messages</span>
-                  <div class="twitter-indicator"></div>
-                  <span 
-                    v-if="unreadCount > 0" 
-                    class="twitter-badge"
-                  >
-                    {{ unreadCount > 99 ? '99+' : unreadCount }}
-                  </span>
-                </NuxtLink>
-              </div>
-              
-              <!-- Action button avec bulle d'aide -->
-              <div class="ml-auto">
-                <div class="relative group">
-                  <NuxtLink 
-                    v-if="isExpert"
-                    to="/account/services/create" 
-                    class="twitter-action-button"
-                  >
-                    <Plus class="h-5 w-5 mr-2" />
-                    <span>Créer un service</span>
-                  </NuxtLink>
-                  <NuxtLink 
-                    v-else
-                    to="/requests/new" 
-                    class="twitter-action-button"
-                  >
-                    <Plus class="h-5 w-5 mr-2" />
-                    <span>Créer une demande</span>
-                  </NuxtLink>
+        <header class="sticky top-0 z-40 backdrop-blur-sm">
+          <div class="bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-800">
+            <!-- Profil condensé -->
+            <div class="max-w-6xl mx-auto px-4">
+              <div class="h-16 flex items-center justify-between gap-4">
+                <!-- Info utilisateur -->
+                <div class="flex items-center gap-3">
+                  <div class="relative">
+                    <div class="w-9 h-9 rounded-full ring-2 ring-white dark:ring-gray-800 overflow-hidden">
+                      <img 
+                        v-if="user?.avatar_url" 
+                        :src="user.avatar_url" 
+                        :alt="user?.first_name"
+                        class="w-full h-full object-cover"
+                      />
+                      <div 
+                        v-else 
+                        class="w-full h-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-sm font-bold text-white"
+                      >
+                        {{ getInitials(user?.first_name, user?.last_name) }}
+                      </div>
+                    </div>
+                    <div 
+                      class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full ring-2 ring-white dark:ring-gray-800"
+                      :class="{
+                        'bg-green-500': user?.availability_status === 'available',
+                        'bg-yellow-500': user?.availability_status === 'busy',
+                        'bg-red-500': user?.availability_status === 'unavailable'
+                      }"
+                    />
+                  </div>
+                  <div class="hidden sm:block">
+                    <div class="font-bold text-gray-900 dark:text-white">
+                      {{ user?.first_name }} {{ user?.last_name }}
+                    </div>
+                    <div class="text-sm text-gray-800 dark:text-gray-400">
+                      {{ user?.role === 'expert' ? 'Expert' : 'Client' }}
+                      <span v-if="user?.is_verified" class="ml-1 text-primary-500">
+                        <v-icon name="bi-patch-check-fill" scale="1.1" />
+                      </span>
+                    </div>
+                  </div>
                 </div>
+
+                <!-- Navigation desktop -->
+                <nav class="hidden md:flex h-full flex-1 items-center justify-center">
+                  <div class="flex h-full space-x-1">
+                    <NuxtLink 
+                      v-for="item in navigationItems"
+                      :key="item.to"
+                      :to="item.to"
+                      class="twitter-tab group relative flex items-center px-8 h-full"
+                      :class="[
+                        isActivePath(item.to) 
+                          ? 'twitter-tab-active' 
+                          : ''
+                      ]"
+                    >
+                      <!-- Icône et label avec effet hover -->
+                      <div class="flex flex-col items-center">
+                        <v-icon 
+                          :name="item.icon" 
+                          class="w-6 h-6 mb-0.5 transition-colors duration-200"
+                          :class="[
+                            isActivePath(item.to) 
+                              ? 'text-primary-500 dark:text-primary-400' 
+                              : 'text-gray-800 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white'
+                          ]"
+                        />
+                        <span 
+                          class="text-sm font-medium transition-colors duration-200"
+                          :class="[
+                            isActivePath(item.to) 
+                              ? 'text-gray-900 dark:text-white' 
+                              : 'text-gray-800 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white'
+                          ]"
+                        >
+                          {{ item.label }}
+                        </span>
+                      </div>
+
+                      <!-- Indicateur actif -->
+                      <div 
+                        class="absolute bottom-0 left-0 right-0 h-1 bg-primary-500 dark:bg-primary-400 transition-all duration-200"
+                        :class="[
+                          isActivePath(item.to) 
+                            ? 'opacity-100' 
+                            : 'opacity-0 group-hover:opacity-100'
+                        ]"
+                      />
+                    </NuxtLink>
+                  </div>
+                </nav>
+
+                <!-- Actions -->
+                <!-- <div class="flex items-center gap-3">
+                  <button class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                    <v-icon name="bi-bell" class="w-6 h-6" />
+                  </button>
+                </div> -->
               </div>
             </div>
-            
-            <!-- Navigation mobile avec défilement fluide -->
-            <div class="md:hidden overflow-x-auto hide-scrollbar">
-              <div class="flex h-14 items-center space-x-0">
+
+            <!-- Navigation mobile -->
+            <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 z-50">
+              <div class="flex justify-around">
                 <NuxtLink 
-                  to="/account" 
-                  class="twitter-tab-mobile group"
-                  :class="[$route.path === '/account' ? 'twitter-tab-mobile-active' : '']"
+                  v-for="item in navigationItems"
+                  :key="item.to"
+                  :to="item.to"
+                  class="flex-1 flex flex-col items-center py-3 relative"
+                  :class="[
+                    isActivePath(item.to) 
+                      ? 'text-primary-500 dark:text-primary-400' 
+                      : 'text-gray-800 dark:text-gray-400'
+                  ]"
                 >
-                  <span>Tableau</span>
-                  <div class="twitter-indicator-mobile"></div>
-                </NuxtLink>
-                
-                <NuxtLink 
-                  to="/account/requests" 
-                  class="twitter-tab-mobile group"
-                  :class="[$route.path.includes('/account/requests') ? 'twitter-tab-mobile-active' : '']"
-                >
-                  <span>Demandes</span>
-                  <div class="twitter-indicator-mobile"></div>
-                </NuxtLink>
-                
-                <NuxtLink 
-                  v-if="isExpert"
-                  to="/account/services" 
-                  class="twitter-tab-mobile group"
-                  :class="[$route.path.includes('/account/services') ? 'twitter-tab-mobile-active' : '']"
-                >
-                  <span>Services</span>
-                  <div class="twitter-indicator-mobile"></div>
-                </NuxtLink>
-                
-                <NuxtLink 
-                  to="/account/contracts" 
-                  class="twitter-tab-mobile group"
-                  :class="[$route.path.includes('/account/contracts') ? 'twitter-tab-mobile-active' : '']"
-                >
-                  <span>Contrats</span>
-                  <div class="twitter-indicator-mobile"></div>
-                </NuxtLink>
-                
-                <NuxtLink 
-                  to="/account/messages" 
-                  class="twitter-tab-mobile group relative"
-                  :class="[$route.path.includes('/account/messages') ? 'twitter-tab-mobile-active' : '']"
-                >
-                  <span>Messages</span>
-                  <div class="twitter-indicator-mobile"></div>
-                  <span 
-                    v-if="unreadCount > 0" 
-                    class="twitter-badge-mobile"
-                  >
-                    {{ unreadCount > 99 ? '99+' : unreadCount }}
+                  <v-icon 
+                    :name="item.icon" 
+                    class="w-6 h-6 mb-1"
+                  />
+                  <span class="text-xs font-medium">
+                    {{ item.label }}
                   </span>
+
+                  <!-- Indicateur actif mobile -->
+                  <div 
+                    class="absolute -top-px left-0 right-0 h-0.5 bg-primary-500 dark:bg-primary-400 transition-all duration-200"
+                    :class="[
+                      isActivePath(item.to) 
+                        ? 'opacity-100' 
+                        : 'opacity-0'
+                    ]"
+                  />
                 </NuxtLink>
               </div>
             </div>
           </div>
-        </div>
-          
-        <!-- Alerte de vérification avec style moderne -->
-        <div 
-          v-if="isExpert && !isVerified" 
-          class="bg-primary-50 dark:bg-primary-900/10 border-b border-primary-100 dark:border-primary-800/30"
-        >
-          <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-            <div class="flex items-center">
-              <AlertTriangle class="h-4 w-4 text-primary-600 dark:text-primary-400 mr-2" />
-              <span class="text-sm text-primary-700 dark:text-primary-300">
-                Votre compte expert n'est pas encore vérifié
-              </span>
-            </div>
-            <NuxtLink 
-              to="/account/verification" 
-              class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-800/50 transition-colors"
-            >
-              Vérifier maintenant
-              <ChevronRight class="ml-1 h-3 w-3" />
-            </NuxtLink>
-          </div>
-        </div>
-        
-        <!-- Zone de contenu avec transitions -->
-        <div class="flex-1 max-w-5xl w-full mx-auto px-4 py-6 animate-fadeIn">
+        </header>
+
+        <!-- Contenu principal -->
+        <main class="max-w-6xl mx-auto px-4 py-6">
           <slot />
-        </div>
-        
-        <!-- Bouton d'action flottant sur mobile -->
-        <div class="md:hidden fixed right-6 bottom-6 z-20">
-          <button 
-            @click="showMobileActions = !showMobileActions"
-            class="twitter-fab"
-            :class="{ 'rotate-45': showMobileActions }"
-          >
-            <Plus class="h-6 w-6" />
-          </button>
-          
-          <!-- Menu d'actions mobile -->
-          <div 
-            v-if="showMobileActions" 
-            class="absolute right-0 bottom-16 flex flex-col-reverse items-end space-y-reverse space-y-3"
-          >
-            <NuxtLink 
-              to="/requests/new" 
-              class="twitter-fab-item"
-              @click="showMobileActions = false"
-            >
-              <span class="twitter-fab-label">Nouvelle demande</span>
-              <div class="twitter-fab-icon bg-green-500">
-                <FileText class="h-4 w-4 text-white" />
-              </div>
-            </NuxtLink>
-            
-            <NuxtLink 
-              v-if="isExpert"
-              to="/account/services/create" 
-              class="twitter-fab-item"
-              @click="showMobileActions = false"
-            >
-              <span class="twitter-fab-label">Nouveau service</span>
-              <div class="twitter-fab-icon bg-blue-500">
-                <Briefcase class="h-4 w-4 text-white" />
-              </div>
-            </NuxtLink>
-          </div>
-        </div>
+        </main>
       </div>
     </template>
   </NuxtLayout>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
-import { useSupabaseClient, useRouter } from '#imports'
+import { ref, computed, onMounted } from 'vue'
+import { useSupabaseClient, useSupabaseUser, useRoute } from '#imports'
+import { OhVueIcon as VIcon, addIcons } from 'oh-vue-icons'
 import { 
-  FileText, 
-  Briefcase, 
-  MessageSquare, 
-  Plus, 
-  X, 
-  AlertTriangle,
-  ChevronDown,
-  ChevronUp,
-  ChevronRight
-} from 'lucide-vue-next'
+  HomeIcon, 
+  BriefcaseIcon,
+  ChatBubbleLeftRightIcon,
+  UserIcon,
+  BellIcon,
+  PlusIcon,
+  ChevronRightIcon
+} from '@heroicons/vue/24/outline'
+import { 
+  BiHouseDoor,
+  BiBriefcase,
+  BiFileText,
+  BiGear
+} from 'oh-vue-icons/icons'
 
+// Mise à jour des icônes
+addIcons(
+  BiHouseDoor,
+  BiBriefcase,
+  BiFileText,
+  BiGear
+)
+
+const route = useRoute()
 const supabase = useSupabaseClient()
-const router = useRouter()
+const supabaseUser = useSupabaseUser()
 
-// État utilisateur
-const isExpert = ref(false)
-const isVerified = ref(false)
-const unreadCount = ref(0)
+const user = ref(null)
+const isLoading = ref(true)
 
-// État UI
-const showMobileActions = ref(false)
-
-// Fermer les menus en cliquant ailleurs
-const handleClickOutside = (event) => {
-  if (showMobileActions.value && !event.target.closest('.twitter-fab') && !event.target.closest('.twitter-fab-item')) {
-    showMobileActions.value = false
-  }
-}
-
-// Récupérer le profil utilisateur
+// Récupérer le profil de l'utilisateur
 const fetchUserProfile = async () => {
   try {
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    if (!user) {
-      router.push('/auth/login')
-      return
-    }
-    
-    const { data: profile, error } = await supabase
+    const { data, error } = await supabase
       .from('profiles')
-      .select('is_expert, is_verified')
-      .eq('id', user.id)
+      .select(`
+        *
+      `)
+      .eq('id', supabaseUser.value.id)
       .single()
-    
+
     if (error) throw error
-    
-    isExpert.value = profile.is_expert
-    isVerified.value = profile.is_verified
+    user.value = data
   } catch (error) {
     console.error('Error fetching user profile:', error)
+  } finally {
+    isLoading.value = false
   }
 }
 
-// Récupérer le nombre de messages non lus
-const fetchUnreadMessages = async () => {
-  try {
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    if (!user) return
-    
-    const { count, error } = await supabase
-      .from('messages')
-      .select('id', { count: 'exact' })
-      .eq('recipient_id', user.id)
-      .eq('is_read', false)
-    
-    if (error) throw error
-    
-    unreadCount.value = count || 0
-  } catch (error) {
-    console.error('Error fetching unread messages:', error)
-  }
-}
+// Computed properties
+const isExpert = computed(() => user.value?.role === 'expert')
+const isVerified = computed(() => user.value?.is_verified)
+const isAdmin = computed(() => user.value?.is_admin)
 
-// Lifecycle hooks
+const navigationItems = computed(() => [
+  { 
+    label: 'Accueil', 
+    to: '/account', 
+    icon: 'bi-house-door',
+    exact: true
+  },
+  { 
+    label: 'Missions', 
+    to: '/account/missions', 
+    icon: 'bi-briefcase'
+  },
+  ...(isExpert.value ? [{
+    label: 'Services',
+    to: '/account/services',
+    icon: 'bi-briefcase'
+  }] : []),
+  { 
+    label: 'Contrats',
+    to: '/account/contracts',
+    icon: 'bi-file-text'
+  },
+  { 
+    label: 'Paramètres',
+    to: '/account/edit-profile',
+    icon: 'bi-gear'
+  },
+  ...(isAdmin.value ? [{
+    label: 'Admin',
+    to: '/admin',
+    icon: 'bi-gear'
+  }] : [])
+])
+
+// Charger les données au montage
 onMounted(() => {
   fetchUserProfile()
-  fetchUnreadMessages()
-  document.addEventListener('click', handleClickOutside)
 })
 
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside)
-})
+const isActivePath = (path) => {
+  if (path === '/account') {
+    // Exact match pour la page d'accueil
+    return route.path === path
+  }
+  // Prefix match pour les autres pages
+  return route.path.startsWith(path) && path !== '/account'
+}
+
+const getInitials = (firstName, lastName) => {
+  return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase()
+}
 </script>
 
 <style scoped>
-/* Animations */
-.animate-fadeIn {
-  animation: fadeIn 0.3s ease-out;
-}
-
-.animate-scaleUp {
-  animation: scaleUp 0.2s ease-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes scaleUp {
-  from { transform: scale(0.95); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-
-/* Style Twitter-like tabs */
 .twitter-tab {
-  @apply px-4 h-full flex items-center justify-center font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/60 relative transition-colors;
+  @apply relative transition-all duration-200;
 }
 
+.twitter-tab::after {
+  content: '';
+  @apply absolute bottom-0 left-0 right-0 h-1 bg-primary-500 dark:bg-primary-400 transform scale-x-0 transition-transform duration-200;
+}
+
+.twitter-tab:hover::after {
+  @apply scale-x-100;
+}
+
+.twitter-tab-active::after {
+  @apply scale-x-100;
+}
+
+/* Animation pour le hover */
+.twitter-tab:hover {
+  @apply bg-gray-50 dark:bg-gray-800;
+}
+
+/* Style actif */
 .twitter-tab-active {
-  @apply text-gray-900 dark:text-white font-semibold;
+  @apply font-semibold;
 }
 
-.twitter-indicator {
-  @apply absolute bottom-0 left-0 w-full h-1 rounded-full scale-x-0 bg-primary-500 dark:bg-primary-400 group-hover:scale-x-75 transition-transform origin-center duration-200;
+/* Effet de transition pour les icônes */
+.v-icon {
+  @apply transform transition-transform duration-200;
 }
 
-.twitter-tab-active .twitter-indicator {
-  @apply scale-x-100;
-}
-
-.twitter-tab-mobile {
-  @apply px-3 h-full flex items-center justify-center text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white relative transition-colors;
-}
-
-.twitter-tab-mobile-active {
-  @apply text-gray-900 dark:text-white font-semibold;
-}
-
-.twitter-indicator-mobile {
-  @apply absolute bottom-0 left-0 w-full h-1 rounded-full scale-x-0 bg-primary-500 dark:bg-primary-400 group-hover:scale-x-75 transition-transform origin-center duration-200;
-}
-
-.twitter-tab-mobile-active .twitter-indicator-mobile {
-  @apply scale-x-100;
-}
-
-/* Badge de notification */
-.twitter-badge {
-  @apply absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold min-w-[16px] h-4 rounded-full flex items-center justify-center px-1;
-}
-
-.twitter-badge-mobile {
-  @apply absolute -top-1 right-0 bg-red-500 text-white text-[10px] font-bold min-w-[16px] h-4 rounded-full flex items-center justify-center px-1;
-}
-
-/* Bouton d'action style Twitter */
-.twitter-action-button {
-  @apply flex items-center justify-center px-4 py-2 bg-primary-500 hover:bg-primary-600 dark:bg-primary-600 dark:hover:bg-primary-700 text-white font-medium rounded-full transition-colors shadow-sm hover:shadow;
-}
-
-/* Masquer la scrollbar tout en gardant la fonctionnalité */
-.hide-scrollbar {
-  -ms-overflow-style: none;  /* Internet Explorer and Edge */
-  scrollbar-width: none;  /* Firefox */
-}
-
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;  /* Chrome, Safari and Opera */
-}
-
-/* Bouton d'action flottant */
-.twitter-fab {
-  @apply h-14 w-14 rounded-full bg-primary-500 hover:bg-primary-600 dark:bg-primary-600 dark:hover:bg-primary-700 text-white flex items-center justify-center shadow-lg transition-all duration-300 focus:outline-none;
-}
-
-.twitter-fab-item {
-  @apply flex items-center space-x-2 mb-2 animate-scaleUp transform-gpu;
-  animation-delay: calc(var(--idx, 0) * 0.05s);
-}
-
-.twitter-fab-label {
-  @apply py-2 px-3 bg-gray-800 dark:bg-gray-700 text-white text-sm font-medium rounded-full shadow-md;
-}
-
-.twitter-fab-icon {
-  @apply h-10 w-10 rounded-full flex items-center justify-center shadow-md;
+.twitter-tab:hover .v-icon {
+  @apply scale-110;
 }
 </style>

@@ -93,7 +93,7 @@
                 <!-- Categories tags with Twitter-style pills -->
                 <div class="mt-4 flex flex-wrap gap-2">
                   <span 
-                    v-for="(category, index) in expert.categories" 
+                    v-for="(category, index) in expert.professions" 
                     :key="`category-${index}`"
                     class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-50 text-gray-700 hover:bg-gray-100 transition-colors"
                   >
@@ -310,8 +310,8 @@ const fetchExpertProfile = async () => {
           skills (
             id,
             name,
-            category_id,
-            categories:category_id (
+            profession_id,
+            professions:profession_id (
               name
             )
           )
@@ -331,15 +331,15 @@ const fetchExpertProfile = async () => {
     
     // Transformer les données pour faciliter l'affichage
     const skills = [];
-    const categories = new Set();
+    const professions = new Set();
     
     if (expertData.user_skills) {
       expertData.user_skills.forEach(userSkill => {
         if (userSkill.skills) {
           skills.push(userSkill.skills.name);
           
-          if (userSkill.skills.categories) {
-            categories.add(userSkill.skills.categories.name);
+          if (userSkill.skills.professions) {
+            professions.add(userSkill.skills.professions.name);
           }
         }
       });
@@ -348,7 +348,7 @@ const fetchExpertProfile = async () => {
     expert.value = {
       ...expertData,
       skills,
-      categories: Array.from(categories),
+      professions: Array.from(professions),
       average_rating: 4.7, // Valeur fictive pour l'exemple
       review_count: 23 // Valeur fictive pour l'exemple
     };

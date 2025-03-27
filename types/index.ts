@@ -9,7 +9,7 @@ export interface Service {
   id: string
   name: string
   icon?: string
-  category_id: string
+  profession_id: string
   description?: string
   created_at?: string
   updated_at?: string
@@ -33,7 +33,7 @@ export interface Profile {
   last_name: string
   email: string
   phone?: string
-  address?: string
+  location?: string
   city?: string
   country?: string
   birthdate?: string

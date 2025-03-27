@@ -34,13 +34,13 @@
           <div class="relative">
             <select 
               id="category"
-              v-model="formData.category_id"
+              v-model="formData.profession_id"
               required
               class="w-full appearance-none px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all"
             >
               <option value="" disabled>Sélectionnez une catégorie</option>
               <option 
-                v-for="category in categories" 
+                v-for="category in professions" 
                 :key="category.id" 
                 :value="category.id"
               >
@@ -187,14 +187,14 @@ const props = defineProps({
     default: () => ({
       name: '',
       description: '',
-      category_id: '',
+      profession_id: '',
       price: 0,
       duration: 60,
       active: true,
       icon: '🔧'
     })
   },
-  categories: {
+  professions: {
     type: Array,
     default: () => []
   }
@@ -216,7 +216,7 @@ watch(() => props.mode, () => {
     formData.value = {
       name: '',
       description: '',
-      category_id: '',
+      profession_id: '',
       price: 0,
       duration: 60,
       active: true,
@@ -232,7 +232,7 @@ function saveService() {
     saving.value = true
     
     // Valider les champs obligatoires
-    if (!formData.value.name || !formData.value.category_id) {
+    if (!formData.value.name || !formData.value.profession_id) {
       alert('Veuillez remplir tous les champs obligatoires')
       saving.value = false
       return

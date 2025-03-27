@@ -236,10 +236,10 @@
       // Stockage du token si "Se souvenir de moi" est coché
       if (rememberMe.value) {
         // localStorage.setItem('auth_token', response.token);
-        localStorage.setItem('remember_email', email.value);
+       // localStorage.setItem('remember_email', email.value);
       } else {
         // sessionStorage.setItem('auth_token', response.token);
-        localStorage.removeItem('remember_email');
+       // localStorage.removeItem('remember_email');
       }
       
       // Redirection vers le dashboard ou la page d'accueil après connexion
@@ -274,7 +274,7 @@
       };
       
       // Stockage des données de l'utilisateur Google dans le localStorage
-      localStorage.setItem('googleUserData', JSON.stringify(googleUserData));
+     // localStorage.setItem('googleUserData', JSON.stringify(googleUserData));
       
       // Redirection vers la page de sélection de rôle
       navigateTo('/signup/select-role');
@@ -288,11 +288,7 @@
   
   // Récupérer l'email sauvegardé si "Se souvenir de moi" était coché
   const initForm = () => {
-    const savedEmail = localStorage.getItem('remember_email');
-    if (savedEmail) {
-      email.value = savedEmail;
-      rememberMe.value = true;
-    }
+   
   };
   
   // Initialiser le formulaire

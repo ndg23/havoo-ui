@@ -1,5 +1,5 @@
 -- Mise à jour des icônes de catégories pour utiliser des emojis 
-UPDATE public.service_categories
+UPDATE public.service_professions
 SET icon = CASE 
     WHEN name = 'Ménage' THEN '🧹'
     WHEN name = 'Jardinage' THEN '🌱'

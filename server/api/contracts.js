@@ -5,7 +5,7 @@ export const createContract = async(contractData) => {
         .insert({
             client_id: contractData.clientId,
             expert_id: contractData.expertId,
-            request_id: contractData.requestId,
+            mission_id: contractData.missionId,
             proposal_id: contractData.proposalId,
             title: contractData.title,
             description: contractData.description,

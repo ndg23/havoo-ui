@@ -146,7 +146,7 @@
           </div>
           <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
             <h3 class="text-xs font-medium text-gray-500 dark:text-gray-400">Demandes</h3>
-            <p class="mt-1 text-xl font-semibold text-gray-900 dark:text-white">{{ serviceStats.requests || 0 }}</p>
+            <p class="mt-1 text-xl font-semibold text-gray-900 dark:text-white">{{ serviceStats.missions || 0 }}</p>
           </div>
           <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
             <h3 class="text-xs font-medium text-gray-500 dark:text-gray-400">Contrats</h3>
@@ -180,7 +180,7 @@ const serviceId = route.params.id
 const service = ref(null)
 const serviceStats = ref({
   views: 0,
-  requests: 0,
+  missions: 0,
   contracts: 0
 })
 const isLoading = ref(true)
@@ -197,7 +197,7 @@ const fetchService = async () => {
       .from('services')
       .select(`
         *,
-        category:category_id (id, name)
+        category:profession_id (id, name)
       `)
       .eq('id', serviceId)
       .single()
@@ -230,13 +230,13 @@ const fetchServiceStats = async () => {
     }
     
     // Exemple: compter les demandes liées à ce service
-    const { count: requestsCount, error: requestsError } = await supabase
-      .from('requests')
+    const { count: missionsCount, error: missionsError } = await supabase
+      .from('missions')
       .select('id', { count: 'exact' })
       .eq('service_id', serviceId)
     
-    if (!requestsError) {
-      serviceStats.value.requests = requestsCount || 0
+    if (!missionsError) {
+      serviceStats.value.missions = missionsCount || 0
     }
     
     // Exemple: compter les contrats liés à ce service

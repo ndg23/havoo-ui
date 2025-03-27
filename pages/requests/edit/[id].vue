@@ -51,13 +51,13 @@
           <FloatingLabelInput
             id="title"
             label="Titre de la demande"
-            v-model="requestData.title"
+            v-model="missionData.title"
             required
             placeholder="Décrivez brièvement votre besoin"
           />
           <div class="mt-1 text-xs text-gray-500 flex justify-between px-1">
             <span>Soyez précis et concis</span>
-            <span>{{ requestData.title.length }}/100</span>
+            <span>{{ missionData.title.length }}/100</span>
           </div>
         </div>
 
@@ -71,7 +71,7 @@
               <label 
                 for="category" 
                 class="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-4 z-10 origin-[0] left-4 peer-focus:text-primary-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4 bg-white px-1"
-                :class="{'text-primary-600': requestData.category_id || showCategoryDropdown}"
+                :class="{'text-primary-600': missionData.profession_id || showCategoryDropdown}"
               >
                 Catégorie
               </label>
@@ -82,7 +82,7 @@
                 @click="showCategoryDropdown = !showCategoryDropdown"
                 class="w-full text-left focus:outline-none flex items-center justify-between h-full"
               >
-                <span class="text-base" :class="requestData.category_id ? 'text-black' : 'text-gray-400'">
+                <span class="text-base" :class="missionData.profession_id ? 'text-black' : 'text-gray-400'">
                   {{ selectedCategoryName || 'Sélectionnez une catégorie' }}
                 </span>
                 <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -122,7 +122,7 @@
           <FloatingLabelInput
             id="description"
             label="Description détaillée"
-            v-model="requestData.description"
+            v-model="missionData.description"
             required
             rows="4"
             placeholder="Décrivez votre besoin en détail..."
@@ -138,7 +138,7 @@
             id="budget"
             label="Budget"
             type="number"
-            v-model="requestData.budget"
+            v-model="missionData.budget"
             placeholder="0"
             :min="0"
             :step="1000"
@@ -157,7 +157,7 @@
             id="deadline"
             label="Date limite"
             type="date"
-            v-model="requestData.deadline"
+            v-model="missionData.deadline"
             :min="minDate"
             required
           />
@@ -176,7 +176,7 @@
               <label 
                 for="location_type" 
                 class="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-4 z-10 origin-[0] left-4 peer-focus:text-primary-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4 bg-white px-1"
-                :class="{'text-primary-600': requestData.location_type || showLocationDropdown}"
+                :class="{'text-primary-600': missionData.location_type || showLocationDropdown}"
               >
                 Type de localisation
               </label>
@@ -187,8 +187,8 @@
                 @click="showLocationDropdown = !showLocationDropdown"
                 class="w-full text-left focus:outline-none flex items-center justify-between h-full"
               >
-                <span class="text-base" :class="requestData.location_type ? 'text-black' : 'text-gray-400'">
-                  {{ getLocationTypeLabel(requestData.location_type) || 'Sélectionnez un type de localisation' }}
+                <span class="text-base" :class="missionData.location_type ? 'text-black' : 'text-gray-400'">
+                  {{ getLocationTypeLabel(missionData.location_type) || 'Sélectionnez un type de localisation' }}
                 </span>
                 <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -204,7 +204,7 @@
               <div 
                 v-for="option in locationOptions" 
                 :key="option.value"
-                @click="requestData.location_type = option.value; showLocationDropdown = false"
+                @click="missionData.location_type = option.value; showLocationDropdown = false"
                 class="px-4 py-2 hover:bg-gray-50 cursor-pointer transition-colors"
               >
                 <span>{{ option.label }}</span>
@@ -311,7 +311,7 @@ const router = useRouter();
 const isLoading = ref(true);
 const isSubmitting = ref(false);
 const error = ref(null);
-const categories = ref([]);
+const professions = ref([]);
 const showCategoryDropdown = ref(false);
 const showLocationDropdown = ref(false);
 const categorySearch = ref('');
@@ -320,10 +320,10 @@ const existingAttachments = ref([]);
 const attachmentsToDelete = ref([]);
 
 // Données de la demande
-const requestData = ref({
+const missionData = ref({
   title: '',
   description: '',
-  category_id: '',
+  profession_id: '',
   budget: null,
   deadline: '',
   location_type: '',
@@ -345,17 +345,17 @@ const minDate = computed(() => {
 
 // Catégories filtrées par recherche
 const filteredCategories = computed(() => {
-  if (!categorySearch.value) return categories.value;
+  if (!categorySearch.value) return professions.value;
   
   const search = categorySearch.value.toLowerCase();
-  return categories.value.filter(category => 
+  return professions.value.filter(category => 
     category.name.toLowerCase().includes(search)
   );
 });
 
 // Nom de la catégorie sélectionnée
 const selectedCategoryName = computed(() => {
-  const category = categories.value.find(c => c.id === requestData.value.category_id);
+  const category = professions.value.find(c => c.id === missionData.value.profession_id);
   return category ? category.name : '';
 });
 
@@ -363,15 +363,15 @@ const selectedCategoryName = computed(() => {
 const fetchCategories = async () => {
   try {
     const { data, error } = await supabase
-      .from('categories')
+      .from('professions')
       .select('*')
       .order('name');
     
     if (error) throw error;
     
-    categories.value = data;
+    professions.value = data;
   } catch (err) {
-    console.error('Error fetching categories:', err);
+    console.error('Error fetching professions:', err);
     error.value = "Impossible de charger les catégories. Veuillez réessayer.";
   }
 };
@@ -382,15 +382,15 @@ const fetchRequest = async () => {
   error.value = null;
   
   try {
-    const requestId = route.params.id;
+    const missionId = route.params.id;
     
-    const { data, error: requestError } = await supabase
-      .from('requests')
+    const { data, error: missionError } = await supabase
+      .from('missions')
       .select('*')
-      .eq('id', requestId)
+      .eq('id', missionId)
       .single();
     
-    if (requestError) throw requestError;
+    if (missionError) throw missionError;
     
     // Vérifier que l'utilisateur est le propriétaire de la demande
     if (data.user_id !== user.value.id) {
@@ -404,10 +404,10 @@ const fetchRequest = async () => {
       data.deadline = date.toISOString().split('T')[0];
     }
     
-    requestData.value = {
+    missionData.value = {
       title: data.title,
       description: data.description,
-      category_id: data.category_id,
+      profession_id: data.profession_id,
       budget: data.budget,
       deadline: data.deadline,
       location_type: data.location_type,
@@ -418,7 +418,7 @@ const fetchRequest = async () => {
     existingAttachments.value = data.attachments || [];
     
   } catch (err) {
-    console.error('Error fetching request:', err);
+    console.error('Error fetching mission:', err);
     error.value = "Impossible de charger la demande. Veuillez réessayer.";
   } finally {
     isLoading.value = false;
@@ -427,7 +427,7 @@ const fetchRequest = async () => {
 
 // Sélectionner une catégorie
 const selectCategory = (categoryId) => {
-  requestData.value.category_id = categoryId;
+  missionData.value.profession_id = categoryId;
 };
 
 // Obtenir le libellé du type de localisation
@@ -483,21 +483,21 @@ const updateRequest = async () => {
   error.value = null;
   
   try {
-    const requestId = route.params.id;
+    const missionId = route.params.id;
     
     // 1. Mettre à jour les informations de base de la demande
     const { error: updateError } = await supabase
-      .from('requests')
+      .from('missions')
       .update({
-        title: requestData.value.title,
-        description: requestData.value.description,
-        category_id: requestData.value.category_id,
-        budget: requestData.value.budget,
-        deadline: requestData.value.deadline,
-        location_type: requestData.value.location_type,
+        title: missionData.value.title,
+        description: missionData.value.description,
+        profession_id: missionData.value.profession_id,
+        budget: missionData.value.budget,
+        deadline: missionData.value.deadline,
+        location_type: missionData.value.location_type,
         updated_at: new Date().toISOString()
       })
-      .eq('id', requestId);
+      .eq('id', missionId);
     
     if (updateError) throw updateError;
     
@@ -507,10 +507,10 @@ const updateRequest = async () => {
       
       // Upload des nouvelles pièces jointes
       for (const file of attachments.value) {
-        const filePath = `requests/${requestId}/${Date.now()}_${file.name}`;
+        const filePath = `missions/${missionId}/${Date.now()}_${file.name}`;
         
         const { error: uploadError } = await supabase.storage
-          .from('request_attachments')
+          .from('mission_attachments')
           .upload(filePath, file, {
             cacheControl: '3600',
             upsert: false
@@ -520,7 +520,7 @@ const updateRequest = async () => {
         
         // Obtenir l'URL publique
         const { data: { publicUrl } } = supabase.storage
-          .from('request_attachments')
+          .from('mission_attachments')
           .getPublicUrl(filePath);
         
         newAttachmentUrls.push({
@@ -538,26 +538,26 @@ const updateRequest = async () => {
       
       // Mettre à jour la demande avec les nouvelles pièces jointes
       const { error: attachmentError } = await supabase
-        .from('requests')
+        .from('missions')
         .update({ attachments: updatedAttachments })
-        .eq('id', requestId);
+        .eq('id', missionId);
       
       if (attachmentError) throw attachmentError;
-    } else if (existingAttachments.value.length !== requestData.value.attachments.length) {
+    } else if (existingAttachments.value.length !== missionData.value.attachments.length) {
       // Mettre à jour si des pièces jointes ont été supprimées
       const { error: attachmentError } = await supabase
-        .from('requests')
+        .from('missions')
         .update({ attachments: existingAttachments.value })
-        .eq('id', requestId);
+        .eq('id', missionId);
       
       if (attachmentError) throw attachmentError;
     }
     
     // 3. Rediriger vers la page de détail de la demande
-    router.push(`/requests/${requestId}`);
+    router.push(`/requests/${missionId}`);
     
   } catch (err) {
-    console.error('Error updating request:', err);
+    console.error('Error updating mission:', err);
     error.value = "Une erreur est survenue lors de la mise à jour de la demande. Veuillez réessayer.";
   } finally {
     isSubmitting.value = false;

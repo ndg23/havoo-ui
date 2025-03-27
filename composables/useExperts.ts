@@ -32,14 +32,14 @@ export function useExperts() {
           is_verified,
           is_available,
           hourly_rate,
-          categories(id, name),
+          professions(id, name),
           skills(id, name)
         `)
         .eq('is_expert', true)
       
       // Ajouter le filtre par catégorie si spécifié
       if (categoryId) {
-        query = query.eq('categories.id', categoryId)
+        query = query.eq('professions.id', categoryId)
       }
       
       const { data, error: apiError } = await query
@@ -60,7 +60,7 @@ export function useExperts() {
         hourlyRate: formatCurrency(expert.hourly_rate || 0),
         isVerified: expert.is_verified,
         isAvailable: expert.is_available,
-        categories: expert.categories
+        professions: expert.professions
       }))
       
       return experts.value
@@ -94,7 +94,7 @@ export function useExperts() {
           is_verified,
           is_available,
           hourly_rate,
-          categories(id, name),
+          professions(id, name),
           skills(id, name),
           reviews(
             id, 
@@ -124,7 +124,7 @@ export function useExperts() {
         hourlyRate: formatCurrency(data.hourly_rate || 0),
         isVerified: data.is_verified,
         isAvailable: data.is_available,
-        categories: data.categories,
+        professions: data.professions,
         reviews: data.reviews || []
       }
       

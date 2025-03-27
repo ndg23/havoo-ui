@@ -44,7 +44,7 @@ CREATE OR REPLACE VIEW contract_status_view AS
 SELECT
   d.id AS contract_id,
   d.id AS deal_id,
-  d.request_id,
+  d.mission_id,
   d.expert_id AS worker_id,
   d.client_id,
   d.status,
@@ -74,6 +74,6 @@ JOIN
 JOIN
   profiles wp ON d.expert_id = wp.id
 LEFT JOIN
-  requests r ON d.request_id = r.id
+  missions r ON d.mission_id = r.id
 WHERE
   d.status IN ('active', 'completed'); 

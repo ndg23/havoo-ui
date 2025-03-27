@@ -9,11 +9,11 @@
         <!-- Service Info -->
         <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
           <div class="w-10 h-10 rounded-lg bg-primary-50 flex items-center justify-center text-xl">
-            {{ request.service_icon }}
+            {{ mission.service_icon }}
           </div>
           <div>
-            <h3 class="font-medium text-gray-900">{{ request.service }}</h3>
-            <p class="text-sm text-gray-500">{{ formatDate(request.date_needed) }} à {{ request.time_needed }}</p>
+            <h3 class="font-medium text-gray-900">{{ mission.service }}</h3>
+            <p class="text-sm text-gray-500">{{ formatDate(mission.date_needed) }} à {{ mission.time_needed }}</p>
           </div>
         </div>
 
@@ -90,7 +90,7 @@ import { MagnifyingGlassIcon, StarIcon } from '@heroicons/vue/24/outline'
 import Modal from '~/components/shared/Modal.vue'
 
 const props = defineProps({
-  request: {
+  mission: {
     type: Object,
     required: true
   }
@@ -138,7 +138,7 @@ const filteredExperts = computed(() => {
 const handleAssign = () => {
   if (selectedExpert.value) {
     emit('assign', {
-      request: props.request,
+      mission: props.mission,
       expert: selectedExpert.value
     })
   }

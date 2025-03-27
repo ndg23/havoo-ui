@@ -28,7 +28,7 @@ export interface Profile {
   last_name: string
   phone?: string
   avatar_url?: string
-  address?: string
+  location?: string
   city?: string
   country: string
   created_at: string
@@ -56,7 +56,7 @@ export interface ServiceCategory {
 
 export interface Service {
   id: number
-  category_id: number
+  profession_id: number
   name: string
   description?: string
   icon?: string
@@ -81,7 +81,7 @@ export interface ServiceRequest {
 
 export interface Job {
   id: string
-  request_id: string
+  mission_id: string
   expert_id: string
   status: ServiceStatus
   start_time?: string
@@ -107,7 +107,7 @@ export interface Database {
         Insert: Omit<Expert, 'created_at' | 'updated_at'>
         Update: Partial<Expert>
       }
-      service_categories: {
+      service_professions: {
         Row: ServiceCategory
         Insert: Omit<ServiceCategory, 'id'>
         Update: Partial<ServiceCategory>
@@ -117,7 +117,7 @@ export interface Database {
         Insert: Omit<Service, 'id'>
         Update: Partial<Service>
       }
-      service_requests: {
+      service_missions: {
         Row: ServiceRequest
         Insert: Omit<ServiceRequest, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<ServiceRequest>

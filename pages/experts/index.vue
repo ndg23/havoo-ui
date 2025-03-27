@@ -77,7 +77,7 @@
               class="w-full pl-3 pr-8 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
             >
               <option value="">Catégorie</option>
-              <option v-for="category in categories" :key="category.id" :value="category.id">
+              <option v-for="category in professions" :key="category.id" :value="category.id">
                 {{ category.name }}
               </option>
             </select>
@@ -155,86 +155,134 @@
       </button>
     </div>
     
-    <!-- Liste des experts avec style Twitter -->
-    <div v-else class="max-w-3xl mx-auto">
+    <!-- Liste des experts avec style Twitter/GAFAM -->
+    <div v-else class="max-w-3xl mx-auto divide-y divide-gray-200 dark:divide-gray-800">
       <div 
         v-for="expert in filteredExperts" 
         :key="expert.id"
-        class="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors animate-fade-in"
+        class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all duration-200"
       >
-        <NuxtLink :to="`/experts/${expert.id}`" class="block p-5">
-          <div class="flex">
-            <!-- Avatar with Twitter style -->
-            <div class="flex-shrink-0 mr-4">
-              <div v-if="expert.avatar_url" class="h-12 w-12 rounded-full overflow-hidden border border-gray-200 dark:border-gray-700">
-                <img :src="expert.avatar_url" alt="Avatar" class="h-full w-full object-cover" />
+        <NuxtLink :to="`/experts/${expert.id}`" class="block p-6">
+          <!-- En-tête avec avatar et infos principales -->
+          <div class="flex space-x-5">
+            <!-- Avatar + Statut -->
+            <div class="relative flex-shrink-0">
+              <div class="w-16 h-16 rounded-full overflow-hidden ring-4 ring-white dark:ring-gray-800 shadow-sm">
+                <img 
+                  v-if="expert.avatar_url" 
+                  :src="expert.avatar_url" 
+                  :alt="`Photo de ${expert.first_name}`"
+                  class="w-full h-full object-cover" 
+                />
+                <div 
+                  v-else 
+                  class="w-full h-full bg-gradient-to-br from-primary-400 to-primary-600 dark:from-primary-600 dark:to-primary-800 flex items-center justify-center text-xl font-bold text-white"
+                >
+                  {{ getInitials(expert.first_name, expert.last_name) }}
+                </div>
               </div>
-              <div v-else class="h-12 w-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-400 text-sm font-medium border border-gray-100 dark:border-gray-600">
-                {{ getInitials(expert.first_name, expert.last_name) }}
+              <!-- Badge de statut -->
+              <div 
+                class="absolute -bottom-1 -right-1 ring-4 ring-white dark:ring-gray-800"
+                :class="{
+                  'bg-green-500': expert.availability_status === 'available',
+                  'bg-yellow-500': expert.availability_status === 'busy',
+                  'bg-red-500': expert.availability_status === 'unavailable'
+                }"
+              >
+                <div class="w-5 h-5 rounded-full flex items-center justify-center">
+                  <div class="w-2.5 h-2.5 rounded-full bg-white"></div>
+                </div>
               </div>
             </div>
-            
+
+            <!-- Informations principales -->
             <div class="flex-1 min-w-0">
-              <!-- Expert name and rating -->
-              <div class="flex items-start justify-between">
+              <div class="flex items-center justify-between mb-1">
                 <div>
-                  <h3 class="text-base font-medium text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                    {{ expert.first_name }} {{ expert.last_name }}
-                  </h3>
-                  <div class="flex items-center mt-0.5">
-                    <div class="flex items-center">
-                      <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                      <span class="ml-1 text-xs text-gray-500 dark:text-gray-400">{{ expert.average_rating || 'Nouveau' }}</span>
-                      <span v-if="expert.review_count" class="ml-1 text-xs text-gray-500 dark:text-gray-400">({{ expert.review_count }})</span>
-                    </div>
-                    <span class="mx-2 text-gray-300 dark:text-gray-600">•</span>
-                    <span class="text-xs text-gray-500 dark:text-gray-400">{{ formatDate(expert.created_at) }}</span>
+                  <!-- Nom et badges -->
+                  <div class="flex items-center space-x-2">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400">
+                      {{ expert.first_name }} {{ expert.last_name }}
+                    </h3>
+                    <CheckBadgeIcon v-if="expert.is_verified" class="w-5 h-5 text-primary-500" />
+                    <span 
+                      v-if="expert.profile_completion_percentage >= 80"
+                      class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
+                    >
+                      Profil complet
+                    </span>
+                  </div>
+                  <!-- Localisation -->
+                  <div class="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                    <MapPinIcon class="w-4 h-4" />
+                    <span>{{ expert.city }}, {{ expert.country }}</span>
                   </div>
                 </div>
-                
-                <!-- Availability status with Twitter style -->
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-100 dark:border-green-800/30">
-                  Disponible
-                </span>
+                <!-- Tarif horaire -->
+                <div v-if="expert.hourly_rate" class="text-right">
+                  <div class="text-lg font-bold text-gray-900 dark:text-white">
+                    {{ formatPrice(expert.hourly_rate) }}
+                  </div>
+                  <div class="text-sm text-gray-500 dark:text-gray-400">
+                    par heure
+                  </div>
+                </div>
               </div>
-              
-              <!-- Bio with Twitter style -->
-              <p v-if="expert.bio" class="mt-2 text-sm text-gray-600 dark:text-gray-300 line-clamp-2">{{ expert.bio }}</p>
-              <p v-else class="mt-2 text-sm text-gray-500 dark:text-gray-400 italic">Aucune biographie disponible</p>
-              
-              <!-- Skills and categories with Twitter style -->
-              <div class="mt-3 flex flex-wrap gap-2">
+
+              <!-- Bio -->
+              <p v-if="expert.bio" class="text-gray-600 dark:text-gray-300 line-clamp-2 mb-4">
+                {{ expert.bio }}
+              </p>
+
+              <!-- Métriques -->
+              <div class="flex items-center space-x-6 mb-4">
+                <!-- Note -->
+                <div class="flex items-center">
+                  <div class="flex items-center text-yellow-400 mr-1.5">
+                    <StarIcon v-for="i in 5" :key="i" class="w-5 h-5" :class="{ 'text-gray-300': i > (expert.average_rating || 5) }" />
+                  </div>
+                  <span class="font-medium text-gray-900 dark:text-white">{{ expert.average_rating || '5.0' }}</span>
+                  <span class="ml-1 text-sm text-gray-500">({{ expert.review_count || '0' }})</span>
+                </div>
+                
+                <!-- Missions complétées -->
+                <div class="flex items-center text-gray-500 dark:text-gray-400">
+                  <BriefcaseIcon class="w-5 h-5 mr-2" />
+                  <span class="font-medium text-gray-900 dark:text-white">{{ expert.missions_count || '0' }}</span>
+                  <span class="ml-1">missions</span>
+                </div>
+
+                <!-- Taux de réponse -->
+                <div class="flex items-center text-gray-500 dark:text-gray-400">
+                  <ClockIcon class="w-5 h-5 mr-2" />
+                  <span>Répond en &lt; 1h</span>
+                </div>
+              </div>
+
+              <!-- Compétences -->
+              <div class="flex flex-wrap gap-2">
+                <!-- Profession -->
                 <span 
-                  v-for="(category, index) in expert.categories" 
-                  :key="index"
-                  class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-100 dark:border-blue-800/30"
+                  v-if="expert.profession?.name"
+                  class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 border border-primary-100 dark:border-primary-800/30"
                 >
-                  {{ category }}
+                  {{ expert.profession.name }}
                 </span>
+                <!-- Skills -->
                 <span 
-                  v-for="(skill, index) in expert.skills.slice(0, 3)" 
-                  :key="`skill-${index}`"
-                  class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary-50 dark:bg-primary-900/20 text-primary-800 dark:text-primary-300 border border-primary-100 dark:border-primary-800/30"
+                  v-for="skill in expert.skills?.slice(0, 3)" 
+                  :key="skill.id"
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
                 >
-                  {{ skill }}
+                  {{ skill.name }}
                 </span>
+                <!-- More skills -->
                 <span 
-                  v-if="expert.skills.length > 3" 
-                  class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700"
+                  v-if="(expert.skills?.length || 0) > 3" 
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-gray-50 text-gray-600 dark:bg-gray-800/50 dark:text-gray-400"
                 >
                   +{{ expert.skills.length - 3 }}
-                </span>
-              </div>
-              
-              <!-- View profile link with Twitter style -->
-              <div class="mt-3 text-right">
-                <span class="inline-flex items-center text-xs font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors">
-                  Voir le profil
-                  <svg class="ml-1 w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                  </svg>
                 </span>
               </div>
             </div>
@@ -266,6 +314,13 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import { useSupabaseClient } from '#imports';
+import { 
+  CheckBadgeIcon, 
+  StarIcon, 
+  MapPinIcon, 
+  BriefcaseIcon,
+  ClockIcon 
+} from '@heroicons/vue/24/solid'
 
 const supabase = useSupabaseClient();
 
@@ -273,7 +328,7 @@ const supabase = useSupabaseClient();
 const isLoading = ref(true);
 const error = ref(null);
 const experts = ref([]);
-const categories = ref([]);
+const professions = ref([]);
 const searchQuery = ref('');
 const filters = ref({
   categoryId: '',
@@ -289,7 +344,7 @@ const activeFilters = computed(() => {
   const result = [];
   
   if (filters.value.categoryId) {
-    const category = categories.value.find(c => c.id === parseInt(filters.value.categoryId));
+    const category = professions.value.find(c => c.id === parseInt(filters.value.categoryId));
     if (category) {
       result.push({
         id: 'category',
@@ -336,12 +391,15 @@ const fetchExperts = async () => {
         bio,
         created_at,
         is_expert,
+         profession:profession_id (
+              name
+            )
         user_skills (
           skills (
             id,
             name,
-            category_id,
-            categories:category_id (
+            profession_id,
+            professions:profession_id (
               name
             )
           )
@@ -369,15 +427,15 @@ const fetchExperts = async () => {
     const transformedExperts = data.map(expert => {
       // Extraire les compétences et catégories uniques
       const skills = [];
-      const categories = new Set();
+      const professions = new Set();
       
       if (expert.user_skills) {
         expert.user_skills.forEach(userSkill => {
           if (userSkill.skills) {
             skills.push(userSkill.skills.name);
             
-            if (userSkill.skills.categories) {
-              categories.add(userSkill.skills.categories.name);
+            if (userSkill.skills.professions) {
+              professions.add(userSkill.skills.professions.name);
             }
           }
         });
@@ -386,7 +444,7 @@ const fetchExperts = async () => {
       return {
         ...expert,
         skills,
-        categories: Array.from(categories),
+        professions: Array.from(professions),
         average_rating: 4.5, // Valeur fictive pour l'exemple
         review_count: 12 // Valeur fictive pour l'exemple
       };
@@ -398,7 +456,7 @@ const fetchExperts = async () => {
       const categoryId = parseInt(filters.value.categoryId);
       filteredResults = transformedExperts.filter(expert => {
         return expert.user_skills && expert.user_skills.some(userSkill => 
-          userSkill.skills && userSkill.skills.category_id === categoryId
+          userSkill.skills && userSkill.skills.profession_id === categoryId
         );
       });
     }
@@ -430,15 +488,15 @@ const fetchExperts = async () => {
 const fetchCategories = async () => {
   try {
     const { data, error } = await supabase
-      .from('categories')
+      .from('professions')
       .select('*')
       .order('name');
     
     if (error) throw error;
     
-    categories.value = data;
+    professions.value = data;
   } catch (err) {
-    console.error('Error fetching categories:', err);
+    console.error('Error fetching professions:', err);
   }
 };
 
@@ -494,6 +552,13 @@ const getInitials = (firstName, lastName) => {
   
   return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
 };
+
+const formatPrice = (price) => {
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'EUR'
+  }).format(price)
+}
 
 // Lifecycle hooks
 onMounted(async () => {

@@ -1,22 +1,14 @@
 <template>
   <div class="min-h-screen bg-white dark:bg-gray-900 flex flex-col justify-center px-4 sm:px-6 lg:px-8">
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
-      <!-- Logo ou icône (optionnel) -->
-      <div class="flex justify-center mb-6">
-        <div class="w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary-600 dark:text-primary-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 4.75L19.25 9L12 13.25L4.75 9L12 4.75Z" />
-            <path d="M9.25 12L4.75 15L12 19.25L19.25 15L14.6722 12" />
-          </svg>
-        </div>
-      </div>
+     
       
       <h1 class="text-center text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-        Complétez votre profil
+        Choisissez votre profession
       </h1>
       
       <p class="mt-2 text-center text-gray-600 dark:text-gray-400">
-        Ajoutez vos compétences pour être visible auprès des clients
+        Cette information nous aidera à mieux vous connaître
       </p>
     </div>
 
@@ -26,7 +18,7 @@
         {{ errorMessage }}
       </div>
       
-      <div class="bg-white dark:bg-gray-800 py-8 px-6 shadow sm:rounded-lg sm:px-10 border border-gray-100 dark:border-gray-700">
+      <div class="bg-white dark:bg-gray-800 py-8 px-6  sm:rounded-lg sm:px-10 border border-gray-100 dark:border-gray-700">
         <!-- État de chargement -->
         <div v-if="isLoading" class="flex flex-col items-center justify-center py-8">
           <div class="animate-spin h-8 w-8 text-primary-500 mb-4">
@@ -35,10 +27,10 @@
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
           </div>
-          <p class="text-gray-500 dark:text-gray-400">Chargement des compétences...</p>
+          <p class="text-gray-500 dark:text-gray-400">Chargement des professions...</p>
         </div>
         
-        <form v-else @submit.prevent="saveSkills" class="space-y-6">
+        <form v-else @submit.prevent="saveProfession" class="space-y-6">
           <!-- Barre de recherche -->
           <div class="relative">
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -49,109 +41,60 @@
             <input
               type="text"
               v-model="searchQuery"
-              placeholder="Rechercher une compétence..."
+              placeholder="Rechercher une profession..."
               class="pl-10 w-full py-3 px-4 border border-gray-300 dark:border-gray-700 rounded-full text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             />
           </div>
           
-          <!-- Catégories (affichage horizontal avec scroll) -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Catégories
-            </label>
-            <div class="flex space-x-2 overflow-x-auto pb-2 hide-scrollbar">
-              <button
-                type="button"
-                @click="selectedCategories = []"
-                class="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap"
-                :class="selectedCategories.length === 0 ? 
-                  'bg-primary-500 text-white' : 
-                  'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'"
-              >
-                Toutes
-              </button>
-              <button
-                v-for="category in categories"
-                :key="category.id"
-                type="button"
-                @click="toggleCategory(category)"
-                class="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap"
-                :class="selectedCategories.some(c => c.id === category.id) ? 
-                  'bg-primary-500 text-white' : 
-                  'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'"
-              >
-                {{ category.name }}
-              </button>
-            </div>
-          </div>
-          
-          <!-- Compétences disponibles -->
-          <div>
+          <!-- Liste des professions -->
+          <div class="space-y-2">
             <div class="flex justify-between items-center mb-2">
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Compétences disponibles
+                Professions disponibles
               </label>
               <span class="text-xs text-gray-500 dark:text-gray-400">
-                {{ filteredSkills.length }} trouvée(s)
+                {{ filteredProfessions.length }} trouvée(s)
               </span>
             </div>
             
-            <div class="max-h-48 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-gray-50 dark:bg-gray-900/30">
-              <div v-if="filteredSkills.length === 0" class="flex items-center justify-center h-24 text-gray-500 dark:text-gray-400">
-                Aucune compétence trouvée
-              </div>
-              
-              <div class="flex flex-wrap gap-2">
-                <button
-                  v-for="skill in filteredSkills"
-                  :key="skill.id"
-                  type="button"
-                  @click="toggleSkill(skill)"
-                  class="px-3 py-1.5 rounded-full text-sm font-medium transition-colors"
-                  :class="selectedSkills.some(s => s.id === skill.id) ? 
-                    'bg-primary-500 text-white' : 
-                    'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'"
-                >
-                  {{ skill.name }}
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Compétences sélectionnées -->
-          <div>
-            <div class="flex justify-between items-center mb-2">
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Vos compétences
-              </label>
-              <span class="text-xs text-gray-500 dark:text-gray-400">
-                {{ selectedSkills.length }} sélectionnée(s)
-              </span>
-            </div>
-            
-            <div class="flex flex-wrap gap-2 p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900/30 min-h-[80px]">
-              <div 
-                v-if="selectedSkills.length === 0" 
-                class="flex items-center justify-center w-full h-full text-gray-500 dark:text-gray-400 text-sm"
+            <div class="space-y-2 max-h-72 overflow-y-auto pr-2">
+              <button
+                v-for="profession in filteredProfessions"
+                :key="profession.id"
+                type="button"
+                @click="selectProfession(profession)"
+                class="w-full flex items-center justify-between p-4 rounded-lg border transition-all duration-200"
+                :class="[
+                  selectedProfession?.id === profession.id 
+                    ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' 
+                    : 'border-gray-200 dark:border-gray-700 hover:border-primary-200 dark:hover:border-primary-700'
+                ]"
               >
-                Sélectionnez au moins une compétence
-              </div>
-              
-              <div 
-                v-for="skill in selectedSkills" 
-                :key="skill.id"
-                class="bg-white dark:bg-gray-800 px-3 py-1.5 rounded-full text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 flex items-center"
-              >
-                {{ skill.name }}
-                <button 
-                  @click.prevent="toggleSkill(skill)" 
-                  class="ml-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                <span class="text-left">
+                  <span 
+                    class="block font-medium"
+                    :class="selectedProfession?.id === profession.id ? 'text-primary-700 dark:text-primary-300' : 'text-gray-900 dark:text-white'"
+                  >
+                    {{ profession.name }}
+                  </span>
+                  <span 
+                    v-if="profession.description"
+                    class="text-sm"
+                    :class="selectedProfession?.id === profession.id ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400'"
+                  >
+                    {{ profession.description }}
+                  </span>
+                </span>
+                <svg
+                  v-if="selectedProfession?.id === profession.id"
+                  class="h-5 w-5 text-primary-500"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                  </svg>
-                </button>
-              </div>
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+              </button>
             </div>
           </div>
           
@@ -166,8 +109,8 @@
             
             <button
               type="submit"
-              class="flex-1 py-2.5 px-4 border border-transparent rounded-full text-base font-medium text-white bg-primary-600 hover:bg-primary-700"
-              :disabled="isSaving || selectedSkills.length === 0"
+              class="flex-1 py-2.5 px-4 border border-transparent rounded-full text-base font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              :disabled="isSaving || !selectedProfession"
             >
               <span v-if="isSaving" class="flex items-center justify-center">
                 <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -176,7 +119,7 @@
                 </svg>
                 Enregistrement...
               </span>
-              <span v-else>Enregistrer</span>
+              <span v-else>Continuer</span>
             </button>
           </div>
         </form>
@@ -200,98 +143,48 @@ const isLoading = ref(true);
 const isSaving = ref(false);
 const errorMessage = ref('');
 const searchQuery = ref('');
+const professions = ref([]);
+const selectedProfession = ref(null);
 
-// Données
-const categories = ref([]);
-const skills = ref([]);
-const selectedCategories = ref([]);
-const selectedSkills = ref([]);
-
-// Compétences filtrées par recherche et catégories
-const filteredSkills = computed(() => {
-  let result = skills.value;
+// Professions filtrées par recherche
+const filteredProfessions = computed(() => {
+  if (!searchQuery.value.trim()) return professions.value;
   
-  // Filtrer par catégories sélectionnées
-  if (selectedCategories.value.length > 0) {
-    const categoryIds = selectedCategories.value.map(c => c.id);
-    result = result.filter(skill => categoryIds.includes(skill.category_id));
-  }
-  
-  // Filtrer par recherche
-  if (searchQuery.value.trim()) {
-    const query = searchQuery.value.toLowerCase().trim();
-    result = result.filter(skill => 
-      skill.name.toLowerCase().includes(query)
-    );
-  }
-  
-  return result;
+  const query = searchQuery.value.toLowerCase().trim();
+  return professions.value.filter(profession => 
+    profession.name.toLowerCase().includes(query)
+  );
 });
 
-// Récupérer les catégories depuis Supabase
-const fetchCategories = async () => {
-  try {
-    const { data, error } = await supabase
-      .from('categories')
-      .select('*')
-      .eq('is_active', true)
-      .order('name');
-    
-    if (error) throw error;
-    
-    categories.value = data || [];
-  } catch (error) {
-    console.error('Erreur lors du chargement des catégories:', error);
-    errorMessage.value = 'Impossible de charger les catégories';
-  }
+// Sélectionner une profession
+const selectProfession = (profession) => {
+  selectedProfession.value = profession;
 };
 
-// Récupérer les compétences depuis Supabase
-const fetchSkills = async () => {
+// Récupérer les professions depuis Supabase
+const fetchProfessions = async () => {
   try {
     const { data, error } = await supabase
-      .from('skills')
+      .from('professions')
       .select('*')
       .eq('is_active', true)
       .order('name');
     
     if (error) throw error;
     
-    skills.value = data || [];
+    professions.value = data || [];
   } catch (error) {
-    console.error('Erreur lors du chargement des compétences:', error);
-    errorMessage.value = 'Impossible de charger les compétences';
+    console.error('Erreur lors du chargement des professions:', error);
+    errorMessage.value = 'Impossible de charger les professions';
   } finally {
     isLoading.value = false;
   }
 };
 
-// Sélectionner/désélectionner une catégorie
-const toggleCategory = (category) => {
-  const index = selectedCategories.value.findIndex(c => c.id === category.id);
-  
-  if (index === -1) {
-    selectedCategories.value.push(category);
-  } else {
-    selectedCategories.value.splice(index, 1);
-  }
-};
-
-// Sélectionner/désélectionner une compétence
-const toggleSkill = (skill) => {
-  const index = selectedSkills.value.findIndex(s => s.id === skill.id);
-  
-  if (index === -1) {
-    selectedSkills.value.push(skill);
-  } else {
-    selectedSkills.value.splice(index, 1);
-  }
-};
-
-// Enregistrer les compétences
-const saveSkills = async () => {
-  if (selectedSkills.value.length === 0) {
-    errorMessage.value = 'Veuillez sélectionner au moins une compétence';
+// Enregistrer la profession
+const saveProfession = async () => {
+  if (!selectedProfession.value) {
+    errorMessage.value = 'Veuillez sélectionner une profession';
     return;
   }
   
@@ -299,24 +192,12 @@ const saveSkills = async () => {
   errorMessage.value = '';
   
   try {
-    // Préparer les données pour l'insertion
-    const userSkillsData = selectedSkills.value.map(skill => ({
-      user_id: user.value.id,
-      skill_id: skill.id
-    }));
-    
-    // Insérer les compétences de l'utilisateur
-    const { error } = await supabase
-      .from('user_skills')
-      .upsert(userSkillsData);
-    
-    if (error) throw error;
-    
-    // Mettre à jour le pourcentage de complétion du profil
+    // Mettre à jour le profil avec la profession
     const { error: profileError } = await supabase
       .from('profiles')
       .update({
-        profile_completion_percentage: 60,
+        profession_id: selectedProfession.value.id,
+        profile_completion_percentage: 80,
         updated_at: new Date().toISOString()
       })
       .eq('id', user.value.id);
@@ -327,8 +208,8 @@ const saveSkills = async () => {
     router.push('/account');
     
   } catch (error) {
-    console.error('Erreur lors de l\'enregistrement des compétences:', error);
-    errorMessage.value = error.message || 'Une erreur est survenue lors de l\'enregistrement de vos compétences';
+    console.error('Erreur lors de l\'enregistrement de la profession:', error);
+    errorMessage.value = 'Une erreur est survenue lors de l\'enregistrement de votre profession';
   } finally {
     isSaving.value = false;
   }
@@ -358,23 +239,18 @@ onMounted(async () => {
     return;
   }
   
-  // Charger les données
-  await Promise.all([fetchCategories(), fetchSkills()]);
+  // Charger les professions
+  await fetchProfessions();
 });
 </script>
 
 <style scoped>
 /* Masquer la scrollbar tout en permettant le défilement */
-.hide-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: #888 #f1f1f1;
 }
 
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;  /* Chrome, Safari and Opera */
-}
-
-/* Scrollbar personnalisée pour les zones de défilement vertical */
 .overflow-y-auto::-webkit-scrollbar {
   width: 6px;
 }
@@ -391,15 +267,5 @@ onMounted(async () => {
 
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {
   background: #555;
-}
-
-/* Animation du spinner */
-.animate-spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
 }
 </style> 

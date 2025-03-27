@@ -6,18 +6,18 @@
     <div class="p-5">
       <!-- En-tête avec le titre et le statut -->
       <div class="flex justify-between items-start mb-3">
-        <h3 class="font-medium text-gray-900 dark:text-white">{{ request.title }}</h3>
+        <h3 class="font-medium text-gray-900 dark:text-white">{{ mission.title }}</h3>
         <span 
           class="px-2 py-0.5 text-xs font-medium rounded-full"
-          :class="getStatusClasses(request.status)"
+          :class="getStatusClasses(mission.status)"
         >
-          {{ getStatusText(request.status) }}
+          {{ getStatusText(mission.status) }}
         </span>
       </div>
       
       <!-- Description courte -->
       <p class="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
-        {{ request.description }}
+        {{ mission.description }}
       </p>
       
       <!-- Informations clés -->
@@ -25,29 +25,29 @@
         <div>
           <p class="text-xs text-gray-500 dark:text-gray-400">Budget</p>
           <p class="font-medium text-gray-900 dark:text-white">
-            {{ request.budget ? formatCurrency(request.budget) : 'Non spécifié' }}
+            {{ mission.budget ? formatCurrency(mission.budget) : 'Non spécifié' }}
           </p>
         </div>
         <div>
           <p class="text-xs text-gray-500 dark:text-gray-400">Délai</p>
           <p class="font-medium text-gray-900 dark:text-white">
-            {{ request.deadline ? formatDate(request.deadline) : 'Flexible' }}
+            {{ mission.deadline ? formatDate(mission.deadline) : 'Flexible' }}
           </p>
         </div>
       </div>
       
       <!-- Compteur de propositions (pour les clients) -->
-      <div v-if="isClient && request.proposals_count > 0" class="mb-4 flex items-center">
+      <div v-if="isClient && mission.proposals_count > 0" class="mb-4 flex items-center">
         <span class="px-2 py-0.5 bg-primary-100 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 text-xs font-medium rounded-full flex items-center">
           <MessageSquare class="h-3 w-3 mr-1" />
-          {{ request.proposals_count }} proposition{{ request.proposals_count > 1 ? 's' : '' }}
+          {{ mission.proposals_count }} proposition{{ mission.proposals_count > 1 ? 's' : '' }}
         </span>
       </div>
       
       <!-- Actions -->
       <div class="flex justify-between items-center mt-2">
         <NuxtLink 
-          :to="isClient ? `/account/requests/${request.id}` : `/requests/${request.id}`"
+          :to="isClient ? `/account/requests/${mission.id}` : `/requests/${mission.id}`"
           class="text-sm text-primary-600 hover:text-primary-500 dark:text-primary-400 font-medium"
         >
           Voir les détails
@@ -57,8 +57,8 @@
           <!-- Action principale selon le rôle et statut -->
           <template v-if="isClient">
             <NuxtLink 
-              v-if="request.proposals_count > 0"
-              :to="`/account/received-proposals?request=${request.id}`"
+              v-if="mission.proposals_count > 0"
+              :to="`/account/received-proposals?mission=${mission.id}`"
               class="px-3 py-1.5 text-xs font-medium rounded-lg bg-primary-100 hover:bg-primary-200 dark:bg-primary-900/20 dark:hover:bg-primary-900/30 text-primary-700 dark:text-primary-400"
             >
               Voir les propositions
@@ -73,8 +73,8 @@
           
           <template v-else>
             <NuxtLink 
-              v-if="request.status === 'open'"
-              :to="`/requests/${request.id}/propose`"
+              v-if="mission.status === 'open'"
+              :to="`/requests/${mission.id}/propose`"
               class="px-3 py-1.5 text-xs font-medium rounded-lg bg-primary-100 hover:bg-primary-200 dark:bg-primary-900/20 dark:hover:bg-primary-900/30 text-primary-700 dark:text-primary-400"
             >
               Proposer mes services
@@ -97,7 +97,7 @@ import { MessageSquare } from 'lucide-vue-next'
 
 // Définition des props
 const props = defineProps({
-  request: {
+  mission: {
     type: Object,
     required: true
   },

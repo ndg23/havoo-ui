@@ -28,7 +28,7 @@
           <div class="flex justify-between items-start">
             <div>
               <h3 class="font-medium text-gray-900 dark:text-white">
-                {{ proposal.request_title }}
+                {{ proposal.mission_title }}
               </h3>
               <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 flex items-center">
                 <UserCircle class="h-4 w-4 mr-1" /> {{ proposal.expert_name }}
@@ -147,8 +147,8 @@ const currentFilter = ref('all')
 const proposals = ref([
   {
     id: 1,
-    request_id: 101,
-    request_title: "Création d'un logo pour ma startup",
+    mission_id: 101,
+    mission_title: "Création d'un logo pour ma startup",
     expert_id: 201,
     expert_name: "Olivier Dubois",
     price: 450,
@@ -159,8 +159,8 @@ const proposals = ref([
   },
   {
     id: 2,
-    request_id: 101,
-    request_title: "Création d'un logo pour ma startup",
+    mission_id: 101,
+    mission_title: "Création d'un logo pour ma startup",
     expert_id: 202,
     expert_name: "Marie Toure",
     price: 380,
@@ -171,8 +171,8 @@ const proposals = ref([
   },
   {
     id: 3,
-    request_id: 102,
-    request_title: "Développement d'une application mobile",
+    mission_id: 102,
+    mission_title: "Développement d'une application mobile",
     expert_id: 203,
     expert_name: "Thomas Konaté",
     price: 3800,
@@ -183,8 +183,8 @@ const proposals = ref([
   },
   {
     id: 4,
-    request_id: 103,
-    request_title: "Traduction de mon site web en anglais",
+    mission_id: 103,
+    mission_title: "Traduction de mon site web en anglais",
     expert_id: 204,
     expert_name: "Sophie Diarra",
     price: 250,
@@ -248,9 +248,9 @@ const acceptProposal = (id) => {
       proposals.value[proposalIndex].status = 'accepted'
       
       // Mettre à jour les autres propositions pour la même demande
-      const requestId = proposals.value[proposalIndex].request_id
+      const missionId = proposals.value[proposalIndex].mission_id
       proposals.value.forEach((p, index) => {
-        if (p.id !== id && p.request_id === requestId && p.status === 'pending') {
+        if (p.id !== id && p.mission_id === missionId && p.status === 'pending') {
           proposals.value[index].status = 'rejected'
         }
       })

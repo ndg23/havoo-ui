@@ -82,8 +82,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Function for experts to request verification
-CREATE OR REPLACE FUNCTION request_expert_verification(
+-- Function for experts to mission verification
+CREATE OR REPLACE FUNCTION mission_expert_verification(
   p_documents JSONB -- JSON array of document URLs/metadata (supports both Supabase paths and Cloudinary URLs)
 )
 RETURNS BOOLEAN AS $$
@@ -95,7 +95,7 @@ BEGIN
   v_user_id := auth.uid();
   
   IF v_user_id IS NULL THEN
-    RAISE EXCEPTION 'You must be logged in to request verification';
+    RAISE EXCEPTION 'You must be logged in to mission verification';
   END IF;
   
   -- Check if user exists
@@ -107,7 +107,7 @@ BEGIN
   
   -- Check if a verification is already in progress
   IF EXISTS(SELECT 1 FROM verifications WHERE user_id = v_user_id AND status = 'pending') THEN
-    RAISE EXCEPTION 'You already have a pending verification request';
+    RAISE EXCEPTION 'You already have a pending verification mission';
   END IF;
   
   -- Validate document format (Cloudinary or Supabase Storage)
@@ -130,7 +130,7 @@ BEGIN
     RAISE EXCEPTION 'Invalid document format - must contain either Cloudinary URL or Supabase Storage path';
   END IF;
   
-  -- Create or update verification request
+  -- Create or update verification mission
   IF EXISTS(SELECT 1 FROM verifications WHERE user_id = v_user_id) THEN
     UPDATE verifications
     SET 
@@ -153,7 +153,7 @@ BEGIN
     );
   END IF;
   
-  -- Notify administrators about the new verification request
+  -- Notify administrators about the new verification mission
   INSERT INTO notifications (
     profile_id,
     title,
@@ -164,13 +164,13 @@ BEGIN
   SELECT 
     id,
     'New Expert Verification Request',
-    'A user has requested expert verification. Please review their documents.',
+    'A user has missioned expert verification. Please review their documents.',
     'admin_verification',
     '/admin/verifications'
   FROM profiles
   WHERE is_admin = TRUE;
   
-  -- Notify the user that their request is being processed
+  -- Notify the user that their mission is being processed
   INSERT INTO notifications (
     profile_id,
     title,
@@ -180,7 +180,7 @@ BEGIN
   ) VALUES (
     v_user_id,
     'Verification Requested',
-    'Your expert verification request has been submitted and is pending review.',
+    'Your expert verification mission has been submitted and is pending review.',
     'verification',
     '/account/verification'
   );

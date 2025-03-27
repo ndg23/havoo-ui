@@ -34,7 +34,7 @@
               id="category"
               v-model="form.category"
               label="Catégorie"
-              :options="categories"
+              :options="professions"
               required
               :error="hasFieldError('category')"
             >
@@ -414,7 +414,7 @@ const dragActive = ref(false)
 const fieldErrors = ref<Set<string>>(new Set())
 
 // Lists
-const categories = [
+const professions = [
   { value: 'tools', label: 'Outils' },
   { value: 'garden', label: 'Jardin' },
   { value: 'sport', label: 'Sport' },

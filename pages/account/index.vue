@@ -1,564 +1,433 @@
 <!-- pages/index.vue -->
 <template>
-  <div class="min-h-screen bg-white dark:bg-gray-900">
-    <!-- Twitter-inspired sticky header with lighter design and backdrop filter -->
-    <header class="sticky top-0 z-10 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800 px-4 py-3">
-      <div class="max-w-2xl mx-auto flex items-center justify-between">
-        <h1 class="text-xl font-bold text-gray-900 dark:text-white">Tableau de bord</h1>
-        <!-- Added refresh button with improved hover effect -->
-        <button 
-          @click="fetchUserProfile" 
-          class="p-2 rounded-full hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-          aria-label="Actualiser le tableau de bord"
-        >
-          <RefreshCw class="w-5 h-5 text-gray-700 dark:text-gray-300" />
-        </button>
-      </div>
-    </header>
-
-    <!-- Main content with more white space -->
-    <main class="max-w-2xl mx-auto px- py-6 space-y-6">
-      <!-- Enhanced loading state with Twitter spinner -->
-      <div v-if="isLoading" class="flex flex-col items-center justify-center py-24">
-        <div class="animate-spin h-10 w-10 mb-5 text-primary-500">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-        </div>
-        <p class="text-gray-500 dark:text-gray-400 font-medium">Chargement de votre tableau de bord...</p>
-      </div>
-
-      <!-- Twitter-style error state -->
-      <div v-else-if="error" class="bg-red-50 dark:bg-red-900/10 p-5 rounded-2xl border border-red-100 dark:border-red-800/40 text-red-700 dark:text-red-300">
-        <div class="flex">
-          <AlertCircle class="h-5 w-5 text-red-500 dark:text-red-400 mr-3 flex-shrink-0" />
-          <div>
-            <p class="font-medium">{{ error }}</p>
-            <button 
-              @click="fetchUserProfile" 
-              class="mt-4 text-sm font-semibold text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 px-5 py-2 rounded-full transition-colors"
-            >
-              Réessayer
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div v-else class="space-y-6 animate-fade-in">
-        <!-- Profile card with enhanced Twitter 2023 aesthetic -->
-        <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-xs overflow-hidden transition-all hover:shadow-sm">
-          <!-- User profile header -->
-          <div class="p-6 relative">
-            <div class="flex items-start">
-              <!-- Profile picture with Twitter-style border -->
-              <div v-if="profile.avatar_url" class="w-20 h-20 rounded-full overflow-hidden border border-gray-100 dark:border-gray-700 flex-shrink-0">
-                <img :src="profile.avatar_url" alt="Photo de profil" class="w-full h-full object-cover" />
-              </div>
-              <div v-else class="w-20 h-20 rounded-full bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center text-xl font-bold text-primary-500 dark:text-primary-400 border border-gray-100 dark:border-gray-700 flex-shrink-0">
-                {{ getInitials(profile.first_name, profile.last_name) }}
-              </div>
-              
-              <div class="ml-5 flex-1">
-                <!-- User name and status with Twitter typography -->
-                <h2 class="text-xl font-bold text-gray-900 dark:text-white">{{ profile.first_name }} {{ profile.last_name }}</h2>
-                <p class="text-gray-500 dark:text-gray-400">{{ profile.email }}</p>
-                
-                <!-- Expert badge with Twitter pill style -->
-                <div v-if="profile.is_expert" class="mt-2 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400">
-                  <CheckCircle class="w-3.5 h-3.5 mr-1" />
-                  Expert
-                </div>
-              </div>
-              
-              <!-- Edit profile button with Twitter-style hover -->
-              <NuxtLink 
-                to="/account/edit-profile" 
-                class="flex-shrink-0 inline-flex justify-center items-center p-2.5 border border-gray-100 dark:border-gray-700 rounded-full text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-                aria-label="Modifier votre profil"
-              >
-                <Edit2 class="w-4 h-4" />
-              </NuxtLink>
-            </div>
-            
-            <!-- Profile completion with Twitter-style progress bar -->
-            <div class="mt-6">
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Profil complété</span>
-                <span class="text-sm font-bold text-primary-600 dark:text-primary-400">{{ profileCompletionPercent }}%</span>
-              </div>
-              <div class="w-full bg-gray-50 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-                <div 
-                  class="bg-primary-500 dark:bg-primary-400 h-2 rounded-full transition-all duration-500 ease-out" 
-                  :style="{ width: `${profileCompletionPercent}%` }"
-                ></div>
-              </div>
-              
-              <!-- Missing profile items with Twitter-style pill list -->
-              <div v-if="profileCompletionPercent < 100" class="mt-4 bg-primary-50 dark:bg-primary-900/10 rounded-2xl p-4">
-                <p class="text-sm font-medium text-primary-800 dark:text-primary-300 mb-2">Pour compléter votre profil :</p>
-                <ul class="space-y-2">
-                  <li v-if="!profile.phone" class="text-sm text-primary-700 dark:text-primary-400 flex items-center">
-                    <Plus class="w-3.5 h-3.5 mr-2 text-primary-500 dark:text-primary-400" />
-                    Ajouter un numéro de téléphone
-                  </li>
-                  <li v-if="!profile.avatar_url" class="text-sm text-primary-700 dark:text-primary-400 flex items-center">
-                    <Plus class="w-3.5 h-3.5 mr-2 text-primary-500 dark:text-primary-400" />
-                    Ajouter une photo de profil
-                  </li>
-                  <li v-if="!profile.bio" class="text-sm text-primary-700 dark:text-primary-400 flex items-center">
-                    <Plus class="w-3.5 h-3.5 mr-2 text-primary-500 dark:text-primary-400" />
-                    Ajouter une bio
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Twitter-style verification alert with light banner design -->
-        <div v-if="profile.is_expert && !isVerified" class="bg-amber-50 dark:bg-amber-900/10 p-5 rounded-2xl border border-amber-100 dark:border-amber-800/40">
-          <div class="flex">
-            <div class="flex-shrink-0">
-              <AlertTriangle class="h-6 w-6 text-amber-500 dark:text-amber-400" />
-            </div>
-            <div class="ml-4">
-              <h3 class="text-base font-semibold text-amber-800 dark:text-amber-300">Vérification requise</h3>
-              <div class="mt-2 text-sm text-amber-700 dark:text-amber-400">
-                <p>Votre compte expert n'est pas encore vérifié. La vérification est nécessaire pour recevoir des demandes et proposer vos services.</p>
-              </div>
-              <div class="mt-4">
-                <NuxtLink to="/account/verification" class="inline-flex items-center px-5 py-2 text-sm font-medium rounded-full shadow-sm text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/20 hover:bg-amber-200 dark:hover:bg-amber-900/30 transition-colors">
-                  Compléter la vérification
-                </NuxtLink>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Stat cards with Twitter-inspired design -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <!-- Requests stats card -->
-          <div class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all group cursor-pointer">
-            <div class="flex items-center">
-              <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
-                <File class="w-6 h-6" />
-              </div>
-              <div class="ml-4">
-                <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ stats.requestsCount }}</div>
-                <div class="text-sm text-gray-500 dark:text-gray-400 font-medium">Demandes</div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Completed stats card -->
-          <div class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all group cursor-pointer">
-            <div class="flex items-center">
-              <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400">
-                <CheckCircle class="w-6 h-6" />
-              </div>
-              <div class="ml-4">
-                <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ stats.completedCount }}</div>
-                <div class="text-sm text-gray-500 dark:text-gray-400 font-medium">Terminées</div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Rating stats card -->
-          <div class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all group cursor-pointer">
-            <div class="flex items-center">
-              <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400">
-                <Star class="w-6 h-6" />
-              </div>
-              <div class="ml-4">
-                <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ stats.averageRating }}</div>
-                <div class="text-sm text-gray-500 dark:text-gray-400 font-medium">Note moyenne</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Recent activity feed with Twitter-style timeline -->
-        <div class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden shadow-xs hover:shadow-sm transition-all">
-          <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
-            <h3 class="font-semibold text-gray-900 dark:text-white">Activité récente</h3>
+  <div class="max-w-4xl mx-auto px-4 py-4 md:py-8">
+    <!-- En-tête -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden mb-4 md:mb-8">
+      <div class="p-4 md:p-6">
+        <!-- Version mobile du header -->
+        <div class="md:hidden mb-4">
+          <div class="flex items-center justify-between">
+            <h1 class="text-xl font-bold text-gray-900 dark:text-white">Mon profil</h1>
             <NuxtLink 
-              to="/account/activities" 
-              class="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium inline-flex items-center"
+              to="/account/edit-profile"
+              class="inline-flex items-center px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-full text-sm text-gray-700 dark:text-white font-medium transition-all"
             >
-              Voir tout
-              <ChevronRight class="h-4 w-4 ml-1" />
-            </NuxtLink>
-          </div>
-          
-          <div class="p-6">
-            <!-- Twitter-style activity list -->
-            <div v-if="recentActivity.length > 0" class="space-y-6">              
-              <div 
-                v-for="activity in recentActivity" 
-                :key="activity.id"
-                class="flex group"
-              >
-                <!-- Activity icon -->
-                <div class="flex-shrink-0">
-                  <span class="w-12 h-12 rounded-full bg-gray-50 dark:bg-gray-700 flex items-center justify-center text-primary-600 dark:text-primary-400 group-hover:bg-gray-100 dark:group-hover:bg-gray-600 transition-colors">
-                    <File v-if="activity.type === 'request'" class="w-6 h-6" />
-                    <MessageSquare v-else-if="activity.type === 'message'" class="w-6 h-6" />
-                    <CheckSquare v-else-if="activity.type === 'completed'" class="w-6 h-6" />
-                    <Activity v-else class="w-6 h-6" />
-                  </span>
-                </div>
-                
-                <!-- Activity content with Twitter-style card -->
-                <div class="ml-4 flex-1">
-                  <div class="flex items-center justify-between">
-                    <h4 class="text-base font-medium text-gray-900 dark:text-white">{{ activity.title }}</h4>
-                    <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">{{ formatDate(activity.date) }}</span>
-                  </div>
-                  <p class="mt-1 text-sm text-gray-600 dark:text-gray-300 line-clamp-2">{{ activity.description }}</p>
-                  <div class="mt-3">
-                    <NuxtLink :to="activity.link" class="text-sm font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 inline-flex items-center">
-                      Voir les détails
-                      <ArrowRight class="h-3.5 w-3.5 ml-1" />
-                    </NuxtLink>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Twitter-style empty state -->
-            <div v-else class="text-center py-10">
-              <div class="mx-auto h-16 w-16 text-gray-300 dark:text-gray-600 bg-gray-50 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                <Clock class="h-8 w-8" />
-              </div>
-              <h3 class="mt-4 text-base font-medium text-gray-900 dark:text-white">Aucune activité récente</h3>
-              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Votre activité récente apparaîtra ici</p>
-              <NuxtLink 
-                to="/services"
-                class="mt-5 inline-flex items-center px-5 py-2.5 text-sm font-medium rounded-full text-white bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 transition-colors"
-              >
-                Explorer les services
-              </NuxtLink>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Expert skills section with Twitter-style tags -->
-        <div v-if="profile.is_expert" class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden shadow-xs hover:shadow-sm transition-all">
-          <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
-            <h3 class="font-semibold text-gray-900 dark:text-white">Mes compétences</h3>
-            <NuxtLink 
-              to="/account/edit-profile" 
-              class="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium inline-flex items-center"
-            >
+              <v-icon name="bi-pencil" class="mr-1" scale="0.9" />
               Modifier
-              <Edit3 class="h-3.5 w-3.5 ml-1" />
             </NuxtLink>
           </div>
-          
-          <div class="p-6">
-            <!-- Skills tags with Twitter-style pills -->
-            <div v-if="profile.skills && profile.skills.length > 0" class="flex flex-wrap gap-2">
-              <span 
-                v-for="skill in profile.skills" 
-                :key="skill"
-                class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+        </div>
+
+        <div class="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6">
+          <!-- Avatar et statut -->
+          <div class="relative mx-auto md:mx-0">
+            <div class="w-24 h-24 md:w-32 md:h-32 rounded-full ring-4 ring-gray-100 dark:ring-gray-700 overflow-hidden">
+              <img 
+                v-if="profile?.avatar_url" 
+                :src="profile.avatar_url" 
+                :alt="profile?.first_name"
+                class="w-full h-full object-cover"
+              />
+              <div 
+                v-else 
+                class="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center text-3xl font-bold text-gray-400 dark:text-gray-300"
               >
-                {{ skill }}
+                {{ getInitials(profile?.first_name, profile?.last_name) }}
+              </div>
+            </div>
+            <div 
+              class="absolute -bottom-1 -right-1 w-6 h-6 md:w-8 md:h-8 rounded-full ring-4 ring-white dark:ring-gray-800 flex items-center justify-center"
+              :class="{
+                'bg-green-500': profile?.availability_status === 'available',
+                'bg-yellow-500': profile?.availability_status === 'busy',
+                'bg-red-500': profile?.availability_status === 'unavailable'
+              }"
+            >
+              <v-icon :name="availabilityIcon" class="text-white" scale="1.2" />
+            </div>
+          </div>
+
+          <!-- Informations utilisateur -->
+          <div class="flex-1 w-full">
+            <!-- Header desktop -->
+            <div class="hidden md:flex items-center justify-between mb-4">
+              <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+                {{ profile?.first_name }} {{ profile?.last_name }}
+              </h1>
+              <NuxtLink 
+                to="/account/edit-profile"
+                class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-full text-gray-700 dark:text-white font-medium transition-all"
+              >
+                <v-icon name="bi-pencil" class="mr-2" />
+                Modifier
+              </NuxtLink>
+            </div>
+
+            <!-- Nom (mobile) -->
+            <h2 class="md:hidden text-center text-xl font-bold text-gray-900 dark:text-white mb-2">
+              {{ profile?.first_name }} {{ profile?.last_name }}
+            </h2>
+
+            <!-- Badges et statut -->
+            <div class="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-4">
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400">
+                {{ profile?.role === 'expert' ? 'Expert' : 'Client' }}
+              </span>
+              <span v-if="profile?.is_verified" class="inline-flex items-center text-primary-600 dark:text-primary-400">
+                <v-icon name="bi-patch-check-fill" scale="1.2" class="mr-1" />
+                Vérifié
+              </span>
+              <span v-if="profession?.name" class="text-gray-600 dark:text-gray-300">
+                {{ profession.name }}
               </span>
             </div>
-            
-            <!-- Twitter-style empty state for skills -->
-            <div v-else class="text-center py-8">
-              <div class="mx-auto h-16 w-16 text-gray-300 dark:text-gray-600 bg-gray-50 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                <Briefcase class="h-8 w-8" />
+
+            <!-- Barre de progression -->
+            <div class="mb-4">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Profil complété
+                </span>
+                <span class="text-sm font-medium text-primary-600 dark:text-primary-400">
+                  {{ completionPercentage }}%
+                </span>
               </div>
-              <h3 class="mt-4 text-base font-medium text-gray-900 dark:text-white">Aucune compétence ajoutée</h3>
-              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Ajoutez vos compétences pour vous démarquer</p>
-              <NuxtLink 
-                to="/account/edit-profile" 
-                class="mt-5 inline-flex items-center px-5 py-2.5 border border-gray-200 dark:border-gray-600 text-sm font-medium rounded-full text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div 
+                  class="bg-primary-600 h-2 rounded-full transition-all duration-500"
+                  :style="{ width: `${completionPercentage}%` }"
+                />
+              </div>
+            </div>
+
+            <!-- Liste des éléments manquants (collapsible sur mobile) -->
+            <div v-if="missingItems.length > 0" class="mt-3">
+              <button 
+                @click="showMissingItems = !showMissingItems"
+                class="md:hidden w-full flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 p-2 rounded-lg bg-gray-50 dark:bg-gray-700/50"
               >
-                Ajouter des compétences
-              </NuxtLink>
+                <span>{{ missingItems.length }} éléments à compléter</span>
+                <v-icon 
+                  :name="showMissingItems ? 'bi-chevron-up' : 'bi-chevron-down'"
+                  scale="0.9"
+                />
+              </button>
+              
+              <div 
+                :class="[
+                  'md:block space-y-1 mt-2',
+                  showMissingItems ? 'block' : 'hidden'
+                ]"
+              >
+                <div 
+                  v-for="item in missingItems" 
+                  :key="item.field"
+                  class="flex items-center text-sm text-gray-600 dark:text-gray-400"
+                >
+                  <v-icon name="bi-x" class="text-red-500 mr-2" />
+                  {{ item.label }}
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </main>
+    </div>
+
+    <!-- Stats et dernières missions -->
+    <div class="grid gap-4 md:gap-8 mb-4 md:mb-8">
+      <!-- Stats -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 md:p-6">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Vue d'ensemble</h2>
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+          <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50">
+            <div class="text-2xl font-bold text-gray-900 dark:text-white">
+              {{ activeContracts }}
+            </div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">
+              Contrats actifs
+            </div>
+          </div>
+          <div v-if="profile?.role === 'expert'" class="p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50">
+            <div class="text-2xl font-bold text-gray-900 dark:text-white">
+              {{ profile?.hourly_rate || 0 }}€
+            </div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">
+              Tarif horaire
+            </div>
+          </div>
+          <div v-if="profile?.role === 'expert'" class="p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50">
+            <div class="text-2xl font-bold text-gray-900 dark:text-white">
+              {{ skillsCount }}
+            </div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">
+              Compétences
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dernières missions -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 md:p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Dernières missions</h2>
+          <NuxtLink 
+            to="/account/missions"
+            class="text-sm text-primary-600 dark:text-primary-400 hover:underline"
+          >
+            Voir tout
+          </NuxtLink>
+        </div>
+        
+        <div v-if="recentMissions.length > 0" class="space-y-3 md:space-y-4">
+          <div 
+            v-for="mission in recentMissions" 
+            :key="mission.id"
+            class="p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 flex items-center justify-between"
+          >
+            <div>
+              <h3 class="font-medium text-gray-900 dark:text-white">
+                {{ mission.title }}
+              </h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                {{ formatDate(mission.created_at) }}
+              </p>
+            </div>
+            <span 
+              class="px-2.5 py-0.5 rounded-full text-xs font-medium"
+              :class="getMissionStatusClass(mission.status)"
+            >
+              {{ getMissionStatusLabel(mission.status) }}
+            </span>
+          </div>
+        </div>
+        <div 
+          v-else 
+          class="text-center py-6 md:py-8 text-gray-500 dark:text-gray-400"
+        >
+          Aucune mission récente
+        </div>
+      </div>
+    </div>
+
+    <!-- Sections d'informations -->
+    <div class="grid gap-8">
+      <!-- Informations personnelles -->
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden">
+        <div class="p-6">
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+            <v-icon name="bi-person" class="mr-2" />
+            Informations personnelles
+          </h2>
+          <dl class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50">
+              <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Email</dt>
+              <dd class="mt-1 text-gray-900 dark:text-white font-medium">{{ profile?.email }}</dd>
+            </div>
+            <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50">
+              <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Téléphone</dt>
+              <dd class="mt-1 text-gray-900 dark:text-white font-medium">{{ profile?.phone || '—' }}</dd>
+            </div>
+            <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50">
+              <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Date de naissance</dt>
+              <dd class="mt-1 text-gray-900 dark:text-white font-medium">{{ formatDate(profile?.birthdate) }}</dd>
+            </div>
+            <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50">
+              <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Localisation</dt>
+              <dd class="mt-1 text-gray-900 dark:text-white font-medium">
+                {{ [profile?.city, profile?.country].filter(Boolean).join(', ') || '—' }}
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      <!-- Section Expert (conditionnelle) -->
+      <div v-if="profile?.role === 'expert'" class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden">
+        <div class="p-6">
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+            <v-icon name="bi-briefcase" class="mr-2" />
+            Profil professionnel
+          </h2>
+          <dl class="space-y-6">
+            <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50">
+              <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Bio</dt>
+              <dd class="mt-2 text-gray-900 dark:text-white">{{ profile?.bio || '—' }}</dd>
+            </div>
+            <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50">
+              <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Compétences</dt>
+              <dd class="mt-3">
+                <div class="flex flex-wrap gap-2">
+                  <span 
+                    v-for="skill in skills" 
+                    :key="skill.id"
+                    class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400"
+                  >
+                    {{ skill.name }}
+                  </span>
+                </div>
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useSupabaseClient, useRouter } from '#imports'
-import { 
-  AlertTriangle, 
-  AlertCircle, 
-  File, 
-  CheckCircle, 
-  Star, 
-  Activity, 
-  MessageSquare, 
-  Clock, 
-  Briefcase,
-  CheckSquare,
-  Edit2,
-  Edit3,
-  Plus,
-  ArrowRight,
-  ChevronRight,
-  RefreshCw
-} from 'lucide-vue-next'
+import { useSupabaseClient, useSupabaseUser } from '#imports'
 
-// Mise à jour de la définition de page pour utiliser le layout par défaut
-definePageMeta({
-  middleware: ['auth'],
-  layout: 'account'
-})
-
-// State
-const isLoading = ref(true)
-const error = ref(null)
-const profile = ref({
-  first_name: '',
-  last_name: '',
-  email: '',
-  avatar_url: null,
-  phone: null,
-  bio: null,
-  is_expert: false,
-  skills: []
-})
-const stats = ref({
-  requestsCount: 0,
-  completedCount: 0,
-  averageRating: '0.0'
-})
-const recentActivity = ref([])
-const isVerified = ref(false)
-
-// Supabase client
 const supabase = useSupabaseClient()
-const router = useRouter()
+const user = useSupabaseUser()
 
-// Computed properties
-const profileCompletionPercent = computed(() => {
-  let completed = 0
-  let total = 3 // Base fields: name, email are assumed to be completed
-  
-  if (profile.value.avatar_url) completed++
-  if (profile.value.phone) completed++
-  if (profile.value.bio) completed++
-  
-  return Math.round((completed / total) * 100)
+// État
+const profile = ref(null)
+const profession = ref(null)
+const skills = ref([])
+const activeContracts = ref(0)
+
+// État pour les missions récentes
+const recentMissions = ref([])
+
+// Liste des éléments requis pour compléter le profil
+const requiredItems = [
+  { field: 'phone', label: 'Numéro de téléphone' },
+  { field: 'birthdate', label: 'Date de naissance' },
+  { field: 'city', label: 'Ville' },
+  { field: 'country', label: 'Pays' },
+  { field: 'bio', label: 'Bio', expertOnly: true },
+  { field: 'profession_id', label: 'Profession', expertOnly: true },
+  { field: 'hourly_rate', label: 'Tarif horaire', expertOnly: true },
+]
+
+// Computed
+const completionPercentage = computed(() => profile.value?.profile_completion_percentage || 0)
+const skillsCount = computed(() => skills.value.length)
+
+// Computed pour l'icône de disponibilité
+const availabilityIcon = computed(() => {
+  switch (profile.value?.availability_status) {
+    case 'available':
+      return 'bi-check-lg'
+    case 'busy':
+      return 'bi-clock'
+    case 'unavailable':
+      return 'bi-x-lg'
+    default:
+      return 'bi-dash-lg'
+  }
 })
 
-// Methods
+// Computed pour les éléments manquants
+const missingItems = computed(() => {
+  if (!profile.value) return []
+  
+  return requiredItems.filter(item => {
+    if (item.expertOnly && profile.value.role !== 'expert') return false
+    return !profile.value[item.field]
+  })
+})
+
+// Ajout de l'état pour le toggle des éléments manquants sur mobile
+const showMissingItems = ref(false)
+
+// Fonctions utilitaires
 const getInitials = (firstName, lastName) => {
-  if (!firstName || !lastName) return '??'
-  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
+  return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase()
 }
 
-const formatDate = (dateString) => {
-  const options = { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }
-  return new Date(dateString).toLocaleDateString('fr-FR', options)
+const formatDate = (date) => {
+  if (!date) return '—'
+  return new Date(date).toLocaleDateString()
 }
 
-// Fetch user profile data
-const fetchUserProfile = async () => {
-  try {
-    isLoading.value = true
-    error.value = null
-    
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) {
-      // Redirect to login if not authenticated
-      return router.push('/login')
-    }
-    
-    const { data, error: profileError } = await supabase
-      .from('profiles')
-      .select('*, user_skills(skill_id, skills(name))')
-      .eq('id', session.user.id)
-      .single()
-      
-    if (profileError) throw profileError
-    
-    // Format skills array
-    let skills = []
-    if (data.user_skills && data.user_skills.length > 0) {
-      skills = data.user_skills.map(us => us.skills.name)
-    }
-    
-    profile.value = {
-      ...data,
-      email: session.user.email,
-      skills
-    }
-
-    // Fetch stats and activity after profile is loaded
+// Charger les données
+onMounted(async () => {
+  if (user.value) {
     await Promise.all([
-      fetchUserStats(),
-      fetchRecentActivity()
+      fetchProfile(),
+      fetchActiveContracts(),
+      fetchRecentMissions()
     ])
-    
-    // Check verification status
-    await checkVerificationStatus()
-    
+  }
+})
+
+// Charger le profil et les données associées
+const fetchProfile = async () => {
+  try {
+    const { data } = await supabase
+      .from('profiles')
+      .select(`
+        *,
+        profession:professions(*),
+        user_skills(
+          skill:skills(*)
+        )
+      `)
+      .eq('id', user.value.id)
+      .single()
+
+    if (data) {
+      profile.value = data
+      profession.value = data.profession
+      skills.value = data.user_skills.map(us => us.skill)
+    }
   } catch (error) {
     console.error('Error fetching profile:', error)
-    error.value = "Une erreur est survenue lors du chargement de votre profil"
-  } finally {
-    isLoading.value = false
   }
 }
 
-// Fetch user statistics
-const fetchUserStats = async () => {
+// Charger le nombre de contrats actifs
+const fetchActiveContracts = async () => {
   try {
-    const userId = profile.value.id
-    
-    // Fetch request count
-    const { data: requestsData, error: requestsError } = await supabase
-      .from('requests')
-      .select('id, status')
-      .eq('client_id', userId)
-    
-    if (requestsError) throw requestsError
-    
-    stats.value.requestsCount = requestsData.length
-    stats.value.completedCount = requestsData.filter(r => r.status === 'completed').length
-    
-    // Fetch average rating
-    const { data: ratingsData, error: ratingsError } = await supabase
-      .from('reviews')
-      .select('rating')
-      .eq('receiver_id', userId)
-    
-    if (ratingsError) throw ratingsError
-    
-    if (ratingsData.length > 0) {
-      const sum = ratingsData.reduce((acc, curr) => acc + curr.rating, 0)
-      stats.value.averageRating = (sum / ratingsData.length).toFixed(1)
-    }
-    
-  } catch (err) {
-    console.error('Error fetching stats:', err)
-  }
-}
+    const { count } = await supabase
+      .from('deals')
+      .select('*', { count: 'exact', head: true })
+      .eq(profile.value?.role === 'expert' ? 'expert_id' : 'client_id', user.value.id)
+      .eq('status', 'active')
 
-// Fetch recent activity
-const fetchRecentActivity = async () => {
-  try {
-    const userId = profile.value.id
-    
-    // Sample - fetch recent requests
-    const { data: requestsData, error: requestsError } = await supabase
-      .from('requests')
-      .select('id, title, description, created_at')
-      .eq('client_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(5)
-    
-    if (requestsError) throw requestsError
-    
-    const requestsActivity = requestsData.map(request => ({
-      id: `request-${request.id}`,
-      type: 'request',
-      title: request.title,
-      description: request.description,
-      date: request.created_at,
-      link: `/requests/${request.id}`
-    }))
-    
-    // Add more activity types as needed
-    
-    // Combine and sort by date
-    recentActivity.value = [...requestsActivity]
-      .sort((a, b) => new Date(b.date) - new Date(a.date))
-      .slice(0, 5)
-    
+    activeContracts.value = count || 0
   } catch (error) {
-    console.error('Error fetching activity:', error)
+    console.error('Error fetching active contracts:', error)
   }
 }
 
-// Check verification status
-const checkVerificationStatus = async () => {
-  if (!profile.value?.is_expert) return
-  
+// Charger les dernières missions
+const fetchRecentMissions = async () => {
   try {
-    const { data, error } = await supabase
-      .from('verifications')
-      .select('status')
-      .eq('user_id', profile.value.id)
+    const { data } = await supabase
+      .from('missions')
+      .select('*')
+      .eq(profile.value?.role === 'expert' ? 'expert_id' : 'client_id', user.value.id)
       .order('created_at', { ascending: false })
-      .limit(1)
-      .single()
-    
-    if (error && error.code !== 'PGRST116') throw error
-    
-    isVerified.value = data?.status === 'approved'
-  } catch (err) {
-    console.error('Erreur lors de la vérification du statut:', err)
+      .limit(2)
+
+    recentMissions.value = data || []
+  } catch (error) {
+    console.error('Error fetching recent missions:', error)
   }
 }
 
-// Lifecycle hooks
-onMounted(() => {
-  fetchUserProfile()
-})
+// Helpers pour le statut des missions
+const getMissionStatusClass = (status) => {
+  const classes = {
+    pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+    active: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+    completed: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
+    cancelled: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+  }
+  return classes[status] || ''
+}
 
-// Define animation class
-const animateFadeIn = {
-  'animate-fade-in': true
+const getMissionStatusLabel = (status) => {
+  const labels = {
+    pending: 'En attente',
+    active: 'En cours',
+    completed: 'Terminée',
+    cancelled: 'Annulée'
+  }
+  return labels[status] || status
 }
 </script>
-
-<style scoped>
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* Twitter-style subtle shadows */
-.shadow-xs {
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-.shadow-sm {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-}
-
-/* Enhanced Twitter-style animations */
-.transition-colors {
-  transition-property: background-color, border-color, color, fill, stroke;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 300ms;
-}
-
-.transition-all {
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 300ms;
-}
-
-/* Fade-in animation for content */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-out forwards;
-}
-
-/* Blur effect for sticky header */
-.backdrop-blur-sm {
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-</style>

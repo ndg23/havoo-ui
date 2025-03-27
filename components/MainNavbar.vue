@@ -176,7 +176,7 @@
           <!-- Boutons de connexion/inscription (non connecté) -->
           <div v-else class="ml-3 flex items-center space-x-2">
             <NuxtLink 
-              to="/login" 
+              to="/auth/login" 
               class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
             >
               Connexion

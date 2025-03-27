@@ -175,7 +175,7 @@
     { id: 'dashboard', name: 'Tableau de bord', icon: BarChart2, showFor: 'all' },
     { id: 'edit', name: 'Profil', icon: User, showFor: 'all' },
     { id: 'security', name: 'Sécurité', icon: Settings, showFor: 'all' },
-    { id: 'requests', name: 'Demandes', icon: FileText, showFor: 'all' },
+    { id: 'missions', name: 'Demandes', icon: FileText, showFor: 'all' },
     { id: 'payments', name: 'Paiements', icon: CreditCard, showFor: 'all' },
     { id: 'expert', name: 'Expert', icon: Briefcase, showFor: 'expert' },
     { id: 'reviews', name: 'Avis', icon: Star, showFor: 'expert' },
@@ -199,7 +199,7 @@
       case 'expert': return ProfileExpertSettings
       // Uncomment as you implement these components
       // case 'security': return ProfileSecurity
-      // case 'requests': return ProfileRequests
+      // case 'missions': return ProfileRequests
       // case 'payments': return ProfilePayments
       // case 'dashboard': return ProfileStats
       // Add other cases as needed

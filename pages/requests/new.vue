@@ -1,166 +1,240 @@
 <template>
-  <div class="min-h-screen bg-white dark:bg-gray-900">
-    <!-- Twitter-style sticky header with blur effect -->
-    <header class="sticky top-0 z-10 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800">
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <!-- Header fixe -->
+    <header class="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
       <div class="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-        <div class="flex items-center">
+        <div class="flex items-center gap-3">
           <button 
             @click="$router.back()" 
-            class="p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            aria-label="Retour"
+            class="p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
           >
-            <svg class="w-5 h-5 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 19l-7-7 7-7" />
-            </svg>
+            <v-icon name="bi-arrow-left" scale="1.2" />
           </button>
-          <h1 class="ml-6 text-xl font-bold text-gray-900 dark:text-white">Nouvelle demande</h1>
+          <div>
+            <h1 class="text-xl font-bold text-gray-900 dark:text-white">Nouvelle mission</h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Créez votre demande</p>
+          </div>
         </div>
         
-        <!-- Twitter-style submit button in header -->
         <button
-          type="button"
           @click="submitRequest"
-          :disabled="isSubmitting"
-          class="py-1.5 px-4 rounded-full text-white font-medium transition-colors shadow-sm"
-          :class="!isSubmitting ? 'bg-primary-600 hover:bg-primary-700' : 'bg-primary-300 dark:bg-primary-800 cursor-not-allowed'"
+          :disabled="isSubmitting || !isFormValid"
+          class="inline-flex items-center px-4 py-2 rounded-full text-white font-medium transition-all"
+          :class="[
+            isSubmitting || !isFormValid 
+              ? 'bg-gray-300 dark:bg-gray-600 cursor-not-allowed' 
+              : 'bg-primary-600 hover:bg-primary-700'
+          ]"
         >
-          <span v-if="isSubmitting" class="flex items-center">
-            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Publication...
-          </span>
-          <span v-else>Publier</span>
+          <v-icon 
+            v-if="isSubmitting"
+            name="bi-arrow-repeat" 
+            class="animate-spin mr-2"
+          />
+          {{ isSubmitting ? 'Publication...' : 'Publier' }}
         </button>
       </div>
     </header>
 
-    <!-- Main content with Twitter style -->
     <main class="max-w-2xl mx-auto px-4 py-6">
-      <!-- Status message with Twitter style -->
-      <div v-if="statusMessage" 
-        class="mb-6 p-4 rounded-xl text-sm flex items-center"
-        :class="statusType === 'error' ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-100 dark:border-red-800/40' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border border-blue-100 dark:border-blue-800/40'"
-      >
-        <span v-if="statusType === 'error'" class="mr-2 flex-shrink-0">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </span>
-        <span v-else class="mr-2 flex-shrink-0">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </span>
-        {{ statusMessage }}
+      <!-- Introduction -->
+      <div class="mb-8 text-center">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          Que voulez-vous faire réaliser ?
+        </h2>
+        <p class="text-gray-600 dark:text-gray-400">
+          Décrivez votre projet en détail pour trouver le meilleur expert
+        </p>
       </div>
 
-      <!-- Twitter-style form layout -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-        <form @submit.prevent="submitRequest">
-          <!-- Title input with Twitter style -->
-          <div class="p-4 border-b border-gray-100 dark:border-gray-700">
-            <TwitterInput
-              id="title"
-              v-model="requestData.title"
-              placeholder="Titre de votre demande"
-              maxLength="100"
-              showCount
-              required
-            />
-          </div>
-          
-          <!-- Description textarea with Twitter style -->
-          <div class="p-4 border-b border-gray-100 dark:border-gray-700">
-            <TwitterInput
-              id="description"
-              v-model="requestData.description"
-              placeholder="Décrivez votre besoin en détail..."
-              type="textarea"
-              rows="4"
-              maxLength="1000"
-              showCount
-              required
-            />
-          </div>
-          
-          <!-- Category selection with Google-style dropdown -->
-          <div class="p-4 border-b border-gray-100 dark:border-gray-700">
-            <div class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-              Catégorie <span class="text-red-500">*</span>
-            </div>
-            <div class="relative">
-              <select
-                v-model="requestData.categoryId"
-                @change="updateSelectedCategory"
-                class="w-full appearance-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 pr-10 text-gray-900 dark:text-white focus:border-primary-500 focus:outline-none transition-colors"
-                :class="{'text-gray-500 dark:text-gray-400': !requestData.categoryId}"
-              >
-                <option value="" disabled selected>Sélectionnez une catégorie</option>
-                <option 
-                  v-for="category in categories" 
-                  :key="category.id" 
-                  :value="category.id"
-                  >
-                  {{ category.name }}
-                </option>
-              </select>
-              
-              <!-- Custom dropdown arrow -->
-              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-              
-            
-            </div>
-          </div>
-          
-          <!-- Budget field with Twitter style -->
-          <div class="p-4 border-b border-gray-100 dark:border-gray-700">
-            <TwitterInput
-              id="budget"
-              v-model="requestData.budget"
-              placeholder="Budget (FCFA)"
-              type="number"
-              required
-            />
-            <div class="mt-1 text-xs text-gray-500 dark:text-gray-400 px-1">
-               - Indiquez votre budget approximatif
-            </div>
-          </div>
-          
-          <!-- Deadline field with Twitter style -->
-          <div class="p-4">
-            <TwitterInput
-              id="deadline"
-              v-model="requestData.deadline"
-              placeholder="Date limite"
-              type="date"
-              required
-            />
-            <div class="mt-1 text-xs text-gray-500 dark:text-gray-400 px-1">
-               - Date souhaitée pour la réalisation
-            </div>
-          </div>
-        </form>
-      </div>
-      
-      <!-- Form progress indicator with Twitter style -->
-      <div class="mt-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Progression</span>
-          <span class="text-sm font-medium text-primary-600 dark:text-primary-400">{{ formProgress }}%</span>
-        </div>
-        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+      <!-- Étapes de progression -->
+      <div class="flex items-center justify-between mb-8 px-4">
+        <div class="flex-1 relative">
           <div 
-            class="bg-primary-600 h-2.5 rounded-full transition-all duration-500"
+            class="h-1 bg-primary-600"
             :style="{ width: `${formProgress}%` }"
-          ></div>
+          />
+          <div class="absolute h-1 w-full bg-gray-200 dark:bg-gray-700 -z-10" />
         </div>
-        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+        <span class="ml-4 text-sm font-medium text-primary-600 dark:text-primary-400">
+          {{ formProgress }}%
+        </span>
+      </div>
+
+      <!-- Formulaire -->
+      <form @submit.prevent="submitRequest" class="space-y-6">
+        <!-- Titre -->
+        <div class="facebook-input-group">
+          <div class="relative">
+            <input
+              v-model="missionData.title"
+              type="text"
+              :id="'title'"
+              class="facebook-input peer pt-6"
+              :class="{ 'error': formErrors.title }"
+              placeholder=" "
+              maxlength="100"
+              required
+            />
+            <label 
+              :for="'title'" 
+              class="facebook-label"
+            >
+              Titre de la mission
+            </label>
+          </div>
+          <div class="facebook-hints">
+            <span class="text-xs text-gray-500">
+              Ex: "Création d'un logo pour ma startup"
+            </span>
+            <span class="text-xs text-gray-400">
+              {{ missionData.title.length }}/100
+            </span>
+          </div>
+          <p v-if="formErrors.title" class="facebook-error">
+            {{ formErrors.title }}
+          </p>
+        </div>
+
+        <!-- Description -->
+        <div class="facebook-input-group">
+          <div class="relative">
+            <textarea
+              v-model="missionData.description"
+              :id="'description'"
+              class="facebook-input peer pt-6"
+              :class="{ 'error': formErrors.description }"
+              placeholder=" "
+              maxlength="1000"
+              rows="4"
+              required
+            />
+            <label 
+              :for="'description'" 
+              class="facebook-label"
+            >
+              Description détaillée
+            </label>
+          </div>
+          <div class="facebook-hints">
+            <span class="text-xs text-gray-500">
+              Soyez précis pour obtenir les meilleures propositions
+            </span>
+            <span class="text-xs text-gray-400">
+              {{ missionData.description.length }}/1000
+            </span>
+          </div>
+          <p v-if="formErrors.description" class="facebook-error">
+            {{ formErrors.description }}
+          </p>
+        </div>
+
+        <!-- Catégorie -->
+        <div class="facebook-input-group">
+          <div class="relative">
+            <select
+              v-model="missionData.categoryId"
+              :id="'category'"
+              class="facebook-input peer"
+              :class="{ 'error': formErrors.categoryId }"
+              :disabled="isLoadingCategories"
+              required
+            >
+              <option value="" disabled selected> </option>
+              <option 
+                v-for="profession in professions" 
+                :key="profession.id" 
+                :value="profession.id"
+                class="py-2"
+              >
+                {{ profession.name }}
+              </option>
+            </select>
+            <label 
+              :for="'category'" 
+              class="facebook-label"
+            >
+              Catégorie
+            </label>
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <v-icon 
+                :name="isLoadingCategories ? 'bi-arrow-repeat' : 'bi-chevron-down'"
+                :class="{ 'animate-spin': isLoadingCategories }"
+                class="text-gray-400"
+              />
+            </div>
+          </div>
+          <p v-if="formErrors.categoryId" class="facebook-error">
+            {{ formErrors.categoryId }}
+          </p>
+        </div>
+
+        <!-- Budget et Deadline -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Budget -->
+          <div class="facebook-input-group">
+            <div class="relative">
+              <input
+                v-model="missionData.budget"
+                type="number"
+                :id="'budget'"
+                class="facebook-input peer pt-6 appearance-none"
+                :class="{ 'error': formErrors.budget }"
+                placeholder=" "
+                min="0"
+                required
+              />
+              <label 
+                :for="'budget'" 
+                class="facebook-label"
+              >
+                Budget (FCFA)
+              </label>
+            </div>
+            <div class="facebook-hints">
+              <span class="text-xs text-gray-500">
+                Ex: 50000
+              </span>
+            </div>
+            <p v-if="formErrors.budget" class="facebook-error">
+              {{ formErrors.budget }}
+            </p>
+          </div>
+
+          <!-- Deadline -->
+          <div class="facebook-input-group">
+            <div class="relative">
+              <input
+                v-model="missionData.deadline"
+                type="date"
+                :id="'deadline'"
+                class="facebook-input peer"
+                :class="{ 'error': formErrors.deadline }"
+                :min="minDate"
+                required
+              />
+              <label 
+                :for="'deadline'" 
+                class="facebook-label"
+              >
+                Date limite
+              </label>
+            </div>
+            <div class="facebook-hints">
+              <span class="text-xs text-gray-500">
+                Date souhaitée de réalisation
+              </span>
+            </div>
+            <p v-if="formErrors.deadline" class="facebook-error">
+              {{ formErrors.deadline }}
+            </p>
+          </div>
+        </div>
+      </form>
+
+      <!-- Message d'aide contextuel -->
+      <div class="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+        <p class="text-sm text-blue-700 dark:text-blue-400">
           {{ formProgressMessage }}
         </p>
       </div>
@@ -171,13 +245,14 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useRouter } from 'vue-router';
+// import { useSupabaseClient } from '#supabase/client';
 import TwitterInput from '~/components/ui/TwitterInput.vue';
 
 const router = useRouter();
 const supabase = useSupabaseClient();
 
 // Form data
-const requestData = ref({
+const missionData = ref({
   title: '',
   description: '',
   categoryId: null,
@@ -191,8 +266,57 @@ const statusMessage = ref('');
 const statusType = ref('info');
 const showCategoryDropdown = ref(false);
 const selectedCategory = ref(null);
-const categories = ref([]);
+const professions = ref([]);
 const isLoadingCategories = ref(true);
+
+// Validation du formulaire
+const formErrors = ref({})
+const minDate = computed(() => {
+  const today = new Date()
+  return today.toISOString().split('T')[0]
+})
+
+// Computed pour la validation du formulaire
+const isFormValid = computed(() => {
+  return (
+    missionData.value.title?.trim() &&
+    missionData.value.description?.trim() &&
+    missionData.value.categoryId &&
+    missionData.value.budget > 0 &&
+    missionData.value.deadline &&
+    new Date(missionData.value.deadline) > new Date()
+  )
+})
+
+// Validation avant soumission
+const validateForm = () => {
+  const errors = {}
+  
+  if (!missionData.value.title?.trim()) {
+    errors.title = 'Le titre est requis'
+  }
+  
+  if (!missionData.value.description?.trim()) {
+    errors.description = 'La description est requise'
+  }
+  
+  if (!missionData.value.categoryId) {
+    errors.categoryId = 'La catégorie est requise'
+  }
+  
+  if (!missionData.value.budget || missionData.value.budget <= 0) {
+    errors.budget = 'Le budget doit être supérieur à 0'
+  }
+  
+  if (!missionData.value.deadline) {
+    errors.deadline = 'La date limite est requise'
+  } else if (new Date(missionData.value.deadline) <= new Date()) {
+    errors.deadline = 'La date limite doit être future'
+  }
+  
+  formErrors.value = errors
+  return Object.keys(errors).length === 0
+}
 
 // Show status message
 const showStatus = (message, type = 'info') => {
@@ -205,43 +329,48 @@ const showStatus = (message, type = 'info') => {
   }, 5000);
 };
 
-// Form validation
-const isFormValid = computed(() => {
-  return (
-    requestData.value.title.trim() !== '' &&
-    requestData.value.description.trim() !== '' &&
-    requestData.value.categoryId !== null
-  );
-});
-
-// Calculate form progress
-const formProgress = computed(() => {
-  let progress = 0;
-  
-  if (requestData.value.title.trim() !== '') progress += 30;
-  if (requestData.value.description.trim() !== '') progress += 30;
-  if (requestData.value.categoryId !== null) progress += 30;
-  if (requestData.value.budget !== '' || requestData.value.deadline !== '') progress += 10;
-  
-  return progress;
-});
-
-// Form progress message
+// Messages de progression plus engageants
 const formProgressMessage = computed(() => {
-  if (formProgress.value < 30) return 'Commencez par ajouter un titre à votre demande';
-  if (formProgress.value < 60) return 'Décrivez votre besoin en détail';
-  if (formProgress.value < 90) return 'Sélectionnez une catégorie pour votre demande';
-  if (formProgress.value < 100) return 'Ajoutez des informations supplémentaires (optionnel)';
-  return 'Votre demande est prête à être publiée !';
-});
+  if (formProgress.value < 25) {
+    return "👋 Commencez par donner un titre accrocheur à votre mission"
+  }
+  if (formProgress.value < 50) {
+    return "✍️ Super ! Maintenant, décrivez votre besoin en détail"
+  }
+  if (formProgress.value < 75) {
+    return "🎯 Précisez la catégorie et votre budget"
+  }
+  if (formProgress.value < 100) {
+    return "📅 Plus qu'une étape : définissez la date limite"
+  }
+  return "🎉 Parfait ! Votre demande est prête à être publiée"
+})
+
+// Calcul de la progression
+const formProgress = computed(() => {
+  let progress = 0
+  const fields = {
+    title: 25,
+    description: 25,
+    categoryId: 25,
+    budget: 12.5,
+    deadline: 12.5
+  }
+
+  for (const [field, value] of Object.entries(fields)) {
+    if (missionData.value[field]) progress += value
+  }
+
+  return Math.round(progress)
+})
 
 // Toggle category dropdown
 const toggleCategoryDropdown = () => {
   showCategoryDropdown.value = !showCategoryDropdown.value;
   
   // Si on ouvre le dropdown et que les catégories ne sont pas encore chargées
-  if (showCategoryDropdown.value && categories.value.length === 0 && !isLoadingCategories.value) {
-    fetchCategories();
+  if (showCategoryDropdown.value && professions.value.length === 0 && !isLoadingCategories.value) {
+    fetchProfessions();
   }
 };
 
@@ -256,66 +385,76 @@ const handleClickOutside = (event) => {
 // Select category
 const selectCategory = (category) => {
   selectedCategory.value = category;
-  requestData.value.categoryId = category.id;
+  missionData.value.categoryId = category.id;
   showCategoryDropdown.value = false;
 };
 
-// Fetch categories
-const fetchCategories = async () => {
+// Fetch professions from Supabase
+const fetchProfessions = async () => {
   isLoadingCategories.value = true;
   
   try {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500));
+    const { data, error } = await supabase
+      .from('professions')
+      .select('id, name')
+      .eq('is_active', true)
+      .order('name');
     
-    categories.value = [
-      { id: 1, name: 'Développement web', color: '#3B82F6' },
-      { id: 2, name: 'Design graphique', color: '#EC4899' },
-      { id: 3, name: 'Marketing digital', color: '#10B981' },
-      { id: 4, name: 'Rédaction', color: '#F59E0B' },
-      { id: 5, name: 'Traduction', color: '#8B5CF6' }
-    ];
+    if (error) throw error;
+    
+    professions.value = data || [];
   } catch (error) {
-    console.error('Error fetching categories:', error);
+    console.error('Error fetching professions:', error);
     showStatus('Impossible de charger les catégories. Veuillez réessayer.', 'error');
   } finally {
     isLoadingCategories.value = false;
   }
 };
 
-// Submit request
+// Submit request with category validation
 const submitRequest = async () => {
-  if (!isFormValid.value) {
-    showStatus('Veuillez remplir tous les champs obligatoires.', 'error');
+  if (!validateForm()) {
+    showStatus('Veuillez corriger les erreurs dans le formulaire', 'error');
+    return;
+  }
+  
+  // Vérifier si la catégorie existe
+  const selectedCategory = professions.value.find(p => p.id === missionData.value.categoryId);
+  if (!selectedCategory) {
+    showStatus('Veuillez sélectionner une catégorie valide', 'error');
     return;
   }
   
   isSubmitting.value = true;
   
   try {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    const { data, error } = await supabase
+      .from('missions')
+      .insert([
+        {
+          title: missionData.value.title,
+          description: missionData.value.description,
+          profession_id: missionData.value.categoryId,
+          budget: missionData.value.budget,
+          deadline: missionData.value.deadline,
+          status: 'open'
+        }
+      ])
+      .select()
+      .single();
+
+    if (error) throw error;
     
-    showStatus('Votre demande a été publiée avec succès !', 'info');
+    showStatus('Votre demande a été publiée avec succès !', 'success');
     
-    // Reset form
-    requestData.value = {
-      title: '',
-      description: '',
-      categoryId: null,
-      budget: '',
-      deadline: ''
-    };
-    selectedCategory.value = null;
-    
-    // Redirect to requests page after a short delay
+    // Redirection après un court délai
     setTimeout(() => {
       router.push('/requests');
     }, 1500);
     
   } catch (error) {
     console.error('Error submitting request:', error);
-    showStatus('Une erreur est survenue lors de la publication de votre demande.', 'error');
+    showStatus('Une erreur est survenue lors de la publication', 'error');
   } finally {
     isSubmitting.value = false;
   }
@@ -324,8 +463,7 @@ const submitRequest = async () => {
 // Lifecycle hooks
 onMounted(() => {
   document.addEventListener('click', handleClickOutside);
-  // Préchargement des catégories au montage du composant
-  fetchCategories();
+  fetchProfessions();
 });
 
 onBeforeUnmount(() => {
@@ -351,77 +489,83 @@ const getRandomColor = (id) => {
 
 // Update selected category when dropdown changes
 const updateSelectedCategory = () => {
-  const categoryId = requestData.value.categoryId;
+  const categoryId = missionData.value.categoryId;
   if (categoryId) {
-    selectedCategory.value = categories.value.find(cat => cat.id === categoryId);
+    selectedCategory.value = professions.value.find(cat => cat.id === categoryId);
   } else {
     selectedCategory.value = null;
   }
 };
 
-// Watch for categories loaded to update selected category if needed
-watch(categories, () => {
-  if (requestData.value.categoryId) {
+// Watch for professions loaded to update selected category if needed
+watch(professions, () => {
+  if (missionData.value.categoryId) {
     updateSelectedCategory();
   }
 }, { deep: true });
 </script>
 
 <style scoped>
-/* Animation for dropdown */
-@keyframes slideDown {
-  from { 
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to { 
-    opacity: 1;
-    transform: translateY(0);
-  }
+.facebook-input-group {
+  @apply space-y-1;
 }
 
-.animate-slide-down {
-  animation: slideDown 0.2s ease-out forwards;
+.facebook-input {
+  @apply block w-full px-4 pb-1 rounded-lg border border-gray-300 dark:border-gray-600
+         bg-white dark:bg-gray-800 text-gray-900 dark:text-white
+         focus:border-primary-500 focus:ring-1 focus:ring-primary-500
+         disabled:bg-gray-100 dark:disabled:bg-gray-700
+         transition-colors duration-200;
 }
 
-/* Smooth transition effects */
-button, a, input, select, textarea, .transition-colors {
-  transition: all 0.2s ease;
+.facebook-input.error {
+  @apply border-red-500 focus:border-red-500 focus:ring-red-500;
 }
 
-/* Twitter-style ripple effect for buttons */
-button:not(:disabled) {
-  position: relative;
-  overflow: hidden;
+.facebook-label {
+  @apply absolute left-4 top-2 text-gray-500 dark:text-gray-400
+         transition-all duration-200 transform
+         pointer-events-none text-base
+         peer-focus:text-primary-500 peer-focus:text-xs
+         peer-[:not(:placeholder-shown)]:text-xs;
 }
 
-button:not(:disabled):after {
-  content: "";
-  display: block;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 5px;
-  height: 5px;
-  background: rgba(255, 255, 255, 0.3);
+.facebook-hints {
+  @apply flex justify-between items-center mt-1 px-1;
+}
+
+.facebook-error {
+  @apply text-sm text-red-500 dark:text-red-400 mt-1 px-1;
+}
+
+/* Style spécial pour l'input date en mode dark */
+.facebook-input[type="date"] {
+  @apply pt-6;
+}
+
+/* Style pour le select */
+select.facebook-input {
+  @apply pt-6 pl-2;
+}
+
+/* Style pour le placeholder du select */
+select.facebook-input option[value=""][disabled] {
+  @apply text-transparent;
+}
+
+/* Ajustement pour textarea */
+textarea.facebook-input {
+  @apply min-h-[120px] resize-none;
+}
+
+/* Ajout d'animations pour les transitions */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
-  border-radius: 100%;
-  transform: scale(1, 1) translate(-50%);
-  transform-origin: 50% 50%;
-}
-
-button:not(:disabled):active:after {
-  animation: ripple 0.6s ease-out;
-}
-
-@keyframes ripple {
-  0% {
-    transform: scale(0, 0);
-    opacity: 0.5;
-  }
-  100% {
-    transform: scale(25, 25);
-    opacity: 0;
-  }
 }
 </style>

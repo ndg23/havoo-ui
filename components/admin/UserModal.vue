@@ -107,7 +107,7 @@
         <!-- Statistiques -->
         <div class="grid grid-cols-4 gap-4 py-4 px-6 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
           <div class="text-center">
-            <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ stats.requests || 0 }}</div>
+            <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ stats.missions || 0 }}</div>
             <div class="text-xs text-gray-500 dark:text-gray-400">Demandes</div>
           </div>
           
@@ -410,7 +410,7 @@ const formData = ref({
 
 // Stats fictives pour la démo
 const stats = ref({
-  requests: 12,
+  missions: 12,
   proposals: 5,
   rating: 4.8,
   completed: 8

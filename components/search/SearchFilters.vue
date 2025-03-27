@@ -21,13 +21,13 @@
       <h3 class="font-medium text-gray-900 mb-4">Catégories</h3>
       <div class="space-y-3">
         <label 
-          v-for="category in categories" 
+          v-for="category in professions" 
           :key="category.id" 
           class="flex items-center gap-3"
         >
           <input 
             type="checkbox" 
-            v-model="filters.categories" 
+            v-model="filters.professions" 
             :value="category.id"
             class="text-orange-500 focus:ring-orange-500 rounded"
           >
@@ -57,7 +57,7 @@
 <script setup lang="ts">
 interface Filters {
   priceRange: string
-  categories: string[]
+  professions: string[]
   conditions: string[]
 }
 
@@ -80,7 +80,7 @@ const priceRanges = [
   { value: '50+', label: 'Plus de 50FCFA' }
 ]
 
-const categories = [
+const professions = [
   { id: 'tools', name: 'Bricolage' },
   { id: 'garden', name: 'Jardin' },
   { id: 'sport', name: 'Sport' },

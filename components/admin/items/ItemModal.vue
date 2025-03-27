@@ -91,7 +91,7 @@
               class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
             >
               <option value="">Sélectionner une catégorie</option>
-              <option v-for="category in categories" :key="category.id" :value="category.id">
+              <option v-for="category in professions" :key="category.id" :value="category.id">
                 {{ category.name }}
               </option>
             </select>
@@ -213,7 +213,7 @@ const emit = defineEmits<{
 }>()
 
 // Sample data
-const categories = [
+const professions = [
   { id: 'tools', name: 'Outils' },
   { id: 'garden', name: 'Jardin' },
   { id: 'sport', name: 'Sport' },

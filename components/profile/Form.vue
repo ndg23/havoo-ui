@@ -37,7 +37,7 @@
         <div class="md:col-span-2">
           <label class="block text-sm font-medium text-gray-700">Rue</label>
           <input
-            v-model="formData.address.street"
+            v-model="formData.location.street"
             type="text"
             class="mt-1 block w-full rounded-xl border-gray-300 -shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
@@ -46,7 +46,7 @@
         <div>
           <label class="block text-sm font-medium text-gray-700">Ville</label>
           <input
-            v-model="formData.address.city"
+            v-model="formData.location.city"
             type="text"
             class="mt-1 block w-full rounded-xl border-gray-300 -shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
@@ -55,7 +55,7 @@
         <div>
           <label class="block text-sm font-medium text-gray-700">Code postal</label>
           <input
-            v-model="formData.address.postalCode"
+            v-model="formData.location.postalCode"
             type="text"
             class="mt-1 block w-full rounded-xl border-gray-300 -shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />

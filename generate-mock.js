@@ -23,26 +23,26 @@ function logError(operation, error) {
 // Fonction pour générer des catégories de services
 async function generateCategories() {
     try {
-        console.log('Fetching existing categories...');
+        console.log('Fetching existing professions...');
         const { data: existingCategories, error: fetchError } = await supabase
-            .from('categories')
+            .from('professions')
             .select('*');
 
         if (fetchError) {
-            logError('fetching categories', fetchError);
+            logError('fetching professions', fetchError);
             throw fetchError;
         }
 
-        console.log(`Found ${existingCategories?.length || 0} existing categories`);
+        console.log(`Found ${existingCategories?.length || 0} existing professions`);
 
-        // If categories already exist, return them
+        // If professions already exist, return them
         if (existingCategories && existingCategories.length > 0) {
-            console.log('Using existing categories');
+            console.log('Using existing professions');
             return existingCategories;
         }
 
-        // Define categories to insert
-        const categories = [
+        // Define professions to insert
+        const professions = [
             { name: 'Ménage', description: 'Services de nettoyage et d\'entretien' },
             { name: 'Jardinage', description: 'Entretien et aménagement de jardins' },
             { name: 'Bricolage', description: 'Petits travaux et réparations' },
@@ -52,9 +52,9 @@ async function generateCategories() {
         ];
 
         // Log table structure to debug
-        console.log('Getting service_categories table structure...');
+        console.log('Getting service_professions table structure...');
         const { data: tableInfo, error: tableError } = await supabase.rpc('get_table_ddl', {
-            table_name: 'categories'
+            table_name: 'professions'
         });
 
         if (tableError) {
@@ -63,16 +63,16 @@ async function generateCategories() {
             console.log('Table structure:', tableInfo);
         }
 
-        console.log('Inserting categories...');
-        console.log('Categories to insert:', JSON.stringify(categories, null, 2));
+        console.log('Inserting professions...');
+        console.log('Categories to insert:', JSON.stringify(professions, null, 2));
 
         const { data, error } = await supabase
-            .from('categories')
-            .insert(categories)
+            .from('professions')
+            .insert(professions)
             .select();
 
         if (error) {
-            logError('inserting categories', error);
+            logError('inserting professions', error);
             throw error;
         }
 
@@ -84,38 +84,38 @@ async function generateCategories() {
 }
 
 // Fonction pour générer des services
-async function generateServices(categories) {
+async function generateServices(professions) {
     const services = [];
 
-    for (const category of categories) {
+    for (const category of professions) {
         // Services pour Ménage
         if (category.name === 'Ménage') {
-            services.push({ category_id: category.id, name: 'Ménage régulier', description: 'Nettoyage régulier de votre domicile' }, { category_id: category.id, name: 'Nettoyage de vitres', description: 'Nettoyage professionnel de vos vitres' }, { category_id: category.id, name: 'Repassage', description: 'Service de repassage de vêtements' }, { category_id: category.id, name: 'Ménage de printemps', description: 'Nettoyage approfondi de votre domicile' });
+            services.push({ profession_id: category.id, name: 'Ménage régulier', description: 'Nettoyage régulier de votre domicile' }, { profession_id: category.id, name: 'Nettoyage de vitres', description: 'Nettoyage professionnel de vos vitres' }, { profession_id: category.id, name: 'Repassage', description: 'Service de repassage de vêtements' }, { profession_id: category.id, name: 'Ménage de printemps', description: 'Nettoyage approfondi de votre domicile' });
         }
 
         // Services pour Jardinage
         else if (category.name === 'Jardinage') {
-            services.push({ category_id: category.id, name: 'Tonte de pelouse', description: 'Tonte et entretien de votre pelouse' }, { category_id: category.id, name: 'Taille de haies', description: 'Taille et mise en forme de vos haies' }, { category_id: category.id, name: 'Désherbage', description: 'Élimination des mauvaises herbes' }, { category_id: category.id, name: 'Plantation', description: 'Plantation de fleurs, arbustes ou légumes' });
+            services.push({ profession_id: category.id, name: 'Tonte de pelouse', description: 'Tonte et entretien de votre pelouse' }, { profession_id: category.id, name: 'Taille de haies', description: 'Taille et mise en forme de vos haies' }, { profession_id: category.id, name: 'Désherbage', description: 'Élimination des mauvaises herbes' }, { profession_id: category.id, name: 'Plantation', description: 'Plantation de fleurs, arbustes ou légumes' });
         }
 
         // Services pour Bricolage
         else if (category.name === 'Bricolage') {
-            services.push({ category_id: category.id, name: 'Petites réparations', description: 'Réparations diverses dans la maison' }, { category_id: category.id, name: 'Montage de meubles', description: 'Assemblage et montage de meubles en kit' }, { category_id: category.id, name: 'Peinture', description: 'Travaux de peinture intérieure ou extérieure' }, { category_id: category.id, name: 'Plomberie basique', description: 'Réparations simples de plomberie' });
+            services.push({ profession_id: category.id, name: 'Petites réparations', description: 'Réparations diverses dans la maison' }, { profession_id: category.id, name: 'Montage de meubles', description: 'Assemblage et montage de meubles en kit' }, { profession_id: category.id, name: 'Peinture', description: 'Travaux de peinture intérieure ou extérieure' }, { profession_id: category.id, name: 'Plomberie basique', description: 'Réparations simples de plomberie' });
         }
 
         // Services pour Garde d'enfants
         else if (category.name === 'Garde d\'enfants') {
-            services.push({ category_id: category.id, name: 'Garde régulière', description: 'Garde d\'enfants à votre domicile' }, { category_id: category.id, name: 'Sortie d\'école', description: 'Récupération des enfants à l\'école' }, { category_id: category.id, name: 'Baby-sitting', description: 'Garde occasionnelle en soirée' }, { category_id: category.id, name: 'Aide aux devoirs', description: 'Accompagnement scolaire et aide aux devoirs' });
+            services.push({ profession_id: category.id, name: 'Garde régulière', description: 'Garde d\'enfants à votre domicile' }, { profession_id: category.id, name: 'Sortie d\'école', description: 'Récupération des enfants à l\'école' }, { profession_id: category.id, name: 'Baby-sitting', description: 'Garde occasionnelle en soirée' }, { profession_id: category.id, name: 'Aide aux devoirs', description: 'Accompagnement scolaire et aide aux devoirs' });
         }
 
         // Services pour Cours particuliers
         else if (category.name === 'Cours particuliers') {
-            services.push({ category_id: category.id, name: 'Mathématiques', description: 'Cours de mathématiques tous niveaux' }, { category_id: category.id, name: 'Langues étrangères', description: 'Apprentissage et perfectionnement en langues' }, { category_id: category.id, name: 'Musique', description: 'Initiation et cours de musique' }, { category_id: category.id, name: 'Informatique', description: 'Formation aux outils informatiques' });
+            services.push({ profession_id: category.id, name: 'Mathématiques', description: 'Cours de mathématiques tous niveaux' }, { profession_id: category.id, name: 'Langues étrangères', description: 'Apprentissage et perfectionnement en langues' }, { profession_id: category.id, name: 'Musique', description: 'Initiation et cours de musique' }, { profession_id: category.id, name: 'Informatique', description: 'Formation aux outils informatiques' });
         }
 
         // Services pour Informatique
         else if (category.name === 'Informatique') {
-            services.push({ category_id: category.id, name: 'Dépannage PC', description: 'Résolution de problèmes informatiques' }, { category_id: category.id, name: 'Installation logiciels', description: 'Installation et configuration de logiciels' }, { category_id: category.id, name: 'Création de site web', description: 'Conception de sites web personnalisés' }, { category_id: category.id, name: 'Formation bureautique', description: 'Initiation aux outils bureautiques' });
+            services.push({ profession_id: category.id, name: 'Dépannage PC', description: 'Résolution de problèmes informatiques' }, { profession_id: category.id, name: 'Installation logiciels', description: 'Installation et configuration de logiciels' }, { profession_id: category.id, name: 'Création de site web', description: 'Conception de sites web personnalisés' }, { profession_id: category.id, name: 'Formation bureautique', description: 'Initiation aux outils bureautiques' });
         }
 
         // Services pour d'autres catégories
@@ -124,7 +124,7 @@ async function generateServices(categories) {
             const numServices = faker.number.int({ min: 2, max: 4 });
             for (let i = 0; i < numServices; i++) {
                 services.push({
-                    category_id: category.id,
+                    profession_id: category.id,
                     title: `${category.name} - ${faker.commerce.productName()}`,
                     description: faker.lorem.sentence()
                 });
@@ -238,7 +238,7 @@ async function generateUsers(count = 10, skills) {
                 is_expert: isExpert,
                 role: role,
                 phone: faker.phone.number('+33 6 ## ## ## ##'),
-                address: faker.location.streetAddress(),
+                location: faker.location.streetAddress(),
                 city: faker.location.city(),
                 country: 'France',
                 avatar_url: `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName+'+'+lastName)}&background=random&size=256`,
@@ -277,7 +277,7 @@ async function generateUsers(count = 10, skills) {
                 // Créer un profil d'expert
                 const expertProfile = {
                     user_id: userId,
-                    category_id: null, // Sera mis à jour ultérieurement si nécessaire
+                    profession_id: null, // Sera mis à jour ultérieurement si nécessaire
                     title: faker.person.jobTitle(),
                     hourly_rate: faker.number.int({ min: 20, max: 80 }),
                     years_experience: faker.number.int({ min: 1, max: 20 }),
@@ -376,7 +376,7 @@ async function generateExpertServices(expertIds, services) {
 
 // Fonction pour générer des demandes de service
 async function generateRequests(users, services, categoryIds, count = 20) {
-    const requests = [];
+    const missions = [];
     const statuses = ['active', 'pending', 'completed', 'cancelled'];
 
     console.log(`Génération de ${count} demandes...`);
@@ -403,11 +403,11 @@ async function generateRequests(users, services, categoryIds, count = 20) {
             users[0].id;
 
         // Créer la demande
-        const request = {
+        const mission = {
             id: faker.string.uuid(),
             client_id: clientId,
             service_id: service.id,
-            category_id: service.category_id,
+            profession_id: service.profession_id,
             title: faker.helpers.arrayElement([
                 `Besoin de ${service.name}`,
                 `Recherche personne pour ${service.name}`,
@@ -426,27 +426,27 @@ async function generateRequests(users, services, categoryIds, count = 20) {
             updated_at: faker.date.recent().toISOString()
         };
 
-        requests.push(request);
+        missions.push(mission);
     }
 
     // Insérer les demandes
     const { error } = await supabase
-        .from('requests')
-        .insert(requests);
+        .from('missions')
+        .insert(missions);
 
     if (error) throw error;
 
-    return requests;
+    return missions;
 }
 
 // Fonction pour générer des propositions d'experts
-async function generateProposals(requests, expertIds) {
+async function generateProposals(missions, expertIds) {
     const proposals = [];
     const statuses = ['pending', 'accepted', 'rejected', 'cancelled'];
 
     console.log('Génération des propositions...');
 
-    for (const request of requests) {
+    for (const mission of missions) {
         // 30% des demandes reçoivent entre 1 et 3 propositions
         if (faker.datatype.boolean(0.3)) {
             const numProposals = faker.number.int({ min: 1, max: 3 });
@@ -456,7 +456,7 @@ async function generateProposals(requests, expertIds) {
 
             for (const expertId of selectedExperts) {
                 const createdAt = faker.date.between({
-                    from: new Date(request.created_at),
+                    from: new Date(mission.created_at),
                     to: new Date()
                 }).toISOString();
 
@@ -473,9 +473,9 @@ async function generateProposals(requests, expertIds) {
 
                 proposals.push({
                     id: faker.string.uuid(),
-                    request_id: request.id,
+                    mission_id: mission.id,
                     expert_id: expertId,
-                    price: faker.number.float({ min: request.budget * 0.8, max: request.budget * 1.2, precision: 0.01 }),
+                    price: faker.number.float({ min: mission.budget * 0.8, max: mission.budget * 1.2, precision: 0.01 }),
                     message: faker.lorem.paragraph(),
                     status: status,
                     created_at: createdAt,
@@ -548,19 +548,19 @@ async function generateContracts(proposals) {
     for (const contract of contracts) {
         const { data, error } = await supabase
             .from('proposals')
-            .select('request_id')
+            .select('mission_id')
             .eq('id', contract.proposal_id)
             .single();
 
         if (!error && data) {
-            const { data: requestData, error: requestError } = await supabase
-                .from('requests')
+            const { data: missionData, error: missionError } = await supabase
+                .from('missions')
                 .select('client_id')
-                .eq('id', data.request_id)
+                .eq('id', data.mission_id)
                 .single();
 
-            if (!requestError && requestData) {
-                contract.client_id = requestData.client_id;
+            if (!missionError && missionData) {
+                contract.client_id = missionData.client_id;
             }
         }
     }
@@ -636,28 +636,28 @@ async function generateReviews(contracts) {
 }
 
 // Fonction pour générer des conversations et messages
-async function generateConversations(requests, clientIds, expertIds) {
+async function generateConversations(missions, clientIds, expertIds) {
     const conversations = [];
     const messages = [];
 
     console.log('Génération des conversations et messages...');
 
     // Créer des conversations pour chaque demande
-    for (const request of requests) {
+    for (const mission of missions) {
         // Sélectionner un expert aléatoire
         const expertId = faker.helpers.arrayElement(expertIds);
 
         // Créer une conversation
         const conversationId = faker.string.uuid();
         const createdAt = faker.date.between({
-            from: new Date(request.created_at),
+            from: new Date(mission.created_at),
             to: new Date()
         }).toISOString();
 
         conversations.push({
             id: conversationId,
-            request_id: request.id,
-            client_id: request.client_id,
+            mission_id: mission.id,
+            client_id: mission.client_id,
             expert_id: expertId,
             last_message_at: createdAt,
             created_at: createdAt,
@@ -673,7 +673,7 @@ async function generateConversations(requests, clientIds, expertIds) {
             const messageTime = new Date(lastMessageTime.getTime() + faker.number.int({ min: 1, max: 120 }) * 60000);
 
             // Alternance entre client et expert
-            const senderId = i % 2 === 0 ? request.client_id : expertId;
+            const senderId = i % 2 === 0 ? mission.client_id : expertId;
 
             messages.push({
                 id: faker.string.uuid(),
@@ -720,7 +720,7 @@ async function generateConversations(requests, clientIds, expertIds) {
 // Fonction pour générer des notifications
 async function generateNotifications(clientIds, expertIds) {
     const notifications = [];
-    const types = ['new_request', 'new_proposal', 'message', 'contract_update', 'payment', 'review'];
+    const types = ['new_mission', 'new_proposal', 'message', 'contract_update', 'payment', 'review'];
 
     console.log('Génération des notifications...');
 
@@ -783,7 +783,7 @@ async function generateNotifications(clientIds, expertIds) {
             let title, content;
 
             switch (type) {
-                case 'new_request':
+                case 'new_mission':
                     title = 'Nouvelle demande de service';
                     content = 'Une nouvelle demande correspond à vos compétences.';
                     break;
@@ -855,11 +855,11 @@ async function generateAllData() {
         console.log(`${skills.length} compétences créées`);
 
         // Génération des catégories
-        const categories = await generateCategories();
-        console.log(`${categories.length} catégories créées`);
+        const professions = await generateCategories();
+        console.log(`${professions.length} catégories créées`);
 
         // Génération des services
-        const services = await generateServices(categories);
+        const services = await generateServices(professions);
         console.log(`${services.length} services créés`);
 
         // Génération des utilisateurs (clients et experts)
@@ -871,11 +871,11 @@ async function generateAllData() {
         console.log(`${expertServices.length} liaisons experts-services créées`);
 
         // Génération des demandes
-        const requests = await generateRequests(users, services, categories.map(c => c.id), 30);
-        console.log(`${requests.length} demandes créées`);
+        const missions = await generateRequests(users, services, professions.map(c => c.id), 30);
+        console.log(`${missions.length} demandes créées`);
 
         // Génération des propositions
-        const proposals = await generateProposals(requests, expertIds);
+        const proposals = await generateProposals(missions, expertIds);
         console.log(`${proposals.length} propositions créées`);
 
         // Génération des contrats
@@ -888,7 +888,7 @@ async function generateAllData() {
 
         // Génération des conversations et messages
         const { conversations, messages } = await generateConversations(
-            requests,
+            missions,
             users.filter(u => !expertIds.includes(u.id)).map(u => u.id),
             expertIds
         );

@@ -47,7 +47,7 @@
         <div class="md:col-span-2">
           <label class="block text-sm font-medium text-gray-700">Adresse</label>
           <input
-            v-model="formData.address"
+            v-model="formData.location"
             type="text"
             class="mt-1 block w-full rounded-xl border-gray-300 -shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
@@ -133,7 +133,7 @@ const formData = ref({
   lastName: '',
   email: '',
   phone: '',
-  address: '',
+  location: '',
   city: '',
   postalCode: '',
   bio: '',

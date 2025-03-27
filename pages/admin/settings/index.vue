@@ -298,7 +298,7 @@ const { error } = await supabase
   "service_commission": 10,
   "expert_validation_days": 3,
   "auto_assign_experts": false,
-  "allow_user_categories": true,
+  "allow_user_professions": true,
   
   "currency": "XOF",
   "payment_delay_days": 14,
@@ -356,7 +356,7 @@ const { error } = await supabase
           </div>
           
             <div class="flex items-center p-4 bg-gray-50 rounded-xl border border-gray-100">
-              <Switch v-model="settings.allow_user_categories" />
+              <Switch v-model="settings.allow_user_professions" />
               <div class="ml-3">
                 <span class="font-medium text-gray-900">Suggestions de catégories</span>
                 <p class="text-sm text-gray-500 mt-0.5">Permet aux experts de suggérer de nouvelles catégories</p>
@@ -436,7 +436,7 @@ const { error } = await supabase
               Adresse d'expéditeur
             </label>
             <input 
-              v-model="settings.mail_from_address"
+              v-model="settings.mail_from_location"
               type="email"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg -shadow-sm focus:ring-blue-500 focus:border-blue-500"
               placeholder="noreply@havoo.fr"
@@ -700,13 +700,13 @@ const settings = ref({
   service_commission: 10,
   expert_validation_days: 3,
   auto_assign_experts: false,
-  allow_user_categories: true,
+  allow_user_professions: true,
   
   smtp_host: 'smtp.example.com',
   smtp_port: 587,
   smtp_user: 'user@example.com',
   smtp_password: '',
-  mail_from_address: 'noreply@havoo.fr',
+  mail_from_location: 'noreply@havoo.fr',
   enable_email_notifications: true,
   
   currency: 'XOF',
@@ -1076,7 +1076,7 @@ const sendTestEmail = async () => {
       throw new Error('Configuration SMTP incomplète. Veuillez remplir tous les champs SMTP.')
     }
     
-    if (!settings.value.mail_from_address || !settings.value.contact_email) {
+    if (!settings.value.mail_from_location || !settings.value.contact_email) {
       throw new Error('Adresses email manquantes. Veuillez définir une adresse d\'expéditeur et de contact.')
     }
     
@@ -1084,7 +1084,7 @@ const sendTestEmail = async () => {
     const { error } = await client.functions.invoke('send-test-email', {
       body: { 
         to: settings.value.contact_email,
-        from: settings.value.mail_from_address,
+        from: settings.value.mail_from_location,
         subject: 'Test email de Havoo',
         smtp: {
           host: settings.value.smtp_host,
@@ -1228,7 +1228,7 @@ const validateSettings = () => {
       errors.push('L\'utilisateur SMTP est requis')
     }
     
-    if (!settings.value.mail_from_address || !isValidEmail(settings.value.mail_from_address)) {
+    if (!settings.value.mail_from_location || !isValidEmail(settings.value.mail_from_location)) {
       errors.push('L\'adresse d\'expéditeur doit être une adresse email valide')
     }
   }

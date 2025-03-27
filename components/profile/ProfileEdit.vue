@@ -64,12 +64,12 @@
       
       <!-- Adresse -->
       <div class="mb-8">
-        <label for="address" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label for="location" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Adresse
         </label>
         <textarea
-          id="address"
-          v-model="form.address"
+          id="location"
+          v-model="form.location"
           rows="3"
           class="block w-full rounded-lg border-gray-200 dark:border-gray-700 shadow-sm dark:bg-gray-800 dark:text-white px-4 py-3 focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-colors"
         ></textarea>
@@ -122,7 +122,7 @@ const form = ref({
   lastName: '',
   email: '',
   phone: '',
-  address: ''
+  location: ''
 })
 
 // Initialiser le formulaire avec les données du profil
@@ -133,7 +133,7 @@ onMounted(() => {
       lastName: props.profile.lastName || '',
       email: props.profile.email || '',
       phone: props.profile.phone || '',
-      address: props.profile.address || ''
+      location: props.profile.location || ''
     }
   }
 })
@@ -146,7 +146,7 @@ const resetForm = () => {
       lastName: props.profile.lastName || '',
       email: props.profile.email || '',
       phone: props.profile.phone || '',
-      address: props.profile.address || ''
+      location: props.profile.location || ''
     }
   }
 }
@@ -161,7 +161,7 @@ const saveProfile = async () => {
       lastName: form.value.lastName,
       email: form.value.email,
       phone: form.value.phone,
-      address: form.value.address
+      location: form.value.location
     })
     
     // Émettre l'événement pour rafraîchir les données du profil

@@ -103,7 +103,7 @@
               <label 
                 for="category" 
                 class="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-4 z-10 origin-[0] left-4 peer-focus:text-primary-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4 bg-white px-1"
-                :class="{'text-primary-600': service.category_id || showCategoryDropdown}"
+                :class="{'text-primary-600': service.profession_id || showCategoryDropdown}"
               >
                 Catégorie
               </label>
@@ -114,7 +114,7 @@
                 @click="showCategoryDropdown = !showCategoryDropdown"
                 class="w-full text-left focus:outline-none flex items-center justify-between h-full"
               >
-                <span class="text-base" :class="service.category_id ? 'text-black' : 'text-gray-400'">
+                <span class="text-base" :class="service.profession_id ? 'text-black' : 'text-gray-400'">
                   {{ selectedCategoryName || 'Sélectionnez une catégorie' }}
                 </span>
                 <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -129,7 +129,7 @@
               class="absolute mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 z-10 py-1 max-h-60 overflow-y-auto"
             >
               <div 
-                v-for="category in categories" 
+                v-for="category in professions" 
                 :key="category.id"
                 @click="selectCategory(category.id); showCategoryDropdown = false"
                 class="px-4 py-2 hover:bg-gray-50 cursor-pointer transition-colors"
@@ -341,7 +341,7 @@ const isLoading = ref(true);
 const isSubmitting = ref(false);
 const error = ref(null);
 const isVerified = ref(false);
-const categories = ref([]);
+const professions = ref([]);
 const imageFiles = ref([]);
 const showCategoryDropdown = ref(false);
 const showLocationDropdown = ref(false);
@@ -350,7 +350,7 @@ const showLocationDropdown = ref(false);
 const service = ref({
   title: '',
   description: '',
-  category_id: '',
+  profession_id: '',
   price: null,
   duration: null,
   location_type: '',
@@ -366,7 +366,7 @@ const locationOptions = [
 
 // Nom de la catégorie sélectionnée
 const selectedCategoryName = computed(() => {
-  const category = categories.value.find(c => c.id === service.value.category_id);
+  const category = professions.value.find(c => c.id === service.value.profession_id);
   return category ? category.name : '';
 });
 
@@ -380,15 +380,15 @@ const locationTypeLabel = computed(() => {
 const fetchCategories = async () => {
   try {
     const { data, error: fetchError } = await supabase
-      .from('categories')
+      .from('professions')
       .select('id, name')
       .order('name');
     
     if (fetchError) throw fetchError;
     
-    categories.value = data;
+    professions.value = data;
   } catch (err) {
-    console.error('Error fetching categories:', err);
+    console.error('Error fetching professions:', err);
     error.value = "Impossible de charger les catégories. Veuillez réessayer.";
   }
 };
@@ -414,7 +414,7 @@ const checkVerificationStatus = async () => {
 
 // Sélectionner une catégorie
 const selectCategory = (categoryId) => {
-  service.value.category_id = categoryId;
+  service.value.profession_id = categoryId;
 };
 
 // Sélectionner un type de localisation
@@ -466,7 +466,7 @@ const submitService = async () => {
       .insert({
         title: service.value.title,
         description: service.value.description,
-        category_id: service.value.category_id,
+        profession_id: service.value.profession_id,
         price: service.value.price,
         duration: service.value.duration,
         location_type: service.value.location_type,

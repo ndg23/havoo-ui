@@ -1,14 +1,18 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
-  devtools: { enabled: true },
+  devtools: { enabled: false },
   modules: [
     '@nuxt/ui',
     '@nuxtjs/tailwindcss',
     '@nuxtjs/color-mode',
     'nuxt-vue3-google-signin',
-    '@nuxtjs/supabase'
+    '@nuxtjs/supabase',
+    '@nuxtjs/robots',
   ], 
+  build: {
+    transpile: ["oh-vue-icons"]
+  },
   googleSignIn: {
     clientId: process.env.GOOGLE_CLIENT_ID,
     scope: 'email profile',
@@ -49,9 +53,16 @@ export default defineNuxtConfig({
   app: {
     head: {
       title: '% - Trouvez votre expert en quelques clics',
+      charset: 'utf-8',
+      viewport: 'width=device-width, initial-scale=1',
+      link: [
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+        { rel: 'canonical', href: 'https://keetaf.com' }
+      ],
       meta: [
-        { charset: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' }
+        { name: 'format-detection', content: 'telephone=no' },
+        { name: 'apple-mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-status-bar-style', content: 'default' }
       ]
     }
   },
@@ -71,5 +82,11 @@ export default defineNuxtConfig({
         apiSecret: process.env.CLOUDINARY_API_SECRET,
       }
     }
+  },
+  robots: {
+    UserAgent: '*',
+    Allow: '/',
+    Disallow: ['/account', '/admin', '/api'],
+    Sitemap: 'https://keetaf.com/sitemap.xml'
   }
 })

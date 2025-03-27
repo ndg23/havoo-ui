@@ -214,7 +214,7 @@ const fetchContracts = async () => {
         *,
         client:client_id (first_name, last_name),
         expert:expert_id (first_name, last_name),
-        request:request_id (title, description)
+        mission:mission_id (title, description)
       `)
       .or(`client_id.eq.${user.value.id},expert_id.eq.${user.value.id}`)
       .in('status', ['active', 'completed'])
@@ -226,7 +226,7 @@ const fetchContracts = async () => {
     contracts.value = dealsData?.map(deal => ({
       contract_id: deal.id,
       deal_id: deal.id,
-      request_id: deal.request_id,
+      mission_id: deal.mission_id,
       client_id: deal.client_id,
       worker_id: deal.expert_id,
       status: deal.status,
@@ -237,8 +237,8 @@ const fetchContracts = async () => {
       created_at: deal.created_at,
       client_name: `${deal.client.first_name || ''} ${deal.client.last_name || ''}`.trim(),
       worker_name: `${deal.expert.first_name || ''} ${deal.expert.last_name || ''}`.trim(),
-      job_title: deal.request?.title || 'Contrat',
-      description: deal.request?.description || '',
+      job_title: deal.mission?.title || 'Contrat',
+      description: deal.mission?.description || '',
       rating_status: getRatingStatus(deal),
       // Informations d'évaluation
       client_rating: deal.client_rating,

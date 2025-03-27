@@ -174,7 +174,7 @@
                   <component :is="getStatusIcon(row.status)" class="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <p class="text-sm font-medium text-gray-900 dark:text-white">{{ row.request?.title || 'Demande inconnue' }}</p>
+                  <p class="text-sm font-medium text-gray-900 dark:text-white">{{ row.mission?.title || 'Demande inconnue' }}</p>
                   <p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">{{ row.description || 'Aucune description' }}</p>
                 </div>
               </div>
@@ -200,14 +200,14 @@
             <template #client-data="{ row }">
               <div class="flex items-center gap-3">
                 <div class="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden border-2 border-white dark:border-gray-600 shadow-sm">
-                  <img v-if="row.request?.client?.avatar_url" :src="row.request.client.avatar_url" alt="Avatar" class="h-full w-full object-cover" />
+                  <img v-if="row.mission?.client?.avatar_url" :src="row.mission.client.avatar_url" alt="Avatar" class="h-full w-full object-cover" />
                   <User v-else class="h-5 w-5 text-gray-500 dark:text-gray-400" />
                 </div>
                 <div>
                   <p class="text-sm font-medium text-gray-900 dark:text-white">
-                    {{ row.request?.client ? `${row.request.client.first_name} ${row.request.client.last_name}` : 'Client inconnu' }}
+                    {{ row.mission?.client ? `${row.mission.client.first_name} ${row.mission.client.last_name}` : 'Client inconnu' }}
                   </p>
-                  <p class="text-xs text-gray-500 dark:text-gray-400">{{ row.request?.client?.email || '-' }}</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">{{ row.mission?.client?.email || '-' }}</p>
                 </div>
               </div>
             </template>
@@ -299,7 +299,7 @@
               <component :is="getStatusIcon(row.status)" class="h-6 w-6 text-white" />
             </div>
             <div>
-              <h3 class="text-base font-medium text-gray-900 dark:text-white">{{ row.request?.title || 'Demande inconnue' }}</h3>
+              <h3 class="text-base font-medium text-gray-900 dark:text-white">{{ row.mission?.title || 'Demande inconnue' }}</h3>
               <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ row.description || 'Aucune description' }}</p>
             </div>
           </div>
@@ -327,12 +327,12 @@
               <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Client</p>
               <div class="flex items-center gap-2">
                 <div class="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden border-2 border-white dark:border-gray-600 shadow-sm flex-shrink-0">
-                  <img v-if="row.request?.client?.avatar_url" :src="row.request.client.avatar_url" alt="Avatar" class="h-full w-full object-cover" />
+                  <img v-if="row.mission?.client?.avatar_url" :src="row.mission.client.avatar_url" alt="Avatar" class="h-full w-full object-cover" />
                   <User v-else class="h-4 w-4 text-gray-500 dark:text-gray-400" />
                 </div>
                 <div class="min-w-0">
                   <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
-                    {{ row.request?.client ? `${row.request.client.first_name} ${row.request.client.last_name}` : 'Client inconnu' }}
+                    {{ row.mission?.client ? `${row.mission.client.first_name} ${row.mission.client.last_name}` : 'Client inconnu' }}
                   </p>
                 </div>
               </div>
@@ -474,7 +474,7 @@
               <p class="text-sm font-medium text-gray-900 dark:text-white">
                 {{ selectedProposal?.expert ? `${selectedProposal.expert.first_name} ${selectedProposal.expert.last_name}` : 'Expert inconnu' }}
               </p>
-              <p class="text-xs text-gray-500 dark:text-gray-400">Pour: {{ selectedProposal?.request?.title || 'Demande inconnue' }}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Pour: {{ selectedProposal?.mission?.title || 'Demande inconnue' }}</p>
             </div>
           </div>
         </div>
@@ -615,11 +615,11 @@ const filteredProposals = computed(() => {
     const searchLower = search.value.toLowerCase();
     result = result.filter(proposal => 
       (proposal.description && proposal.description.toLowerCase().includes(searchLower)) ||
-      (proposal.request?.title && proposal.request.title.toLowerCase().includes(searchLower)) ||
+      (proposal.mission?.title && proposal.mission.title.toLowerCase().includes(searchLower)) ||
       (proposal.expert?.first_name && proposal.expert.first_name.toLowerCase().includes(searchLower)) ||
       (proposal.expert?.last_name && proposal.expert.last_name.toLowerCase().includes(searchLower)) ||
-      (proposal.request?.client?.first_name && proposal.request.client.first_name.toLowerCase().includes(searchLower)) ||
-      (proposal.request?.client?.last_name && proposal.request.client.last_name.toLowerCase().includes(searchLower))
+      (proposal.mission?.client?.first_name && proposal.mission.client.first_name.toLowerCase().includes(searchLower)) ||
+      (proposal.mission?.client?.last_name && proposal.mission.client.last_name.toLowerCase().includes(searchLower))
     );
   }
   
@@ -653,7 +653,7 @@ const loadData = async () => {
       .select(`
         *,
         expert:profiles!expert_id(*),
-        request:requests!request_id(
+        mission:missions!mission_id(
           *,
           client:profiles!client_id(*)
         )
@@ -722,16 +722,16 @@ const confirmApproveProposal = async () => {
     if (proposalError) throw proposalError;
     
     // 2. Mettre à jour le statut de la demande et assigner l'expert
-    const { error: requestError } = await supabase
-      .from('requests')
+    const { error: missionError } = await supabase
+      .from('missions')
       .update({ 
         status: 'assigned',
         expert_id: selectedProposal.value.expert_id,
         updated_at: new Date().toISOString()
       })
-      .eq('id', selectedProposal.value.request_id);
+      .eq('id', selectedProposal.value.mission_id);
     
-    if (requestError) throw requestError;
+    if (missionError) throw missionError;
     
     // 3. Rejeter toutes les autres propositions pour cette demande
     const { error: rejectError } = await supabase
@@ -740,16 +740,16 @@ const confirmApproveProposal = async () => {
         status: 'rejected',
         updated_at: new Date().toISOString()
       })
-      .eq('request_id', selectedProposal.value.request_id)
+      .eq('mission_id', selectedProposal.value.mission_id)
       .neq('id', selectedProposal.value.id);
     
     if (rejectError) throw rejectError;
     
     // 4. Ajouter une entrée dans l'historique de la demande
     const { error: historyError } = await supabase
-      .from('request_history')
+      .from('mission_history')
       .insert({
-        request_id: selectedProposal.value.request_id,
+        mission_id: selectedProposal.value.mission_id,
         action: 'proposal_accepted',
         details: {
           proposal_id: selectedProposal.value.id,
@@ -802,9 +802,9 @@ const confirmRejectProposal = async () => {
     
     // 2. Ajouter une entrée dans l'historique de la demande
     const { error: historyError } = await supabase
-      .from('request_history')
+      .from('mission_history')
       .insert({
-        request_id: selectedProposal.value.request_id,
+        mission_id: selectedProposal.value.mission_id,
         action: 'proposal_rejected',
         details: {
           proposal_id: selectedProposal.value.id,
@@ -938,9 +938,9 @@ const exportData = async () => {
     // Transformer les données pour l'export
     const exportData = proposals.value.map(proposal => ({
       ID: proposal.id,
-      Demande: proposal.request?.title || 'Non défini',
+      Demande: proposal.mission?.title || 'Non défini',
       Expert: proposal.expert ? `${proposal.expert.first_name} ${proposal.expert.last_name}` : 'Non défini',
-      Client: proposal.request?.client ? `${proposal.request.client.first_name} ${proposal.request.client.last_name}` : 'Non défini',
+      Client: proposal.mission?.client ? `${proposal.mission.client.first_name} ${proposal.mission.client.last_name}` : 'Non défini',
       Prix: formatPrice(proposal.price),
       Statut: formatStatus(proposal.status),
       Description: proposal.description || 'Aucune description',

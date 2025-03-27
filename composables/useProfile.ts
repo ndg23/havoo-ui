@@ -21,7 +21,7 @@ interface ExpertDetails {
   isAvailable: boolean;
   isVerified: boolean;
   skills: Array<{ id: number; name: string }>;
-  categories: Array<{ id: number; name: string }>;
+  professions: Array<{ id: number; name: string }>;
 }
 
 interface UserProfile {
@@ -52,7 +52,7 @@ interface ExpertProfileUpdateData {
   experience?: number;
   isAvailable?: boolean;
   skills?: number[];
-  categories?: number[];
+  professions?: number[];
 }
 
 export function useProfile() {
@@ -132,7 +132,7 @@ export function useProfile() {
           isAvailable: data.is_available,
           isVerified: data.is_verified,
           skills: data.skills || [],
-          categories: data.categories || []
+          professions: data.professions || []
         }
       }
       
@@ -336,7 +336,7 @@ export function useProfile() {
             isAvailable: true,
             isVerified: false,
             skills: [],
-            categories: []
+            professions: []
           }
         }
       }
@@ -403,24 +403,24 @@ export function useProfile() {
       }
       
       // Si des catégories sont fournies, les mettre à jour
-      if (expertData.categories && expertData.categories.length > 0) {
+      if (expertData.professions && expertData.professions.length > 0) {
         // D'abord supprimer les associations existantes
         await supabase
-          .from('profile_categories')
+          .from('profile_professions')
           .delete()
           .eq('profile_id', getUserId())
         
         // Puis ajouter les nouvelles
-        const categoriesToInsert = expertData.categories.map(categoryId => ({
+        const professionsToInsert = expertData.professions.map(categoryId => ({
           profile_id: getUserId(),
-          category_id: categoryId
+          profession_id: categoryId
         }))
         
-        const { error: categoriesError } = await supabase
-          .from('profile_categories')
-          .insert(categoriesToInsert)
+        const { error: professionsError } = await supabase
+          .from('profile_professions')
+          .insert(professionsToInsert)
         
-        if (categoriesError) throw categoriesError
+        if (professionsError) throw professionsError
       }
       
       // Mettre à jour le profil en mémoire

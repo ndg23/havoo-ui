@@ -15,11 +15,11 @@ CREATE TABLE profiles (
   role VARCHAR(20) DEFAULT 'client' NOT NULL, -- 'client' or 'expert'
   is_expert BOOLEAN DEFAULT FALSE,
   rating DECIMAL(3, 2),
-  completed_projects INTEGER DEFAULT 0,
+  completed_missions INTEGER DEFAULT 0,
   city VARCHAR(255),
   zip_code VARCHAR(255),
   country VARCHAR(255),
-  address TEXT,
+  location TEXT,
   birthdate DATE,
   website VARCHAR(255),
   hourly_rate DECIMAL(10, 2),
@@ -30,7 +30,7 @@ CREATE TABLE profiles (
 );
 
 -- Categories
-CREATE TABLE categories (
+CREATE TABLE professions (
   id SERIAL PRIMARY KEY,
   is_active BOOLEAN DEFAULT TRUE,
   name VARCHAR(255) NOT NULL UNIQUE,
@@ -39,12 +39,12 @@ CREATE TABLE categories (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Skills linked to categories
+-- Skills linked to professions
 CREATE TABLE skills (
   id SERIAL PRIMARY KEY,
   is_active BOOLEAN DEFAULT TRUE,
   name VARCHAR(255) NOT NULL UNIQUE,
-  category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
+  profession_id INTEGER REFERENCES professions(id) ON DELETE SET NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -56,8 +56,8 @@ CREATE TABLE user_skills (
   PRIMARY KEY (user_id, skill_id)
 );
 
--- Client requests
-CREATE TABLE requests (
+-- Client missions
+CREATE TABLE missions (
   id SERIAL PRIMARY KEY,
   client_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   title VARCHAR(255) NOT NULL,
@@ -65,7 +65,7 @@ CREATE TABLE requests (
   budget DECIMAL(10, 2),
   deadline DATE,
   status VARCHAR(50) DEFAULT 'open' CHECK (status IN ('open', 'assigned', 'completed', 'cancelled')),
-  category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
+  profession_id INTEGER REFERENCES professions(id) ON DELETE SET NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -73,7 +73,7 @@ CREATE TABLE requests (
 -- Combined proposals and contracts into deals
 CREATE TABLE deals (
   id SERIAL PRIMARY KEY,
-  request_id INTEGER REFERENCES requests(id) ON DELETE CASCADE,
+  mission_id INTEGER REFERENCES missions(id) ON DELETE CASCADE,
   expert_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   client_id UUID REFERENCES profiles(id),
   price DECIMAL(10, 2) NOT NULL,
@@ -84,14 +84,14 @@ CREATE TABLE deals (
   status VARCHAR(50) DEFAULT 'proposal' CHECK (status IN ('proposal', 'active', 'completed', 'rejected', 'cancelled')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  UNIQUE(request_id, expert_id)
+  UNIQUE(mission_id, expert_id)
 );
 
 -- Expert services
 CREATE TABLE services (
   id SERIAL PRIMARY KEY,
   expert_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
-  category_id INTEGER REFERENCES categories(id),
+  profession_id INTEGER REFERENCES professions(id),
   title VARCHAR(255) NOT NULL,
   description TEXT NOT NULL,
   price DECIMAL(10, 2) NOT NULL,
@@ -126,7 +126,7 @@ CREATE TABLE reviews (
 -- Conversations
 CREATE TABLE conversations (
   id SERIAL PRIMARY KEY,
-  request_id INTEGER REFERENCES requests(id) ON DELETE SET NULL,
+  mission_id INTEGER REFERENCES missions(id) ON DELETE SET NULL,
   deal_id INTEGER REFERENCES deals(id) ON DELETE SET NULL,
   last_message TEXT,
   last_message_at TIMESTAMP WITH TIME ZONE,
@@ -190,9 +190,9 @@ CREATE TABLE verifications (
 );
 
 -- Indices for performance optimization
-CREATE INDEX idx_requests_client_id ON requests(client_id);
+CREATE INDEX idx_missions_client_id ON missions(client_id);
 CREATE INDEX idx_deals_expert_id ON deals(expert_id);
-CREATE INDEX idx_deals_request_id ON deals(request_id);
+CREATE INDEX idx_deals_mission_id ON deals(mission_id);
 CREATE INDEX idx_services_expert_id ON services(expert_id);
 CREATE INDEX idx_user_skills_user_id ON user_skills(user_id);
 CREATE INDEX idx_messages_conversation_id ON messages(conversation_id);
@@ -246,8 +246,8 @@ CREATE TRIGGER set_profiles_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION handle_updated_at();
 
-CREATE TRIGGER set_categories_updated_at
-  BEFORE UPDATE ON categories
+CREATE TRIGGER set_professions_updated_at
+  BEFORE UPDATE ON professions
   FOR EACH ROW
   EXECUTE FUNCTION handle_updated_at();
 
@@ -256,8 +256,8 @@ CREATE TRIGGER set_skills_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION handle_updated_at();
 
-CREATE TRIGGER set_requests_updated_at
-  BEFORE UPDATE ON requests
+CREATE TRIGGER set_missions_updated_at
+  BEFORE UPDATE ON missions
   FOR EACH ROW
   EXECUTE FUNCTION handle_updated_at();
 
@@ -334,7 +334,7 @@ BEGIN
     ) VALUES (
       NEW.user_id,
       'Verification Approved',
-      'Your expert verification has been approved. You can now offer services and respond to requests.',
+      'Your expert verification has been approved. You can now offer services and respond to missions.',
       'verification',
       '/account/profile'
     );
@@ -348,14 +348,14 @@ CREATE TRIGGER expert_verification_trigger
   FOR EACH ROW
   EXECUTE FUNCTION verify_expert();
 
--- Update request status when deal is activated
-CREATE OR REPLACE FUNCTION update_request_status_on_deal_acceptance()
+-- Update mission status when deal is activated
+CREATE OR REPLACE FUNCTION update_mission_status_on_deal_acceptance()
 RETURNS TRIGGER AS $$
 BEGIN
   IF NEW.status = 'active' AND OLD.status = 'proposal' THEN
-    UPDATE requests
+    UPDATE missions
     SET status = 'assigned'
-    WHERE id = NEW.request_id;
+    WHERE id = NEW.mission_id;
     
     -- Create a notification for the expert
     INSERT INTO notifications (
@@ -380,7 +380,7 @@ CREATE TRIGGER deal_accepted_trigger
   AFTER UPDATE OF status ON deals
   FOR EACH ROW
   WHEN (NEW.status = 'active' AND OLD.status = 'proposal')
-  EXECUTE FUNCTION update_request_status_on_deal_acceptance();
+  EXECUTE FUNCTION update_mission_status_on_deal_acceptance();
 
 -- Check for unique deals
 CREATE OR REPLACE FUNCTION check_unique_deal()
@@ -388,11 +388,11 @@ RETURNS TRIGGER AS $$
 BEGIN
   IF EXISTS (
     SELECT 1 FROM deals 
-    WHERE request_id = NEW.request_id 
+    WHERE mission_id = NEW.mission_id 
     AND expert_id = NEW.expert_id 
     AND id != NEW.id
   ) THEN
-    RAISE EXCEPTION 'A proposal already exists for this request and expert.';
+    RAISE EXCEPTION 'A proposal already exists for this mission and expert.';
   END IF;
   RETURN NEW;
 END;
@@ -427,13 +427,13 @@ CREATE TRIGGER expert_rating_update_trigger
 CREATE OR REPLACE FUNCTION create_notification_on_deal_proposal()
 RETURNS TRIGGER AS $$
 DECLARE
-  request_title TEXT;
+  mission_title TEXT;
   client_id UUID;
 BEGIN
-  -- Get request info
-  SELECT title, client_id INTO request_title, client_id
-  FROM requests
-  WHERE id = NEW.request_id;
+  -- Get mission info
+  SELECT title, client_id INTO mission_title, client_id
+  FROM missions
+  WHERE id = NEW.mission_id;
   
   -- Create notification
   INSERT INTO notifications (
@@ -445,9 +445,9 @@ BEGIN
   ) VALUES (
     client_id, 
     'New proposal', 
-    'An expert has made a proposal for your request "' || request_title || '"',
+    'An expert has made a proposal for your mission "' || mission_title || '"',
     'proposal',
-    '/requests/' || NEW.request_id
+    '/requests/' || NEW.mission_id
   );
   
   RETURN NEW;
@@ -460,14 +460,14 @@ CREATE TRIGGER deal_proposal_notification_trigger
   WHEN (NEW.status = 'proposal')
   EXECUTE FUNCTION create_notification_on_deal_proposal();
 
--- Update expert completed projects count
-CREATE OR REPLACE FUNCTION update_expert_completed_projects()
+-- Update expert completed missions count
+CREATE OR REPLACE FUNCTION update_expert_completed_missions()
 RETURNS TRIGGER AS $$
 BEGIN
   IF NEW.status = 'completed' AND OLD.status <> 'completed' THEN
-    -- Update completed_projects counter
+    -- Update completed_missions counter
     UPDATE profiles
-    SET completed_projects = COALESCE(completed_projects, 0) + 1
+    SET completed_missions = COALESCE(completed_missions, 0) + 1
     WHERE id = NEW.expert_id;
     
     -- Setup for ratings - add default values to enable ratings
@@ -517,7 +517,7 @@ CREATE TRIGGER deal_completion_trigger
   AFTER UPDATE OF status ON deals
   FOR EACH ROW
   WHEN (NEW.status = 'completed' AND OLD.status <> 'completed')
-  EXECUTE FUNCTION update_expert_completed_projects();
+  EXECUTE FUNCTION update_expert_completed_missions();
 
 -- Check for approaching deadlines
 CREATE OR REPLACE FUNCTION check_approaching_deadlines()
@@ -585,7 +585,7 @@ CREATE TRIGGER trigger_update_conversation_last_message
 -- Search function for experts
 CREATE OR REPLACE FUNCTION search_experts(
   search_term TEXT DEFAULT NULL,
-  category_id_filter UUID DEFAULT NULL,
+  profession_id_filter UUID DEFAULT NULL,
   skill_ids_filter UUID[] DEFAULT NULL
 )
 RETURNS TABLE (
@@ -595,7 +595,7 @@ RETURNS TABLE (
   bio TEXT,
   avatar_url TEXT,
   rating DECIMAL,
-  completed_projects INTEGER
+  completed_missions INTEGER
 ) AS $$
 BEGIN
   RETURN QUERY
@@ -606,17 +606,17 @@ BEGIN
     p.bio,
     p.avatar_url,
     p.rating,
-    p.completed_projects
+    p.completed_missions
   FROM profiles p
   WHERE p.is_expert = TRUE
     AND (search_term IS NULL OR
       p.first_name ILIKE '%' || search_term || '%' OR
       p.last_name ILIKE '%' || search_term || '%' OR
       p.bio ILIKE '%' || search_term || '%')
-    AND (category_id_filter IS NULL OR EXISTS (
+    AND (profession_id_filter IS NULL OR EXISTS (
       SELECT 1
       FROM skills s
-      WHERE s.category_id = category_id_filter
+      WHERE s.profession_id = profession_id_filter
         AND EXISTS (
           SELECT 1
           FROM user_skills us
@@ -636,7 +636,7 @@ $$ LANGUAGE plpgsql;
 -- Search function for services
 CREATE OR REPLACE FUNCTION search_services(
   search_term TEXT DEFAULT NULL,
-  category_id_filter UUID DEFAULT NULL,
+  profession_id_filter UUID DEFAULT NULL,
   skill_ids_filter UUID[] DEFAULT NULL
 )
 RETURNS TABLE (
@@ -664,7 +664,7 @@ BEGIN
     AND (search_term IS NULL OR
       s.title ILIKE '%' || search_term || '%' OR
       s.description ILIKE '%' || search_term || '%')
-    AND (category_id_filter IS NULL OR s.category_id = category_id_filter)
+    AND (profession_id_filter IS NULL OR s.profession_id = profession_id_filter)
     AND (skill_ids_filter IS NULL OR EXISTS (
       SELECT 1
       FROM service_skills ss

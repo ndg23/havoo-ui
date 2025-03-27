@@ -79,90 +79,83 @@ const handleAuthRedirect = async () => {
     const hash = window.location.hash.substring(1)
     const params = new URLSearchParams(hash)
     
-    // Si nous avons un paramètre d'erreur, traiter l'erreur
+    // Vérifier s'il y a une erreur dans les paramètres
     if (params.get('error')) {
       clearInterval(stepInterval)
       status.value = 'error'
       errorMessage.value = decodeURIComponent(params.get('error_description') || 'Erreur d\'authentification')
       return
     }
+
+    let session
+
+    // Vérifier d'abord la session existante
+    const { data: sessionData } = await client.auth.getSession()
     
-    // Récupérer la session courante
-    const { data: { session } } = await client.auth.getSession()
-    
-    // Si une session existe, l'authentification est réussie
-    if (session) {
-      clearInterval(stepInterval)
-      status.value = 'success'
-      
-      // Vérifier si l'utilisateur a un rôle défini
-      const { provider } = session.user.app_metadata
-      const isNewUser = session.user.app_metadata.created_at === session.user.app_metadata.updated_at
-      const hasRole = session.user.user_metadata.role || session.user.user_metadata.is_expert !== undefined
-      
-      // Vérifier si l'utilisateur a un profil dans la base de données
-      const { data: profile } = await client
-        .from('profiles')
-        .select('is_expert')
-        .eq('id', session.user.id)
-        .single()
-      
-      // Si l'utilisateur s'est connecté avec un fournisseur OAuth et n'a pas de rôle défini
-      if ((provider === 'google' || provider === 'facebook') && !hasRole && !profile) {
-        // Rediriger vers la page de sélection de rôle
-        setTimeout(() => {
-          router.push('/auth/select-role')
-        }, 1500)
-      } else {
-        // Rediriger vers la page d'accueil ou le tableau de bord
-        setTimeout(() => {
-          router.push('/account')
-        }, 1500)
-      }
+    if (sessionData.session) {
+      session = sessionData.session
     } else {
-      // Pas de session, vérifier la présence d'un access_token dans l'URL
+      // Si pas de session, essayer d'échanger le token
       const accessToken = params.get('access_token')
-      
-      if (accessToken) {
-        // Échanger le token contre une session
-        const { data, error } = await client.auth.exchangeSessionForToken(accessToken, params.get('refresh_token'))
-        
-        if (error) {
-          throw error
-        }
-        
-        // Succès
-        clearInterval(stepInterval)
-        status.value = 'success'
-        
-        // Vérifier si l'utilisateur a un rôle défini
-        const { provider } = data.user.app_metadata
-        const isNewUser = data.user.app_metadata.created_at === data.user.app_metadata.updated_at
-        const hasRole = data.user.user_metadata.role || data.user.user_metadata.is_expert !== undefined
-        
-        // Vérifier si l'utilisateur a un profil dans la base de données
-        const { data: profile } = await client
-          .from('profiles')
-          .select('is_expert')
-          .eq('id', data.user.id)
-          .single()
-        
-        // Si l'utilisateur s'est connecté avec un fournisseur OAuth et n'a pas de rôle défini
-        if ((provider === 'google' || provider === 'facebook') && !hasRole && !profile) {
-          // Rediriger vers la page de sélection de rôle
-          setTimeout(() => {
-            router.push('/auth/select-role')
-          }, 1500)
-        } else {
-          // Rediriger vers la page d'accueil ou le tableau de bord
-          setTimeout(() => {
-            router.push('/account')
-          }, 1500)
-        }
-      } else {
+      if (!accessToken) {
         throw new Error('Aucune session ou token trouvé')
       }
+
+      const { data, error } = await client.auth.exchangeSessionForToken(
+        accessToken, 
+        params.get('refresh_token')
+      )
+      
+      if (error) throw error
+      session = data
     }
+
+    // Récupérer les données de l'utilisateur, y compris la photo
+    const avatarUrl = session.user?.user_metadata?.avatar_url || 
+                     session.user?.user_metadata?.picture; // Google fournit l'URL dans 'picture'
+    
+    // Vérifier le profil dans la base de données
+    const { data: profile } = await client
+      .from('profiles')
+      .select('*')
+      .eq('id', session.user.id)
+      .single();
+
+    if (!profile) {
+      // Créer le profil avec la photo de Google
+      const { error: profileError } = await client
+        .from('profiles')
+        .insert({
+          id: session.user.id,
+          email: session.user.email,
+          first_name: session.user.user_metadata.first_name || '',
+          last_name: session.user.user_metadata.last_name || '',
+          avatar_url: avatarUrl || '/icons/avatar.svg',
+          updated_at: new Date().toISOString()
+        });
+
+      if (profileError) throw profileError;
+
+      // Rediriger vers l'étape 2 du register
+      setTimeout(() => {
+        router.push('/auth/register?step=2');
+      }, 1500);
+      return;
+    }
+
+    // Si le profil existe mais n'a pas de rôle défini
+    if (!profile.role && !profile.is_expert) {
+      setTimeout(() => {
+        router.push('/auth/select-role')
+      }, 1500)
+      return
+    }
+
+    // Si tout est en ordre, rediriger vers le compte
+    setTimeout(() => {
+      router.push('/account')
+    }, 1500)
+
   } catch (error) {
     console.error('Erreur de callback:', error)
     status.value = 'error'

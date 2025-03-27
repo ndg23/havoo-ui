@@ -5,7 +5,7 @@
       <div class="max-w-3xl mx-auto px-4 py-3 flex justify-between items-center">
         <h1 class="text-xl font-bold text-gray-900 dark:text-white">Demandes</h1>
         
-        <!-- Create request button for clients with Twitter style -->
+        <!-- Create mission button for clients with Twitter style -->
         <button 
           v-if="!isExpert"
           @click="showCreateRequestModal = true" 
@@ -113,7 +113,7 @@
               class="w-full pl-3 pr-8 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
             >
               <option value="">Catégorie</option>
-              <option v-for="category in categories" :key="category.id" :value="category.id">
+              <option v-for="category in professions" :key="category.id" :value="category.id">
                 {{ category.name }}
               </option>
             </select>
@@ -250,25 +250,25 @@
     <!-- Requests list -->
     <div v-else class="max-w-3xl mx-auto">
       <div 
-        v-for="request in filteredRequests" 
-        :key="request.id"
+        v-for="mission in filteredRequests" 
+        :key="mission.id"
         class="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors animate-fade-in"
       >
         <div class="p-5">
           <!-- Request header with category and date -->
           <div class="flex items-center justify-between mb-2.5">
             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-100 dark:border-blue-800/30">
-              {{ request.categories?.name || 'Catégorie inconnue' }}
+              {{ mission.professions?.name || 'Catégorie inconnue' }}
             </span>
-            <span class="text-xs text-gray-500 dark:text-gray-400">{{ formatDate(request.created_at) }}</span>
+            <span class="text-xs text-gray-500 dark:text-gray-400">{{ formatDate(mission.created_at) }}</span>
           </div>
           
           <!-- Title and description -->
-          <NuxtLink :to="`/requests/${request.id}`" class="block group">
+          <NuxtLink :to="`/requests/${mission.id}`" class="block group">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors mb-1.5">
-              {{ request.title }}
+              {{ mission.title }}
             </h3>
-            <p class="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">{{ request.description }}</p>
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">{{ mission.description }}</p>
           </NuxtLink>
           
           <!-- Price and deadline info -->
@@ -277,13 +277,13 @@
               <svg class="h-4 w-4 text-gray-500 dark:text-gray-400 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span class="font-medium text-gray-900 dark:text-white">{{ formatPrice(request.budget) }}</span>
+              <span class="font-medium text-gray-900 dark:text-white">{{ formatPrice(mission.budget) }}</span>
             </div>
             <div class="inline-flex items-center px-3 py-1 bg-gray-50 dark:bg-gray-800/80 rounded-full">
               <svg class="h-4 w-4 text-gray-500 dark:text-gray-400 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              <span class="text-sm text-gray-700 dark:text-gray-300">Échéance: {{ formatDate(request.deadline) }}</span>
+              <span class="text-sm text-gray-700 dark:text-gray-300">Échéance: {{ formatDate(mission.deadline) }}</span>
             </div>
           </div>
           
@@ -291,26 +291,26 @@
           <div class="flex items-center justify-between">
             <div class="flex items-center">
               <div class="h-10 w-10 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 flex-shrink-0 border border-gray-100 dark:border-gray-600">
-                <img v-if="request.profiles?.avatar_url" :src="request.profiles.avatar_url" alt="Avatar" class="h-full w-full object-cover" />
+                <img v-if="mission.profiles?.avatar_url" :src="mission.profiles.avatar_url" alt="Avatar" class="h-full w-full object-cover" />
                 <div v-else class="h-full w-full flex items-center justify-center text-gray-600 dark:text-gray-400 text-sm font-medium">
-                  {{ getInitials(request.profiles?.first_name, request.profiles?.last_name) }}
+                  {{ getInitials(mission.profiles?.first_name, mission.profiles?.last_name) }}
                 </div>
               </div>
               <span class="ml-2.5 text-sm font-medium text-gray-900 dark:text-white">
-                {{ request.profiles?.first_name }} {{ request.profiles?.last_name }}
+                {{ mission.profiles?.first_name }} {{ mission.profiles?.last_name }}
               </span>
             </div>
             
             <div>
               <button 
-                v-if="isExpert && !hasUserSubmittedProposal(request.id)"
-                @click="openProposalModal(request)"
+                v-if="isExpert && !hasUserSubmittedProposal(mission.id)"
+                @click="openProposalModal(mission)"
                 class="inline-flex items-center px-4 py-1.5 border border-transparent text-sm font-medium rounded-full shadow-sm text-white bg-primary-600 hover:bg-primary-700 transition-colors"
               >
                 Proposition rapide
               </button>
               <span 
-                v-else-if="isExpert && hasUserSubmittedProposal(request.id)"
+                v-else-if="isExpert && hasUserSubmittedProposal(mission.id)"
                 class="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-full text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/30 border border-green-100 dark:border-green-800/30"
               >
                 <svg class="h-3.5 w-3.5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -320,7 +320,7 @@
               </span>
               <NuxtLink 
                 v-else
-                :to="`/requests/${request.id}`"
+                :to="`/requests/${mission.id}`"
                 class="inline-flex items-center text-sm font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300"
               >
                 Voir les détails
@@ -390,7 +390,7 @@
                   {{ formatDate(selectedRequest?.deadline) }}
                 </div>
                 <div class="inline-flex items-center px-2.5 py-0.5 bg-blue-50 dark:bg-blue-900/20 rounded-full text-xs text-blue-700 dark:text-blue-300 border border-blue-100 dark:border-blue-800/30">
-                  {{ selectedRequest?.categories?.name }}
+                  {{ selectedRequest?.professions?.name }}
                 </div>
               </div>
               <div class="mt-2 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">{{ selectedRequest?.description }}</div>
@@ -464,7 +464,7 @@
       </div>
     </Teleport>
 
-    <!-- Create request modal for clients -->
+    <!-- Create mission modal for clients -->
     <Teleport to="body">
       <div 
         v-if="showCreateRequestModal" 
@@ -489,7 +489,7 @@
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Titre</label>
               <input
-                v-model="requestForm.title"
+                v-model="missionForm.title"
                 type="text"
                 required
                 placeholder="Décrivez brièvement votre demande"
@@ -500,7 +500,7 @@
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description détaillée</label>
               <textarea
-                v-model="requestForm.description"
+                v-model="missionForm.description"
                 rows="4"
                 required
                 placeholder="Expliquez en détail ce dont vous avez besoin..."
@@ -515,7 +515,7 @@
                   <span class="text-gray-500">FCFA</span>
                 </div>
                 <input
-                  v-model.number="requestForm.budget"
+                  v-model.number="missionForm.budget"
                   type="number"
                   min="0"
                   required
@@ -527,7 +527,7 @@
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Délai souhaité (jours)</label>
               <input
-                v-model.number="requestForm.deliveryTime"
+                v-model.number="missionForm.deliveryTime"
                 type="number"
                 min="1"
                 required
@@ -538,12 +538,12 @@
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Catégorie</label>
               <select
-                v-model="requestForm.categoryId"
+                v-model="missionForm.categoryId"
                 required
                 class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
               >
                 <option value="" disabled>Sélectionnez une catégorie</option>
-                <option v-for="category in categories" :key="category.id" :value="category.id">
+                <option v-for="category in professions" :key="category.id" :value="category.id">
                   {{ category.name }}
                 </option>
               </select>
@@ -553,7 +553,7 @@
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Compétences requises</label>
               <div class="relative">
                 <input
-                  v-model="requestSkillSearch"
+                  v-model="missionSkillSearch"
                   type="text"
                   placeholder="Rechercher des compétences..."
                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
@@ -577,9 +577,9 @@
               </div>
               
               <!-- Selected skills -->
-              <div v-if="requestForm.skills.length > 0" class="mt-2 flex flex-wrap gap-2">
+              <div v-if="missionForm.skills.length > 0" class="mt-2 flex flex-wrap gap-2">
                 <span 
-                  v-for="skill in requestForm.skills" 
+                  v-for="skill in missionForm.skills" 
                   :key="skill.id"
                   class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-primary-100 text-primary-800"
                 >
@@ -650,8 +650,8 @@ const isLoading = ref(true)
 const isLoadingMore = ref(false)
 const isSubmitting = ref(false)
 const error = ref(null)
-const requests = ref([])
-const categories = ref([])
+const missions = ref([])
+const professions = ref([])
 const skills = ref([])
 const searchQuery = ref('')
 const hasMoreRequests = ref(false)
@@ -682,9 +682,9 @@ const proposalForm = reactive({
   message: ''
 })
 
-// Create request
+// Create mission
 const showCreateRequestModal = ref(false)
-const requestForm = reactive({
+const missionForm = reactive({
   title: '',
   description: '',
   budget: 0,
@@ -692,19 +692,19 @@ const requestForm = reactive({
   categoryId: '',
   skills: []
 })
-const requestSkillSearch = ref('')
+const missionSkillSearch = ref('')
 const showRequestSkillResults = ref(false)
 
 // Computed
 const filteredRequests = computed(() => {
-  let result = [...requests.value]
+  let result = [...missions.value]
   
   // Search
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    result = result.filter(request => 
-      request.title.toLowerCase().includes(query) || 
-      request.description.toLowerCase().includes(query)
+    result = result.filter(mission => 
+      mission.title.toLowerCase().includes(query) || 
+      mission.description.toLowerCase().includes(query)
     )
   }
   
@@ -712,11 +712,11 @@ const filteredRequests = computed(() => {
   if (filters.budget) {
     const [min, max] = filters.budget.split('-')
     if (max === '+') {
-      result = result.filter(request => request.budget >= parseInt(min))
+      result = result.filter(mission => mission.budget >= parseInt(min))
     } else {
-      result = result.filter(request => 
-        request.budget >= parseInt(min) && 
-        (max ? request.budget <= parseInt(max) : true)
+      result = result.filter(mission => 
+        mission.budget >= parseInt(min) && 
+        (max ? mission.budget <= parseInt(max) : true)
       )
     }
   }
@@ -725,26 +725,26 @@ const filteredRequests = computed(() => {
   if (filters.deliveryTime) {
     const [min, max] = filters.deliveryTime.split('-')
     if (max === '+') {
-      result = result.filter(request => request.delivery_time >= parseInt(min))
+      result = result.filter(mission => mission.delivery_time >= parseInt(min))
     } else {
-      result = result.filter(request => 
-        request.delivery_time >= parseInt(min) && 
-        (max ? request.delivery_time <= parseInt(max) : true)
+      result = result.filter(mission => 
+        mission.delivery_time >= parseInt(min) && 
+        (max ? mission.delivery_time <= parseInt(max) : true)
       )
     }
   }
   
   // Category filter
   if (filters.categoryId) {
-    result = result.filter(request => request.category_id === filters.categoryId)
+    result = result.filter(mission => mission.profession_id === filters.categoryId)
   }
   
   // Skills filter
   if (selectedSkillFilters.value.length > 0) {
-    result = result.filter(request => {
-      // Check if any of the selected skills exist in this request's skills
+    result = result.filter(mission => {
+      // Check if any of the selected skills exist in this mission's skills
       return selectedSkillFilters.value.some(selectedSkill => 
-        request.skills.some(requestSkill => requestSkill.id === selectedSkill.id)
+        mission.skills.some(missionSkill => missionSkill.id === selectedSkill.id)
       )
     })
   }
@@ -762,12 +762,12 @@ const filteredSkills = computed(() => {
 })
 
 const filteredRequestSkills = computed(() => {
-  if (!requestSkillSearch.value) return skills.value
+  if (!missionSkillSearch.value) return skills.value
   
-  const query = requestSkillSearch.value.toLowerCase()
+  const query = missionSkillSearch.value.toLowerCase()
   return skills.value.filter(skill => 
     skill.name.toLowerCase().includes(query) && 
-    !requestForm.skills.some(s => s.id === skill.id)
+    !missionForm.skills.some(s => s.id === skill.id)
   )
 })
 
@@ -798,7 +798,7 @@ const activeFilters = computed(() => {
   
   // Category filter
   if (filters.categoryId) {
-    const category = categories.value.find(c => c.id === filters.categoryId)
+    const category = professions.value.find(c => c.id === filters.categoryId)
     if (category) {
       result.push({ id: 'category', name: category.name })
     }
@@ -819,8 +819,8 @@ const fetchRequests = async () => {
   
   try {
     // Récupérer les demandes avec les informations du client et de la catégorie
-    const { data, error: requestsError } = await supabase
-      .from('requests')
+    const { data, error: missionsError } = await supabase
+      .from('missions')
       .select(`
         *,
         profiles:client_id (
@@ -828,7 +828,7 @@ const fetchRequests = async () => {
           last_name,
           avatar_url
         ),
-        categories:category_id (
+        professions:profession_id (
           name
         )
       `)
@@ -836,13 +836,13 @@ const fetchRequests = async () => {
       .order('created_at', { ascending: false })
       .range((currentPage.value - 1) * pageSize, currentPage.value * pageSize)
     
-    if (requestsError) throw requestsError
+    if (missionsError) throw missionsError
     
-    requests.value = data
+    missions.value = data
     
-    // Check for more requests
+    // Check for more missions
     const { count, error: countError } = await supabase
-      .from('requests')
+      .from('missions')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'open')
     
@@ -855,7 +855,7 @@ const fetchRequests = async () => {
       await fetchUserProposals()
     }
   } catch (err) {
-    console.error('Error fetching requests:', err)
+    console.error('Error fetching missions:', err)
     error.value = "Une erreur est survenue lors du chargement des demandes. Veuillez réessayer."
   } finally {
     isLoading.value = false
@@ -865,15 +865,15 @@ const fetchRequests = async () => {
 const fetchCategories = async () => {
   try {
     const { data, error } = await supabase
-      .from('categories')
+      .from('professions')
       .select('*')
       .order('name')
     
     if (error) throw error
     
-    categories.value = data
+    professions.value = data
   } catch (error) {
-    console.error('Error fetching categories:', error)
+    console.error('Error fetching professions:', error)
   }
 }
 
@@ -896,12 +896,12 @@ const fetchUserProposals = async () => {
   try {
     const { data, error } = await supabase
       .from('deals')
-      .select('request_id')
+      .select('mission_id')
       .eq('expert_id', user.value.id)
     
     if (error) throw error
     
-    userProposals.value = data.map(p => p.request_id)
+    userProposals.value = data.map(p => p.mission_id)
   } catch (error) {
     console.error('Error fetching user proposals:', error)
   }
@@ -915,8 +915,8 @@ const loadMoreRequests = async () => {
   
   try {
     // Récupérer les demandes avec les informations du client et de la catégorie
-    const { data, error: requestsError } = await supabase
-      .from('requests')
+    const { data, error: missionsError } = await supabase
+      .from('missions')
       .select(`
         *,
         profiles:client_id (
@@ -924,7 +924,7 @@ const loadMoreRequests = async () => {
           last_name,
           avatar_url
         ),
-        categories:category_id (
+        professions:profession_id (
           name
         )
       `)
@@ -932,13 +932,13 @@ const loadMoreRequests = async () => {
       .order('created_at', { ascending: false })
       .range((currentPage.value - 1) * pageSize, currentPage.value * pageSize);
     
-    if (requestsError) throw requestsError;
+    if (missionsError) throw missionsError;
     
-    requests.value = [...requests.value, ...data];
+    missions.value = [...missions.value, ...data];
     
-    // Check for more requests
+    // Check for more missions
     const { count, error: countError } = await supabase
-      .from('requests')
+      .from('missions')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'open');
     
@@ -946,7 +946,7 @@ const loadMoreRequests = async () => {
     
     hasMoreRequests.value = count > currentPage.value * pageSize;
   } catch (err) {
-    console.error('Error fetching more requests:', err);
+    console.error('Error fetching more missions:', err);
     toast.error("Une erreur est survenue lors du chargement des demandes supplémentaires.");
   } finally {
     isLoadingMore.value = false;
@@ -1045,18 +1045,18 @@ const removeSkillFilter = (skill) => {
   )
 }
 
-const hasUserSubmittedProposal = (requestId) => {
-  return userProposals.value.includes(requestId);
+const hasUserSubmittedProposal = (missionId) => {
+  return userProposals.value.includes(missionId);
 }
 
 // Proposal modal
-const openProposalModal = (request) => {
-  selectedRequest.value = request
+const openProposalModal = (mission) => {
+  selectedRequest.value = mission
   showingProposalModal.value = true
   
   // Reset form
-  proposalForm.price = request.budget
-  proposalForm.estimatedDays = request.delivery_time
+  proposalForm.price = mission.budget
+  proposalForm.estimatedDays = mission.delivery_time
   proposalForm.message = ''
 }
 
@@ -1074,7 +1074,7 @@ const submitProposal = async () => {
     const { error } = await supabase
       .from('deals')
       .insert({
-        request_id: selectedRequest.value.id,
+        mission_id: selectedRequest.value.id,
         expert_id: user.value.id,
         price: proposalForm.price,
         duration: proposalForm.estimatedDays,
@@ -1097,17 +1097,17 @@ const submitProposal = async () => {
   }
 }
 
-// Create request functions
+// Create mission functions
 const openCreateRequestModal = () => {
   showCreateRequestModal.value = true
   
   // Reset form
-  requestForm.title = ''
-  requestForm.description = ''
-  requestForm.budget = 0
-  requestForm.deliveryTime = 1
-  requestForm.categoryId = ''
-  requestForm.skills = []
+  missionForm.title = ''
+  missionForm.description = ''
+  missionForm.budget = 0
+  missionForm.deliveryTime = 1
+  missionForm.categoryId = ''
+  missionForm.skills = []
 }
 
 const closeCreateRequestModal = () => {
@@ -1115,15 +1115,15 @@ const closeCreateRequestModal = () => {
 }
 
 const addSkillToRequest = (skill) => {
-  if (!requestForm.skills.some(s => s.id === skill.id)) {
-    requestForm.skills.push(skill)
+  if (!missionForm.skills.some(s => s.id === skill.id)) {
+    missionForm.skills.push(skill)
   }
-  requestSkillSearch.value = ''
+  missionSkillSearch.value = ''
   showRequestSkillResults.value = false
 }
 
 const removeSkillFromRequest = (skill) => {
-  requestForm.skills = requestForm.skills.filter(s => s.id !== skill.id)
+  missionForm.skills = missionForm.skills.filter(s => s.id !== skill.id)
 }
 
 const submitRequest = async () => {
@@ -1132,15 +1132,15 @@ const submitRequest = async () => {
   isSubmitting.value = true
   
   try {
-    // Insert request
-    const { data: request, error } = await supabase
-      .from('requests')
+    // Insert mission
+    const { data: mission, error } = await supabase
+      .from('missions')
       .insert({
-        title: requestForm.title,
-        description: requestForm.description,
-        budget: requestForm.budget,
-        delivery_time: requestForm.deliveryTime,
-        category_id: requestForm.categoryId || null,
+        title: missionForm.title,
+        description: missionForm.description,
+        budget: missionForm.budget,
+        delivery_time: missionForm.deliveryTime,
+        profession_id: missionForm.categoryId || null,
         client_id: user.value.id,
         status: 'open'
       })
@@ -1152,11 +1152,11 @@ const submitRequest = async () => {
     toast.success('Demande publiée avec succès')
     closeCreateRequestModal()
     
-    // Refresh requests
+    // Refresh missions
     fetchRequests()
     
   } catch (error) {
-    console.error('Error creating request:', error)
+    console.error('Error creating mission:', error)
     toast.error('Erreur lors de la création de la demande')
   } finally {
     isSubmitting.value = false
@@ -1198,8 +1198,8 @@ watch(skillSearchQuery, (newQuery) => {
   )
 })
 
-// Watch for changes in requestSkillSearch
-watch(requestSkillSearch, (newQuery) => {
+// Watch for changes in missionSkillSearch
+watch(missionSkillSearch, (newQuery) => {
   if (!newQuery.trim()) {
     filteredRequestSkills.value = []
     showRequestSkillResults.value = false
@@ -1209,7 +1209,7 @@ watch(requestSkillSearch, (newQuery) => {
   const query = newQuery.toLowerCase()
   filteredRequestSkills.value = skills.value.filter(skill => 
     skill.name.toLowerCase().includes(query) && 
-    !requestForm.skills.some(s => s.id === skill.id)
+    !missionForm.skills.some(s => s.id === skill.id)
   )
   
   showRequestSkillResults.value = filteredRequestSkills.value.length > 0

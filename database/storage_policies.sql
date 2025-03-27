@@ -59,3 +59,48 @@ USING (
     WHERE id = auth.uid() AND is_admin = true
   )
 ); 
+
+
+
+
+
+
+
+
+
+-- Supprimer le bucket s'il existe déjà
+drop policy if exists "Les avatars sont accessibles publiquement" on storage.objects;
+drop policy if exists "Les utilisateurs peuvent uploader leur avatar" on storage.objects;
+drop policy if exists "Les utilisateurs peuvent mettre à jour leur avatar" on storage.objects;
+drop policy if exists "Les utilisateurs peuvent supprimer leur avatar" on storage.objects;
+
+-- Créer le bucket
+insert into storage.buckets (id, name, public)
+values ('avatars', 'avatars', true)
+on conflict (id) do nothing;
+
+-- Politiques de sécurité
+create policy "Les avatars sont accessibles publiquement"
+on storage.objects for select
+using ( bucket_id = 'avatars' );
+
+create policy "Les utilisateurs peuvent uploader leur avatar"
+on storage.objects for insert
+with check (
+  bucket_id = 'avatars' AND
+  auth.uid() = owner
+);
+
+create policy "Les utilisateurs peuvent mettre à jour leur avatar"
+on storage.objects for update
+using (
+  bucket_id = 'avatars' AND
+  auth.uid() = owner
+);
+
+create policy "Les utilisateurs peuvent supprimer leur avatar"
+on storage.objects for delete
+using (
+  bucket_id = 'avatars' AND
+  auth.uid() = owner
+);

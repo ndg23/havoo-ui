@@ -241,7 +241,7 @@ const fetchServices = async () => {
       .from('services')
       .select(`
         *,
-        category:category_id (*)
+        category:profession_id (*)
       `)
       .eq('expert_id', user.value.id)
       .order('created_at', { ascending: false });

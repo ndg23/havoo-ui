@@ -37,15 +37,15 @@
         <div class="p-6">
             <div class="flex items-start justify-between">
           <div>
-                <h2 class="text-xl font-bold text-gray-900">{{ request.title }}</h2>
+                <h2 class="text-xl font-bold text-gray-900">{{ mission.title }}</h2>
                 <div class="flex items-center mt-2 space-x-4">
                   <span class="inline-flex items-center text-sm text-gray-500">
                     <Calendar class="h-4 w-4 mr-1.5" />
-                    {{ formatDate(request.created_at) }}
+                    {{ formatDate(mission.created_at) }}
                   </span>
                   <span class="inline-flex items-center text-sm text-gray-500">
                     <Tag class="h-4 w-4 mr-1.5" />
-                    {{ request.category?.name || 'Non catégorisé' }}
+                    {{ mission.category?.name || 'Non catégorisé' }}
               </span>
               <span 
                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
@@ -57,10 +57,10 @@
           </div>
           <div class="text-right">
                 <div class="text-lg font-bold text-primary-600">
-                  {{ formatPrice(request.budget) }}
+                  {{ formatPrice(mission.budget) }}
                 </div>
-                <div v-if="request.deadline" class="text-sm text-gray-500 mt-1">
-                  Deadline: {{ formatDate(request.deadline) }}
+                <div v-if="mission.deadline" class="text-sm text-gray-500 mt-1">
+                  Deadline: {{ formatDate(mission.deadline) }}
           </div>
             </div>
           </div>
@@ -69,8 +69,8 @@
             <div class="flex items-center mt-6 pb-6 border-b border-gray-100">
               <div class="flex-shrink-0">
                 <img 
-                  v-if="request.client?.avatar_url" 
-                  :src="request.client.avatar_url" 
+                  v-if="mission.client?.avatar_url" 
+                  :src="mission.client.avatar_url" 
                   alt="Client" 
                   class="h-10 w-10 rounded-full"
                 />
@@ -78,12 +78,12 @@
                   v-else 
                   class="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-medium"
                 >
-                  {{ getInitials(request.client?.first_name, request.client?.last_name) }}
+                  {{ getInitials(mission.client?.first_name, mission.client?.last_name) }}
                 </div>
         </div>
               <div class="ml-3">
                 <p class="text-sm font-medium text-gray-900">
-                  {{ request.client?.first_name }} {{ request.client?.last_name }}
+                  {{ mission.client?.first_name }} {{ mission.client?.last_name }}
                 </p>
                 <p class="text-xs text-gray-500">Client</p>
               </div>
@@ -93,7 +93,7 @@
             <div class="mt-6">
               <h3 class="text-base font-medium text-gray-900 mb-3">Description</h3>
               <div class="prose prose-sm max-w-none text-gray-700">
-                {{ request.description }}
+                {{ mission.description }}
               </div>
             </div>
           </div>
@@ -122,7 +122,7 @@
             <div>
               <NuxtLink 
                 v-if="canMakeProposal"
-                :to="`/proposals/new?id=${request.id}`"
+                :to="`/proposals/new?id=${mission.id}`"
                 class="inline-flex items-center px-4 py-2 border border-transparent rounded-full shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
               >
                 <Send class="h-4 w-4 mr-1.5" />
@@ -212,7 +212,7 @@
                   {{ formatDate(proposal.created_at) }}
                 </span>
                 
-                <div v-if="isOwner && request.status === 'open'" class="flex space-x-2">
+                <div v-if="isOwner && mission.status === 'open'" class="flex space-x-2">
                   <button 
                     @click="acceptProposal(proposal.id)"
                     class="inline-flex items-center px-3 py-1.5 border border-transparent rounded-full text-xs font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
@@ -337,7 +337,7 @@ const user = useSupabaseUser()
 // État
 const isLoading = ref(true)
 const error = ref(null)
-const request = ref({})
+const mission = ref({})
 const proposals = ref([])
 const isLiked = ref(false)
 const likeCount = ref(0)
@@ -359,7 +359,7 @@ const statusClasses = computed(() => {
     'completed': 'bg-gray-100 text-gray-800',
     'cancelled': 'bg-red-100 text-red-800'
   }
-  return classes[request.value.status] || 'bg-gray-100 text-gray-800'
+  return classes[mission.value.status] || 'bg-gray-100 text-gray-800'
 })
 
 const statusLabel = computed(() => {
@@ -369,15 +369,15 @@ const statusLabel = computed(() => {
     'completed': 'Terminé',
     'cancelled': 'Annulé'
   }
-  return labels[request.value.status] || 'Inconnu'
+  return labels[mission.value.status] || 'Inconnu'
 })
 
 const isOwner = computed(() => {
-  return user.value?.id === request.value.client_id
+  return user.value?.id === mission.value.client_id
 })
 
 const canMakeProposal = computed(() => {
-  if (!user.value || isOwner.value || request.value.status !== 'open') {
+  if (!user.value || isOwner.value || mission.value.status !== 'open') {
     return false
   }
 
@@ -389,20 +389,20 @@ const canMakeProposal = computed(() => {
 const fetchRequest = async () => {
   try {
     const { data, error: fetchError } = await supabase
-      .from('requests')
+      .from('missions')
       .select(`
         *,      
         client:client_id(*),
-        category:category_id(*)
+        category:profession_id(*)
       `)
       .eq('id', route.params.id)
       .single()
     
     if (fetchError) throw fetchError
     
-    request.value = data
+    mission.value = data
   } catch (err) {
-    console.error('Error fetching request:', err)
+    console.error('Error fetching mission:', err)
     error.value = "Impossible de charger cette demande"
   }
 }
@@ -414,7 +414,7 @@ const fetchProposals = async () => {
       .select(`
         *
       `)
-      .eq('request_id', route.params.id)
+      .eq('mission_id', route.params.id)
       .order('created_at', { ascending: false })
     
     if (fetchError) throw fetchError
@@ -438,7 +438,7 @@ const fetchLikes = async () => {
   try {
     // Récupérer le nombre total de likes pour cette demande
     const { data: countData, error: countError } = await supabase
-      .rpc('get_request_likes_count', { request_id: parseInt(route.params.id) })
+      .rpc('get_mission_likes_count', { mission_id: parseInt(route.params.id) })
     
     if (countError) throw countError
     likeCount.value = countData || 0
@@ -446,8 +446,8 @@ const fetchLikes = async () => {
     // Vérifier si l'utilisateur actuel a liké cette demande
     if (user.value) {
       const { data: hasLiked, error: likeError } = await supabase
-        .rpc('has_user_liked_request', { 
-          request_id: parseInt(route.params.id),
+        .rpc('has_user_liked_mission', { 
+          mission_id: parseInt(route.params.id),
           user_id: user.value.id
         })
       
@@ -470,9 +470,9 @@ const toggleLike = async () => {
     if (isLiked.value) {
       // Supprimer le like
       const { error } = await supabase
-        .from('request_likes')
+        .from('mission_likes')
         .delete()
-        .eq('request_id', parseInt(route.params.id))
+        .eq('mission_id', parseInt(route.params.id))
         .eq('user_id', user.value.id)
       
       if (error) throw error
@@ -482,9 +482,9 @@ const toggleLike = async () => {
     } else {
       // Ajouter un like
       const { error } = await supabase
-        .from('request_likes')
+        .from('mission_likes')
         .insert({
-          request_id: parseInt(route.params.id),
+          mission_id: parseInt(route.params.id),
           user_id: user.value.id
         })
     
@@ -506,7 +506,7 @@ const scrollToProposals = () => {
 }
 
 const editRequest = () => {
-  router.push(`/requests/edit/${request.value.id}`)
+  router.push(`/requests/edit/${mission.value.id}`)
 }
 
 const submitProposal = async () => {
@@ -521,7 +521,7 @@ const submitProposal = async () => {
     const { error: submitError } = await supabase
       .from('deals')
       .insert({
-        request_id: request.value.id,
+        mission_id: mission.value.id,
         expert_id: user.value.id,
         price: proposalForm.value.price,
         duration: proposalForm.value.duration,
@@ -556,12 +556,12 @@ const acceptProposal = async (proposalId) => {
     if (proposalError) throw proposalError
     
     // Mettre à jour le statut de la demande
-    const { error: requestError } = await supabase
-      .from('requests')
+    const { error: missionError } = await supabase
+      .from('missions')
       .update({ status: 'assigned' })
-      .eq('id', request.value.id)
+      .eq('id', mission.value.id)
     
-    if (requestError) throw requestError
+    if (missionError) throw missionError
     
     // Récupérer le contrat créé pour redirection
     const { data: contractData, error: contractError } = await supabase

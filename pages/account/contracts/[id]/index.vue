@@ -409,7 +409,7 @@ const fetchContract = async () => {
         *,
         client:client_id (*),
         expert:expert_id (*),
-        request:request_id (title, description)
+        mission:mission_id (title, description)
       `)
       .eq('id', contractId)
       .in('status', ['active', 'completed'])
@@ -430,7 +430,7 @@ const fetchContract = async () => {
     contract.value = {
       contract_id: data.id,
       deal_id: data.id,
-      request_id: data.request_id,
+      mission_id: data.mission_id,
       client_id: data.client_id,
       worker_id: data.expert_id,
       status: data.status,
@@ -441,8 +441,8 @@ const fetchContract = async () => {
       created_at: data.created_at,
       client_name: `${data.client.first_name || ''} ${data.client.last_name || ''}`.trim(),
       worker_name: `${data.expert.first_name || ''} ${data.expert.last_name || ''}`.trim(),
-      job_title: data.request?.title || 'Contrat',
-      description: data.request?.description || '',
+      job_title: data.mission?.title || 'Contrat',
+      description: data.mission?.description || '',
       // Informations d'évaluation
       client_rating: data.client_rating,
       expert_rating: data.expert_rating,

@@ -134,7 +134,7 @@
             <div class="flex-1">
               <div class="space-y-1">
                 <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Demande</h4>
-                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ proposal.request?.title || 'Demande non trouvée' }}</p>
+                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ proposal.mission?.title || 'Demande non trouvée' }}</p>
               </div>
               <div class="flex items-center gap-4 mt-2 text-sm">
                 <div class="flex items-center text-gray-600 dark:text-gray-400">
@@ -280,15 +280,15 @@
           <!-- Info demande -->
           <div class="space-y-4">
             <h3 class="text-lg font-medium text-gray-900 dark:text-white">Demande</h3>
-            <p class="text-base font-medium text-gray-900 dark:text-white">{{ selectedProposal?.request?.title || 'Demande non trouvée' }}</p>
+            <p class="text-base font-medium text-gray-900 dark:text-white">{{ selectedProposal?.mission?.title || 'Demande non trouvée' }}</p>
             <div class="flex items-center gap-3">
               <div class="flex items-center text-gray-600 dark:text-gray-400">
                 <User class="h-4 w-4 mr-1.5" />
-                {{ selectedProposal?.request?.client_name || 'Client inconnu' }}
+                {{ selectedProposal?.mission?.client_name || 'Client inconnu' }}
               </div>
               <div class="flex items-center text-gray-600 dark:text-gray-400">
                 <Calendar class="h-4 w-4 mr-1.5" />
-                {{ formatDate(selectedProposal?.request?.deadline) || 'Non spécifiée' }}
+                {{ formatDate(selectedProposal?.mission?.deadline) || 'Non spécifiée' }}
               </div>
             </div>
           </div>
@@ -479,7 +479,7 @@ const filteredProposals = computed(() => {
     const searchLower = search.value.toLowerCase()
     filtered = filtered.filter(proposal => 
       proposal.expert?.name?.toLowerCase().includes(searchLower) ||
-      proposal.request?.title?.toLowerCase().includes(searchLower) ||
+      proposal.mission?.title?.toLowerCase().includes(searchLower) ||
       proposal.message?.toLowerCase().includes(searchLower)
     )
   }
@@ -538,7 +538,7 @@ const fetchProposals = async () => {
           average_rating,
           years_experience
         ),
-        request:request_id (
+        mission:mission_id (
           id,
           title,
           client_name,

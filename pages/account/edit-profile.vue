@@ -1,5 +1,8 @@
 <template>
   <div class="max-w-3xl mx-auto px-4 py-8">
+    <!-- Header avec informations actuelles -->
+   
+    
     <!-- En-tête de la page -->
     <div class="mb-8">
       <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Modifier mon profil</h1>
@@ -30,18 +33,41 @@
         <div class="p-6">
           <div class="flex flex-col md:flex-row items-center gap-6">
             <div class="relative">
-              <img 
-                :src="avatarPreview || form.profileImage || '/img/default-avatar.png'" 
-                alt="Photo de profil"
-                class="w-28 h-28 rounded-full object-cover border-4 border-white dark:border-gray-800 shadow-sm"
+              <img
+                :src="form.avatar_url||avatarPreview || '/assets/icons/avatar.svg'"
+                :alt="`Photo de profil de ${form.first_name}`"
+                class="h-32 w-32 rounded-full object-cover border border-gray-300"
               />
-              <button 
-                type="button"
-                @click="$refs.fileInput.click()"
-                class="absolute bottom-0 right-0 w-9 h-9 rounded-full bg-primary-600 flex items-center justify-center border-2 border-white dark:border-gray-800 shadow hover:bg-primary-700 transition-all"
-              >
-                <Camera class="w-5 h-5 text-white" />
-              </button>
+              
+              <!-- Overlay pour le changement de photo -->
+              <div class="absolute inset-0 flex items-center justify-center">
+                <input
+                  type="file"
+                  ref="fileInput"
+                  accept="image/*"
+                  class="hidden"
+                  @change="handleAvatarChange"
+                />
+                
+                <button
+                  type="button"
+                  @click="$refs.fileInput.click()"
+                  class="absolute bottom-0 right-0 bg-white dark:bg-gray-800 border border-gray-300 rounded-full p-1 shadow-lg- hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Loading overlay -->
+              <div v-if="isUploadingAvatar" class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                <svg class="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              </div>
             </div>
             
             <div>
@@ -83,121 +109,230 @@
         </div>
       </div>
       
-      <!-- Informations personnelles -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+      <!-- Ajouter après la section photo de profil et avant les informations personnelles -->
+      <div v-if="isExpert" class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
         <div class="p-6">
-          <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Informations personnelles</h2>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Prénom -->
-            <TwitterInput
-              id="first_name"
-              v-model="form.firstName"
-              placeholder="Prénom"
-              required
-            />
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-lg font-medium text-gray-900 dark:text-white">Statut de disponibilité</h3>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Indiquez aux clients si vous êtes actuellement disponible pour des missions
+              </p>
+            </div>
             
-            <!-- Nom -->
-            <TwitterInput
-              id="last_name"
-              v-model="form.lastName"
-              placeholder="Nom"
-              required
-            />
+            <div class="flex items-center gap-3">
+              <span class="text-sm font-medium" :class="[
+                form.availabilityStatus === 'available' 
+                  ? 'text-green-600 dark:text-green-400'
+                  : 'text-gray-500 dark:text-gray-400'
+              ]">
+                {{ form.availabilityStatus === 'available' ? 'Disponible' : 'Indisponible' }}
+              </span>
+              
+              <button 
+                type="button"
+                role="switch"
+                :aria-checked="form.availabilityStatus === 'available'"
+                @click="toggleAvailabilityStatus"
+                class="relative inline-flex h-8 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-600 focus:ring-offset-2"
+                :class="[
+                  form.availabilityStatus === 'available' 
+                    ? 'bg-green-500 dark:bg-green-600' 
+                    : 'bg-gray-200 dark:bg-gray-600'
+                ]"
+              >
+                <span 
+                  aria-hidden="true"
+                  class="pointer-events-none relative inline-block h-7 w-7 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                  :class="[
+                    form.availabilityStatus === 'available' 
+                      ? 'translate-x-6' 
+                      : 'translate-x-0'
+                  ]"
+                >
+                  <span
+                    class="absolute inset-0 flex h-full w-full items-center justify-center transition-opacity"
+                    :class="[
+                      form.availabilityStatus === 'available' 
+                        ? 'opacity-0 duration-100 ease-out' 
+                        : 'opacity-100 duration-200 ease-in'
+                    ]"
+                  >
+                    <svg class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                    </svg>
+                  </span>
+                  <span
+                    class="absolute inset-0 flex h-full w-full items-center justify-center transition-opacity"
+                    :class="[
+                      form.availabilityStatus === 'available' 
+                        ? 'opacity-100 duration-200 ease-in' 
+                        : 'opacity-0 duration-100 ease-out'
+                    ]"
+                  >
+                    <svg class="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Informations personnelles -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+        <div class="p-6">
+          <div class="flex flex-col md:flex-row items-center gap-6">
+            <!-- Photo de profil (inchangée) -->
             
-            <!-- Email -->
-            <TwitterInput
-              id="email"
-              v-model="form.email"
-              placeholder="Email"
-              type="email"
-              readonly
-            />
-            
-            <!-- Date de naissance -->
-            <TwitterInput
-              id="birthdate"
-              v-model="form.birthdate"
-              placeholder="Date de naissance"
-              type="date"
-            />
-            
-            <!-- Genre -->
-            <TwitterInput
-              id="gender"
-              v-model="form.gender"
-              placeholder="Genre"
+            <!-- Informations de base -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+              <FloatingLabelInput
+                v-model="form.first_name"
+                label="Prénom"
+                required
+              />
+
+              <FloatingLabelInput
+                v-model="form.last_name"
+                label="Nom"
+                required
+              />
+
+              <FloatingLabelInput
+                v-model="form.email"
+                label="Email"
+                type="email"
+                disabled
+              />
+
+              <FloatingLabelInput
+                v-model="form.phone"
+                label="Téléphone"
+                type="tel"
+              />
+
+              <FloatingLabelInput
+                v-model="form.birthdate"
+                label="Date de naissance"
+                type="date"
+                :max="maxBirthdate"
+                :min="minBirthdate"
+                required
+              >
+                <template #hint>
+                  <span class="text-sm text-gray-500 dark:text-gray-400">
+                    Vous devez avoir 18+ ans
+                  </span>
+                </template>
+              </FloatingLabelInput>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Section profession (uniquement pour les experts) -->
+      <div v-if="form.role === 'expert'" class="bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+        <div class="p-6">
+          <div class="flex items-center justify-between mb-8">
+            <div>
+              <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+                Profession principale
+              </h2>
+              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                Cette information sera affichée publiquement sur votre profil
+              </p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FloatingLabelInput
+              v-model="form.profession_id"
+              label="Profession"
               :isSelect="true"
             >
-              <option value="male">Homme</option>
-              <option value="female">Femme</option>
-              <option value="other">Autre</option>
-              <option value="prefer_not_to_say">Préfère ne pas préciser</option>
-            </TwitterInput>
-            
-            <!-- Téléphone -->
-            <TwitterInput
-              id="phone"
-              v-model="form.phone"
-              placeholder="Téléphone"
-              type="tel"
-            />
+              <option value="">Sélectionnez une profession</option>
+              <option 
+                v-for="profession in professions" 
+                :key="profession.id" 
+                :value="profession.id"
+              >
+                {{ profession.name }}
+              </option>
+            </FloatingLabelInput>
+
+            <FloatingLabelInput
+              v-model="form.hourly_rate"
+              label="Tarif horaire"
+              type="number"
+              min="0"
+            >
+              <template #suffix>€/h</template>
+            </FloatingLabelInput>
           </div>
         </div>
       </div>
       
       <!-- Coordonnées -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm mt-6">
         <div class="p-6">
-          <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Coordonnées</h2>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="flex items-center justify-between mb-8">
+            <div>
+              <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+                Coordonnées
+              </h2>
+              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                Où peut-on vous trouver ?
+              </p>
+            </div>
+          </div>
+
+          <div class="space-y-6">
             <!-- Adresse -->
-            <div class="md:col-span-2">
-              <TwitterInput
-                id="address"
-                v-model="form.address"
-                placeholder="Adresse"
-              />
-            </div>
-            
-            <!-- Ville -->
-            <TwitterInput
-              id="city"
-              v-model="form.city"
-              placeholder="Ville"
-            />
-            
-            <!-- Pays -->
-            <TwitterInput
-              id="country"
-              v-model="form.country"
-              placeholder="Pays"
-              :isSelect="true"
+            <FloatingLabelInput
+              v-model="form.location"
+              label="Adresse"
+              placeholder="Votre adresse complète"
             >
-              <option value="">Sélectionnez un pays</option>
-              <option value="FR">France</option>
-              <option value="BE">Belgique</option>
-              <option value="CH">Suisse</option>
-              <option value="CA">Canada</option>
-              <option value="SN">Sénégal</option>
-              <option value="CI">Côte d'Ivoire</option>
-              <option value="CM">Cameroun</option>
-              <option value="MA">Maroc</option>
-              <option value="TN">Tunisie</option>
-              <option value="DZ">Algérie</option>
-              <option value="other">Autre</option>
-            </TwitterInput>
-            
-            <!-- Site web -->
-            <div class="md:col-span-2">
-              <TwitterInput
-                id="website"
-                v-model="form.website"
-                placeholder="Site web"
-                type="url"
-              />
+              <template #prefix>
+                <MapPinIcon class="w-5 h-5 text-gray-400" />
+              </template>
+            </FloatingLabelInput>
+
+            <!-- Ville et Pays -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FloatingLabelInput
+                v-model="form.city"
+                label="Ville"
+                placeholder="Votre ville"
+              >
+                <template #prefix>
+                  <BuildingOfficeIcon class="w-5 h-5 text-gray-400" />
+                </template>
+              </FloatingLabelInput>
+
+              <FloatingLabelInput
+                v-model="form.country"
+                label="Pays"
+                :isSelect="true"
+              >
+                <template #prefix>
+                  <GlobeAltIcon class="w-5 h-5 text-gray-400" />
+                </template>
+                <template #default>
+                  <option value="">Sélectionnez un pays</option>
+                  <option value="FR">France</option>
+                  <option value="BE">Belgique</option>
+                  <option value="CH">Suisse</option>
+                  <option value="CA">Canada</option>
+                  <option value="other">Autre</option>
+                </template>
+              </FloatingLabelInput>
             </div>
+
+           
           </div>
         </div>
       </div>
@@ -222,93 +357,201 @@
         </div>
       </div>
       
-      <!-- Compétences (pour les experts) -->
+      <!-- Section Profession -->
       <div v-if="isExpert" class="bg-white dark:bg-gray-800 rounded-xl shadow-sm">
         <div class="p-6">
-          <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Compétences</h2>
-          
-          <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-            Ajoutez les compétences que vous maîtrisez pour aider les clients à vous trouver plus facilement.
-          </p>
-          
-          <!-- Compétences sélectionnées -->
-          <div class="flex flex-wrap gap-2 mb-4">
-            <div 
-              v-for="skill in selectedSkills" 
-              :key="skill.id"
-              class="inline-flex items-center px-2.5 py-1.5 rounded-full text-sm font-medium bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300"
+          <div class="flex items-center justify-between mb-8">
+            <div>
+              <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+                Profession principale
+              </h2>
+              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                Cette information sera affichée publiquement sur votre profil
+              </p>
+            </div>
+            <span 
+              v-if="selectedProfession" 
+              class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400"
             >
-              {{ skill.name }}
+              <CheckIcon class="w-4 h-4 mr-1" />
+              Sélectionnée
+            </span>
+          </div>
+
+          <!-- Barre de recherche -->
+          <div class="relative mb-6">
+            <FloatingLabelInput
+              v-model="professionSearch"
+              label="Rechercher une profession"
+              placeholder="Ex: Développeur, Designer, Marketing..."
+              class="w-full"
+            >
+              <template #prefix>
+                <MagnifyingGlassIcon class="w-5 h-5 text-gray-400" />
+              </template>
+              <template v-if="professionSearch" #suffix>
+                <button 
+                  @click="professionSearch = ''"
+                  class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+                >
+                  <XMarkIcon class="w-4 h-4 text-gray-400" />
+                </button>
+              </template>
+            </FloatingLabelInput>
+          </div>
+
+          <!-- Profession sélectionnée -->
+          <div v-if="selectedProfession" class="mb-6">
+            <div class="flex items-center justify-between p-5 bg-primary-50/50 dark:bg-primary-900/10 rounded-2xl border border-primary-100 dark:border-primary-800">
+              <div class="flex items-center space-x-4">
+                <div class="flex-shrink-0 w-14 h-14 flex items-center justify-center rounded-xl bg-primary-100 dark:bg-primary-900/30">
+                  <BriefcaseIcon class="w-7 h-7 text-primary-600 dark:text-primary-400" />
+                </div>
+                <div>
+                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                    {{ selectedProfession.name }}
+                  </h3>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">
+                    {{ selectedProfession.description || 'Profession principale' }}
+                  </p>
+                </div>
+              </div>
               <button 
-                type="button"
-                @click="removeSkill(skill)"
-                class="ml-1.5 inline-flex items-center justify-center w-4 h-4 rounded-full text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-800 focus:outline-none"
+                @click="removeProfession"
+                class="p-2 hover:bg-white/50 dark:hover:bg-gray-700/50 rounded-full transition-colors"
               >
-                <X class="h-3 w-3" />
+                <XMarkIcon class="w-5 h-5 text-gray-500 dark:text-gray-400" />
               </button>
             </div>
           </div>
-          
-          <!-- Sélecteur de compétences -->
-          <TwitterInput
-            id="skill_selector"
-            v-model="selectedSkillId"
-            placeholder="Ajouter une compétence"
-            :isSelect="true"
-            @update:modelValue="addSelectedSkill"
-          >
-            <option value="" disabled>Sélectionnez une compétence</option>
-            <optgroup 
-              v-for="category in skillCategories" 
-              :key="category.id" 
-              :label="category.name"
-            >
-              <option 
-                v-for="skill in category.skills" 
-                :key="skill.id" 
-                :value="skill.id"
-                :disabled="isSkillSelected(skill.id)"
-              >
-                {{ skill.name }}
-              </option>
-            </optgroup>
-            <optgroup label="Autres compétences">
-              <option 
-                v-for="skill in uncategorizedSkills" 
-                :key="skill.id" 
-                :value="skill.id"
-                :disabled="isSkillSelected(skill.id)"
-              >
-                {{ skill.name }}
-              </option>
-            </optgroup>
-          </TwitterInput>
-          
-          <div v-if="selectedSkills.length === 0" class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            Sélectionnez au moins une compétence pour améliorer votre visibilité
+
+          <!-- Liste des professions -->
+          <div v-show="!selectedProfession" class="relative">
+            <div class="max-h-[400px] overflow-y-auto custom-scrollbar">
+              <div v-if="filteredProfessions.length" class="divide-y divide-gray-100 dark:divide-gray-700">
+                <button
+                  v-for="profession in filteredProfessions"
+                  :key="profession.id"
+                  @click="selectProfession(profession)"
+                  class="w-full flex items-center space-x-4 p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200 group"
+                >
+                  <div class="flex-shrink-0 w-14 h-14 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 group-hover:bg-gray-200 dark:group-hover:bg-gray-600 transition-colors">
+                    <BriefcaseIcon class="w-7 h-7 text-gray-500 dark:text-gray-400" />
+                  </div>
+                  <div class="flex-1 text-left min-w-0">
+                    <h3 class="font-medium text-gray-900 dark:text-white truncate group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                      {{ profession.name }}
+                    </h3>
+                    <p v-if="profession.description" 
+                       class="text-sm text-gray-500 dark:text-gray-400 truncate">
+                      {{ profession.description }}
+                    </p>
+                  </div>
+                </button>
+              </div>
+              
+              <!-- État vide avec recherche -->
+              <div v-else-if="professionSearch" class="py-12">
+                <div class="text-center">
+                  <div class="w-16 h-16 mx-auto bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+                    <MagnifyingGlassIcon class="w-8 h-8 text-gray-400" />
+                  </div>
+                  <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">
+                    Aucun résultat
+                  </h3>
+                  <p class="mt-2 text-gray-500 dark:text-gray-400">
+                    Aucune profession ne correspond à "{{ professionSearch }}"
+                  </p>
+                </div>
+              </div>
+              
+              <!-- État initial -->
+              <div v-else class="py-12">
+                <div class="text-center">
+                  <div class="w-16 h-16 mx-auto bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+                    <BriefcaseIcon class="w-8 h-8 text-gray-400" />
+                  </div>
+                  <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">
+                    Choisissez votre profession
+                  </h3>
+                  <p class="mt-2 text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
+                    Sélectionnez la profession qui correspond le mieux à votre activité professionnelle
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Section Compétences -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+        <div class="p-6">
+          <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+            Compétences
+          </h2>
           
-          <!-- Suggestions de compétences populaires -->
-          <div class="mt-6">
-            <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Suggestions populaires :</h3>
+          <!-- Recherche Compétences -->
+          <FloatingLabelInput
+            v-model="skillSearch"
+            label="Rechercher des compétences"
+            class="mb-4"
+          >
+            <template #prefix>
+              <MagnifyingGlassIcon class="w-5 h-5 text-gray-400" />
+            </template>
+          </FloatingLabelInput>
+
+          <!-- Compétences sélectionnées -->
+          <div v-if="selectedSkills.length" class="mb-4">
             <div class="flex flex-wrap gap-2">
-              <button 
-                v-for="skill in popularSkills" 
+              <div
+                v-for="skill in selectedSkills"
                 :key="skill.id"
-                type="button"
-                @click="addSkill(skill)"
-                :disabled="isSkillSelected(skill.id)"
-                class="px-3 py-1.5 text-sm rounded-full border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                class="inline-flex items-center px-3 py-1 rounded-full bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800"
               >
-                + {{ skill.name }}
-              </button>
+                <span class="text-primary-700 dark:text-primary-300">
+                  {{ skill.name }}
+                </span>
+                <button
+                  @click="removeSkill(skill)"
+                  class="ml-2 text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-200"
+                >
+                  <XMarkIcon class="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Liste des compétences -->
+          <div class="relative">
+            <div class="max-h-96 overflow-y-auto">
+              <div v-if="filteredSkills.length" class="space-y-2">
+                <button
+                  v-for="skill in filteredSkills"
+                  :key="skill.id"
+                  @click="toggleSkill(skill)"
+                  class="w-full flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                >
+                  <span class="text-gray-900 dark:text-white">{{ skill.name }}</span>
+                  <CheckIcon 
+                    v-if="isSkillSelected(skill)"
+                    class="w-5 h-5 text-primary-600 dark:text-primary-400" 
+                  />
+                </button>
+              </div>
+              <div v-else class="text-center py-8">
+                <p class="text-gray-500 dark:text-gray-400">
+                  Aucune compétence trouvée
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </div>
       
       <!-- Boutons d'action -->
-      <div class="flex flex-wrap items-center justify-end gap-3 mt-8">
+      <div class="flex justify-end gap-3 mt-8">
         <NuxtLink 
           to="/account" 
           class="px-6 py-2.5 border border-gray-200 dark:border-gray-700 rounded-full text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
@@ -326,10 +569,31 @@
         
         <button 
           type="submit"
-          class="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 rounded-full text-white font-medium transition-colors"
+          @click="saveProfile"
+          class="inline-flex items-center justify-center px-6 py-2.5 bg-primary-600 hover:bg-primary-700 rounded-full text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           :disabled="isSaving"
         >
-          <span v-if="isSaving" class="mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+          <svg 
+            v-if="isSaving"
+            class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" 
+            xmlns="http://www.w3.org/2000/svg" 
+            fill="none" 
+            viewBox="0 0 24 24"
+          >
+            <circle 
+              class="opacity-25" 
+              cx="12" 
+              cy="12" 
+              r="10" 
+              stroke="currentColor" 
+              stroke-width="4"
+            />
+            <path 
+              class="opacity-75" 
+              fill="currentColor" 
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            />
+          </svg>
           {{ isSaving ? 'Enregistrement...' : 'Enregistrer les modifications' }}
         </button>
       </div>
@@ -338,7 +602,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed, onBeforeUnmount } from 'vue'
+import { ref, reactive, onMounted, computed, onBeforeUnmount, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSupabaseClient, useSupabaseUser } from '#imports'
 import { 
@@ -353,10 +617,29 @@ import {
   Briefcase, 
   X, 
   Plus,
-  ChevronDown
+  ChevronDown,
+  Search,
+  XCircle,
+  Check,
+  ShieldCheckIcon,
+  CheckCircleIcon,
+  ChevronDownIcon
 } from 'lucide-vue-next'
 import FloatingLabelInput from '~/components/ui/FloatingLabelInput.vue'
 import TwitterInput from '~/components/ui/TwitterInput.vue'
+import { useSeoMeta } from '@unhead/vue'
+import {
+  UserIcon,
+  EnvelopeIcon,
+  PhoneIcon,
+  CalendarIcon,
+  MapPinIcon,
+  BuildingOfficeIcon,
+  GlobeAltIcon,
+  XMarkIcon,
+  MagnifyingGlassIcon,
+  BriefcaseIcon
+} from '@heroicons/vue/24/outline'
 
 // État
 const user = useSupabaseUser()
@@ -371,7 +654,7 @@ const avatarPreview = ref(null)
 const initialForm = ref({})
 const statusMessage = ref({
   show: false,
-  type: 'info',
+  type: 'success',
   message: ''
 })
 
@@ -393,15 +676,20 @@ const skillCategories = ref([]);
 const uncategorizedSkills = ref([]);
 const showSkillResults = ref(false);
 
+// Ajouter ces refs pour les professions
+const selectedProfessionId = ref('');
+const selectedProfessions = ref([]);
+const allProfessions = ref([]);
+
 // Données du formulaire
 const form = ref({
-  firstName: '',
-  lastName: '',
+  first_name: '',
+  last_name: '',
   email: '',
   phone: '',
   birthdate: '',
   gender: 'male',
-  address: '',
+  location: '',
   city: '',
   country: '',
   bio: '',
@@ -409,11 +697,11 @@ const form = ref({
   emailNotifications: true,
   pushNotifications: true,
   website: '',
-  hourlyRate: '',
-  availabilityStatus: 'available',
+  hourly_rate: '',
+  availability_status: 'available',
   skills: [],
-  availableDays: [true, true, true, true, true, false, false],
-  availableHours: [
+  available_days: [true, true, true, true, true, false, false],
+  available_hours: [
     { start: '09:00', end: '18:00' },
     { start: '09:00', end: '18:00' },
     { start: '09:00', end: '18:00' },
@@ -421,7 +709,10 @@ const form = ref({
     { start: '09:00', end: '18:00' },
     { start: '10:00', end: '15:00' },
     { start: '10:00', end: '15:00' }
-  ]
+  ],
+  profession_id: null,
+  role: 'client',
+  updated_at: null
 })
 
 // Vérifier si l'utilisateur est connecté
@@ -440,20 +731,22 @@ const fetchProfile = async () => {
   try {
     const { data, error } = await supabase
       .from('profiles')
-      .select('*')
-      .eq('id', user.value.id)
+      .select(`
+        *,
+        profession:professions(*)
+      `)      .eq('id', user.value.id)
       .single()
     
     if (error) throw error
     
     form.value = {
-      firstName: data.first_name || '',
-      lastName: data.last_name || '',
+      first_name: data.first_name || '',
+      last_name: data.last_name || '',
       email: user.value.email || '',
       phone: data.phone || '',
       birthdate: data.birthdate || '',
       gender: data.gender || 'male',
-      address: data.address || '',
+      location: data.location || '',
       city: data.city || '',
       country: data.country || '',
       bio: data.bio || '',
@@ -461,11 +754,11 @@ const fetchProfile = async () => {
       emailNotifications: data.email_notifications ?? true,
       pushNotifications: data.push_notifications ?? true,
       website: data.website || '',
-      hourlyRate: data.hourly_rate || '',
-      availabilityStatus: data.availability_status || 'available',
+      hourly_rate: data.hourly_rate || '',
+      availability_status: data.availability_status || 'available',
       skills: data.skills || [],
-      availableDays: data.available_days || [true, true, true, true, true, false, false],
-      availableHours: data.available_hours || [
+      available_days: data.available_days || [true, true, true, true, true, false, false],
+      available_hours: data.available_hours || [
         { start: '09:00', end: '18:00' },
         { start: '09:00', end: '18:00' },
         { start: '09:00', end: '18:00' },
@@ -473,7 +766,10 @@ const fetchProfile = async () => {
         { start: '09:00', end: '18:00' },
         { start: '10:00', end: '15:00' },
         { start: '10:00', end: '15:00' }
-      ]
+      ],
+      profession_id: data.profession_id || null,
+      role: data.role || 'client',
+      updated_at: data.updated_at || null
     }
     
     // Sauvegarder les valeurs initiales pour la réinitialisation
@@ -481,6 +777,13 @@ const fetchProfile = async () => {
     
     // Après avoir récupéré les données du profil
     isExpert.value = data.is_expert || data.role === 'expert'
+    
+    // Définir une date de naissance par défaut si non définie (exactement 18 ans)
+    if (!data.birthdate) {
+      const defaultDate = new Date()
+      defaultDate.setFullYear(defaultDate.getFullYear() - 18)
+      form.value.birthdate = defaultDate.toISOString().split('T')[0]
+    }
     
   } catch (error) {
     console.error('Erreur lors du chargement du profil:', error)
@@ -570,17 +873,17 @@ const uploadAvatar = async () => {
 const fetchSkills = async () => {
   try {
     // Récupérer les catégories
-    const { data: categoriesData, error: categoriesError } = await supabase
-      .from('categories')
+    const { data: professionsData, error: professionsError } = await supabase
+      .from('professions')
       .select('id, name')
       .order('name');
     
-    if (categoriesError) throw categoriesError;
+    if (professionsError) throw professionsError;
     
     // Récupérer les compétences avec leurs catégories
     const { data: skillsData, error: skillsError } = await supabase
       .from('skills')
-      .select('id, name, category_id')
+      .select('id, name, profession_id')
       .order('name');
     
     if (skillsError) throw skillsError;
@@ -589,13 +892,13 @@ const fetchSkills = async () => {
     allSkills.value = skillsData || [];
     
     // Organiser les compétences par catégorie
-    skillCategories.value = categoriesData.map(category => ({
+    skillCategories.value = professionsData.map(category => ({
       ...category,
-      skills: skillsData.filter(skill => skill.category_id === category.id)
+      skills: skillsData.filter(skill => skill.profession_id === category.id)
     }));
     
     // Compétences sans catégorie
-    uncategorizedSkills.value = skillsData.filter(skill => !skill.category_id);
+    uncategorizedSkills.value = skillsData.filter(skill => !skill.profession_id);
     
   } catch (err) {
     console.error('Erreur lors du chargement des compétences:', err);
@@ -675,8 +978,15 @@ const updateProfile = async () => {
   
   try {
     // Validation des champs requis
-    if (!form.value.firstName || !form.value.lastName) {
+    if (!form.value.first_name || !form.value.last_name) {
       showStatusMessage('error', 'Le prénom et le nom sont requis')
+      isSaving.value = false
+      return
+    }
+    
+    // Vérifier la date de naissance
+    if (!validateBirthdate()) {
+      showStatusMessage('error', 'Vous devez avoir entre 18 et 100 ans')
       isSaving.value = false
       return
     }
@@ -686,18 +996,19 @@ const updateProfile = async () => {
     
     // Préparer les données
     const updates = {
-      first_name: form.value.firstName,
-      last_name: form.value.lastName,
+      first_name: form.value.first_name,
+      last_name: form.value.last_name,
       phone: form.value.phone,
       birthdate: form.value.birthdate,
-      // gender: form.value.gender,
-      address: form.value.address,
+      location: form.value.location,
       city: form.value.city,
       country: form.value.country,
       bio: form.value.bio,
       avatar_url: avatarUrl,
       website: form.value.website,
-      // skills: form.value.skills,
+      availability_status: form.value.availability_status,
+      profession_id: form.value.profession_id,
+      role: form.value.role,
       updated_at: new Date().toISOString()
     }
     
@@ -722,9 +1033,9 @@ const updateProfile = async () => {
     showStatusMessage('success', 'Profil mis à jour avec succès')
     
     // Rediriger vers la page de profil
-    setTimeout(() => {
-      router.push('/account')
-    }, 1000)
+    // setTimeout(() => {
+    //   router.push('/account')
+    // }, 1000)
     
   } catch (error) {
     console.error('Erreur lors de la mise à jour du profil:', error)
@@ -780,7 +1091,7 @@ onBeforeUnmount(() => {
 
 // Vous pouvez ajouter ce bloc en haut de chaque fichier
 definePageMeta({
-  layout: 'default',
+  layout: 'account',
   middleware: 'auth'
 })
 
@@ -838,9 +1149,373 @@ const addSkill = async (skill) => {
     selectedSkills.value.push(skill);
   }
 };
-definePageMeta({
-  layout: 'account',
-  middleware: 'auth'
+
+// Ajouter cette fonction dans la partie script
+const toggleAvailabilityStatus = () => {
+  form.value.availability_status = form.value.availability_status === 'available' ? 'unavailable' : 'available';
+};
+
+// Professions populaires
+const popularProfessions = computed(() => {
+  return [
+    { id: 1, name: 'Développeur Web' },
+    { id: 2, name: 'Designer UX/UI' },
+    { id: 3, name: 'Marketing Digital' },
+    { id: 4, name: 'Rédacteur Web' },
+    { id: 5, name: 'Photographe' },
+    { id: 6, name: 'Consultant' }
+  ].filter(profession => {
+    const existingProfession = allProfessions.value.find(p => p.name === profession.name);
+    if (existingProfession) {
+      profession.id = existingProfession.id;
+      return !isProfessionSelected(existingProfession.id);
+    }
+    return true;
+  });
+});
+
+// Professions disponibles (filtrées)
+const availableProfessions = computed(() => {
+  return allProfessions.value.filter(profession => 
+    !selectedProfessions.value.some(selected => selected.id === profession.id)
+  );
+});
+
+// Vérifier si une profession est déjà sélectionnée
+const isProfessionSelected = (professionId) => {
+  return selectedProfessions.value.some(profession => profession.id === professionId);
+};
+
+// Ajouter une profession sélectionnée
+const addSelectedProfession = () => {
+  if (!selectedProfessionId.value) return;
+  
+  const profession = allProfessions.value.find(p => p.id === selectedProfessionId.value);
+  if (profession && !isProfessionSelected(profession.id)) {
+    selectedProfessions.value.push(profession);
+    selectedProfessionId.value = ''; // Réinitialiser la sélection
+  }
+};
+
+// Ajouter une profession (depuis les suggestions)
+const addProfession = (profession) => {
+  if (!isProfessionSelected(profession.id)) {
+    selectedProfessions.value.push(profession);
+  }
+};
+
+// Supprimer une profession
+const removeProfession = async () => {
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ 
+        profession_id: null,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', user.value.id)
+
+    if (error) throw error
+    selectedProfession.value = null
+  } catch (error) {
+    console.error('Erreur lors de la suppression de la profession:', error)
+  }
+};
+
+// Charger les professions depuis la base de données
+const fetchProfessions = async () => {
+  if (form.value.role !== 'expert') return
+
+  const { data } = await supabase
+    .from('professions')
+    .select('*')
+    .eq('is_active', true)
+    .order('name')
+
+  professions.value = data || []
+}
+
+// Charger les professions de l'utilisateur
+const fetchUserProfessions = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('user_professions')
+      .select('profession_id, professions(id, name)')
+      .eq('user_id', user.value.id);
+    
+    if (error) throw error;
+    
+    selectedProfessions.value = data.map(item => item.professions) || [];
+  } catch (err) {
+    console.error('Erreur lors du chargement des professions de l\'utilisateur:', err);
+  }
+};
+
+// Sauvegarder les professions de l'utilisateur
+const saveUserProfessions = async () => {
+  try {
+    // Supprimer toutes les professions existantes
+    const { error: deleteError } = await supabase
+      .from('user_professions')
+      .delete()
+      .eq('user_id', user.value.id);
+    
+    if (deleteError) throw deleteError;
+    
+    // Ajouter les nouvelles professions
+    if (selectedProfessions.value.length > 0) {
+      const professionsToInsert = selectedProfessions.value.map(profession => ({
+        user_id: user.value.id,
+        profession_id: profession.id
+      }));
+      
+      const { error: insertError } = await supabase
+        .from('user_professions')
+        .insert(professionsToInsert);
+      
+      if (insertError) throw insertError;
+    }
+  } catch (err) {
+    console.error('Erreur lors de la sauvegarde des professions:', err);
+    throw err;
+  }
+};
+
+// SEO Meta Tags
+useSeoMeta({
+  title: () => 'Modifier mon profil | NomDeVotrePlateforme',
+  description: () => 'Modifiez vos informations personnelles, votre profession et vos paramètres de disponibilité sur NomDeVotrePlateforme',
+  ogTitle: () => 'Modifier mon profil | NomDeVotrePlateforme',
+  ogDescription: () => 'Modifiez vos informations personnelles, votre profession et vos paramètres de disponibilité sur NomDeVotrePlateforme',
+  ogImage: () => 'https://keetaf.com/images/og-image.jpg', // Ajoutez votre image OG
+  twitterCard: 'summary_large_image',
+})
+
+const isUploadingAvatar = ref(false)
+
+const handleImageError = (e) => {
+  e.target.src = '/assets/icons/avatar.svg'
+}
+
+const handleAvatarChange = async (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+
+  try {
+    isUploadingAvatar.value = true
+
+    // Vérifier le type et la taille du fichier
+    if (!file.type.startsWith('image/')) {
+      throw new Error('Le fichier doit être une image')
+    }
+
+    if (file.size > 5 * 1024 * 1024) { // 5MB max
+      throw new Error('L\'image ne doit pas dépasser 5MB')
+    }
+
+    // Créer un nom de fichier unique
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${user.value.id}/${Date.now()}.${fileExt}`
+
+    // Upload du fichier
+    const { data, error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: true
+      })
+
+    if (uploadError) {
+      console.error('Upload error:', uploadError)
+      throw uploadError
+    }
+
+    // Obtenir l'URL publique
+    const { data: { publicUrl } } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(fileName)
+
+    // Mettre à jour le profil avec la nouvelle URL
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({
+        avatar_url: publicUrl,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', user.value.id)
+
+    if (updateError) throw updateError
+
+    // Mettre à jour le formulaire
+    form.value.avatar_url = publicUrl
+
+    showStatusMessage('success', 'Photo de profil mise à jour avec succès')
+    
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour de l\'avatar:', error)
+    showStatusMessage('error', 'Erreur lors de la mise à jour de la photo de profil')
+  } finally {
+    isUploadingAvatar.value = false
+    if (fileInput.value) {
+      fileInput.value.value = ''
+    }
+  }
+}
+
+const professions = ref([])
+const selectedProfession = ref(null)
+const skillSearch = ref('')
+const professionSearch = ref('')
+const page = ref(1)
+const perPage = 20
+
+// Charger les données
+onMounted(async () => {
+  try {
+    // Charger les professions
+    const { data: professionsData } = await supabase
+      .from('professions')
+      .select('*')
+      .order('name')
+    professions.value = professionsData
+
+    // Charger le profil utilisateur
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select(`
+        *,
+        profession:professions(*)
+      `)
+      .eq('id', supabase.auth.user().id)
+      .single()
+
+    if (profile) {
+      selectedProfession.value = profile.profession
+      selectedSkills.value = profile.skills
+    }
+  } catch (error) {
+    console.error('Erreur lors du chargement des données:', error)
+  }
+})
+
+// Pagination et recherche optimisée
+const filteredProfessions = computed(() => {
+  const search = professionSearch.value.toLowerCase()
+  return professions.value
+    .filter(p => p.name.toLowerCase().includes(search))
+    .slice(0, page.value * perPage)
+})
+
+const filteredSkills = computed(() => {
+  const search = skillSearch.value.toLowerCase()
+  return allSkills.value
+    .filter(s => {
+      const matchesSearch = s.name.toLowerCase().includes(search)
+      const matchesProfession = !selectedProfession.value || s.profession_id === selectedProfession.value.id
+      return matchesSearch && matchesProfession
+    })
+    .slice(0, page.value * perPage)
+})
+
+// Intersection Observer pour le scroll infini
+onMounted(() => {
+  const observer = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) {
+      page.value++
+    }
+  })
+
+  const target = document.querySelector('.custom-scrollbar')
+  if (target) observer.observe(target)
+})
+
+// Gestion des professions
+const selectProfession = async (profession) => {
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ profession_id: profession.id })
+      .eq('id', user.value.id)
+
+    if (error) throw error
+    selectedProfession.value = profession
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour de la profession:', error)
+  }
+}
+
+// Gérer les compétences
+const toggleSkill = async (skill) => {
+  const isSelected = isSkillSelected(skill)
+  
+  try {
+    if (isSelected) {
+      await supabase
+        .from('user_skills')
+        .delete()
+        .eq('user_id', supabase.auth.user().id)
+        .eq('skill_id', skill.id)
+      selectedSkills.value = selectedSkills.value.filter(s => s.id !== skill.id)
+    } else {
+      await supabase
+        .from('user_skills')
+        .insert({
+          user_id: supabase.auth.user().id,
+          skill_id: skill.id
+        })
+      selectedSkills.value.push(skill)
+    }
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour des compétences:', error)
+  }
+}
+
+// Computed pour vérifier si le profil est vérifié
+const isVerified = computed(() => {
+  return form.value.email && form.value.first_name && form.value.last_name
+})
+
+// Fonction pour formater la date
+const formatDate = (date) => {
+  if (!date) return ''
+  return new Date(date).toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  })
+}
+
+// Computed pour les dates limites
+const maxBirthdate = computed(() => {
+  const date = new Date()
+  date.setFullYear(date.getFullYear() - 18)
+  return date.toISOString().split('T')[0]
+})
+
+const minBirthdate = computed(() => {
+  const date = new Date()
+  date.setFullYear(date.getFullYear() - 100)
+  return date.toISOString().split('T')[0]
+})
+
+// Validation de la date avant sauvegarde
+const validateBirthdate = () => {
+  if (!form.value.birthdate) return false
+  
+  const birthDate = new Date(form.value.birthdate)
+  const minDate = new Date(minBirthdate.value)
+  const maxDate = new Date(maxBirthdate.value)
+  
+  return birthDate >= minDate && birthDate <= maxDate
+}
+
+// Réinitialiser le message après 5 secondes
+watch(() => statusMessage.value.show, (newValue) => {
+  if (newValue) {
+    setTimeout(() => {
+      statusMessage.value.show = false
+    }, 5000)
+  }
 })
 </script>
 
@@ -935,5 +1610,99 @@ input:checked + .switch-toggle:before {
 
 .dark input:checked + .switch-toggle {
   background-color: #6366f1;
+}
+
+/* Ajouter ces styles pour l'animation du point */
+.animate-ping {
+  animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes ping {
+  75%, 100% {
+    transform: translate(-50%, -50%) scale(2);
+    opacity: 0;
+  }
+}
+
+/* Ajouter ces styles pour une animation plus fluide */
+.transform {
+  transition-property: transform;
+}
+
+button[role="switch"] {
+  touch-action: pan-y pinch-zoom;
+}
+
+button[role="switch"] span {
+  will-change: transform;
+}
+
+/* Animation pour le switch */
+@keyframes switchOn {
+  0% { transform: translateX(0); }
+  50% { transform: translateX(8px) scale(1.2); }
+  100% { transform: translateX(24px); }
+}
+
+@keyframes switchOff {
+  0% { transform: translateX(24px); }
+  50% { transform: translateX(16px) scale(1.2); }
+  100% { transform: translateX(0); }
+}
+
+/* Appliquer les animations */
+.translate-x-6 {
+  animation: switchOn 0.2s ease-out forwards;
+}
+
+.translate-x-0 {
+  animation: switchOff 0.2s ease-out forwards;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.3);
+  border-radius: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(156, 163, 175, 0.5);
+}
+
+/* Style pour cacher la flèche par défaut du select sur WebKit */
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Style pour cacher la flèche par défaut sur Firefox */
+select::-ms-expand {
+  display: none;
 }
 </style> 

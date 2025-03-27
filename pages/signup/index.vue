@@ -326,12 +326,12 @@
             </label>
             <div class="grid grid-cols-2 gap-2">
               <button
-                v-for="category in categories"
+                v-for="category in professions"
                 :key="category.id"
                 type="button"
                 @click="toggleCategory(category.id)"
                 class="flex items-center p-3 border rounded-xl text-sm text-left transition-all duration-200"
-                :class="userData.categories.includes(category.id) 
+                :class="userData.professions.includes(category.id) 
                   ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/30 shadow-md' 
                   : 'border-gray-300 dark:border-gray-700 hover:border-primary-400 dark:hover:border-primary-600'"
               >
@@ -341,8 +341,8 @@
                 <span>{{ category.name }}</span>
               </button>
             </div>
-            <p v-if="errors.categories" class="mt-1 text-sm text-red-600 dark:text-red-500">
-              {{ errors.categories }}
+            <p v-if="errors.professions" class="mt-1 text-sm text-red-600 dark:text-red-500">
+              {{ errors.professions }}
             </p>
           </div>
           
@@ -416,11 +416,11 @@
                 </span>
               </div>
               
-              <div v-if="userData.accountType === 'expert' && userData.categories.length > 0" class="border-b border-gray-200 dark:border-gray-700 pb-2">
+              <div v-if="userData.accountType === 'expert' && userData.professions.length > 0" class="border-b border-gray-200 dark:border-gray-700 pb-2">
                 <span class="text-sm text-gray-500 dark:text-gray-400 block mb-2">Catégories</span>
                 <div class="flex flex-wrap gap-2">
                   <span 
-                    v-for="catId in userData.categories" 
+                    v-for="catId in userData.professions" 
                     :key="catId"
                     class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800 dark:bg-primary-900/50 dark:text-primary-300"
                   >
@@ -516,7 +516,7 @@
   ]
   
   // Catégories disponibles
-  const categories = [
+  const professions = [
     { id: 1, name: 'Développement Web', icon: Code },
     { id: 2, name: 'Design Graphique', icon: Palette },
     { id: 3, name: 'Rédaction', icon: FileText },
@@ -536,7 +536,7 @@
     country: '',
     specialty: '',
     experience: '',
-    categories: [],
+    professions: [],
     bio: '',
     acceptTerms: false
   })
@@ -631,10 +631,10 @@
         errors.value.experience = 'L\'expérience est requise'
       }
       
-      if (userData.value.categories.length === 0) {
-        errors.value.categories = 'Sélectionnez au moins une catégorie'
-      } else if (userData.value.categories.length > 3) {
-        errors.value.categories = 'Maximum 3 catégories autorisées'
+      if (userData.value.professions.length === 0) {
+        errors.value.professions = 'Sélectionnez au moins une catégorie'
+      } else if (userData.value.professions.length > 3) {
+        errors.value.professions = 'Maximum 3 catégories autorisées'
       }
       
       if (!userData.value.bio || userData.value.bio.length < 10) {
@@ -672,18 +672,18 @@
   }
   
   const toggleCategory = (categoryId) => {
-    const index = userData.value.categories.indexOf(categoryId)
+    const index = userData.value.professions.indexOf(categoryId)
     if (index === -1) {
-      if (userData.value.categories.length < 3) {
-        userData.value.categories.push(categoryId)
+      if (userData.value.professions.length < 3) {
+        userData.value.professions.push(categoryId)
       }
     } else {
-      userData.value.categories.splice(index, 1)
+      userData.value.professions.splice(index, 1)
     }
   }
   
   const getCategoryName = (categoryId) => {
-    const category = categories.find(c => c.id === categoryId)
+    const category = professions.find(c => c.id === categoryId)
     return category ? category.name : ''
   }
   
@@ -763,14 +763,14 @@ const submitSignup = async () => {
     if (profileError) throw profileError
     
     // 3. Si expert, ajouter les catégories
-    if (userData.accountType === 'expert' && userData.categories.length > 0) {
-      const categoryData = userData.categories.map(categoryId => ({
+    if (userData.accountType === 'expert' && userData.professions.length > 0) {
+      const categoryData = userData.professions.map(categoryId => ({
         user_id: user.id,
-        category_id: categoryId
+        profession_id: categoryId
       }))
       
       const { error: categoryError } = await supabase
-        .from('user_categories')
+        .from('user_professions')
         .insert(categoryData)
       
       if (categoryError) throw categoryError

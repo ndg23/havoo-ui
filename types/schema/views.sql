@@ -48,8 +48,8 @@ WHERE
 GROUP BY 
     p.id;
 
--- View for client requests with proposals count
-CREATE VIEW view_client_requests_with_proposals AS
+-- View for client missions with proposals count
+CREATE VIEW view_client_missions_with_proposals AS
 SELECT 
     r.*,
     p.first_name || ' ' || p.last_name as client_name,
@@ -69,11 +69,11 @@ SELECT
         '[]'::json
     ) as proposals
 FROM 
-    requests r
+    missions r
 JOIN 
     profiles p ON r.client_id = p.id
 LEFT JOIN 
-    proposals pr ON r.id = pr.request_id
+    proposals pr ON r.id = pr.mission_id
 LEFT JOIN 
     profiles ep ON pr.expert_id = ep.id
 GROUP BY 
@@ -87,8 +87,8 @@ SELECT
     cp.email as client_email,
     ep.first_name || ' ' || ep.last_name as expert_name,
     ep.email as expert_email,
-    r.title as request_title,
-    r.description as request_description,
+    r.title as mission_title,
+    r.description as mission_description,
     p.price as proposal_price,
     p.duration as proposal_duration
 FROM 
@@ -98,7 +98,7 @@ JOIN
 JOIN 
     profiles ep ON c.expert_id = ep.id
 JOIN 
-    requests r ON c.request_id = r.id
+    missions r ON c.mission_id = r.id
 JOIN 
     proposals p ON c.proposal_id = p.id
 WHERE 

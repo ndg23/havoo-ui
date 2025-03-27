@@ -18,7 +18,7 @@ CREATE TABLE profiles (
   phone VARCHAR(20),
   birth_date DATE,
   gender VARCHAR(20),
-  address TEXT,
+  location TEXT,
   city VARCHAR(100),
   zip_code VARCHAR(20),
   country VARCHAR(100),
@@ -45,7 +45,7 @@ CREATE TABLE user_skills (
 );
 
 -- Table des catégories de services
-CREATE TABLE categories (
+CREATE TABLE professions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name VARCHAR(100) NOT NULL UNIQUE,
   description TEXT,
@@ -57,7 +57,7 @@ CREATE TABLE categories (
 CREATE TABLE services (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-  category_id UUID NOT NULL REFERENCES categories(id),
+  profession_id UUID NOT NULL REFERENCES professions(id),
   title VARCHAR(255) NOT NULL,
   description TEXT NOT NULL,
   price_base DECIMAL(10, 2) NOT NULL,
@@ -71,10 +71,10 @@ CREATE TABLE services (
 );
 
 -- Table des demandes publiées par les clients
-CREATE TABLE requests (
+CREATE TABLE missions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-  category_id UUID NOT NULL REFERENCES categories(id),
+  profession_id UUID NOT NULL REFERENCES professions(id),
   title VARCHAR(255) NOT NULL,
   description TEXT NOT NULL,
   budget_min DECIMAL(10, 2),
@@ -87,17 +87,17 @@ CREATE TABLE requests (
 );
 
 -- Table des compétences requises pour les demandes
-CREATE TABLE request_skills (
+CREATE TABLE mission_skills (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  request_id UUID NOT NULL REFERENCES requests(id) ON DELETE CASCADE,
+  mission_id UUID NOT NULL REFERENCES missions(id) ON DELETE CASCADE,
   skill VARCHAR(100) NOT NULL,
-  UNIQUE (request_id, skill)
+  UNIQUE (mission_id, skill)
 );
 
 -- Table des fichiers attachés aux demandes
-CREATE TABLE request_files (
+CREATE TABLE mission_files (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  request_id UUID NOT NULL REFERENCES requests(id) ON DELETE CASCADE,
+  mission_id UUID NOT NULL REFERENCES missions(id) ON DELETE CASCADE,
   file_name VARCHAR(255) NOT NULL,
   file_size INTEGER NOT NULL,
   file_type VARCHAR(100) NOT NULL,
@@ -108,7 +108,7 @@ CREATE TABLE request_files (
 -- Table des propositions faites par les experts sur des demandes
 CREATE TABLE proposals (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  request_id UUID NOT NULL REFERENCES requests(id) ON DELETE CASCADE,
+  mission_id UUID NOT NULL REFERENCES missions(id) ON DELETE CASCADE,
   expert_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   price DECIMAL(10, 2) NOT NULL,
   delivery_time INTEGER NOT NULL, -- En jours
@@ -116,13 +116,13 @@ CREATE TABLE proposals (
   status VARCHAR(20) NOT NULL DEFAULT 'pending', -- pending, accepted, rejected
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE (request_id, expert_id)
+  UNIQUE (mission_id, expert_id)
 );
 
 -- Table des contrats entre clients et experts
 CREATE TABLE contracts (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  request_id UUID REFERENCES requests(id),
+  mission_id UUID REFERENCES missions(id),
   service_id UUID REFERENCES services(id),
   client_id UUID NOT NULL REFERENCES profiles(id),
   expert_id UUID NOT NULL REFERENCES profiles(id),
@@ -136,8 +136,8 @@ CREATE TABLE contracts (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   CHECK (
-    (request_id IS NOT NULL AND service_id IS NULL) OR
-    (request_id IS NULL AND service_id IS NOT NULL)
+    (mission_id IS NOT NULL AND service_id IS NULL) OR
+    (mission_id IS NULL AND service_id IS NOT NULL)
   )
 );
 
@@ -158,7 +158,7 @@ CREATE TABLE deliverables (
 CREATE TABLE conversations (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   contract_id UUID REFERENCES contracts(id) ON DELETE SET NULL,
-  request_id UUID REFERENCES requests(id) ON DELETE SET NULL,
+  mission_id UUID REFERENCES missions(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -235,20 +235,20 @@ SELECT
   c.name AS category_name
 FROM services s
 JOIN profiles p ON s.user_id = p.id
-JOIN categories c ON s.category_id = c.id
+JOIN professions c ON s.profession_id = c.id
 WHERE s.is_draft = FALSE AND s.is_active = TRUE;
 
 -- Vue des demandes avec détails client et catégorie
-CREATE VIEW request_details AS
+CREATE VIEW mission_details AS
 SELECT 
   r.*,
   p.first_name,
   p.last_name,
   p.avatar_url,
   c.name AS category_name
-FROM requests r
+FROM missions r
 JOIN profiles p ON r.user_id = p.id
-JOIN categories c ON r.category_id = c.id
+JOIN professions c ON r.profession_id = c.id
 WHERE r.status = 'open';
 
 -- Vue des contrats avec détails clients et experts
@@ -271,7 +271,7 @@ CREATE VIEW conversation_with_last_message AS
 SELECT 
   c.id AS conversation_id,
   c.contract_id,
-  c.request_id,
+  c.mission_id,
   c.created_at,
   m.id AS last_message_id,
   m.sender_id,
@@ -344,7 +344,7 @@ BEGIN
     p.avatar_url AS other_user_avatar,
     COALESCE(
       (SELECT title FROM contracts WHERE id = c.contract_id),
-      (SELECT title FROM requests WHERE id = c.request_id),
+      (SELECT title FROM missions WHERE id = c.mission_id),
       'Discussion'
     ) AS related_to,
     lm.content AS last_message_content,
@@ -381,7 +381,7 @@ FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_services_updated_at BEFORE UPDATE ON services
 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_requests_updated_at BEFORE UPDATE ON requests
+CREATE TRIGGER update_missions_updated_at BEFORE UPDATE ON missions
 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_proposals_updated_at BEFORE UPDATE ON proposals
@@ -398,16 +398,16 @@ CREATE OR REPLACE FUNCTION create_proposal_conversation()
 RETURNS TRIGGER AS $$
 DECLARE
   v_conversation_id UUID;
-  v_request_client_id UUID;
+  v_mission_client_id UUID;
 BEGIN
   -- Obtenir l'ID du client qui a créé la demande
-  SELECT user_id INTO v_request_client_id FROM requests WHERE id = NEW.request_id;
+  SELECT user_id INTO v_mission_client_id FROM missions WHERE id = NEW.mission_id;
   
   -- Créer une nouvelle conversation
-  INSERT INTO conversations (request_id) VALUES (NEW.request_id) RETURNING id INTO v_conversation_id;
+  INSERT INTO conversations (mission_id) VALUES (NEW.mission_id) RETURNING id INTO v_conversation_id;
   
   -- Ajouter le client comme participant
-  INSERT INTO conversation_participants (conversation_id, user_id) VALUES (v_conversation_id, v_request_client_id);
+  INSERT INTO conversation_participants (conversation_id, user_id) VALUES (v_conversation_id, v_mission_client_id);
   
   -- Ajouter l'expert comme participant
   INSERT INTO conversation_participants (conversation_id, user_id) VALUES (v_conversation_id, NEW.expert_id);
@@ -451,9 +451,9 @@ FOR EACH ROW EXECUTE FUNCTION create_contract_conversation();
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_skills ENABLE ROW LEVEL SECURITY;
 ALTER TABLE services ENABLE ROW LEVEL SECURITY;
-ALTER TABLE requests ENABLE ROW LEVEL SECURITY;
-ALTER TABLE request_skills ENABLE ROW LEVEL SECURITY;
-ALTER TABLE request_files ENABLE ROW LEVEL SECURITY;
+ALTER TABLE missions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE mission_skills ENABLE ROW LEVEL SECURITY;
+ALTER TABLE mission_files ENABLE ROW LEVEL SECURITY;
 ALTER TABLE proposals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contracts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE deliverables ENABLE ROW LEVEL SECURITY;
@@ -482,11 +482,11 @@ ON services FOR ALL
 USING (user_id = auth.uid());
 
 CREATE POLICY "Les utilisateurs peuvent voir toutes les demandes ouvertes"
-ON requests FOR SELECT
+ON missions FOR SELECT
 USING (status = 'open');
 
 CREATE POLICY "Les clients peuvent gérer leurs propres demandes"
-ON requests FOR ALL
+ON missions FOR ALL
 USING (user_id = auth.uid());
 
 -- ========================
@@ -494,7 +494,7 @@ USING (user_id = auth.uid());
 -- ========================
 
 -- Insertion des catégories initiales
-INSERT INTO categories (name, description, icon) VALUES
+INSERT INTO professions (name, description, icon) VALUES
 ('Développement Web', 'Création de sites web et applications', 'code'),
 ('Design Graphique', 'Logos, illustrations et identité visuelle', 'palette'),
 ('Rédaction & Traduction', 'Contenu de qualité dans différentes langues', 'file-text'),

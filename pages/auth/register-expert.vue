@@ -469,16 +469,16 @@ onMounted(async () => {
 async function loadInitialData() {
   loadingData.value = true
   try {
-    const [skillsResponse, categoriesResponse] = await Promise.all([
-      client.from('skills').select('id, name, category_id'),
-      client.from('categories').select('id, name, description').eq('is_active', true)
+    const [skillsResponse, professionsResponse] = await Promise.all([
+      client.from('skills').select('id, name, profession_id'),
+      client.from('professions').select('id, name, description').eq('is_active', true)
     ])
 
     if (skillsResponse.error) throw skillsResponse.error
-    if (categoriesResponse.error) throw categoriesResponse.error
+    if (professionsResponse.error) throw professionsResponse.error
 
     availableSkills.value = skillsResponse.data || []
-    availableCategories.value = categoriesResponse.data || []
+    availableCategories.value = professionsResponse.data || []
     
     // Initialiser la configuration des services pour chaque catégorie
     availableCategories.value.forEach(category => {
@@ -598,7 +598,7 @@ async function handleSubmit() {
     if (selectedCategories.value.length > 0) {
       const servicesToInsert = selectedCategories.value.map(categoryId => ({
         expert_id: user?.value?.id,
-        category_id: categoryId,
+        profession_id: categoryId,
         title: servicesConfig[categoryId].title,
         description: servicesConfig[categoryId].description,
         price: parseFloat(servicesConfig[categoryId].price || form.value.hourlyRate),

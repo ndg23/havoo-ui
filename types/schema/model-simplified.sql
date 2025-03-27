@@ -17,7 +17,7 @@ CREATE TABLE profiles (
   city VARCHAR(255),
   zip_code VARCHAR(255),
   country VARCHAR(255),
-  address TEXT,
+  location TEXT,
   birthdate DATE,
   gender VARCHAR(20),
   website VARCHAR(255),
@@ -33,7 +33,7 @@ CREATE TABLE profiles (
 );
 
 -- Categories and skills combined
-CREATE TABLE categories (
+CREATE TABLE professions (
   id SERIAL PRIMARY KEY,
   is_active BOOLEAN DEFAULT TRUE,
   name VARCHAR(255) NOT NULL UNIQUE,
@@ -46,7 +46,7 @@ CREATE TABLE skills (
   id SERIAL PRIMARY KEY,
   is_active BOOLEAN DEFAULT TRUE,
   name VARCHAR(255) NOT NULL UNIQUE,
-  category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
+  profession_id INTEGER REFERENCES professions(id) ON DELETE SET NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -58,8 +58,8 @@ CREATE TABLE user_skills (
   PRIMARY KEY (user_id, skill_id)
 );
 
--- Client requests
-CREATE TABLE requests (
+-- Client missions
+CREATE TABLE missions (
   id SERIAL PRIMARY KEY,
   client_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   title VARCHAR(255) NOT NULL,
@@ -67,14 +67,14 @@ CREATE TABLE requests (
   budget DECIMAL(10, 2),
   deadline DATE,
   status VARCHAR(50) DEFAULT 'open' CHECK (status IN ('open', 'assigned', 'completed', 'cancelled')),
-  category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
+  profession_id INTEGER REFERENCES professions(id) ON DELETE SET NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 -- Combined proposals and contracts
 CREATE TABLE deals (
   id SERIAL PRIMARY KEY,
-  request_id INTEGER REFERENCES requests(id) ON DELETE CASCADE,
+  mission_id INTEGER REFERENCES missions(id) ON DELETE CASCADE,
   expert_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   client_id UUID REFERENCES profiles(id),
   price DECIMAL(10, 2) NOT NULL,
@@ -83,14 +83,14 @@ CREATE TABLE deals (
   status VARCHAR(50) DEFAULT 'proposal' CHECK (status IN ('proposal', 'active', 'completed', 'rejected', 'cancelled')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  UNIQUE(request_id, expert_id)
+  UNIQUE(mission_id, expert_id)
 );
 
 -- Expert services
 CREATE TABLE services (
   id SERIAL PRIMARY KEY,
   expert_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
-  category_id INTEGER REFERENCES categories(id),
+  profession_id INTEGER REFERENCES professions(id),
   title VARCHAR(255) NOT NULL,
   description TEXT NOT NULL,
   price DECIMAL(10, 2) NOT NULL,
@@ -125,7 +125,7 @@ CREATE TABLE reviews (
 -- Simplified messaging system
 CREATE TABLE conversations (
   id SERIAL PRIMARY KEY,
-  request_id INTEGER REFERENCES requests(id) ON DELETE SET NULL,
+  mission_id INTEGER REFERENCES missions(id) ON DELETE SET NULL,
   deal_id INTEGER REFERENCES deals(id) ON DELETE SET NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -238,7 +238,7 @@ FOR EACH ROW
 EXECUTE FUNCTION calculate_profile_completion();
 
 -- Key performance indices only
-CREATE INDEX idx_requests_client_id ON requests (client_id);
+CREATE INDEX idx_missions_client_id ON missions (client_id);
 CREATE INDEX idx_deals_expert_id ON deals (expert_id);
 CREATE INDEX idx_services_expert_id ON services (expert_id);
 CREATE INDEX idx_messages_conversation_id ON messages (conversation_id);

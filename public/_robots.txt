@@ -1,0 +1,10 @@
+
+User-agent: *
+Allow: /
+
+# Interdire l'accès aux pages privées
+Disallow: /account/
+Disallow: /admin/
+Disallow: /api/
+
+Sitemap: https://keetaf.com/sitemap.xml

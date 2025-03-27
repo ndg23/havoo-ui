@@ -82,7 +82,7 @@
             class="px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white appearance-none bg-none"
           >
             <option value="all">Toutes les catégories</option>
-            <option v-for="category in categories" :key="category.id" :value="category.id">
+            <option v-for="category in professions" :key="category.id" :value="category.id">
               {{ category.name }}
             </option>
           </select>
@@ -154,7 +154,7 @@
             <div class="flex items-center gap-3">
               <div 
                 class="h-12 w-12 rounded-xl flex items-center justify-center"
-                :class="getCategoryColorClass(row.category_id)"
+                :class="getCategoryColorClass(row.profession_id)"
               >
                 <component :is="getCategoryIcon(row.category?.icon)" class="h-6 w-6 text-white" />
               </div>
@@ -238,7 +238,7 @@
             <div class="flex items-center gap-3">
               <div 
                 class="h-14 w-14 rounded-xl flex items-center justify-center"
-                :class="getCategoryColorClass(row.category_id)"
+                :class="getCategoryColorClass(row.profession_id)"
               >
                 <component :is="getCategoryIcon(row.category?.icon)" class="h-7 w-7 text-white" />
               </div>
@@ -371,11 +371,11 @@
             <label for="service-category" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Catégorie</label>
             <select 
               id="service-category"
-              v-model="serviceForm.category_id"
+              v-model="serviceForm.profession_id"
               class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
             >
               <option value="">Sélectionner une catégorie</option>
-              <option v-for="category in categories" :key="category.id" :value="category.id">
+              <option v-for="category in professions" :key="category.id" :value="category.id">
                 {{ category.name }}
               </option>
             </select>
@@ -492,7 +492,7 @@ const router = useRouter();
 
 // État des données
 const services = ref([]);
-const categories = ref([]);
+const professions = ref([]);
 const isLoading = ref(true);
 const search = ref('');
 const categoryFilter = ref('all');
@@ -518,7 +518,7 @@ const notification = ref({
 const serviceForm = ref({
   name: '',
   description: '',
-  category_id: '',
+  profession_id: '',
   price: 0,
   estimated_duration: 1,
   is_active: true
@@ -575,7 +575,7 @@ const filteredServices = computed(() => {
   
   // Filtre de catégorie
   if (categoryFilter.value !== 'all') {
-    result = result.filter(service => service.category_id === categoryFilter.value);
+    result = result.filter(service => service.profession_id === categoryFilter.value);
   }
   
   // Filtre de statut
@@ -608,7 +608,7 @@ const loadData = async () => {
       .from('services')
       .select(`
         *,
-        category:categories(*)
+        category:professions(*)
       `)
       .order('title');
     
@@ -617,14 +617,14 @@ const loadData = async () => {
     services.value = servicesData || [];
     
     // Charger les catégories
-    const { data: categoriesData, error: categoriesError } = await supabase
-      .from('categories')
+    const { data: professionsData, error: professionsError } = await supabase
+      .from('professions')
       .select('*')
       .order('name');
     
-    if (categoriesError) throw categoriesError;
+    if (professionsError) throw professionsError;
     
-    categories.value = categoriesData || [];
+    professions.value = professionsData || [];
     
   } catch (error) {
     console.error('Erreur lors du chargement des données:', error);
@@ -648,7 +648,7 @@ const openAddModal = () => {
   serviceForm.value = {
     name: '',
     description: '',
-    category_id: '',
+    profession_id: '',
     price: 0,
     estimated_duration: 1,
     is_active: true
@@ -663,7 +663,7 @@ const editService = (service) => {
   serviceForm.value = {
     name: service.name,
     description: service.description || '',
-    category_id: service.category_id || '',
+    profession_id: service.profession_id || '',
     price: service.price || 0,
     estimated_duration: service.estimated_duration || 1,
     is_active: service.is_active
@@ -679,7 +679,7 @@ const saveService = async () => {
     return;
   }
   
-  if (!serviceForm.value.category_id) {
+  if (!serviceForm.value.profession_id) {
     showNotification('error', 'Erreur', 'La catégorie est requise');
     return;
   }
@@ -694,7 +694,7 @@ const saveService = async () => {
         .update({
           name: serviceForm.value.name,
           description: serviceForm.value.description,
-          category_id: serviceForm.value.category_id,
+          profession_id: serviceForm.value.profession_id,
           price: serviceForm.value.price,
           estimated_duration: serviceForm.value.estimated_duration,
           is_active: serviceForm.value.is_active,
@@ -712,7 +712,7 @@ const saveService = async () => {
         .insert({
           name: serviceForm.value.name,
           description: serviceForm.value.description,
-          category_id: serviceForm.value.category_id,
+          profession_id: serviceForm.value.profession_id,
           price: serviceForm.value.price,
           estimated_duration: serviceForm.value.estimated_duration,
           is_active: serviceForm.value.is_active

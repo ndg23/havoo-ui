@@ -4,7 +4,7 @@
     <header class="sticky top-0 z-30 bg-white dark:bg-gray-900 backdrop-blur bg-opacity-80 dark:bg-opacity-80 border-b border-gray-200 dark:border-gray-800">
       <div class="max-w-3xl mx-auto px-4 py-3 flex items-center">
         <NuxtLink 
-          :to="`/requests/${requestId}`" 
+          :to="`/requests/${missionId}`" 
           class="p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
         >
           <ArrowLeft class="w-5 h-5" />
@@ -44,19 +44,19 @@
           <div class="p-5">
             <div class="flex items-start justify-between">
               <div>
-                <h2 class="text-xl font-medium text-gray-900 dark:text-white">{{ request.title }}</h2>
+                <h2 class="text-xl font-medium text-gray-900 dark:text-white">{{ mission.title }}</h2>
                 <div class="flex items-center flex-wrap gap-2 mt-2">
                   <span class="inline-flex items-center text-sm text-gray-500 dark:text-gray-400">
                     <svg class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    {{ formatDate(request.created_at) }}
+                    {{ formatDate(mission.created_at) }}
                   </span>
                   <span class="inline-flex items-center text-sm text-gray-500 dark:text-gray-400">
                     <svg class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                     </svg>
-                    {{ request.category?.name || 'Non catégorisé' }}
+                    {{ mission.category?.name || 'Non catégorisé' }}
                   </span>
                   <span 
                     class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200"
@@ -67,16 +67,16 @@
               </div>
               <div class="text-right">
                 <div class="text-lg font-bold text-primary-600 dark:text-primary-400">
-                  {{ formatPrice(request.budget) }}
+                  {{ formatPrice(mission.budget) }}
                 </div>
-                <div v-if="request.deadline" class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  Deadline: {{ formatDate(request.deadline) }}
+                <div v-if="mission.deadline" class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  Deadline: {{ formatDate(mission.deadline) }}
                 </div>
               </div>
             </div>
             
             <div class="mt-3 text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
-              {{ request.description }}
+              {{ mission.description }}
             </div>
             
             <button @click="showFullDescription = !showFullDescription" class="mt-1 text-xs text-primary-600 dark:text-primary-400 font-medium hover:text-primary-700 dark:hover:text-primary-300 transition-colors">
@@ -89,7 +89,7 @@
         <div v-if="showFullDescription" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 shadow-sm">
           <h3 class="text-md font-medium text-gray-900 dark:text-white mb-3">Description complète</h3>
           <div class="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300">
-            {{ request.description }}
+            {{ mission.description }}
           </div>
         </div>
         
@@ -188,7 +188,7 @@
                 <!-- Cancel button -->
                 <div class="mt-2 text-center">
                   <NuxtLink 
-                    :to="`/requests/${requestId}`" 
+                    :to="`/requests/${missionId}`" 
                     class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
                   >
                     Annuler et retourner à la demande
@@ -214,13 +214,13 @@ const router = useRouter();
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 
-// Get request ID from route
-const requestId = route.params.id;
+// Get mission ID from route
+const missionId = route.params.id;
 
 // State variables
 const isLoading = ref(true);
 const error = ref(null);
-const request = ref({});
+const mission = ref({});
 const showFullDescription = ref(false);
 const isSubmitting = ref(false);
 const proposalForm = ref({
@@ -256,26 +256,26 @@ const fetchRequest = async () => {
   
   try {
     const { data, error: fetchError } = await supabase
-      .from('requests')
+      .from('missions')
       .select(`
         *,      
         client:client_id(*),
-        category:category_id(*)
+        category:profession_id(*)
       `)
-      .eq('id', requestId)
+      .eq('id', missionId)
       .single();
     
     if (fetchError) throw fetchError;
     
-    request.value = data;
+    mission.value = data;
     
-    // Set initial price based on request budget
-    if (request.value.budget) {
-      proposalForm.value.price = request.value.budget;
+    // Set initial price based on mission budget
+    if (mission.value.budget) {
+      proposalForm.value.price = mission.value.budget;
     }
     
   } catch (err) {
-    console.error('Error fetching request:', err);
+    console.error('Error fetching mission:', err);
     error.value = "Impossible de charger cette demande";
   } finally {
     isLoading.value = false;
@@ -298,7 +298,7 @@ const submitProposal = async () => {
     const { error: submitError } = await supabase
       .from('deals')
       .insert({
-        request_id: requestId,
+        mission_id: missionId,
         expert_id: user.value.id,
         price: proposalForm.value.price,
         duration: proposalForm.value.duration,
@@ -311,8 +311,8 @@ const submitProposal = async () => {
     // Show success notification
     // For a real implementation, you would use a notification system here
     
-    // Navigate back to the request page
-    router.push(`/requests/${requestId}?proposal_submitted=true`);
+    // Navigate back to the mission page
+    router.push(`/requests/${missionId}?proposal_submitted=true`);
     
   } catch (err) {
     console.error('Error submitting proposal:', err);
@@ -351,7 +351,7 @@ onMounted(async () => {
   
   // Check if user is an expert
   if (!user.value.is_expert) {
-    router.push(`/requests/${requestId}`);
+    router.push(`/requests/${missionId}`);
     return;
   }
   

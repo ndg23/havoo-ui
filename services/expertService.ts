@@ -21,14 +21,14 @@ export const useExpertService = () => {
         is_verified,
         is_available,
         hourly_rate,
-        categories(id, name),
+        professions(id, name),
         skills(id, name)
       `)
       .eq('is_expert', true)
     
     // Ajouter le filtre par catégorie si spécifié
     if (categoryId) {
-      query = query.eq('categories.id', categoryId)
+      query = query.eq('professions.id', categoryId)
     }
     
     const { data, error } = await query
@@ -58,7 +58,7 @@ export const useExpertService = () => {
         is_verified,
         is_available,
         hourly_rate,
-        categories(id, name),
+        professions(id, name),
         skills(id, name),
         reviews(
           id, 

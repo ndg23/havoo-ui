@@ -84,50 +84,94 @@
             Se connecter
           </NuxtLink>
 
-          <div v-else class="relative">
-            <button @click="showProfileMenu = !showProfileMenu"
-              class="flex items-center  focus:outline-none profile-menu-button">
-              <img v-if="userProfile?.avatar_url" :src="userProfile.avatar_url" alt="Avatar"
-                class="h-10 w-10 border border-primary-600 rounded-full" />
-              <div v-else
-                class="h-10 w-10 text-xl uppercase rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center text-primary-700 dark:text-primary-300 font-medium">
+          <div v-else class="relative group">
+            <button 
+              class="flex items-center gap-2 p-2 rounded-full hover: bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              @click="toggleUserMenu"
+            >
+              <!-- Avatar -->
+              <img 
+                v-if="userProfile?.avatar_url" 
+                :src="userProfile.avatar_url" 
+                :alt="`${userProfile?.first_name} ${userProfile?.last_name}`"
+                class="h-10 w-10 rounded-full object-cover ring-2 ring-offset-2 ring-transparent group-hover:ring-primary-500"
+                @error="handleImageError"
+              />
+              <div 
+                v-else
+                class="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 font-medium text-lg"
+              >
                 {{ getInitials(userProfile?.first_name, userProfile?.last_name) }}
+              </div>
+
+              <!-- Nom et chevron -->
+              <div class="hidden md:flex items-center">
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {{ userProfile?.first_name }}
+                </span>
+                <ChevronDown class="h-4 w-4 ml-1 text-gray-500" />
               </div>
             </button>
 
-            <!-- Menu déroulant du profil -->
-            <div v-if="showProfileMenu"
-              class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-20 border border-gray-200 dark:border-gray-700 animate-scaleUp">
-              <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                <p class="text-sm font-medium text-gray-900 dark:text-white">
-                  {{ userProfile?.first_name }} {{ userProfile?.last_name }}
-                </p>
-                <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                  {{ userProfile?.email }}
-                </p>
+            <!-- Menu déroulant -->
+            <div 
+              v-if="isUserMenuOpen"
+              class="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 dark:divide-gray-700"
+            >
+              <!-- En-tête du menu -->
+              <div class="p-4">
+                <div class="flex items-center gap-3">
+                  <img 
+                    v-if="userProfile?.avatar_url" 
+                    :src="userProfile.avatar_url" 
+                    :alt="`${userProfile?.first_name} ${userProfile?.last_name}`"
+                    class="h-14 w-14 rounded-full object-cover border-4 border-white dark:border-gray-800 shadow-sm"
+                    @error="handleImageError"
+                  />
+                  <div 
+                    v-else
+                    class="h-14 w-14 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xl font-medium"
+                  >
+                    {{ getInitials(userProfile?.first_name, userProfile?.last_name) }}
+                  </div>
+                  
+                  <div>
+                    <div class="font-medium text-gray-900 dark:text-white">
+                      {{ userProfile?.first_name }} {{ userProfile?.last_name }}
+                    </div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                      {{ userProfile?.email }}
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <NuxtLink to="/account"
-                class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                @click="showProfileMenu = false">
-                Tableau de bord
-              </NuxtLink>
+              <!-- Liste des options -->
+              <div class="py-2">
+                <NuxtLink 
+                  to="/account"
+                  class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  <User class="h-5 w-5 text-gray-500" />
+                  Mon compte
+                </NuxtLink>
+                
+                <NuxtLink 
+                  to="/account/edit-profile"
+                  class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  <Settings class="h-5 w-5 text-gray-500" />
+                  Paramètres
+                </NuxtLink>
+              </div>
 
-              <NuxtLink to="/account/edit-profile"
-                class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                @click="showProfileMenu = false">
-                Modifier le profil
-              </NuxtLink>
-
-              <NuxtLink v-if="userProfile?.is_expert" to="/account/services"
-                class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                @click="showProfileMenu = false">
-                Mes services
-              </NuxtLink>
-
-              <div class="border-t border-gray-200 dark:border-gray-700 mt-1 pt-1">
-                <button @click="logout"
-                  class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+              <!-- Déconnexion -->
+              <div class="py-2">
+                <button 
+                  @click="logout"
+                  class="flex w-full items-center gap-3 px-4 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  <LogOut class="h-5 w-5" />
                   Déconnexion
                 </button>
               </div>
@@ -222,7 +266,10 @@ import {
   Users,
   MessageSquare,
   User,
-  PlusIcon
+  PlusIcon,
+  Settings,
+  LogOut,
+  ChevronDown
 } from 'lucide-vue-next'
 import Footer from '@/components/Footer.vue'
 
@@ -236,9 +283,13 @@ const unreadCount = ref(0)
 const showProfileMenu = ref(false)
 const showCreateMenu = ref(false)
 const showMobileCreateMenu = ref(false)
+const isUserMenuOpen = ref(false)
 
 // Fermer le menu en cliquant ailleurs
 const handleClickOutside = (event) => {
+  if (isUserMenuOpen.value && !event.target.closest('.relative')) {
+    isUserMenuOpen.value = false
+  }
   if (showProfileMenu.value && !event.target.closest('.profile-menu-button') && !event.target.closest('.profile-menu')) {
     showProfileMenu.value = false
   }
@@ -300,7 +351,7 @@ const fetchUnreadMessages = async () => {
 const logout = async () => {
   try {
     await supabase.auth.signOut()
-    router.push('/login')
+    router.push('/auth/login')
   } catch (err) {
     console.error('Error during logout:', err)
   }
@@ -310,6 +361,14 @@ const logout = async () => {
 const getInitials = (firstName, lastName) => {
   if (!firstName && !lastName) return '?'
   return `${firstName ? firstName.charAt(0) : ''}${lastName ? lastName.charAt(0) : ''}`.toUpperCase()
+}
+
+const handleImageError = (e) => {
+  e.target.src = '/assets/icons/avatar.svg'
+}
+
+const toggleUserMenu = () => {
+  isUserMenuOpen.value = !isUserMenuOpen.value
 }
 
 // Initialisation
@@ -463,5 +522,21 @@ watch(user, (newUser) => {
 .premium-menu-item:hover {
   @apply bg-gray-50 dark:bg-gray-700;
   transform: translateX(4px);
+}
+
+/* Animation du menu */
+.absolute {
+  transition: all 0.2s ease-out;
+}
+
+/* Effet de survol sur l'avatar */
+.ring-2 {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Ombre portée plus douce */
+.shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 
+              0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 </style>

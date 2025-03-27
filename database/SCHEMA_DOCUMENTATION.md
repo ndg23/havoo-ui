@@ -37,7 +37,7 @@ Table centrale contenant les informations des utilisateurs.
 | city | VARCHAR(255) | Ville |
 | zip_code | VARCHAR(255) | Code postal |
 | country | VARCHAR(255) | Pays |
-| address | TEXT | Adresse complète |
+| location | TEXT | Adresse complète |
 | birthdate | DATE | Date de naissance |
 | website | VARCHAR(255) | Site web |
 | hourly_rate | DECIMAL(10,2) | Tarif horaire |
@@ -46,7 +46,7 @@ Table centrale contenant les informations des utilisateurs.
 | updated_at | TIMESTAMP | Date de dernière mise à jour |
 | profile_completion_percentage | INTEGER | Pourcentage de complétion du profil |
 
-### Catégories (categories)
+### Catégories (professions)
 
 Classification principale des domaines d'expertise.
 
@@ -68,7 +68,7 @@ Compétences spécifiques associées aux catégories.
 | id | UUID | Clé primaire |
 | is_active | BOOLEAN | Statut d'activation |
 | name | VARCHAR(255) | Nom de la compétence (unique) |
-| category_id | UUID | Référence à la catégorie parente |
+| profession_id | UUID | Référence à la catégorie parente |
 | created_at | TIMESTAMP | Date de création |
 | updated_at | TIMESTAMP | Date de dernière mise à jour |
 
@@ -81,7 +81,7 @@ Table d'association entre utilisateurs et compétences.
 | user_id | UUID | Référence au profil utilisateur |
 | skill_id | UUID | Référence à la compétence |
 
-### Demandes (requests)
+### Demandes (missions)
 
 Demandes de service créées par les clients.
 
@@ -94,7 +94,7 @@ Demandes de service créées par les clients.
 | budget | DECIMAL(10,2) | Budget proposé |
 | deadline | DATE | Date limite |
 | status | VARCHAR(50) | Statut ('open', 'assigned', 'completed', 'cancelled') |
-| category_id | UUID | Référence à la catégorie |
+| profession_id | UUID | Référence à la catégorie |
 | created_at | TIMESTAMP | Date de création |
 | updated_at | TIMESTAMP | Date de dernière mise à jour |
 
@@ -105,7 +105,7 @@ Gestion des propositions et contrats.
 | Champ | Type | Description |
 |-------|------|-------------|
 | id | UUID | Clé primaire |
-| request_id | UUID | Référence à la demande |
+| mission_id | UUID | Référence à la demande |
 | expert_id | UUID | Référence au profil expert |
 | client_id | UUID | Référence au profil client |
 | price | DECIMAL(10,2) | Prix proposé |
@@ -123,7 +123,7 @@ Services proposés par les experts.
 |-------|------|-------------|
 | id | UUID | Clé primaire |
 | expert_id | UUID | Référence au profil expert |
-| category_id | UUID | Référence à la catégorie |
+| profession_id | UUID | Référence à la catégorie |
 | title | VARCHAR(255) | Titre du service |
 | description | TEXT | Description détaillée |
 | price | DECIMAL(10,2) | Prix du service |
@@ -166,7 +166,7 @@ Gestion des fils de discussion.
 | Champ | Type | Description |
 |-------|------|-------------|
 | id | UUID | Clé primaire |
-| request_id | UUID | Référence à la demande (optionnel) |
+| mission_id | UUID | Référence à la demande (optionnel) |
 | deal_id | UUID | Référence au deal (optionnel) |
 | last_message | TEXT | Dernier message |
 | last_message_at | TIMESTAMP | Date du dernier message |
@@ -228,9 +228,9 @@ Paramètres globaux de l'application.
 
 Le schéma inclut plusieurs index pour optimiser les performances :
 
-- `idx_requests_client_id` : Recherche rapide des demandes par client
+- `idx_missions_client_id` : Recherche rapide des demandes par client
 - `idx_deals_expert_id` : Recherche rapide des deals par expert
-- `idx_deals_request_id` : Recherche rapide des deals par demande
+- `idx_deals_mission_id` : Recherche rapide des deals par demande
 - `idx_services_expert_id` : Recherche rapide des services par expert
 - `idx_user_skills_user_id` : Recherche rapide des compétences par utilisateur
 - `idx_messages_conversation_id` : Recherche rapide des messages par conversation

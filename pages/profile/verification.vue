@@ -151,7 +151,7 @@ const submitVerification = async () => {
     
     // Ici, vous implémenteriez l'appel API pour soumettre la demande de vérification
     // const { data, error } = await supabase
-    //   .from('verification_requests')
+    //   .from('verification_missions')
     //   .insert({ user_id: auth.user.id, status: 'pending' })
     
     // if (error) throw error

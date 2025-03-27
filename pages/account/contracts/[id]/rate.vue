@@ -192,7 +192,7 @@ const fetchData = async () => {
         *,
         client:client_id (first_name, last_name),
         expert:expert_id (first_name, last_name),
-        request:request_id (title)
+        mission:mission_id (title)
       `)
       .eq('id', contractId.value)
       .in('status', ['active', 'completed'])

@@ -118,14 +118,14 @@
                       {{ getStatusLabel(proposal.status) }}
                     </span>
                     <span 
-                      v-if="proposal.request?.category" 
+                      v-if="proposal.mission?.category" 
                       class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
                     >
-                      {{ proposal.request.category.name }}
+                      {{ proposal.mission.category.name }}
                     </span>
                   </div>
                   <h3 class="text-lg font-medium text-gray-900 line-clamp-1">
-                    {{ proposal.request?.title || 'Demande sans titre' }}
+                    {{ proposal.mission?.title || 'Demande sans titre' }}
                   </h3>
                   <p class="mt-1 text-sm text-gray-500 line-clamp-2">{{ proposal.message }}</p>
               </div>
@@ -142,7 +142,7 @@
               
               <div class="mt-4 flex items-center justify-between">
                 <NuxtLink 
-                  :to="`/requests/${proposal.request_id}`"
+                  :to="`/requests/${proposal.mission_id}`"
                   class="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
                 >
                   <svg class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -221,9 +221,9 @@ const fetchProposals = async () => {
       .from('deals')
       .select(`
         *,
-        request:request_id (
+        mission:mission_id (
           *,
-          category:category_id (*)
+          category:profession_id (*)
         )
       `)
       .eq('expert_id', user.value.id)

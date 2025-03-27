@@ -266,10 +266,10 @@
               />
             </div>
             <div>
-              <label for="address" class="block text-sm font-medium text-gray-700">Adresse</label>
+              <label for="location" class="block text-sm font-medium text-gray-700">Adresse</label>
               <input
-                id="address"
-                v-model="address"
+                id="location"
+                v-model="location"
                 type="text"
                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-black sm:text-sm"
                 placeholder="Votre adresse complète"
@@ -344,7 +344,7 @@ const consent = ref(false);
 const idCardError = ref('');
 const selfieError = ref('');
 const birthdate = ref('');
-const address = ref('');
+const location = ref('');
 
 // Format date
 const formatDate = (dateString) => {
@@ -381,8 +381,8 @@ const fetchProfile = async () => {
       birthdate.value = profileData.birthdate;
     }
     
-    if (profileData.address) {
-      address.value = profileData.address;
+    if (profileData.location) {
+      location.value = profileData.location;
     }
     
     // Récupérer les informations de vérification
@@ -487,7 +487,7 @@ const submitVerification = async () => {
     return;
   }
   
-  if (!address.value) {
+  if (!location.value) {
     error.value = "Veuillez indiquer votre adresse.";
     return;
   }
@@ -505,7 +505,7 @@ const submitVerification = async () => {
       .from('profiles')
       .update({
         birthdate: birthdate.value,
-        address: address.value,
+        location: location.value,
         updated_at: new Date().toISOString()
       })
       .eq('id', user.value.id);

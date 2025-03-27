@@ -48,7 +48,7 @@ interface Request {
   skills: string[];
   createdAt: string;
   client: RequestClient;
-  categories: RequestCategory[];
+  professions: RequestCategory[];
   proposalsCount: number;
 }
 
@@ -63,7 +63,7 @@ export function useRequests() {
   const supabase = useSupabaseClient<Database>()
   
   // État réactif
-  const requests = ref<Request[]>([])
+  const missions = ref<Request[]>([])
   const currentRequest = ref<RequestDetail | null>(null)
   const isLoading = ref<boolean>(false)
   const error = ref<string | null>(null)
@@ -77,7 +77,7 @@ export function useRequests() {
     
     try {
       let query = supabase
-        .from('requests')
+        .from('missions')
         .select(`
          *
         `)
@@ -89,7 +89,7 @@ export function useRequests() {
       }
       
       if (filters.categoryId) {
-        query = query.eq('categories.id', filters.categoryId)
+        query = query.eq('professions.id', filters.categoryId)
       }
       
       if (filters.urgent) {
@@ -110,34 +110,34 @@ export function useRequests() {
       if (apiError) throw apiError
       
       // Formater les données
-      requests.value = data.map(request => {
+      missions.value = data.map(mission => {
         // Accès sécurisé aux données imbriquées
-        const profileData = Array.isArray(request.profiles) ? request.profiles[0] : request.profiles;
+        const profileData = Array.isArray(mission.profiles) ? mission.profiles[0] : mission.profiles;
         
         return {
-          id: request.id,
-          title: request.title,
-          description: request.description,
-          budget: request.budget,
-          deadline: request.deadline,
-          status: request.status,
-          skills: request.skills_required || [],
-          createdAt: request.created_at,
+          id: mission.id,
+          title: mission.title,
+          description: mission.description,
+          budget: mission.budget,
+          deadline: mission.deadline,
+          status: mission.status,
+          skills: mission.skills_required || [],
+          createdAt: mission.created_at,
           client: {
             id: profileData?.id || '',
             firstName: profileData?.first_name || '',
             lastName: profileData?.last_name || '',
             avatarUrl: profileData?.avatar_url
           },
-          categories: request.categories || [],
-          proposalsCount: Array.isArray(request.proposals) ? request.proposals.length : 0
+          professions: mission.professions || [],
+          proposalsCount: Array.isArray(mission.proposals) ? mission.proposals.length : 0
         }
       })
       
-      return requests.value
+      return missions.value
     } catch (e: unknown) {
       const errorMessage = e instanceof Error ? e.message : 'Erreur inconnue';
-      console.error('Error fetching requests:', e)
+      console.error('Error fetching missions:', e)
       error.value = errorMessage || 'Erreur lors du chargement des demandes'
       return []
     } finally {
@@ -154,7 +154,7 @@ export function useRequests() {
     
     try {
       const { data, error: apiError } = await supabase
-        .from('requests')
+        .from('missions')
         .select(`
           id,
           client_id,
@@ -166,8 +166,8 @@ export function useRequests() {
           skills_required,
           created_at,
           updated_at,
-          profiles!requests_client_id_fkey(id, first_name, last_name, avatar_url),
-          categories(id, name),
+          profiles!missions_client_id_fkey(id, first_name, last_name, avatar_url),
+          professions(id, name),
           proposals(
             id, 
             expert_id,
@@ -206,7 +206,7 @@ export function useRequests() {
           lastName: profileData?.last_name || '',
           avatarUrl: profileData?.avatar_url
         },
-        categories: data.categories || [],
+        professions: data.professions || [],
         proposals: (data.proposals || []).map(proposal => {
           // Accès sécurisé aux données imbriquées des profils dans les propositions
           const proposalProfileData = Array.isArray(proposal.profiles) ? proposal.profiles[0] : proposal.profiles;
@@ -232,7 +232,7 @@ export function useRequests() {
       return currentRequest.value
     } catch (e: unknown) {
       const errorMessage = e instanceof Error ? e.message : 'Erreur inconnue';
-      console.error('Error fetching request:', e)
+      console.error('Error fetching mission:', e)
       error.value = errorMessage || 'Erreur lors du chargement de la demande'
       return null
     } finally {
@@ -243,14 +243,14 @@ export function useRequests() {
   /**
    * Crée une nouvelle demande
    */
-  const createRequest = async (requestData: Partial<Database['public']['Tables']['requests']['Insert']>) => {
+  const createRequest = async (missionData: Partial<Database['public']['Tables']['missions']['Insert']>) => {
     isLoading.value = true
     error.value = null
     
     try {
       const { data, error: apiError } = await supabase
-        .from('requests')
-        .insert(requestData)
+        .from('missions')
+        .insert(missionData)
         .select()
       
       if (apiError) throw apiError
@@ -258,7 +258,7 @@ export function useRequests() {
       return data?.[0] || null
     } catch (e: unknown) {
       const errorMessage = e instanceof Error ? e.message : 'Erreur inconnue';
-      console.error('Error creating request:', e)
+      console.error('Error creating mission:', e)
       error.value = errorMessage || 'Erreur lors de la création de la demande'
       return null
     } finally {
@@ -288,7 +288,7 @@ export function useRequests() {
   }
   
   return {
-    requests,
+    missions,
     currentRequest,
     isLoading,
     error,

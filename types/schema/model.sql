@@ -16,26 +16,26 @@ CREATE TABLE profiles (
   city VARCHAR(255),
   zip_code VARCHAR(255),
   country VARCHAR(255),
-  address TEXT,
+  location TEXT,
 
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   profile_completion_percentage INTEGER DEFAULT 20
 );
 
--- Simple categories
-CREATE TABLE categories (
+-- Simple professions
+CREATE TABLE professions (
   id SERIAL PRIMARY KEY,
   is_active BOOLEAN DEFAULT TRUE,
   name VARCHAR(255) NOT NULL UNIQUE,
   description TEXT
 );
 
--- Skills linked to categories
+-- Skills linked to professions
 CREATE TABLE skills (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255) NOT NULL UNIQUE,
-  category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL
+  profession_id INTEGER REFERENCES professions(id) ON DELETE SET NULL
 );
 
 -- User skills
@@ -45,8 +45,8 @@ CREATE TABLE user_skills (
   PRIMARY KEY (user_id, skill_id)
 );
 
--- Client requests
-CREATE TABLE requests (
+-- Client missions
+CREATE TABLE missions (
   id SERIAL PRIMARY KEY,
   client_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   title VARCHAR(255) NOT NULL,
@@ -54,7 +54,7 @@ CREATE TABLE requests (
   budget DECIMAL(10, 2),
   deadline DATE,
   status VARCHAR(50) DEFAULT 'open' CHECK (status IN ('open', 'assigned', 'completed', 'cancelled')),
-  category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
+  profession_id INTEGER REFERENCES professions(id) ON DELETE SET NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -62,21 +62,21 @@ CREATE TABLE requests (
 -- Expert proposals
 CREATE TABLE proposals (
   id SERIAL PRIMARY KEY,
-  request_id INTEGER REFERENCES requests(id) ON DELETE CASCADE,
+  mission_id INTEGER REFERENCES missions(id) ON DELETE CASCADE,
   expert_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   price DECIMAL(10, 2) NOT NULL,
   duration INTEGER NOT NULL, -- In days
   message TEXT NOT NULL,
   status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'rejected')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  UNIQUE(request_id, expert_id),
+  UNIQUE(mission_id, expert_id),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Contracts
 CREATE TABLE contracts (
   id SERIAL PRIMARY KEY,
-  request_id INTEGER REFERENCES requests(id),
+  mission_id INTEGER REFERENCES missions(id),
   proposal_id INTEGER REFERENCES proposals(id),
   client_id UUID REFERENCES profiles(id),
   expert_id UUID REFERENCES profiles(id),
@@ -91,7 +91,7 @@ CREATE TABLE contracts (
 CREATE TABLE services (
   id SERIAL PRIMARY KEY,
   expert_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
-  category_id INTEGER REFERENCES categories(id),
+  profession_id INTEGER REFERENCES professions(id),
   title VARCHAR(255) NOT NULL,
   description TEXT NOT NULL,
   price DECIMAL(10, 2) NOT NULL,
@@ -127,7 +127,7 @@ CREATE TABLE reviews (
 -- Conversations
 CREATE TABLE conversations (
   id SERIAL PRIMARY KEY,
-  request_id INTEGER REFERENCES requests(id) ON DELETE SET NULL,
+  mission_id INTEGER REFERENCES missions(id) ON DELETE SET NULL,
   contract_id INTEGER REFERENCES contracts(id) ON DELETE SET NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -244,9 +244,9 @@ FOR EACH ROW
 EXECUTE FUNCTION update_expert_status();
 
 -- Basic indices for performance
-CREATE INDEX idx_requests_client_id ON requests (client_id);
+CREATE INDEX idx_missions_client_id ON missions (client_id);
 CREATE INDEX idx_proposals_expert_id ON proposals (expert_id);
-CREATE INDEX idx_contracts_request_id ON contracts (request_id);
+CREATE INDEX idx_contracts_mission_id ON contracts (mission_id);
 CREATE INDEX idx_services_expert_id ON services (expert_id);
 CREATE INDEX idx_user_skills_user_id ON user_skills (user_id);
 CREATE INDEX idx_messages_conversation_id ON messages (conversation_id);

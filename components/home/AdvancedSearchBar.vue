@@ -109,7 +109,7 @@
                      hover:border-blue-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white"
             >
               <option value="">Toutes catégories</option>
-              <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+              <option v-for="cat in professions" :key="cat.id" :value="cat.id">
                 {{ cat.name }}
               </option>
             </select>
@@ -152,7 +152,7 @@ const searchParams = ref({
   sortBy: 'relevance'
 })
 
-const categories = [
+const professions = [
   { id: 'tools', name: 'Bricolage' },
   { id: 'sport', name: 'Sport' },
   { id: 'camping', name: 'Camping' },

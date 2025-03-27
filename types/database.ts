@@ -73,7 +73,7 @@ export interface Database {
         }
       }
       
-      requests: {
+      missions: {
         Row: {
           id: number;
           client_id: string;
@@ -108,7 +108,7 @@ export interface Database {
       proposals: {
         Row: {
           id: number;
-          request_id: number;
+          mission_id: number;
           expert_id: string;
           price: number;
           duration: number;
@@ -118,7 +118,7 @@ export interface Database {
           updated_at: string;
         }
         Insert: {
-          request_id: number;
+          mission_id: number;
           expert_id: string;
           price: number;
           duration: number;
@@ -136,7 +136,7 @@ export interface Database {
       contracts: {
         Row: {
           id: number;
-          request_id: number | null;
+          mission_id: number | null;
           proposal_id: number | null;
           client_id: string;
           expert_id: string;
@@ -150,7 +150,7 @@ export interface Database {
           updated_at: string;
         }
         Insert: {
-          request_id?: number | null;
+          mission_id?: number | null;
           proposal_id?: number | null;
           client_id: string;
           expert_id: string;
@@ -223,7 +223,7 @@ export interface Contract {
   created_at: string;
   client_id: string;
   expert_id: string;
-  request_id: string;
+  mission_id: string;
   proposal_id: string;
   title: string;
   description: string;

@@ -16,7 +16,7 @@ ALTER TABLE profiles ADD COLUMN IF NOT EXISTS verification_notes TEXT;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS verified_at TIMESTAMPTZ;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS id_front TEXT;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS id_back TEXT;
-ALTER TABLE profiles ADD COLUMN IF NOT EXISTS proof_address TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS proof_location TEXT;
 
 -- Créer une table pour les certifications
 CREATE TABLE IF NOT EXISTS expert_certifications (
@@ -46,16 +46,16 @@ CREATE TRIGGER update_expert_certifications_updated_at
   EXECUTE FUNCTION update_updated_at_column();
 
 -- Ajouter les colonnes pour la résolution des demandes
-ALTER TABLE requests ADD COLUMN IF NOT EXISTS resolved_at TIMESTAMPTZ;
-ALTER TABLE requests ADD COLUMN IF NOT EXISTS rating INTEGER CHECK (rating >= 1 AND rating <= 5);
-ALTER TABLE requests ADD COLUMN IF NOT EXISTS review TEXT;
+ALTER TABLE missions ADD COLUMN IF NOT EXISTS resolved_at TIMESTAMPTZ;
+ALTER TABLE missions ADD COLUMN IF NOT EXISTS rating INTEGER CHECK (rating >= 1 AND rating <= 5);
+ALTER TABLE missions ADD COLUMN IF NOT EXISTS review TEXT;
 
 -- Ajouter les colonnes pour les notes des experts
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS rating DECIMAL(3,2);
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS reviews_count INTEGER DEFAULT 0;
 
--- Mettre à jour la table requests pour les nouvelles fonctionnalités de résolution
-ALTER TABLE requests 
+-- Mettre à jour la table missions pour les nouvelles fonctionnalités de résolution
+ALTER TABLE missions 
   ADD COLUMN IF NOT EXISTS photos JSONB,
   ADD COLUMN IF NOT EXISTS is_public BOOLEAN DEFAULT true,
   ADD COLUMN IF NOT EXISTS resolution_notes TEXT,
@@ -64,7 +64,7 @@ ALTER TABLE requests
 -- Créer une table dédiée pour les avis
 CREATE TABLE IF NOT EXISTS reviews (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  request_id UUID REFERENCES requests(id) ON DELETE CASCADE,
+  mission_id UUID REFERENCES missions(id) ON DELETE CASCADE,
   expert_id UUID REFERENCES profiles(id),
   client_id UUID REFERENCES profiles(id),
   rating INTEGER CHECK (rating >= 1 AND rating <= 5),
@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS reviews (
 
 -- Ajouter un index pour les recherches fréquentes
 CREATE INDEX IF NOT EXISTS idx_reviews_expert_id ON reviews(expert_id);
-CREATE INDEX IF NOT EXISTS idx_reviews_request_id ON reviews(request_id);
+CREATE INDEX IF NOT EXISTS idx_reviews_mission_id ON reviews(mission_id);
 CREATE INDEX IF NOT EXISTS idx_public_reviews ON reviews(is_public) WHERE is_public = true;
 
 -- Créer une table pour les réactions aux avis

@@ -1,23 +1,15 @@
 <template>
-  <div class="min-h-screen bg-white dark:bg-gray-900 flex flex-col justify-center px-4 sm:px-6 lg:px-8">
+  <div class="min-h-[60vh] bg-white dark:bg-gray-900 flex flex-col justify-center px-4 sm:px-6 lg:px-8">
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
       <!-- Logo ou icône (optionnel) -->
-      <div class="flex justify-center mb-6">
-        <div class="w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary-600 dark:text-primary-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-            <path d="M2 17l10 5 10-5"></path>
-            <path d="M2 12l10 5 10-5"></path>
-          </svg>
-        </div>
-      </div>
+    
       
-      <h1 class="text-center text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+      <h1 class="text-center text-3xl mt-8 font-bold tracking-tight text-gray-900 dark:text-white">
         {{ currentStep === 1 ? 'Créer votre compte' : 'Complétez votre profil' }}
       </h1>
       
       <!-- Indicateur d'étape -->
-      <div class="flex justify-center mt-4 space-x-2">
+      <div class="flex justify-center my-2 space-x-2">
         <div 
           class="w-2.5 h-2.5 rounded-full transition-colors"
           :class="currentStep >= 1 ? 'bg-primary-600 dark:bg-primary-400' : 'bg-gray-300 dark:bg-gray-700'"
@@ -29,7 +21,7 @@
       </div>
     </div>
 
-    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+    <div class="mt-4 sm:mx-auto sm:w-full sm:max-w-md">
       <!-- Message d'erreur -->
       <div v-if="errorMessage" class="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40 text-red-600 dark:text-red-400 rounded-lg p-3 text-sm">
         {{ errorMessage }}
@@ -42,7 +34,7 @@
           <button
             @click="socialSignup('google')"
             type="button"
-            class="flex w-full justify-center items-center gap-3 rounded-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-6 py-3.5 text-base font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors"
+            class="flex w-full justify-center items-center gap-3 rounded-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-6 py-3.5 text-base font-medium text-gray-700 dark:text-gray-300 -shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors"
           >
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -65,18 +57,22 @@
 
         <!-- Formulaire étape 1 -->
         <form @submit.prevent="goToStep2" class="space-y-5">
-          <TwitterInput
+          <FloatingLabelInput
             id="email"
             v-model="form.email"
+            label="Email"
+
             placeholder="Email"
             type="email"
             required
           />
           
           <div class="relative">
-            <TwitterInput
+            <FloatingLabelInput
               id="password"
               v-model="form.password"
+              label="Mot de passe"
+
               placeholder="Mot de passe"
               :type="showPassword ? 'text' : 'password'"
               required
@@ -130,27 +126,33 @@
       
       <!-- Étape 2: Informations complémentaires -->
       <div v-else-if="currentStep === 2" class="animate-fade-in">
-        <form @submit.prevent="completeSignup" class="space-y-5">
+        <form @submit.prevent="handleSignup" class="space-y-5">
           <div class="grid grid-cols-2 gap-4">
-            <TwitterInput
+            <FloatingLabelInput
               id="firstName"
               v-model="form.firstName"
               placeholder="Prénom"
+              label="Prénom"
+
               required
             />
             
-            <TwitterInput
+            <FloatingLabelInput
               id="lastName"
               v-model="form.lastName"
               placeholder="Nom"
+              label="Nom"
+
               required
             />
           </div>
           
-          <TwitterInput
+          <FloatingLabelInput
             id="phone"
             v-model="form.phone"
             placeholder="Téléphone"
+            label="Téléphone"
+
             type="tel"
           />
           
@@ -237,41 +239,180 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, reactive, onMounted, onUnmounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import { useSupabaseClient } from '#imports';
-import TwitterInput from '~/components/ui/TwitterInput.vue';
+import FloatingLabelInput from '~/components/ui/FloatingLabelInput.vue';
 // Services
 const router = useRouter();
 const supabase = useSupabaseClient();
+const route = useRoute();
 
-// État du formulaire
+// État global
+const state = reactive({
+  isLoading: false,
+  currentStep: 1,
+  error: null,
+  networkStatus: true
+});
+
+// Gestionnaire d'erreurs global
+const handleError = (error, context = '') => {
+  console.error(`Erreur ${context}:`, error);
+  
+  // Messages d'erreur génériques pour la sécurité
+  const genericErrors = {
+    'auth/user-not-found': 'Identifiants invalides',
+    'auth/wrong-password': 'Identifiants invalides',
+    'auth/email-already-in-use': 'Cet email n\'est pas disponible',
+    default: 'Une erreur est survenue. Veuillez réessayer.'
+  };
+
+  state.error = genericErrors[error.code] || genericErrors.default;
+  state.isLoading = false;
+};
+
+// Réinitialisation des erreurs entre les étapes
+const resetErrors = () => {
+  state.error = null;
+  Object.keys(validationErrors).forEach(key => {
+    validationErrors[key] = '';
+  });
+};
+
+// Gestionnaire de perte de connexion
+onMounted(() => {
+  window.addEventListener('online', () => state.networkStatus = true);
+  window.addEventListener('offline', () => state.networkStatus = false);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('online', () => state.networkStatus = true);
+  window.removeEventListener('offline', () => state.networkStatus = false);
+});
+
+// État du formulaire avec valeurs par défaut
 const form = reactive({
   email: '',
   password: '',
   firstName: '',
   lastName: '',
   phone: '',
-  role: 'client' // Par défaut
+  role: 'client'
+});
+
+// Ajout de la détection de l'étape dans l'URL et de la session
+const currentStep = ref(parseInt(route.query.step) || 1);
+const isOAuthUser = ref(false);
+
+// Initialisation du formulaire avec les données de session si disponibles
+onMounted(async () => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (session?.user) {
+      isOAuthUser.value = true;
+      form.email = session.user.email;
+      
+      // Pré-remplir avec les métadonnées disponibles
+      if (session.user.user_metadata) {
+        form.firstName = session.user.user_metadata.first_name || '';
+        form.lastName = session.user.user_metadata.last_name || '';
+      }
+      
+      // Si on arrive du callback OAuth, aller directement à l'étape 2
+      if (route.query.step === '2') {
+        currentStep.value = 2;
+      }
+    }
+  } catch (error) {
+    console.error('Erreur lors de la récupération de la session:', error);
+  }
 });
 
 // État de l'interface
-const currentStep = ref(1);
 const isLoading = ref(false);
 const showPassword = ref(false);
 const errorMessage = ref('');
 
-// Validation de l'email
-const validateEmail = () => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!form.email) {
-    errorMessage.value = 'L\'email est requis';
-    return false;
-  } else if (!emailRegex.test(form.email)) {
-    errorMessage.value = 'Veuillez entrer une adresse email valide';
+// Vérification de l'email et gestion des cas existants
+const validateEmail = async () => {
+  try {
+    // 1. Vérifier si l'email existe dans profiles
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('email', form.email.toLowerCase())
+      .single();
+
+    // Si un profil existe déjà
+    if (!profileError && profile) {
+      errorMessage.value = 'Cet email est déjà utilisé. Redirection vers la connexion...';
+      setTimeout(() => {
+        router.push(`/auth/login?email=${encodeURIComponent(form.email)}`);
+      }, 2000);
+      return false;
+    }
+
+    // 2. Tenter de se connecter avec les identifiants fournis
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email: form.email,
+      password: form.password
+    });
+
+    // Si la connexion réussit mais qu'il n'y a pas de profil
+    if (!signInError && signInData.user) {
+      // L'utilisateur existe dans auth mais pas de profil
+      // On peut directement passer à l'étape 2 pour créer son profil
+      currentStep.value = 2;
+      return true;
+    }
+
+    // Si erreur de connexion, vérifier si l'utilisateur existe
+    if (signInError) {
+      // Vérifier si l'email existe dans auth sans créer d'utilisateur
+      const { data: userExists, error: checkError } = await supabase.auth.signInWithOtp({
+        email: form.email,
+        options: {
+          shouldCreateUser: false
+        }
+      });
+
+      // Si l'utilisateur existe mais mauvais mot de passe
+      if (!checkError) {
+        const result = await useDialog({
+          title: 'Compte existant',
+          message: 'Un compte existe déjà avec cet email. Que souhaitez-vous faire ?',
+          options: [
+            { value: 'login', label: 'Me connecter', primary: true },
+            { value: 'reset', label: 'Réinitialiser mon mot de passe' },
+            { value: 'new', label: 'Utiliser un autre email' }
+          ]
+        });
+
+        switch (result) {
+          case 'login':
+            router.push(`/auth/login?email=${encodeURIComponent(form.email)}`);
+            return false;
+          case 'reset':
+            router.push(`/auth/reset-password?email=${encodeURIComponent(form.email)}`);
+            return false;
+          case 'new':
+            form.email = '';
+            form.password = '';
+            return false;
+        }
+      }
+    }
+
+    // Si l'email n'existe pas du tout, on peut créer un nouveau compte
+    return true;
+
+  } catch (error) {
+    console.error('Erreur lors de la vérification de l\'email:', error);
+    errorMessage.value = 'Une erreur est survenue lors de la vérification de l\'email';
     return false;
   }
-  return true;
 };
 
 // Validation du mot de passe
@@ -286,118 +427,167 @@ const validatePassword = () => {
   return true;
 };
 
-// Passer à l'étape 2
+// Modification de goToStep2 pour gérer les utilisateurs OAuth
 const goToStep2 = async () => {
   errorMessage.value = '';
   
-  // Validation des champs
-  if (!validateEmail() || !validatePassword()) {
+  // Pour les utilisateurs OAuth, passer directement à l'étape 2
+  if (isOAuthUser.value) {
+    currentStep.value = 2;
+    return;
+  }
+  
+  // Validation des champs pour les nouveaux utilisateurs
+  if (!validatePassword()) {
     return;
   }
   
   isLoading.value = true;
   
   try {
-    // Vérifier si l'email existe déjà
-    const { data, error } = await supabase.auth.signInWithOtp({
-      email: form.email,
-      options: {
-        shouldCreateUser: false
-      }
-    });
-    
-    if (error && !error.message.includes('User not found')) {
-      // Si l'erreur n'est pas "User not found", c'est une autre erreur
-      throw error;
+    const canProceed = await validateEmail();
+    if (!canProceed) {
+      isLoading.value = false;
+      return;
     }
-    
-    // Si aucune erreur ou si l'erreur est "User not found", l'email est disponible
     currentStep.value = 2;
   } catch (error) {
-    console.error('Erreur lors de la vérification de l\'email:', error);
-    errorMessage.value = 'Cet email est déjà utilisé. Veuillez vous connecter ou utiliser un autre email.';
+    console.error('Erreur:', error);
+    errorMessage.value = 'Une erreur est survenue. Veuillez réessayer.';
   } finally {
     isLoading.value = false;
   }
+};
+
+// Utilitaire pour la gestion des URLs
+const buildRedirectUrl = (baseUrl, params = {}) => {
+  const url = new URL(baseUrl, window.location.origin);
+  Object.entries(params).forEach(([key, value]) => {
+    url.searchParams.append(key, value);
+  });
+  return url.toString();
 };
 
 // Inscription avec un fournisseur social
 const socialSignup = async (provider) => {
   try {
+    state.isLoading = true;
+    
+    const redirectUrl = buildRedirectUrl('/auth/callback', {
+      signup: 'true',
+      next: encodeURIComponent(window.location.pathname)
+    });
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?signup=true`
+        redirectTo: redirectUrl
       }
     });
     
     if (error) throw error;
   } catch (error) {
-    console.error(`Erreur de connexion avec ${provider}:`, error);
-    errorMessage.value = `Erreur de connexion avec ${provider}`;
+    handleError(error, 'social-signup');
   }
 };
 
-// Finaliser l'inscription
-const completeSignup = async () => {
-  errorMessage.value = '';
-  
-  // Validation des champs
-  if (!form.firstName || !form.lastName) {
-    errorMessage.value = 'Veuillez remplir tous les champs obligatoires';
-    return;
-  }
-  
-  isLoading.value = true;
-  
+// Modification de handleSignup pour gérer les deux cas
+const handleSignup = async () => {
   try {
-    // Créer le compte utilisateur
-    const { data, error } = await supabase.auth.signUp({
-      email: form.email,
-      password: form.password,
-      options: {
-        data: {
-          first_name: form.firstName,
-          last_name: form.lastName,
-          role: form.role
+    isLoading.value = true;
+    errorMessage.value = '';
+
+    let user;
+
+    // Obtenir l'utilisateur actuel
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session?.user) {
+      // Création d'un nouveau compte pour les utilisateurs non-OAuth
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email: form.email,
+        password: form.password,
+        options: {
+          data: {
+            first_name: form.firstName,
+            last_name: form.lastName
+          }
         }
-      }
-    });
-    
-    if (error) throw error;
-    
-    if (!data.user) {
-      throw new Error('Erreur lors de la création du compte');
+      });
+
+      if (signUpError) throw signUpError;
+      user = authData.user;
+    } else {
+      // Utiliser l'utilisateur OAuth existant
+      user = session.user;
     }
-    
-    // Mettre à jour le profil avec des informations supplémentaires
+
+    // Créer/mettre à jour le profil
     const { error: profileError } = await supabase
       .from('profiles')
-      .update({
+      .upsert({
+        id: user.id,
+        first_name: form.firstName,
+        last_name: form.lastName,
+        email: form.email,
         phone: form.phone,
+        role: form.role,
         is_expert: form.role === 'expert'
-      })
-      .eq('id', data.user.id);
-    
+      });
+
     if (profileError) throw profileError;
-    
-    // Rediriger selon le rôle
+
+    // Gérer la redirection selon le rôle
     if (form.role === 'expert') {
+      // const { error: verificationError } = await supabase
+      //   .rpc('create_verification_for_user', {
+      //     user_id: user.id
+      //   });
+
+      // if (verificationError) throw verificationError;
       router.push('/auth/expert-onboarding');
     } else {
-      // Rediriger vers la page de confirmation
-      router.push('/auth/confirm-email?email=' + encodeURIComponent(form.email));
+      router.push('/account');
     }
-    
+
   } catch (error) {
     console.error('Erreur lors de l\'inscription:', error);
-    errorMessage.value = error.message || 'Une erreur est survenue lors de l\'inscription';
+    errorMessage.value = error.message;
   } finally {
     isLoading.value = false;
   }
 };
-</script>
 
+// Composant de dialogue personnalisé (composition function)
+const useDialog = (options) => {
+  return new Promise((resolve) => {
+    const dialog = createApp({
+      setup() {
+        const isOpen = ref(true);
+        const close = (value) => {
+          isOpen.value = false;
+          setTimeout(() => {
+            dialog.unmount();
+            resolve(value);
+          }, 300);
+        };
+
+        return () => h(Dialog, {
+          ...options,
+          isOpen: isOpen.value,
+          onClose: () => close(null)
+        });
+      }
+    });
+
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    dialog.mount(container);
+  });
+};
+
+
+</script>
 <style scoped>
 /* Animation de transition entre les étapes */
 @keyframes fadeIn {
