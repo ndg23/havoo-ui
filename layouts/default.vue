@@ -317,7 +317,7 @@ const fetchUserProfile = async () => {
     userProfile.value = data
 
     // Récupérer le nombre de messages non lus
-    await fetchUnreadMessages()
+    // await fetchUnreadMessages()
   } catch (err) {
     console.error('Error fetching user profile:', err)
   }
