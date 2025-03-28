@@ -38,117 +38,32 @@
 
       <div v-else class="space-y-8">
         <!-- Key metrics in Twitter-style cards -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div 
-            v-for="stat in summaryStats" 
-            :key="stat.name"
-            class="bg-white rounded-2xl p-5 hover:shadow-sm hover:border-gray-200 transition-all border border-gray-100 cursor-pointer"
-          >
-            <div class="flex justify-between items-start">
-              <div>
-                <p class="text-sm font-medium text-gray-500 mb-1">{{ stat.name }}</p>
-                <h3 class="text-2xl font-bold text-gray-900">{{ stat.value }}</h3>
-                
-                <div class="flex items-center mt-3 text-sm">
-                  <div v-if="stat.trend > 0" class="flex items-center text-green-600">
-                    <TrendingUpIcon class="h-4 w-4 mr-1" />
-                    <span>+{{ stat.trend }}%</span>
-                  </div>
-                  <div v-else-if="stat.trend < 0" class="flex items-center text-red-600">
-                    <TrendingDownIcon class="h-4 w-4 mr-1" />
-                    <span>{{ stat.trend }}%</span>
-                  </div>
-                  <div v-else class="flex items-center text-gray-500">
-                    <MinusIcon class="h-4 w-4 mr-1" />
-                    <span>0%</span>
-                  </div>
-                  <span class="text-xs text-gray-500 ml-1">ce mois</span>
-                </div>
-              </div>
-              
-              <div class="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center">
-                <component :is="stat.icon" class="h-6 w-6 text-gray-700" />
-              </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div v-for="stat in summaryStats" :key="stat.name" class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
+            <div class="flex items-center justify-between">
+              <h3 class="text-gray-500 dark:text-gray-400 text-sm font-medium">{{ stat.name }}</h3>
+              <v-icon :name="stat.icon" class="h-5 w-5 text-blue-500" />
             </div>
-          </div>
-        </div>
-        
-        <!-- Performance indicators with Twitter-inspired design -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div class="bg-white rounded-2xl overflow-hidden border border-gray-100 group hover:shadow-sm hover:border-gray-200 transition-all cursor-pointer">
-            <div class="p-5">
-              <div class="flex justify-between items-start mb-3">
-                <div>
-                  <h3 class="text-base font-semibold text-gray-900">Taux de conversion</h3>
-                  <p class="text-xs text-gray-500 mt-1">Demandes / Contrats</p>
-                </div>
-                <div class="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-                  <TrendingUpIcon class="h-5 w-5 text-blue-600" />
-                </div>
-              </div>
-              
-              <div class="flex items-end space-x-2">
-                <span class="text-3xl font-bold text-gray-900">{{ conversionRate }}%</span>
-                <span class="text-sm text-blue-600 font-medium pb-1">+2.4%</span>
-              </div>
+            <div class="mt-2 flex items-baseline">
+              <p class="text-2xl font-semibold">{{ stat.value }}</p>
+              <p class="ml-2 text-sm text-gray-500 dark:text-gray-400">{{ stat.label }}</p>
             </div>
-          </div>
-          
-          <div class="bg-white rounded-2xl overflow-hidden border border-gray-100 group hover:shadow-sm hover:border-gray-200 transition-all cursor-pointer">
-            <div class="p-5">
-              <div class="flex justify-between items-start mb-3">
-                <div>
-                  <h3 class="text-base font-semibold text-gray-900">Taux d'engagement</h3>
-                  <p class="text-xs text-gray-500 mt-1">Sessions / Actions</p>
-                </div>
-                <div class="h-10 w-10 rounded-full bg-purple-50 flex items-center justify-center group-hover:bg-purple-100 transition-colors">
-                  <HeartIcon class="h-5 w-5 text-purple-600" />
-                </div>
-              </div>
-              
-              <div class="flex items-end space-x-2">
-                <span class="text-3xl font-bold text-gray-900">{{ engagementRate }}%</span>
-                <span class="text-sm text-purple-600 font-medium pb-1">+5.3%</span>
-              </div>
-            </div>
-          </div>
-          
-          <div class="bg-white rounded-2xl overflow-hidden border border-gray-100 group hover:shadow-sm hover:border-gray-200 transition-all cursor-pointer">
-            <div class="p-5">
-              <div class="flex justify-between items-start mb-3">
-                <div>
-                  <h3 class="text-base font-semibold text-gray-900">Taux de complétion</h3>
-                  <p class="text-xs text-gray-500 mt-1">Projets terminés / Total</p>
-                </div>
-                <div class="h-10 w-10 rounded-full bg-green-50 flex items-center justify-center group-hover:bg-green-100 transition-colors">
-                  <CheckSquareIcon class="h-5 w-5 text-green-600" />
-                </div>
-              </div>
-              
-              <div class="flex items-end space-x-2">
-                <span class="text-3xl font-bold text-gray-900">{{ completionRate }}%</span>
-                <span class="text-sm text-green-600 font-medium pb-1">+1.7%</span>
-              </div>
+            <div v-if="stat.subStats" class="mt-1 flex items-center text-sm">
+              <span v-for="(subStat, index) in stat.subStats" :key="index">
+                <span class="text-gray-600 dark:text-gray-300">{{ subStat }}</span>
+                <span v-if="index < stat.subStats.length - 1" class="mx-1.5 text-gray-500 dark:text-gray-400">•</span>
+              </span>
             </div>
           </div>
         </div>
         
         <!-- Latest missions with Twitter timeline aesthetic -->
-        <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-xs">
-          <div class="px-6 py-4 border-b border-gray-100">
-            <div class="flex justify-between items-center">
-              <h2 class="font-semibold text-base text-gray-900">Dernières demandes</h2>
-              <NuxtLink 
-                to="/admin/requests" 
-                class="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center gap-1"
-              >
-                Voir tout
-                <ChevronRightIcon class="h-4 w-4" />
-              </NuxtLink>
-            </div>
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+          <div class="p-6 border-b border-gray-100 dark:border-gray-700">
+            <h3 class="font-semibold">Dernières missions</h3>
           </div>
           
-          <div class="divide-y divide-gray-100">
+          <div class="divide-y divide-gray-100 dark:divide-gray-700">
             <div v-if="latestRequests.length === 0" class="py-12 text-center">
               <div class="mx-auto h-16 w-16 text-gray-300 bg-gray-50 rounded-full flex items-center justify-center">
                 <MessageSquareIcon class="h-8 w-8" />
@@ -161,116 +76,54 @@
               v-else
               v-for="mission in latestRequests" 
               :key="mission.id"
-              class="hover:bg-gray-50 transition-colors"
+              class="p-4"
             >
-              <div class="p-5">
-                <div class="flex items-start gap-4">
-                  <div class="h-12 w-12 rounded-full overflow-hidden bg-gray-100 border border-gray-100 flex-shrink-0">
-                    <img 
-                      v-if="mission.client.avatar" 
-                      :src="mission.client.avatar" 
-                      alt="Client avatar" 
-                      class="h-full w-full object-cover"
-                    />
-                    <User v-else class="h-full w-full p-2 text-gray-400" />
-                  </div>
-                  
+              <div class="flex items-center justify-between">
+                <div class="flex items-center min-w-0">
                   <div class="flex-1 min-w-0">
-                    <div class="flex items-center justify-between mb-2">
-                      <div>
-                        <div class="flex items-center mb-1">
-                          <p class="font-medium text-gray-900">{{ mission.client.name }}</p>
-                          <span class="mx-2 text-gray-300">•</span>
-                          <span class="text-sm text-gray-500">{{ mission.date }}</span>
-                        </div>
-                        <p class="text-gray-900 font-medium">{{ mission.service }}</p>
-                      </div>
-                      
-                      <span 
-                        class="text-xs font-medium px-3 py-1 rounded-full"
-                        :class="getStatusClass(mission.status)"
-                      >
-                        {{ getStatusLabel(mission.status) }}
-                      </span>
-                    </div>
-                    
-                    <div class="flex items-center mt-3 gap-3">
-                      <NuxtLink 
-                        :to="`/admin/requests/${mission.id}`" 
-                        class="flex items-center text-gray-700 hover:text-primary-600 transition-colors"
-                      >
-                        <EyeIcon class="h-4 w-4 mr-1.5" />
-                        <span class="text-sm">Détails</span>
-                      </NuxtLink>
-                      
-                      <button class="flex items-center text-gray-700 hover:text-primary-600 transition-colors">
-                        <MessageSquareIcon class="h-4 w-4 mr-1.5" />
-                        <span class="text-sm">Message</span>
-                      </button>
-                    </div>
+                    <p class="font-medium text-gray-900 dark:text-gray-100">{{ mission.service }}</p>
+                    <p class="text-sm text-gray-500">
+                      {{ mission.client.name }} • {{ mission.date }}
+                    </p>
                   </div>
                 </div>
+                <span :class="getStatusClass(mission.status)" class="ml-4 px-2.5 py-0.5 rounded-full text-xs font-medium">
+                  {{ getStatusLabel(mission.status) }}
+                </span>
               </div>
             </div>
           </div>
         </div>
         
         <!-- Recent activities with Twitter timeline style -->
-        <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-xs">
-          <div class="px-6 py-4 border-b border-gray-100">
-            <div class="flex justify-between items-center">
-              <h2 class="font-semibold text-base text-gray-900">Activités récentes</h2>
-              <NuxtLink 
-                to="/admin/activities" 
-                class="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center gap-1"
-              >
-                Voir tout
-                <ChevronRightIcon class="h-4 w-4" />
-              </NuxtLink>
-            </div>
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm mb-8">
+          <div class="p-6 border-b border-gray-100 dark:border-gray-700">
+            <h3 class="font-semibold">Activités récentes</h3>
           </div>
           
-          <div class="divide-y divide-gray-100">
-            <div v-if="recentActivities.length === 0" class="py-12 text-center">
-              <div class="mx-auto h-16 w-16 text-gray-300 bg-gray-50 rounded-full flex items-center justify-center">
-                <Activity class="h-8 w-8" />
-              </div>
-              <h3 class="mt-4 text-base font-medium text-gray-900">Aucune activité</h3>
-              <p class="mt-1 text-sm text-gray-500">Les activités récentes apparaîtront ici</p>
+          <div v-if="!recentActivities.length" class="p-12 text-center">
+            <div class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
+              <v-icon name="ri-notification-4-line" class="h-6 w-6 text-gray-600 dark:text-gray-400" />
             </div>
-            
-            <div 
-              v-else
-              v-for="(activity, index) in recentActivities" 
-              :key="index"
-              class="px-5 py-4 hover:bg-gray-50 transition-colors"
-            >
+            <h3 class="mt-4 text-base font-medium text-gray-900 dark:text-gray-100">Aucune activité</h3>
+            <p class="mt-1 text-sm text-gray-500">Les activités récentes apparaîtront ici</p>
+          </div>
+          
+          <div v-else class="divide-y divide-gray-100 dark:divide-gray-700">
+            <div v-for="activity in recentActivities" :key="activity.id" class="p-4 hover:bg-gray-50 dark:hover:bg-gray-800">
               <div class="flex gap-4">
-                <div 
-                  class="h-11 w-11 rounded-full flex items-center justify-center flex-shrink-0"
-                  :class="getActivityColorClass(activity.type)"
-                >
-                  <component :is="getActivityIcon(activity.type)" class="h-5 w-5 text-white" />
+                <div class="h-10 w-10 rounded-full flex items-center justify-center" :class="getActivityColorClass(activity.type)">
+                  <v-icon :name="getActivityIcon(activity.type)" class="h-5 w-5 text-white" />
                 </div>
-                
                 <div class="flex-1 min-w-0">
-                  <p class="font-medium text-gray-900">
-                    {{ activity.title }}
-                  </p>
+                  <p class="font-medium text-gray-900 dark:text-gray-100">{{ activity.title }}</p>
                   <div class="flex items-center mt-1 text-sm text-gray-500">
                     <span>{{ activity.time }}</span>
                     <span v-if="activity.user" class="flex items-center mx-1.5">•</span>
-                    <span v-if="activity.user" class="font-medium text-gray-700">
+                    <span v-if="activity.user" class="font-medium text-gray-700 dark:text-gray-300">
                       {{ activity.user.name }}
                     </span>
                   </div>
-                </div>
-                
-                <!-- Action dropdown with Twitter-style hover -->
-                <div v-if="activity.type !== 'admin_action'" class="flex items-center">
-                  <button class="p-1.5 rounded-full hover:bg-gray-100 transition-colors">
-                    <MoreHorizontalIcon class="h-4 w-4 text-gray-500" />
-                  </button>
                 </div>
               </div>
             </div>
@@ -325,14 +178,38 @@ const supabase = useSupabaseClient()
 
 // États
 const isLoading = ref(true)
-const summaryStats = ref([])
+const summaryStats = ref([
+  { 
+    name: 'Utilisateurs', 
+    value: 0, 
+    label: 'inscrits',
+    icon: 'ri-user3-fill',
+    subStats: ['0 experts', '0 clients']
+  },
+  { 
+    name: 'Missions', 
+    value: 0, 
+    label: 'au total',
+    icon: 'ri-file-text-fill',
+    subStats: ['0 en cours', '0 terminées']
+  },
+  { 
+    name: 'Propositions', 
+    value: 0, 
+    label: 'au total',
+    icon: 'ri-handshake-fill',
+    subStats: ['0 actives', '0 en attente']
+  },
+  { 
+    name: 'Catalogue', 
+    value: 0, 
+    label: 'professions',
+    icon: 'ri-stack-fill',
+    subStats: ['0 compétences']
+  }
+])
 const recentActivities = ref([])
 const latestRequests = ref([])
-
-// KPI
-const conversionRate = ref(67)
-const engagementRate = ref(78)
-const completionRate = ref(45)
 
 // Chargement des données depuis Supabase
 const loadDashboardData = async () => {
@@ -361,43 +238,49 @@ const loadDashboardData = async () => {
 // Fonction pour récupérer les statistiques de résumé depuis Supabase
 const fetchSummaryStats = async () => {
   try {
-    // Pour les utilisateurs: Compter tous les profils
-    const { count: usersCount, error: usersError } = await supabase
-      .from('profiles')
-      .select('*', { count: 'exact', head: true })
-    
-    if (usersError) throw usersError
-    
-    // Pour les services: Compter tous les services
-    const { count: servicesCount, error: servicesError } = await supabase
-      .from('services')
-      .select('*', { count: 'exact', head: true })
-    
-    if (servicesError) throw servicesError
-    
-    // Pour les demandes: Compter toutes les demandes
-    const { count: missionsCount, error: missionsError } = await supabase
-      .from('missions')
-      .select('*', { count: 'exact', head: true })
-    
-    if (missionsError) throw missionsError
-    
-    // Pour les experts vérifiés
-    const { count: verifiedExpertsCount, error: verifiedError } = await supabase
-      .from('profiles')
-      .select('*', { count: 'exact', head: true })
-      .eq('is_expert', true)
-    
-    if (verifiedError) throw verifiedError
-    
-    // Statistiques avec tendances
+    const [
+      usersStats,
+      missionsStats,
+      dealsStats,
+      catalogStats
+    ] = await Promise.all([
+      fetchUsersStats(),
+      fetchMissionsStats(),
+      fetchDealsStats(),
+      fetchCatalogStats()
+    ])
+
+    // Mise à jour des statistiques
     summaryStats.value = [
-      { name: 'Utilisateurs', value: usersCount, trend: 12, icon: UserPlusIcon },
-      { name: 'Experts', value: verifiedExpertsCount, trend: 8, icon: ShieldCheckIcon },
-      { name: 'Services', value: servicesCount, trend: 15, icon: BriefcaseIcon },
-      { name: 'Demandes', value: missionsCount, trend: 5, icon: MessageSquareIcon }
+      {
+        name: 'Utilisateurs',
+        value: usersStats.total,
+        label: 'inscrits',
+        icon: 'ri-user3-fill',
+        subStats: [`${usersStats.experts} experts`, `${usersStats.clients} clients`]
+      },
+      {
+        name: 'Missions',
+        value: missionsStats.total,
+        label: 'au total',
+        icon: 'ri-file-text-fill',
+        subStats: [`${missionsStats.active} en cours`, `${missionsStats.completed} terminées`]
+      },
+      {
+        name: 'Propositions',
+        value: dealsStats.total,
+        label: 'au total',
+        icon: 'gi-handshake',
+        subStats: [`${dealsStats.active} actives`, `${dealsStats.pending} en attente`]
+      },
+      {
+        name: 'Catalogue',
+        value: catalogStats.professions,
+        label: 'professions',
+        icon: 'ri-stack-fill',
+        subStats: [`${catalogStats.skills} compétences`]
+      }
     ]
-    
   } catch (error) {
     console.error('Erreur lors de la récupération des statistiques:', error)
   }
@@ -408,14 +291,7 @@ const fetchRecentActivities = async () => {
   try {
     const { data, error } = await supabase
       .from('activities')
-      .select(`
-        id,
-        created_at,
-        type,
-        title,
-        description,
-        user_id,
-        profiles:user_id(first_name, last_name, avatar_url)
+      .select(`*
       `)
       .order('created_at', { ascending: false })
       .limit(5)
@@ -443,13 +319,7 @@ const fetchLatestRequests = async () => {
   try {
     const { data, error } = await supabase
       .from('missions')
-      .select(`
-        id,
-        created_at,
-        title,
-        status,
-        client_id,
-        profiles:client_id(first_name, last_name, avatar_url),
+      .select(`*
       `)
       .order('created_at', { ascending: false })
       .limit(5)
@@ -469,6 +339,88 @@ const fetchLatestRequests = async () => {
     
   } catch (error) {
     console.error('Erreur lors de la récupération des dernières demandes:', error)
+  }
+}
+
+// Fonctions de récupération des statistiques
+const fetchUsersStats = async () => {
+  const { data: totalUsers } = await supabase
+    .from('profiles')
+    .select('role', { count: 'exact' })
+
+  const { data: experts } = await supabase
+    .from('profiles')
+    .select('id', { count: 'exact' })
+    .eq('role', 'expert')
+
+  const { data: clients } = await supabase
+    .from('profiles')
+    .select('id', { count: 'exact' })
+    .eq('role', 'client')
+
+  return {
+    total: totalUsers?.length || 0,
+    experts: experts?.length || 0,
+    clients: clients?.length || 0
+  }
+}
+
+const fetchMissionsStats = async () => {
+  const { data: totalMissions } = await supabase
+    .from('missions')
+    .select('status', { count: 'exact' })
+
+  const { data: activeMissions } = await supabase
+    .from('missions')
+    .select('id', { count: 'exact' })
+    .eq('status', 'open')
+
+  const { data: completedMissions } = await supabase
+    .from('missions')
+    .select('id', { count: 'exact' })
+    .eq('status', 'completed')
+
+  return {
+    total: totalMissions?.length || 0,
+    active: activeMissions?.length || 0,
+    completed: completedMissions?.length || 0
+  }
+}
+
+const fetchDealsStats = async () => {
+  const { data: totalDeals } = await supabase
+    .from('deals')
+    .select('status', { count: 'exact' })
+
+  const { data: activeDeals } = await supabase
+    .from('deals')
+    .select('id', { count: 'exact' })
+    .eq('status', 'active')
+
+  const { data: pendingDeals } = await supabase
+    .from('deals')
+    .select('id', { count: 'exact' })
+    .eq('status', 'proposal')
+
+  return {
+    total: totalDeals?.length || 0,
+    active: activeDeals?.length || 0,
+    pending: pendingDeals?.length || 0
+  }
+}
+
+const fetchCatalogStats = async () => {
+  const { data: professions } = await supabase
+    .from('professions')
+    .select('id', { count: 'exact' })
+
+  const { data: skills } = await supabase
+    .from('skills')
+    .select('id', { count: 'exact' })
+
+  return {
+    professions: professions?.length || 0,
+    skills: skills?.length || 0
   }
 }
 

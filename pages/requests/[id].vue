@@ -326,6 +326,171 @@
       </div>
     </div>
     
+    <!-- Ajouter le modal d'évaluation -->
+    <TransitionRoot appear :show="isRatingModalOpen" as="template">
+      <Dialog as="div" @close="closeRatingModal" class="relative z-50">
+        <TransitionChild
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div class="fixed inset-0 bg-black/25" />
+        </TransitionChild>
+
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild
+              enter="duration-300 ease-out"
+              enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100"
+              leave="duration-200 ease-in"
+              leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95"
+            >
+              <DialogPanel class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all">
+                <DialogTitle as="h3" class="text-lg font-medium leading-6 text-gray-900 mb-4">
+                  Évaluer {{ isClient ? "l'expert" : "le client" }}
+                </DialogTitle>
+
+                <form @submit.prevent="submitRating" class="space-y-4">
+                  <!-- Note globale -->
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                      Note globale
+                    </label>
+                    <div class="flex items-center gap-1">
+                      <button 
+                        v-for="i in 5" 
+                        :key="i"
+                        type="button"
+                        @click="ratingForm.overall_rating = i"
+                        class="p-1 focus:outline-none"
+                      >
+                        <Star 
+                          :class="[
+                            'w-6 h-6',
+                            i <= ratingForm.overall_rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                          ]"
+                        />
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Note de communication -->
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                      Communication
+                    </label>
+                    <div class="flex items-center gap-1">
+                      <button 
+                        v-for="i in 5" 
+                        :key="i"
+                        type="button"
+                        @click="ratingForm.communication_rating = i"
+                        class="p-1 focus:outline-none"
+                      >
+                        <Star 
+                          :class="[
+                            'w-6 h-6',
+                            i <= ratingForm.communication_rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                          ]"
+                        />
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Note spécifique (qualité ou fiabilité) -->
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                      {{ isClient ? 'Qualité du travail' : 'Fiabilité' }}
+                    </label>
+                    <div class="flex items-center gap-1">
+                      <button 
+                        v-for="i in 5" 
+                        :key="i"
+                        type="button"
+                        @click="ratingForm.specific_rating = i"
+                        class="p-1 focus:outline-none"
+                      >
+                        <Star 
+                          :class="[
+                            'w-6 h-6',
+                            i <= ratingForm.specific_rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                          ]"
+                        />
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Recommandation -->
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                      Recommanderiez-vous {{ isClient ? "cet expert" : "ce client" }} ?
+                    </label>
+                    <div class="flex items-center gap-4">
+                      <label class="inline-flex items-center">
+                        <input
+                          type="radio"
+                          v-model="ratingForm.would_recommend"
+                          :value="true"
+                          class="form-radio text-primary-600"
+                        />
+                        <span class="ml-2">Oui</span>
+                      </label>
+                      <label class="inline-flex items-center">
+                        <input
+                          type="radio"
+                          v-model="ratingForm.would_recommend"
+                          :value="false"
+                          class="form-radio text-primary-600"
+                        />
+                        <span class="ml-2">Non</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <!-- Commentaire -->
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                      Commentaire
+                    </label>
+                    <textarea
+                      v-model="ratingForm.comment"
+                      rows="3"
+                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                      placeholder="Partagez votre expérience..."
+                    ></textarea>
+                  </div>
+
+                  <!-- Boutons d'action -->
+                  <div class="mt-6 flex justify-end gap-3">
+                    <button
+                      type="button"
+                      @click="closeRatingModal"
+                      class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      type="submit"
+                      :disabled="isSubmittingRating"
+                      class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                    >
+                      <Loader2 v-if="isSubmittingRating" class="w-4 h-4 mr-2 animate-spin" />
+                      {{ isSubmittingRating ? 'Envoi...' : 'Envoyer' }}
+                    </button>
+                  </div>
+                </form>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
+    
     </main>
   </div>
 </template>
@@ -336,8 +501,9 @@ import { useRoute, useRouter } from 'vue-router'
 // import { useSupabaseClient, useSupabaseUser } from '#supabase/client'
 import { 
   ArrowLeft, Loader2, AlertCircle, Calendar, Tag, Heart, 
-  MessageSquare, Send, Edit, Check, X, Star as StarIcon, Inbox as InboxIcon 
+  MessageSquare, Send, Edit, Check, X, Star as StarIcon, Inbox as InboxIcon, Star 
 } from 'lucide-vue-next'
+import { Dialog, DialogPanel, DialogTitle, TransitionRoot, TransitionChild } from '@headlessui/vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -357,6 +523,17 @@ const proposalForm = ref({
   price: '',
   duration: 1,
   message: ''
+})
+
+// États pour la notation
+const isRatingModalOpen = ref(false)
+const isSubmittingRating = ref(false)
+const ratingForm = ref({
+  overall_rating: 0,
+  communication_rating: 0,
+  specific_rating: 0,
+  would_recommend: null,
+  comment: ''
 })
 
 // Computed
@@ -393,6 +570,15 @@ const canMakeProposal = computed(() => {
 
 // Vérifier si l'utilisateur est un expert
   return user.value.is_expert
+})
+
+// Computed properties pour la notation
+const isClient = computed(() => user.value?.id === mission.value?.client_id)
+const canRate = computed(() => {
+  if (!mission.value || !user.value) return false
+  const isParticipant = user.value.id === mission.value.client_id || 
+                       user.value.id === mission.value.expert_id
+  return mission.value.status === 'completed' && isParticipant
 })
 
 // Méthodes
@@ -656,6 +842,60 @@ const formatPrice = (price) => {
 const getInitials = (firstName, lastName) => {
   if (!firstName && !lastName) return '??'
   return `${firstName ? firstName.charAt(0) : ''}${lastName ? lastName.charAt(0) : ''}`.toUpperCase()
+}
+
+// Méthodes pour la notation
+const openRatingModal = () => {
+  isRatingModalOpen.value = true
+}
+
+const closeRatingModal = () => {
+  isRatingModalOpen.value = false
+  ratingForm.value = {
+    overall_rating: 0,
+    communication_rating: 0,
+    specific_rating: 0,
+    would_recommend: null,
+    comment: ''
+  }
+}
+
+const submitRating = async () => {
+  if (!mission.value?.contract_id) {
+    alert('Impossible de noter : contrat non trouvé')
+    return
+  }
+
+  isSubmittingRating.value = true
+
+  try {
+    const ratingData = {
+      client_has_rated: isClient.value,
+      overall_rating: ratingForm.value.overall_rating,
+      communication_rating: ratingForm.value.communication_rating,
+      [isClient.value ? 'quality_rating' : 'reliability_rating']: ratingForm.value.specific_rating,
+      would_recommend: ratingForm.value.would_recommend,
+      comment: ratingForm.value.comment
+    }
+
+    const { error } = await supabase.rpc('submit_contract_rating', {
+      p_contract_id: mission.value.contract_id,
+      p_rating_data: ratingData
+    })
+
+    if (error) throw error
+
+    closeRatingModal()
+    alert('Évaluation envoyée avec succès')
+    
+    // Rafraîchir les données de la mission
+    await fetchRequest()
+  } catch (err) {
+    console.error('Error submitting rating:', err)
+    alert('Une erreur est survenue lors de l\'envoi de l\'évaluation')
+  } finally {
+    isSubmittingRating.value = false
+  }
 }
 
 // Initialisation

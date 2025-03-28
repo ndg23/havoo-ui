@@ -215,3 +215,79 @@ BEGIN
   RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+
+
+
+
+
+-- Table pour stocker les évaluations des contrats
+CREATE TABLE contract_ratings (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    contract_id UUID REFERENCES contracts(id) NOT NULL,
+    
+    -- Flags pour suivre qui a évalué
+    client_has_rated BOOLEAN DEFAULT FALSE,
+    expert_has_rated BOOLEAN DEFAULT FALSE,
+    
+    -- Évaluations du client
+    overall_rating INTEGER CHECK (overall_rating BETWEEN 1 AND 5),
+    communication_rating INTEGER CHECK (communication_rating BETWEEN 1 AND 5),
+    quality_rating INTEGER CHECK (quality_rating BETWEEN 1 AND 5),
+    would_recommend BOOLEAN,
+    comment TEXT,
+    
+    -- Évaluations de l'expert
+    expert_overall_rating INTEGER CHECK (expert_overall_rating BETWEEN 1 AND 5),
+    expert_communication_rating INTEGER CHECK (expert_communication_rating BETWEEN 1 AND 5),
+    reliability_rating INTEGER CHECK (reliability_rating BETWEEN 1 AND 5),
+    expert_would_recommend BOOLEAN,
+    expert_comment TEXT,
+    
+    -- Métadonnées
+    reviews_generated BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Index pour améliorer les performances
+CREATE INDEX idx_contract_ratings_contract_id ON contract_ratings(contract_id);
+
+-- Trigger pour mettre à jour updated_at
+CREATE OR REPLACE FUNCTION update_contract_ratings_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_update_contract_ratings_updated_at
+    BEFORE UPDATE ON contract_ratings
+    FOR EACH ROW
+    EXECUTE FUNCTION update_contract_ratings_updated_at();
+
+-- Contraintes supplémentaires
+ALTER TABLE contract_ratings
+    ADD CONSTRAINT valid_ratings 
+    CHECK (
+        (client_has_rated = TRUE AND overall_rating IS NOT NULL AND communication_rating IS NOT NULL) OR
+        (client_has_rated = FALSE AND overall_rating IS NULL AND communication_rating IS NULL)
+    );
+
+ALTER TABLE contract_ratings
+    ADD CONSTRAINT unique_contract_rating
+    UNIQUE (contract_id);
+
+-- Commentaires sur la table et les colonnes
+COMMENT ON TABLE contract_ratings IS 'Stocke les évaluations mutuelles entre clients et experts pour chaque contrat';
+COMMENT ON COLUMN contract_ratings.contract_id IS 'ID du contrat évalué';
+COMMENT ON COLUMN contract_ratings.client_has_rated IS 'Indique si le client a soumis son évaluation';
+COMMENT ON COLUMN contract_ratings.expert_has_rated IS 'Indique si l''expert a soumis son évaluation';
+COMMENT ON COLUMN contract_ratings.overall_rating IS 'Note globale donnée par le client (1-5)';
+COMMENT ON COLUMN contract_ratings.communication_rating IS 'Note de communication donnée par le client (1-5)';
+COMMENT ON COLUMN contract_ratings.quality_rating IS 'Note de qualité donnée par le client (1-5)';
+COMMENT ON COLUMN contract_ratings.expert_overall_rating IS 'Note globale donnée par l''expert (1-5)';
+COMMENT ON COLUMN contract_ratings.expert_communication_rating IS 'Note de communication donnée par l''expert (1-5)';
+COMMENT ON COLUMN contract_ratings.reliability_rating IS 'Note de fiabilité donnée par l''expert (1-5)';
+COMMENT ON COLUMN contract_ratings.reviews_generated IS 'Indique si les avis ont été générés dans la table reviews';

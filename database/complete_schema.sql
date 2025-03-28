@@ -105,7 +105,25 @@ CREATE TABLE deals (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   UNIQUE(mission_id, expert_id)
 );
+-- Structure de la table contracts
+CREATE TABLE IF NOT EXISTS contracts (
+    id BIGSERIAL PRIMARY KEY,
+    mission_id BIGINT REFERENCES missions(id),
+    expert_id UUID REFERENCES auth.users(id),
+    client_id UUID REFERENCES auth.users(id),
+    deal_id BIGINT REFERENCES deals(id),
+    price DECIMAL(10,2),
+    duration INTEGER,
+    status VARCHAR(50) DEFAULT 'pending',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
+-- Index pour améliorer les performances
+CREATE INDEX idx_contracts_mission_id ON contracts(mission_id);
+CREATE INDEX idx_contracts_expert_id ON contracts(expert_id);
+CREATE INDEX idx_contracts_client_id ON contracts(client_id);
+CREATE INDEX idx_contracts_deal_id ON contracts(deal_id);
 -- Avis
 CREATE TABLE reviews (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

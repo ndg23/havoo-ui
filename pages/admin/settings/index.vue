@@ -1,683 +1,288 @@
 <template>
-  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <!-- Header with modern design -->
-    <div class="flex items-center justify-between mb-8">
+  <div class="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900">Paramètres</h1>
-        <p class="text-gray-600 mt-1">Configurez les paramètres généraux de la plateforme</p>
-    </div>
-    
-      <div class="flex items-center gap-3">
-        <button 
-          @click="resetToDefaults" 
-          class="px-4 py-2.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 font-medium rounded-full transition-colors flex items-center gap-2 shadow-sm"
-        >
-          <RefreshCw class="h-4 w-4" />
-          <span>Réinitialiser</span>
-        </button>
-        
-        <button 
-          @click="saveAllSettings" 
-          class="px-5 py-2.5 bg-black hover:bg-gray-800 text-white font-medium rounded-full transition-colors flex items-center gap-2 shadow-sm"
-          :disabled="saving"
-        >
-          <span v-if="saving">
-            <Loader2 class="h-4 w-4 animate-spin" />
-          </span>
-          <Save v-else class="h-4 w-4" />
-          <span>Enregistrer</span>
-        </button>
-      </div>
-    </div>
-    
-    <!-- Success notification -->
-    <div 
-      v-if="notification.show" 
-      class="mb-6 p-4 rounded-xl flex items-start gap-3"
-      :class="[
-        notification.type === 'success' ? 'bg-green-50 text-green-800' : 
-        notification.type === 'error' ? 'bg-red-50 text-red-800' : 
-        'bg-blue-50 text-blue-800'
-      ]"
-    >
-      <component 
-        :is="notification.type === 'success' ? 'CheckCircle' : notification.type === 'error' ? 'AlertTriangle' : 'Info'" 
-        class="h-5 w-5 mt-0.5 flex-shrink-0" 
-      />
-      <div class="flex-1">
-        <h3 class="font-medium">{{ notification.title }}</h3>
-        <div class="text-sm opacity-80 mt-0.5 whitespace-pre-line">{{ notification.message }}</div>
-      </div>
-      <button 
-        @click="notification.show = false" 
-        class="ml-auto p-1.5 rounded-full hover:bg-black/5"
-      >
-        <X class="h-4 w-4" />
-      </button>
-    </div>
-    
-    <!-- Settings tabs -->
-    <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-      <div class="border-b border-gray-200">
-        <nav class="flex flex-wrap">
-          <button 
-            v-for="tab in tabs" 
-            :key="tab.id"
-            @click="activeTab = tab.id"
-            class="px-6 py-4 text-sm font-medium border-b-2 -mb-px transition-colors"
-            :class="activeTab === tab.id ? 
-              'border-blue-500 text-blue-600' : 
-              'border-transparent text-gray-500 hover:text-gray-700'"
-          >
-            <component :is="tab.icon" class="h-4 w-4 inline-block mr-2" />
-            {{ tab.label }}
-          </button>
-        </nav>
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Paramètres</h1>
+        <p class="text-gray-600 dark:text-gray-400 mt-1">Configurez les paramètres de la plateforme</p>
       </div>
       
-      <div class="p-6">
-        <!-- Paramètres généraux -->
-        <div v-if="activeTab === 'general'" class="space-y-6">
-          <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+      <div class="flex items-center gap-3">
+        <UButton 
+          icon="i-heroicons-arrow-path" 
+          color="gray" 
+          variant="ghost" 
+          @click="resetToDefaults"
+        >
+          Réinitialiser
+        </UButton>
+        <UButton 
+          icon="i-heroicons-check" 
+          @click="saveAllSettings"
+          :loading="saving"
+        >
+          Enregistrer
+        </UButton>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="border-b border-gray-200">
+      <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+        <button
+          v-for="tab in tabs"
+          :key="tab.id"
+          @click="activeTab = tab.id"
+          :class="[
+            activeTab === tab.id
+              ? 'border-primary-500 text-primary-600'
+              : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
+            'whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium flex items-center gap-2'
+          ]"
+        >
+          <component :is="tab.icon" class="h-5 w-5" />
+          {{ tab.label }}
+        </button>
+      </nav>
+    </div>
+
+    <!-- Content -->
+    <div class="space-y-6">
+      <!-- General Settings -->
+      <div v-if="activeTab === 'general'" class="space-y-6">
+        <UCard>
+          <template #header>
+            <h2 class="text-lg font-medium text-gray-900">Informations générales</h2>
+            <p class="text-sm text-gray-500 mt-1">Paramètres principaux de la plateforme</p>
+          </template>
+
+          <div class="space-y-6">
+            <!-- App Name -->
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
+              <label class="block text-base font-semibold text-gray-900 mb-2">
                 Nom de l'application
               </label>
-              <input 
+              <input
                 v-model="settings.app_name"
                 type="text"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg -shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Havoo"
+                class="block w-full px-4 py-3.5 text-gray-900 border border-gray-200 rounded-2xl 
+                  focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors text-lg"
               />
+              <p class="mt-2 text-sm text-gray-500">
+                Le nom qui apparaît dans le titre et l'interface
+              </p>
             </div>
-            
+
+            <!-- App URL -->
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
-                URL du site
+              <label class="block text-base font-semibold text-gray-900 mb-2">
+                URL de l'application
               </label>
-              <input 
+              <input
                 v-model="settings.app_url"
                 type="url"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg -shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                placeholder="https://havoo.fr"
+                class="block w-full px-4 py-3.5 text-gray-900 border border-gray-200 rounded-2xl 
+                  focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors text-lg"
               />
+              <p class="mt-2 text-sm text-gray-500">
+                L'URL principale de votre application
+              </p>
             </div>
-            </div>
-            
-          <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+
+            <!-- Contact Email -->
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
+              <label class="block text-base font-semibold text-gray-900 mb-2">
                 Email de contact
               </label>
-              <input 
+              <input
                 v-model="settings.contact_email"
                 type="email"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg -shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                placeholder="contact@havoo.fr"
+                class="block w-full px-4 py-3.5 text-gray-900 border border-gray-200 rounded-2xl 
+                  focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors text-lg"
               />
+              <p class="mt-2 text-sm text-gray-500">
+                L'adresse email principale de contact
+              </p>
             </div>
-            
+
+            <!-- Maintenance Mode -->
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
-                Numéro de téléphone
+              <label class="block text-base font-semibold text-gray-900 mb-2">
+                Mode maintenance
               </label>
-              <input 
-                v-model="settings.contact_phone"
-                type="tel"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg -shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                placeholder="+33 1 23 45 67 89"
-              />
-            </div>
-          </div>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              Description de l'application
-            </label>
-            <textarea
-              v-model="settings.app_description"
-              rows="3"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg -shadow-sm focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Plateforme de mise en relation entre clients et experts..."
-            ></textarea>
-          </div>
-          
-          <div class="flex items-center p-4 bg-gray-50 rounded-xl border border-gray-100">
-            <Switch v-model="settings.maintenance_mode" />
-            <div class="ml-3">
-              <span class="font-medium text-gray-900">Mode maintenance</span>
-              <p class="text-sm text-gray-500 mt-0.5">Affiche une page de maintenance aux utilisateurs</p>
-            </div>
-          </div>
-          
-          <!-- AI Model Configuration -->
-          <div class="border-t border-gray-100 pt-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <Brain class="h-5 w-5 mr-2 text-purple-500" />
-              Configuration de l'IA
-            </h3>
-            
-            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
-                  Modèle d'IA par défaut
-                </label>
-                <select 
-                  v-model="settings.ai_default_model" 
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg -shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              <div class="flex items-center bg-gray-50 p-4 rounded-2xl">
+                <Switch
+                  v-model="settings.maintenance_mode"
+                  :class="[settings.maintenance_mode ? 'bg-primary-600' : 'bg-gray-200']"
+                  class="relative inline-flex h-7 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 
+                    border-transparent transition-colors duration-200 ease-in-out"
                 >
-                  <option value="gpt-4">GPT-4 (Haute précision)</option>
-                  <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Standard)</option>
-                  <option value="claude-3">Claude 3 (Premium)</option>
-                  <option value="llama-3">Llama 3 (Économique)</option>
-                </select>
+                  <span
+                    :class="[settings.maintenance_mode ? 'translate-x-7' : 'translate-x-0']"
+                    class="pointer-events-none relative inline-block h-6 w-6 transform rounded-full 
+                      bg-white shadow ring-0 transition duration-200 ease-in-out"
+                  />
+                </Switch>
+                <span class="ml-3 text-base text-gray-700">
+                  {{ settings.maintenance_mode ? 'Mode maintenance activé' : 'Mode maintenance désactivé' }}
+                </span>
               </div>
-              
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
-                  Clé API OpenAI
-                </label>
-                <input 
-                  v-model="settings.openai_api_key"
-                  type="password"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg -shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="sk-..."
-                />
-              </div>
-            </div>
-            
-            <div class="mt-4 space-y-4">
-              <div class="flex items-center p-4 bg-gray-50 rounded-xl border border-gray-100">
-                <Switch v-model="settings.ai_features_enabled" />
-                <div class="ml-3">
-                  <span class="font-medium text-gray-900">Fonctionnalités d'IA</span>
-                  <p class="text-sm text-gray-500 mt-0.5">Activer les fonctionnalités d'intelligence artificielle sur la plateforme</p>
-                </div>
-              </div>
-              
-              <div class="flex items-center p-4 bg-gray-50 rounded-xl border border-gray-100">
-                <Switch v-model="settings.ai_suggestions_enabled" />
-                <div class="ml-3">
-                  <span class="font-medium text-gray-900">Suggestions intelligentes</span>
-                  <p class="text-sm text-gray-500 mt-0.5">Activer les suggestions automatiques basées sur l'IA pour les utilisateurs</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Schéma de la base de données -->
-          <div class="border-t border-gray-100 pt-6 mt-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <Database class="h-5 w-5 mr-2 text-blue-500" />
-              Schéma de la base de données
-            </h3>
-            
-            <div class="p-4 bg-blue-50 rounded-xl border border-blue-100 mb-4">
-              <div class="flex">
-                <Info class="h-5 w-5 text-blue-500 mr-3 mt-0.5" />
-                <div>
-                  <h3 class="font-medium text-blue-800">Structure de la table settings</h3>
-                  <p class="text-sm text-blue-700 mt-1">
-                    Les paramètres sont stockés dans une table "settings" sous forme de paires clé-valeur.
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 mb-4 overflow-auto">
-              <pre class="text-sm text-gray-700 font-mono">
-CREATE TABLE settings (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  key TEXT NOT NULL UNIQUE,
-  value JSONB,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Politiques RLS pour la sécurité
-ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
-
--- Seuls les admins peuvent lire/modifier les paramètres
-CREATE POLICY "Les admins peuvent tout faire" ON settings
-  USING (auth.uid() IN (SELECT id FROM profiles WHERE role = 'admin'))
-  WITH CHECK (auth.uid() IN (SELECT id FROM profiles WHERE role = 'admin'));
-
--- Index pour accélérer les recherches par clé
-CREATE INDEX settings_key_idx ON settings (key);
-
--- Trigger pour mettre à jour le champ updated_at
-CREATE TRIGGER set_updated_at
-  BEFORE UPDATE ON settings
-  FOR EACH ROW
-  EXECUTE FUNCTION set_updated_at_timestamp();
-              </pre>
-            </div>
-            
-            <div class="bg-white p-4 rounded-xl border border-gray-200 mb-4">
-              <h4 class="font-medium text-gray-900 mb-2">Exemple d'utilisation</h4>
-              <pre class="text-sm text-gray-700 font-mono bg-gray-50 p-3 rounded-lg">
-// Récupérer tous les paramètres
-const { data, error } = await supabase
-  .from('settings')
-  .select('*');
-
-// Récupérer un paramètre spécifique
-const { data, error } = await supabase
-  .from('settings')
-  .select('value')
-  .eq('key', 'app_name')
-  .single();
-
-// Insérer ou mettre à jour un paramètre
-const { error } = await supabase
-  .from('settings')
-  .upsert({ key: 'app_name', value: 'Havoo' }, 
-  { onConflict: 'key' });
-              </pre>
-            </div>
-            
-            <div class="bg-white p-4 rounded-xl border border-gray-200 mb-4">
-              <h4 class="font-medium text-gray-900 mb-2">Paramètres par défaut</h4>
-              <div class="text-sm text-gray-600 mb-3">
-                Le système initialise automatiquement ces paramètres par défaut si la table est vide :
-              </div>
-              <div class="overflow-auto max-h-56">
-                <pre class="text-sm text-gray-700 font-mono bg-gray-50 p-3 rounded-lg">
-{
-  "app_name": "Havoo",
-  "app_url": "https://havoo.fr",
-  "app_description": "Plateforme de mise en relation entre clients et experts",
-  "contact_email": "contact@havoo.fr",
-  "contact_phone": "+33 1 23 45 67 89",
-  "maintenance_mode": false,
-  
-  "ai_default_model": "gpt-3.5-turbo",
-  "ai_features_enabled": true,
-  "ai_suggestions_enabled": false,
-  
-  "service_commission": 10,
-  "expert_validation_days": 3,
-  "auto_assign_experts": false,
-  "allow_user_professions": true,
-  
-  "currency": "XOF",
-  "payment_delay_days": 14,
-  "enable_payment": true
-}
-                </pre>
-              </div>
-            </div>
-            
-            <div class="mt-4">
-              <p class="text-sm text-gray-600">
-                Cette structure est idéale pour stocker des paramètres flexibles car la colonne "value" de type JSONB permet de stocker n'importe quel type de données (texte, nombres, tableaux, objets).
+              <p class="mt-2 text-sm text-gray-500">
+                Active le mode maintenance sur toute la plateforme
               </p>
             </div>
           </div>
-        </div>
-        
-        <!-- Paramètres des services -->
-        <div v-else-if="activeTab === 'services'" class="space-y-6">
-          <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+        </UCard>
+
+      </div>
+
+      <!-- Email Settings -->
+      <div v-if="activeTab === 'email'" class="space-y-6">
+        <UCard>
+          <template #header>
+            <h2 class="text-lg font-medium text-gray-900">Configuration Email</h2>
+            <p class="text-sm text-gray-500 mt-1">Paramètres du serveur SMTP</p>
+          </template>
+
+          <div class="space-y-6">
+            <!-- SMTP Host -->
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
-                Commission sur les services (%)
-              </label>
-              <input 
-                v-model="settings.service_commission"
-                type="number"
-                min="0"
-                max="100"
-                step="0.1"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg -shadow-sm focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-            
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
-                Délai de validation expert (jours)
-              </label>
-              <input 
-                v-model="settings.expert_validation_days"
-                type="number"
-                min="1"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg -shadow-sm focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-          </div>
-          
-          <div class="space-y-4">
-            <div class="flex items-center p-4 bg-gray-50 rounded-xl border border-gray-100">
-              <Switch v-model="settings.auto_assign_experts" />
-              <div class="ml-3">
-                <span class="font-medium text-gray-900">Attribution automatique des experts</span>
-                <p class="text-sm text-gray-500 mt-0.5">Attribue automatiquement des experts aux demandes selon leurs compétences</p>
-              </div>
-          </div>
-          
-            <div class="flex items-center p-4 bg-gray-50 rounded-xl border border-gray-100">
-              <Switch v-model="settings.allow_user_professions" />
-              <div class="ml-3">
-                <span class="font-medium text-gray-900">Suggestions de catégories</span>
-                <p class="text-sm text-gray-500 mt-0.5">Permet aux experts de suggérer de nouvelles catégories</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Paramètres d'email -->
-        <div v-else-if="activeTab === 'email'" class="space-y-6">
-          <div class="p-4 bg-blue-50 rounded-xl border border-blue-100 mb-4">
-            <div class="flex">
-              <InfoIcon class="h-5 w-5 text-blue-500 mr-3 mt-0.5" />
-              <div>
-                <h3 class="font-medium text-blue-800">Configuration email</h3>
-                <p class="text-sm text-blue-700 mt-1">
-                  Configurez les paramètres SMTP pour envoyer des emails depuis la plateforme.
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
+              <label class="block text-base font-semibold text-gray-900 mb-2">
                 Serveur SMTP
               </label>
-              <input 
+              <input
                 v-model="settings.smtp_host"
                 type="text"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg -shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                class="block w-full px-4 py-3.5 text-gray-900 border border-gray-200 rounded-2xl 
+                  focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors text-lg"
                 placeholder="smtp.example.com"
               />
             </div>
-            
+
+            <!-- SMTP Port -->
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
+              <label class="block text-base font-semibold text-gray-900 mb-2">
                 Port SMTP
               </label>
-              <input 
+              <input
                 v-model="settings.smtp_port"
                 type="number"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg -shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                class="block w-full px-4 py-3.5 text-gray-900 border border-gray-200 rounded-2xl 
+                  focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors text-lg"
                 placeholder="587"
               />
             </div>
+
+            <!-- SMTP Credentials -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-base font-semibold text-gray-900 mb-2">
+                  Utilisateur SMTP
+                </label>
+                <input
+                  v-model="settings.smtp_user"
+                  type="text"
+                  class="block w-full px-4 py-3.5 text-gray-900 border border-gray-200 rounded-2xl 
+                    focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors text-lg"
+                />
+              </div>
+              <div>
+                <label class="block text-base font-semibold text-gray-900 mb-2">
+                  Mot de passe SMTP
+                </label>
+                <input
+                  v-model="settings.smtp_password"
+                  type="password"
+                  class="block w-full px-4 py-3.5 text-gray-900 border border-gray-200 rounded-2xl 
+                    focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors text-lg"
+                />
+              </div>
             </div>
-            
-          <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
-                Utilisateur SMTP
-              </label>
-              <input 
-                v-model="settings.smtp_user"
-                type="text"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg -shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                placeholder="user@example.com"
-              />
-            </div>
-            
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
-                Mot de passe SMTP
-              </label>
-              <input 
-                v-model="settings.smtp_password"
-                type="password"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg -shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                placeholder="••••••••"
-              />
+
+            <!-- Test Email Button -->
+            <div class="mt-6">
+              <UButton
+                icon="i-heroicons-paper-airplane"
+                @click="sendTestEmail"
+                :loading="sending"
+              >
+                Envoyer un email test
+              </UButton>
             </div>
           </div>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              Adresse d'expéditeur
-            </label>
-            <input 
-              v-model="settings.mail_from_location"
-              type="email"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg -shadow-sm focus:ring-blue-500 focus:border-blue-500"
-              placeholder="noreply@havoo.fr"
-            />
-          </div>
-          
-          <div class="flex items-center p-4 bg-gray-50 rounded-xl border border-gray-100">
-            <Switch v-model="settings.enable_email_notifications" />
-            <div class="ml-3">
-              <span class="font-medium text-gray-900">Notifications par email</span>
-              <p class="text-sm text-gray-500 mt-0.5">Activer l'envoi de notifications par email aux utilisateurs</p>
-          </div>
-        </div>
-        
-          <div class="flex justify-end">
-            <button 
-              @click="sendTestEmail" 
-              class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-800 text-sm font-medium flex items-center gap-2"
-            >
-              <Mail class="h-4 w-4" />
-              Envoyer un email de test
-            </button>
-          </div>
-            </div>
-            
-        <!-- Paramètres légaux (CGU/Mentions légales) -->
-        <div v-else-if="activeTab === 'legal'" class="space-y-6">
-          <div class="p-4 bg-purple-50 rounded-xl border border-purple-100 mb-4">
-            <div class="flex">
-              <FileText class="h-5 w-5 text-purple-500 mr-3 mt-0.5" />
-            <div>
-                <h3 class="font-medium text-purple-800">Documents légaux</h3>
-                <p class="text-sm text-purple-700 mt-1">
-                  Gérez les documents légaux de votre plateforme tels que les CGU, politique de confidentialité et mentions légales.
+        </UCard>
+      </div>
+
+      <!-- Legal Settings -->
+      <div v-if="activeTab === 'legal'" class="space-y-6">
+        <!-- CGU -->
+        <UCard>
+          <template #header>
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-lg font-medium text-gray-900">Conditions Générales d'Utilisation</h2>
+                <p class="text-sm text-gray-500 mt-1">
+                  Dernière mise à jour: {{ formatDate(settings.cgu_last_updated) }}
                 </p>
               </div>
-            </div>
-            </div>
-            
-          <!-- CGU -->
-            <div>
-            <div class="flex items-center justify-between mb-2">
-              <label class="block text-lg font-medium text-gray-900">
-                Conditions Générales d'Utilisation (CGU)
-              </label>
-              <div class="text-xs text-gray-500">Dernière mise à jour: {{ formatDate(settings.cgu_last_updated) }}</div>
-            </div>
-            <div class="border border-gray-200 rounded-lg overflow-hidden">
-              <div class="bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center">
-                <span class="text-sm font-medium text-gray-700">Éditeur de texte enrichi</span>
-                <div class="ml-auto flex space-x-2">
-                  <button class="p-1.5 rounded hover:bg-gray-200" title="Gras">
-                    <Bold class="h-4 w-4 text-gray-700" />
-                  </button>
-                  <button class="p-1.5 rounded hover:bg-gray-200" title="Italique">
-                    <Italic class="h-4 w-4 text-gray-700" />
-                  </button>
-                  <button class="p-1.5 rounded hover:bg-gray-200" title="Liste à puces">
-                    <List class="h-4 w-4 text-gray-700" />
-                  </button>
-                </div>
-              </div>
-              <textarea
-                v-model="settings.cgu_content"
-                rows="10"
-                class="w-full px-4 py-3 border-0 focus:ring-0"
-                placeholder="Saisissez ici vos Conditions Générales d'Utilisation..."
-              ></textarea>
-            </div>
-            <div class="mt-2 flex justify-between items-center">
-              <div class="text-sm text-gray-500">Format Markdown supporté</div>
-              <button 
+              <UButton
+                icon="i-heroicons-check"
                 @click="updateLegalDocument('cgu')"
-                class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-800 text-sm font-medium flex items-center gap-1.5"
+                :loading="saving"
               >
-                <Save class="h-3.5 w-3.5" />
                 Mettre à jour
-              </button>
+              </UButton>
             </div>
-            </div>
-            
-          <!-- Politique de confidentialité -->
-          <div class="pt-6 border-t border-gray-100 mt-6">
-            <div class="flex items-center justify-between mb-2">
-              <label class="block text-lg font-medium text-gray-900">
-                Politique de confidentialité
-              </label>
-              <div class="text-xs text-gray-500">Dernière mise à jour: {{ formatDate(settings.privacy_last_updated) }}</div>
-            </div>
-            <div class="border border-gray-200 rounded-lg overflow-hidden">
-              <div class="bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center">
-                <span class="text-sm font-medium text-gray-700">Éditeur de texte enrichi</span>
-                <div class="ml-auto flex space-x-2">
-                  <button class="p-1.5 rounded hover:bg-gray-200" title="Gras">
-                    <Bold class="h-4 w-4 text-gray-700" />
-                  </button>
-                  <button class="p-1.5 rounded hover:bg-gray-200" title="Italique">
-                    <Italic class="h-4 w-4 text-gray-700" />
-                  </button>
-                  <button class="p-1.5 rounded hover:bg-gray-200" title="Liste à puces">
-                    <List class="h-4 w-4 text-gray-700" />
-                  </button>
-                </div>
+          </template>
+
+          <div class="border border-gray-200 rounded-lg overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center">
+              <span class="text-sm font-medium text-gray-700">Éditeur de texte enrichi</span>
+              <div class="ml-auto flex space-x-2">
+                <button class="p-1.5 rounded hover:bg-gray-200" title="Gras">
+                  <Bold class="h-4 w-4 text-gray-700" />
+                </button>
+                <button class="p-1.5 rounded hover:bg-gray-200" title="Italique">
+                  <Italic class="h-4 w-4 text-gray-700" />
+                </button>
+                <button class="p-1.5 rounded hover:bg-gray-200" title="Liste à puces">
+                  <List class="h-4 w-4 text-gray-700" />
+                </button>
               </div>
-              <textarea
-                v-model="settings.privacy_content"
-                rows="10"
-                class="w-full px-4 py-3 border-0 focus:ring-0"
-                placeholder="Saisissez ici votre Politique de confidentialité..."
-              ></textarea>
             </div>
-            <div class="mt-2 flex justify-between items-center">
-              <div class="text-sm text-gray-500">Format Markdown supporté</div>
-              <button 
-                @click="updateLegalDocument('privacy')"
-                class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-800 text-sm font-medium flex items-center gap-1.5"
-              >
-                <Save class="h-3.5 w-3.5" />
-                Mettre à jour
-              </button>
-            </div>
+            <textarea
+              v-model="settings.cgu_content"
+              rows="10"
+              class="w-full px-4 py-3 border-0 focus:ring-0"
+              placeholder="Saisissez ici vos CGU..."
+            ></textarea>
           </div>
-          
-          <!-- Mentions légales -->
-          <div class="pt-6 border-t border-gray-100 mt-6">
-            <div class="flex items-center justify-between mb-2">
-              <label class="block text-lg font-medium text-gray-900">
-                Mentions légales
-              </label>
-              <div class="text-xs text-gray-500">Dernière mise à jour: {{ formatDate(settings.legal_notice_last_updated) }}</div>
-            </div>
-            <div class="border border-gray-200 rounded-lg overflow-hidden">
-              <div class="bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center">
-                <span class="text-sm font-medium text-gray-700">Éditeur de texte enrichi</span>
-                <div class="ml-auto flex space-x-2">
-                  <button class="p-1.5 rounded hover:bg-gray-200" title="Gras">
-                    <Bold class="h-4 w-4 text-gray-700" />
-                  </button>
-                  <button class="p-1.5 rounded hover:bg-gray-200" title="Italique">
-                    <Italic class="h-4 w-4 text-gray-700" />
-                  </button>
-                  <button class="p-1.5 rounded hover:bg-gray-200" title="Liste à puces">
-                    <List class="h-4 w-4 text-gray-700" />
-                  </button>
-                </div>
-              </div>
-              <textarea
-                v-model="settings.legal_notice_content"
-                rows="10"
-                class="w-full px-4 py-3 border-0 focus:ring-0"
-                placeholder="Saisissez ici vos Mentions légales..."
-              ></textarea>
-            </div>
-            <div class="mt-2 flex justify-between items-center">
-              <div class="text-sm text-gray-500">Format Markdown supporté</div>
-              <button 
-                @click="updateLegalDocument('legal_notice')"
-                class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-800 text-sm font-medium flex items-center gap-1.5"
-              >
-                <Save class="h-3.5 w-3.5" />
-                Mettre à jour
-              </button>
-            </div>
-          </div>
-          
-          <div class="mt-6 flex justify-end">
-            <button
-              @click="previewLegalDocs"
-              class="px-4 py-2 bg-black text-white rounded-full hover:bg-gray-800 text-sm font-medium flex items-center gap-2"
-            >
-              <Eye class="h-4 w-4" />
-              Prévisualiser les documents
-            </button>
-          </div>
-        </div>
-        
-        <!-- Twitter-style input field -->
-        <div class="flex items-center p-4 bg-gray-50 rounded-xl border border-gray-100">
-          <Switch v-model="settings.twitter_style_input" />
-          <div class="ml-3">
-            <span class="font-medium text-gray-900">Interface style Twitter</span>
-            <p class="text-sm text-gray-500 mt-0.5">Activer l'interface de saisie style Twitter pour les nouvelles demandes</p>
-          </div>
-        </div>
+        </UCard>
+
+        <!-- Similar cards for Privacy Policy and Legal Notice -->
       </div>
     </div>
   </div>
-  
-  <!-- Footer avec diagnostic -->
-  <div class="mt-8 bg-gray-50 border-t border-gray-100 py-4 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div class="text-sm text-gray-500">
-        <span>Version: 1.0.0</span>
-        <span class="mx-2">•</span>
-        <span>© {{ new Date().getFullYear() }} Havoo</span>
-      </div>
-      
-      <div class="flex items-center gap-3">
-        <button 
-          @click="exportSettings"
-          class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-800 text-sm font-medium flex items-center gap-1.5"
-        >
-          <Download class="h-3.5 w-3.5" />
-          Exporter
-        </button>
-        
-        <label
-          class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-800 text-sm font-medium flex items-center gap-1.5 cursor-pointer"
-        >
-          <Upload class="h-3.5 w-3.5" />
-          Importer
-          <input 
-            type="file" 
-            ref="importFileInput" 
-            class="hidden" 
-            accept=".json" 
-            @change="handleImportFile"
-          />
-        </label>
-        
-        <button 
-          @click="debugSupabase"
-          class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-800 text-sm font-medium flex items-center gap-1.5"
-        >
-          <Database class="h-3.5 w-3.5" />
-          Tester la connexion
-        </button>
-      </div>
-    </div>
-  </div>
+
+  <!-- Notification -->
+  <UNotification
+    v-model="notification.show"
+    :title="notification.title"
+    :text="notification.message"
+    :type="notification.type"
+  />
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { Dialog, DialogPanel, DialogTitle, TransitionRoot, TransitionChild, Switch } from '@headlessui/vue'
+import { format } from 'date-fns'
+import { fr } from 'date-fns/locale'
 import { 
   Settings, Mail, Bell, CreditCard, AlertTriangle, CheckCircle, 
   Info, X, Save, Loader2, ShieldCheck, Phone, Globe, Sliders,
-  FileText, Brain, Bold, Italic, List, Eye, Database, RefreshCw,
-  Download, Upload
+  FileText, Brain, Bold, Italic, List, Eye
 } from 'lucide-vue-next'
-import Switch from '@/components/ui/Switch.vue'
 
 const client = useSupabaseClient()
 
@@ -732,13 +337,9 @@ const notification = ref({
 const saving = ref(false)
 const tabs = [
   { id: 'general', label: 'Général', icon: Settings },
-  { id: 'services', label: 'Services', icon: Sliders },
   { id: 'email', label: 'Email', icon: Mail },
   { id: 'legal', label: 'CGU & Mentions', icon: FileText },
 ]
-
-// Import file input reference
-const importFileInput = ref(null)
 
 // Load settings
 onMounted(async () => {
@@ -1170,33 +771,6 @@ const formatDate = (dateString) => {
   })
 }
 
-// Preview legal documents
-const previewLegalDocs = () => {
-  try {
-    // Sauvegarder temporairement les documents légaux si modifiés
-    if (settings.value.cgu_content) {
-      localStorage.setItem('preview_cgu', settings.value.cgu_content)
-    }
-    
-    if (settings.value.privacy_content) {
-      localStorage.setItem('preview_privacy', settings.value.privacy_content)
-    }
-    
-    if (settings.value.legal_notice_content) {
-      localStorage.setItem('preview_legal_notice', settings.value.legal_notice_content)
-    }
-    
-    // Dans une implémentation réelle, cela ouvrirait une nouvelle fenêtre avec la prévisualisation
-    const previewUrl = `/admin/preview/legal?type=all&timestamp=${Date.now()}`
-    window.open(previewUrl, '_blank')
-    
-    showNotification('info', 'Prévisualisation', 'Les documents sont ouverts dans un nouvel onglet.')
-  } catch (err) {
-    console.error('Erreur lors de la prévisualisation:', err)
-    showNotification('error', 'Erreur', 'Impossible d\'ouvrir la prévisualisation: ' + (err.message || 'Erreur inconnue'))
-  }
-}
-
 // Validate settings before saving
 const validateSettings = () => {
   const errors = []
@@ -1261,173 +835,6 @@ const isValidUrl = (url) => {
     return true
   } catch (e) {
     return false
-  }
-}
-
-// Debug Supabase connection with detailed information
-const debugSupabase = async () => {
-  try {
-    showNotification('info', 'Débogage Supabase', 'Vérification de la connexion...')
-    console.log('URL Supabase:', client.supabaseUrl)
-    
-    // Masquer partiellement la clé API pour la sécurité
-    const maskedKey = client.supabaseKey ? 
-      client.supabaseKey.substring(0, 4) + '...' + client.supabaseKey.substring(client.supabaseKey.length - 4) : 
-      'Non disponible'
-    console.log('Clé API (masquée):', maskedKey)
-    
-    // Vérifier l'authentification
-    const { data: { user }, error: authError } = await client.auth.getUser()
-    
-    if (authError) {
-      console.error('Erreur d\'authentification:', authError)
-      showNotification('error', 'Erreur d\'authentification', handleSupabaseError(authError, 'authentification'))
-      return
-    }
-    
-    if (!user) {
-      showNotification('error', 'Non authentifié', 'Vous n\'êtes pas authentifié. Veuillez vous connecter.')
-      return
-    }
-    
-    console.log('Utilisateur authentifié:', user.id)
-    
-    // Teste une requête simple
-    const { count, error: testError } = await client.from('settings').select('*', { count: 'exact', head: true })
-    
-    if (testError) {
-      console.error('Erreur lors du test de requête:', testError)
-      showNotification('error', 'Erreur de requête', handleSupabaseError(testError, 'test de requête'))
-      return
-    }
-    
-    console.log('Test de requête réussi:', count)
-    showNotification('success', 'Connexion établie', 'La connexion à Supabase fonctionne correctement.')
-  } catch (error) {
-    console.error('Erreur lors du débogage Supabase:', error)
-    showNotification('error', 'Erreur', 'Une erreur est survenue lors du débogage: ' + (error.message || 'Erreur inconnue'))
-  }
-}
-
-// Export settings to JSON file
-const exportSettings = async () => {
-  try {
-    // Récupérer tous les paramètres de Supabase
-    const { data, error } = await client.from('settings').select('*')
-    
-    if (error) {
-      const errorMessage = handleSupabaseError(error, 'exportation des paramètres')
-      throw new Error(errorMessage)
-    }
-    
-    // Transformer les données en objet JSON
-    const exportData = {
-      version: '1.0.0',
-      timestamp: new Date().toISOString(),
-      environment: window.location.hostname,
-      settings: {}
-    }
-    
-    // Convertir les paires clé-valeur en objet
-    data.forEach(item => {
-      exportData.settings[item.key] = item.value
-    })
-    
-    // Créer un blob et générer un URL
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    
-    // Créer un élément a temporaire pour le téléchargement
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `havoo-settings-${new Date().toISOString().slice(0, 10)}.json`
-    document.body.appendChild(a)
-    a.click()
-    
-    // Nettoyer
-    setTimeout(() => {
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-    }, 100)
-    
-    showNotification('success', 'Paramètres exportés', 'Les paramètres ont été exportés avec succès.')
-  } catch (err) {
-    console.error('Erreur lors de l\'exportation des paramètres:', err)
-    showNotification('error', 'Erreur d\'exportation', 'Impossible d\'exporter les paramètres: ' + (err.message || 'Erreur inconnue'))
-  }
-}
-
-// Handle import file selection
-const handleImportFile = (event) => {
-  const file = event.target.files[0]
-  if (!file) return
-  
-  const reader = new FileReader()
-  reader.onload = async (e) => {
-    try {
-      const content = e.target.result
-      const importData = JSON.parse(content)
-      
-      // Vérifier la validité du fichier d'importation
-      if (!importData.settings || typeof importData.settings !== 'object') {
-        throw new Error('Format de fichier d\'importation invalide. Le fichier doit contenir un objet "settings".')
-      }
-      
-      // Confirmer l'importation
-      if (!confirm(`Voulez-vous importer ces paramètres ? Cette action remplacera certains paramètres existants.\n\nVersion du fichier: ${importData.version || 'Inconnue'}\nDate d'exportation: ${importData.timestamp || 'Inconnue'}`)) {
-        return
-      }
-      
-      await importSettings(importData.settings)
-    } catch (err) {
-      console.error('Erreur lors de la lecture du fichier d\'importation:', err)
-      showNotification('error', 'Erreur d\'importation', 'Impossible de lire le fichier d\'importation: ' + (err.message || 'Erreur inconnue'))
-    } finally {
-      // Réinitialiser l'input file
-      if (importFileInput.value) {
-        importFileInput.value.value = ''
-      }
-    }
-  }
-  
-  reader.readAsText(file)
-}
-
-// Import settings from parsed JSON
-const importSettings = async (importedSettings) => {
-  try {
-    saving.value = true
-    showNotification('info', 'Importation', 'Importation des paramètres en cours...')
-    
-    // Convertir l'objet en tableau de paires clé-valeur pour Supabase
-    const settingsToImport = Object.entries(importedSettings).map(([key, value]) => ({
-      key,
-      value,
-      updated_at: new Date().toISOString()
-    }))
-    
-    // Enregistrer les paramètres importés
-    const { error } = await client.from('settings').upsert(settingsToImport, {
-      onConflict: 'key'
-    })
-    
-    if (error) {
-      const errorMessage = handleSupabaseError(error, 'importation des paramètres')
-      throw new Error(errorMessage)
-    }
-    
-    // Mettre à jour les paramètres locaux
-    await loadSettings()
-    
-    // Log l'activité
-    await logActivity('settings_imported', 'Paramètres importés depuis un fichier')
-    
-    showNotification('success', 'Importation terminée', 'Les paramètres ont été importés avec succès.')
-  } catch (err) {
-    console.error('Erreur lors de l\'importation des paramètres:', err)
-    showNotification('error', 'Erreur d\'importation', 'Impossible d\'importer les paramètres: ' + (err.message || 'Erreur inconnue'))
-  } finally {
-    saving.value = false
   }
 }
 

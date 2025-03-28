@@ -29,15 +29,19 @@
               class="flex items-center p-3 text-lg rounded-full transition-colors group relative hover:bg-gray-100 dark:hover:bg-gray-900"
               :class="route.path === item.to ? 'font-bold' : 'font-medium text-gray-700 dark:text-gray-300'"
             >
-              <component :is="item.icon" class="h-7 w-7 mr-4" :class="route.path === item.to ? 'text-blue-500' : ''" />
+              <v-icon 
+                :name="item.icon"
+                class="h-7 w-7 mr-4"
+                :class="route.path === item.to ? 'text-blue-500' : ''"
+              />
               <span>{{ item.label }}</span>
               <div 
                 v-if="route.path === item.to" 
                 class="absolute right-4 h-2 w-2 rounded-full bg-blue-500"
               ></div>
-        </NuxtLink>
-      </div>
-      
+            </NuxtLink>
+          </div>
+          
           <!-- Section "Gestion" -->
           <div class="mb-2 px-4 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
             Gestion
@@ -50,7 +54,11 @@
               class="flex items-center p-3 text-lg rounded-full transition-colors group relative hover:bg-gray-100 dark:hover:bg-gray-900"
               :class="route.path === item.to ? 'font-bold' : 'font-medium text-gray-700 dark:text-gray-300'"
             >
-              <component :is="item.icon" class="h-7 w-7 mr-4" :class="route.path.includes(item.to) ? 'text-blue-500' : ''" />
+              <v-icon 
+                :name="item.icon"
+                class="h-7 w-7 mr-4"
+                :class="route.path.includes(item.to) ? 'text-blue-500' : ''"
+              />
               <span>{{ item.label }}</span>
               <div 
                 v-if="route.path.includes(item.to)" 
@@ -71,7 +79,11 @@
               class="flex items-center p-3 text-lg rounded-full transition-colors group relative hover:bg-gray-100 dark:hover:bg-gray-900"
               :class="route.path === item.to ? 'font-bold' : 'font-medium text-gray-700 dark:text-gray-300'"
             >
-              <component :is="item.icon" class="h-7 w-7 mr-4" :class="route.path === item.to ? 'text-blue-500' : ''" />
+              <v-icon 
+                :name="item.icon"
+                class="h-7 w-7 mr-4"
+                :class="route.path === item.to ? 'text-blue-500' : ''"
+              />
               <span>{{ item.label }}</span>
               <div 
                 v-if="route.path === item.to" 
@@ -82,11 +94,11 @@
           
           <!-- Bouton "Retour au site" (style badge Twitter) -->
           <div class="mt-8 px-2">
-          <NuxtLink 
+            <NuxtLink 
               to="/"
               class="bg-gray-900 dark:bg-gray-800 hover:bg-gray-800 dark:hover:bg-gray-700 text-white rounded-full py-3.5 px-4 w-full flex items-center justify-center font-bold text-lg transition-colors shadow-sm"
             >
-              <ArrowLeft class="h-5 w-5 mr-2" />
+              <v-icon name="ri-arrow-left-line" class="h-5 w-5 mr-2" />
               Retour au site
             </NuxtLink>
           </div>
@@ -100,7 +112,7 @@
           >
             <div class="flex items-center flex-1 min-w-0">
               <div class="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold mr-3">
-                <Shield class="h-5 w-5" />
+                <v-icon name="ri-shield-user-fill" class="h-5 w-5" />
               </div>
               <div class="flex flex-col min-w-0">
                 <span class="font-bold text-black dark:text-white truncate">{{ adminName || 'Admin' }}</span>
@@ -109,7 +121,7 @@
                 </span>
               </div>
             </div>
-            <MoreHorizontal class="h-5 w-5 text-gray-500 dark:text-gray-400 ml-2" />
+            <v-icon name="ri-more-fill" class="h-5 w-5 text-gray-500 dark:text-gray-400 ml-2" />
             
             <!-- Menu contextuel administrateur -->
             <div 
@@ -120,21 +132,21 @@
                 to="/admin/" 
                 class="flex items-center w-full px-4 py-2.5 text-left hover:bg-gray-100 dark:hover:bg-gray-800"
               >
-                <User class="h-5 w-5 mr-3 text-gray-500 dark:text-gray-400" />
+                <v-icon name="ri-user-fill" class="h-5 w-5 mr-3 text-gray-500 dark:text-gray-400" />
                 <span>Mon profil admin</span>
               </NuxtLink>
               <NuxtLink 
                 to="/admin/settings" 
                 class="flex items-center w-full px-4 py-2.5 text-left hover:bg-gray-100 dark:hover:bg-gray-800"
               >
-                <Settings class="h-5 w-5 mr-3 text-gray-500 dark:text-gray-400" />
+                <v-icon name="ri-settings-4-fill" class="h-5 w-5 mr-3 text-gray-500 dark:text-gray-400" />
                 <span>Paramètres admin</span>
               </NuxtLink>
               <button 
                 @click="logout" 
                 class="flex items-center w-full px-4 py-2.5 text-left hover:bg-gray-100 dark:hover:bg-gray-800 text-red-600 dark:text-red-400"
               >
-                <LogOut class="h-5 w-5 mr-3" />
+                <v-icon name="ri-logout-box-r-line" class="h-5 w-5 mr-3" />
                 <span>Déconnexion</span>
               </button>
             </div>
@@ -152,7 +164,7 @@
             class="flex flex-col items-center p-2 rounded-full"
             :class="route.path.includes(item.to) ? 'text-blue-500' : 'text-gray-600 dark:text-gray-400'"
           >
-            <component :is="item.icon" class="h-6 w-6 mb-1" />
+            <v-icon :name="item.icon" class="h-6 w-6 mb-1" />
             <span class="text-xs">{{ item.label }}</span>
           </NuxtLink>
         </div>
@@ -170,9 +182,9 @@
           </div>
           <button @click="isMobileMenuOpen = true" class="p-2">
             <div class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
-              <Shield class="h-4 w-4" />
+              <v-icon name="ri-shield-user-fill" class="h-4 w-4" />
             </div>
-        </button>
+          </button>
         </header>
         
         <!-- Menu mobile slide-out -->
@@ -196,23 +208,23 @@
                 </div>
               </div>
               <button @click="isMobileMenuOpen = false" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
-                <X class="h-6 w-6 text-gray-500 dark:text-gray-400" />
+                <v-icon name="ri-close-fill" class="h-6 w-6 text-gray-500 dark:text-gray-400" />
               </button>
             </div>
             
             <div class="p-4">
               <div class="flex items-center mb-6">
                 <div class="h-14 w-14 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold mr-3">
-                  <Shield class="h-7 w-7" />
+                  <v-icon name="ri-shield-user-fill" class="h-7 w-7" />
                 </div>
                 <div>
                   <div class="font-bold text-lg">{{ adminName || 'Admin' }}</div>
                   <div class="text-gray-500 dark:text-gray-400">
                     Administrateur
                   </div>
-            </div>
-          </div>
-          
+                </div>
+              </div>
+              
               <!-- Sections de navigation mobile -->
               <div class="space-y-6">
                 <!-- Vue d'ensemble -->
@@ -229,12 +241,12 @@
                       :class="route.path === item.to ? 'font-bold' : 'font-medium text-gray-700 dark:text-gray-300'"
                       @click="isMobileMenuOpen = false"
                     >
-                      <component :is="item.icon" class="h-6 w-6 mr-3" :class="route.path === item.to ? 'text-blue-500' : ''" />
+                      <v-icon :name="item.icon" class="h-6 w-6 mr-3" :class="route.path === item.to ? 'text-blue-500' : ''" />
                       <span>{{ item.label }}</span>
                     </NuxtLink>
                   </nav>
-        </div>
-        
+                </div>
+                
                 <!-- Gestion -->
                 <div>
                   <div class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
@@ -249,7 +261,7 @@
                       :class="route.path.includes(item.to) ? 'font-bold' : 'font-medium text-gray-700 dark:text-gray-300'"
                       @click="isMobileMenuOpen = false"
                     >
-                      <component :is="item.icon" class="h-6 w-6 mr-3" :class="route.path.includes(item.to) ? 'text-blue-500' : ''" />
+                      <v-icon :name="item.icon" class="h-6 w-6 mr-3" :class="route.path.includes(item.to) ? 'text-blue-500' : ''" />
                       <span>{{ item.label }}</span>
                     </NuxtLink>
                   </nav>
@@ -259,7 +271,7 @@
                 <div>
                   <div class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
                     Configuration
-            </div>
+                  </div>
                   <nav class="space-y-1">
                     <NuxtLink 
                       v-for="item in configItems" 
@@ -269,12 +281,12 @@
                       :class="route.path === item.to ? 'font-bold' : 'font-medium text-gray-700 dark:text-gray-300'"
                       @click="isMobileMenuOpen = false"
                     >
-                      <component :is="item.icon" class="h-6 w-6 mr-3" :class="route.path === item.to ? 'text-blue-500' : ''" />
+                      <v-icon :name="item.icon" class="h-6 w-6 mr-3" :class="route.path === item.to ? 'text-blue-500' : ''" />
                       <span>{{ item.label }}</span>
                     </NuxtLink>
                   </nav>
-            </div>
-          </div>
+                </div>
+              </div>
               
               <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-800">
                 <NuxtLink 
@@ -282,20 +294,20 @@
                   class="flex items-center w-full p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 font-medium"
                   @click="isMobileMenuOpen = false"
                 >
-                  <ArrowLeft class="h-6 w-6 mr-3" />
+                  <v-icon name="ri-arrow-left-line" class="h-6 w-6 mr-3" />
                   <span>Retour au site</span>
                 </NuxtLink>
                 
-            <button 
-              @click="logout"
+                <button 
+                  @click="logout"
                   class="flex items-center w-full p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-red-600 dark:text-red-400 font-medium mt-2"
-            >
-                  <LogOut class="h-6 w-6 mr-3" />
+                >
+                  <v-icon name="ri-logout-box-r-line" class="h-6 w-6 mr-3" />
                   <span>Déconnexion</span>
-            </button>
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
         </div>
         
         <!-- Contenu de la page admin -->
@@ -311,13 +323,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSupabaseClient, useSupabaseUser } from '#imports'
-import {
-  Home, Users, Settings, Database, LogOut, LayoutDashboard,
-  FileText, PanelLeft, Shield, ChevronDown, MessageSquare,
-  MoreHorizontal, X, Gauge, BarChart2, ArrowLeft, Bell,
-  User, ShoppingBag, Calendar, Globe, Lock, Cog, HelpCircle,
-  Layers, FileSpreadsheet, CreditCard, LayoutList, LayoutGrid
-} from 'lucide-vue-next'
+
 
 const route = useRoute()
 const router = useRouter()
@@ -391,32 +397,41 @@ const getPageTitle = () => {
   return 'Administration'
 }
 
-// Menu de tableau de bord - simplifier à un seul élément
+// Menu de tableau de bord
 const dashboardItems = computed(() => [
-  { to: '/admin', label: 'Tableau de bord', icon: LayoutDashboard },
+  { to: '/admin', label: 'Tableau de bord', icon: 'ri-dashboard-3-line' },
 ])
 
-// Menu de gestion - garder uniquement les éléments les plus importants
+// Menu de gestion
 const managementItems = computed(() => [
-  { to: '/admin/users', label: 'Utilisateurs', icon: Users },
-  { to: '/admin/requests', label: 'Demandes', icon: FileText },
-  { to: '/admin/services', label: 'Services', icon: ShoppingBag },
-  { to: '/admin/professions', label: 'Catégories', icon: Layers },
-  { to: '/admin/documents', label: 'Documents', icon: FileText },
-  { to: '/admin/proposals', label: 'Propositions', icon: FileText },
+  // Gestion des utilisateurs
+  { to: '/admin/users', label: 'Utilisateurs', icon: 'hi-users' },
+  // { to: '/admin/experts', label: 'Experts', icon: 'ri-user-star-fill' },
+  
+  // Gestion des missions et deals
+  { to: '/admin/missions', label: 'Missions', icon: 'bi-file-earmark-text' },
+  { to: '/admin/deals', label: 'Deals', icon: 'fa-regular-handshake' },
+  
+  // Gestion du catalogue
+  { to: '/admin/professions', label: 'Professions', icon: 'la-graduation-cap-solid' },
+  { to: '/admin/skills', label: 'Compétences', icon: 'bi-star' },
+  
+  // Communication
+  // { to: '/admin/conversations', label: 'Conversations', icon: 'ri-message2-fill' },
+  { to: '/admin/reviews', label: 'Avis', icon: 'bi-chat-text' },
 ])
 
-// Menu de configuration - réduire à un seul élément
+// Menu de configuration
 const configItems = computed(() => [
-  { to: '/admin/settings', label: 'Paramètres', icon: Settings },
+  { to: '/admin/settings', label: 'Paramètres', icon: 'ri-settings-2-line' },
 ])
 
-// Menu mobile - mettre à jour pour correspondre
+// Menu mobile (version simplifiée)
 const mobileMenuItems = computed(() => [
-  { to: '/admin', label: 'Accueil', icon: Home },
-  { to: '/admin/users', label: 'Utilisateurs', icon: Users },
-  { to: '/admin/requests', label: 'Demandes', icon: FileText },
-  { to: '/admin/settings', label: 'Réglages', icon: Settings },
+  { to: '/admin', label: 'Accueil', icon: 'ri-home4-fill' },
+  { to: '/admin/users', label: 'Utilisateurs', icon: 'ri-user3-fill' },
+  { to: '/admin/missions', label: 'Missions', icon: 'ri-file-text-fill' },
+  { to: '/admin/settings', label: 'Réglages', icon: 'ri-settings4-fill' },
 ])
 
 // Déconnexion

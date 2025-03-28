@@ -1,538 +1,263 @@
 <template>
   <div class="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <!-- En-tête avec style moderne -->
+    <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div>
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Utilisateurs</h1>
         <p class="text-gray-600 dark:text-gray-400 mt-1">Gérez les utilisateurs de la plateforme</p>
       </div>
       
-      <!-- Actions principales -->
       <div class="flex items-center gap-3">
-        <button 
+        <UButton 
+          icon="i-heroicons-arrow-down-tray" 
+          color="gray" 
+          variant="ghost" 
           @click="exportData"
-          class="btn-outline flex items-center gap-2"
         >
-          <Download class="h-4 w-4" />
-          <span>Exporter</span>
-        </button>
-        <button 
+          Exporter
+        </UButton>
+        <UButton 
+          icon="i-heroicons-plus" 
           @click="openAddUserModal"
-          class="btn-primary flex items-center gap-2"
         >
-          <UserPlus class="h-4 w-4" />
-          <span>Ajouter</span>
-        </button>
-        <button 
-          @click="refreshData"
-          class="btn-outline flex items-center gap-2"
-        >
-          <RefreshCw class="h-4 w-4" />
-          <span>Actualiser</span>
-        </button>
+          Ajouter
+        </UButton>
       </div>
     </div>
-    
-    <!-- Notifications avec animation -->
-    <Transition
-      enter-active-class="transform transition duration-300 ease-out"
-      enter-from-class="translate-y-2 opacity-0"
-      enter-to-class="translate-y-0 opacity-100"
-      leave-active-class="transform transition duration-200 ease-in"
-      leave-from-class="translate-y-0 opacity-100"
-      leave-to-class="translate-y-2 opacity-0"
-    >
-      <div 
-        v-if="notification?.show" 
-        class="p-4 rounded-2xl flex items-start gap-3 shadow-sm"
-        :class="[
-          notification.type === 'success' ? 'bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800/30' : 
-          notification.type === 'error' ? 'bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800/30' : 
-          'bg-blue-50 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border border-blue-200 dark:border-blue-800/30'
-        ]"
+
+    <!-- Table -->
+    <UCard>
+      <UTable
+        :rows="users"
+        :columns="columns"
+        :loading="isLoading"
+        :search-value="search"
+        @update:search-value="search = $event"
       >
-        <component 
-          :is="notification.type === 'success' ? 'CheckCircle' : notification.type === 'error' ? 'AlertTriangle' : 'Info'" 
-          class="h-5 w-5 mt-0.5 flex-shrink-0" 
-        />
-        <div>
-          <h3 class="font-medium">{{ notification.title }}</h3>
-          <p class="text-sm opacity-80 mt-0.5">{{ notification.message }}</p>
-        </div>
-        <button 
-          @click="notification.show = false" 
-          class="ml-auto p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5"
-        >
-          <X class="h-4 w-4" />
-        </button>
-      </div>
-    </Transition>
-    
-    <!-- Statistiques avec cartes modernes -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-      <div 
-        v-for="stat in stats" 
-        :key="stat.label"
-        class="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-200"
-      >
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ stat.label }}</p>
-            <p class="text-3xl font-bold text-gray-900 dark:text-white mt-1">{{ stat.value }}</p>
-          </div>
-          <div 
-            class="h-14 w-14 rounded-2xl flex items-center justify-center"
-            :class="stat.colorClass"
-          >
-            <component :is="stat.icon" class="h-7 w-7 text-white" />
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Filtres avec design épuré -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 shadow-sm">
-      <div class="flex flex-col md:flex-row md:items-center gap-4">
-        <!-- Recherche -->
-        <div class="relative flex-grow max-w-md">
-          <Search class="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
-          <input 
-            v-model="search"
-            type="text"
-            placeholder="Rechercher un utilisateur..."
-            class="pl-12 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl w-full focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-          />
-        </div>
-        
-        <div class="flex flex-wrap gap-3 items-center">
-          <!-- Filtre de rôle -->
-          <select 
-            v-model="roleFilter"
-            class="px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white appearance-none bg-none"
-          >
-            <option value="all">Tous les rôles</option>
-            <option value="client">Clients</option>
-            <option value="expert">Experts</option>
-            <option value="admin">Administrateurs</option>
-          </select>
-          
-          <!-- Filtre de statut -->
-          <select 
-            v-model="statusFilter"
-            class="px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white appearance-none"
-          >
-            <option value="all">Tous les statuts</option>
-            <option value="active">Actifs</option>
-            <option value="inactive">Bloqués</option>
-          </select>
-          
-          <!-- Réinitialiser -->
-          <button 
-            @click="resetFilters"
-            class="flex items-center gap-2 px-4 py-3 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-          >
-            <RefreshCw class="h-4 w-4" />
-            <span>Réinitialiser</span>
-          </button>
-        </div>
-      </div>
-    </div>
-    
-    <!-- État de chargement avec animation -->
-    <div v-if="isLoading" class="flex justify-center p-12">
-      <div class="inline-block h-10 w-10 animate-spin rounded-full border-4 border-solid border-primary-500 border-r-transparent"></div>
-    </div>
-    
-    <!-- État vide avec illustration -->
-    <div v-else-if="filteredUsers && filteredUsers.length === 0" class="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center border border-gray-100 dark:border-gray-700 shadow-sm">
-      <div class="inline-flex items-center justify-center h-20 w-20 rounded-full bg-gray-100 dark:bg-gray-700 mb-6">
-        <Users class="h-10 w-10 text-gray-500 dark:text-gray-400" />
-      </div>
-      <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Aucun utilisateur trouvé</h3>
-      <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-        Essayez de modifier vos filtres ou d'effectuer une nouvelle recherche.
-      </p>
-      <button 
-        @click="resetFilters"
-        class="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-xl shadow-sm transition-colors"
-      >
-        Réinitialiser les filtres
-      </button>
-    </div>
-    
-    <!-- Tableau des utilisateurs avec UTable -->
-    <div v-else>
-      <!-- Version tableau pour écrans moyens et grands -->
-      <div class="hidden md:block">
-        <UTable
-          :columns="columns"
-          :rows="paginatedUsers"
-          :loading="isLoading"
-          class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm"
-        >
-          <!-- Colonne Utilisateur -->
-          <template #user-data="{ row }">
-            <div class="flex items-center gap-3">
-              <div class="h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-700 dark:text-primary-400 font-medium">
-                {{ getInitials(row.first_name + ' ' + row.last_name) }}
-              </div>
-              <div>
-                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ row.first_name }} {{ row.last_name }}</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">{{ row.email }}</p>
-              </div>
+        <!-- User cell -->
+        <template #user-data="{ row }">
+          <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-700 dark:text-primary-400 font-medium">
+              {{ getInitials(row.first_name + ' ' + row.last_name) }}
             </div>
-          </template>
-          
-          <!-- Colonne Rôle -->
-          <template #role-data="{ row }">
-            <span 
-              class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium"
-              :class="getRoleClass(row.role)"
-            >
-              {{ formatRole(row.role) }}
-            </span>
-          </template>
-          
-          <!-- Colonne Statut -->
-          <template #status-data="{ row }">
-            <span 
-              class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium"
-              :class="getStatusClass(row.is_active)"
-            >
-              <span class="w-2 h-2 rounded-full mr-2" :class="getStatusDotClass(row.is_active)"></span>
-              {{ row.is_active ? 'Actif' : 'Bloqué' }}
-            </span>
-          </template>
-          
-          <!-- Colonne Vérifié (pour les experts) -->
-          <template #verified-data="{ row }">
-            <div v-if="row.role === 'expert'">
-              <span 
-                class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium"
-                :class="row.is_verified ? 'bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-amber-50 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'"
-              >
-                <span class="w-2 h-2 rounded-full mr-2" :class="row.is_verified ? 'bg-green-500' : 'bg-amber-500'"></span>
-                {{ row.is_verified ? 'Certifié' : 'Non certifié' }}
-              </span>
-            </div>
-            <div v-else>-</div>
-          </template>
-          
-          <!-- Colonne Date d'inscription -->
-          <template #created-at-data="{ row }">
-            <div class="text-sm text-gray-600 dark:text-gray-400">
-              {{ formatDate(row.created_at) }}
-            </div>
-          </template>
-          
-          <!-- Colonne Actions -->
-          <template #actions-data="{ row }">
-            <div class="flex justify-end gap-2">
-              <button 
-                @click="editUser(row)"
-                class="p-2 text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors"
-                title="Modifier l'utilisateur"
-              >
-                <Edit class="h-5 w-5" />
-              </button>
-              <button 
-                @click="viewUser(row)"
-                class="p-2 text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors"
-                title="Voir le profil"
-              >
-                <Eye class="h-5 w-5" />
-              </button>
-              <button 
-                @click="toggleUserStatus(row)"
-                class="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                :title="row.is_active ? 'Bloquer l\'utilisateur' : 'Débloquer l\'utilisateur'"
-              >
-                <component :is="row.is_active ? 'Ban' : 'UserCheck'" class="h-5 w-5" />
-              </button>
-            </div>
-          </template>
-        </UTable>
-      </div>
-      
-      <!-- Vue responsive pour petits écrans (mobile) -->
-      <div class="block md:hidden space-y-4">
-        <div 
-          v-for="row in paginatedUsers" 
-          :key="row.id" 
-          class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden"
-        >
-          <!-- En-tête avec l'utilisateur -->
-          <div class="p-4 border-b border-gray-100 dark:border-gray-700">
-            <div class="flex items-center gap-3">
-              <div class="h-12 w-12 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-700 dark:text-primary-400 font-medium text-lg">
-                {{ getInitials(row.first_name + ' ' + row.last_name) }}
-              </div>
-              <div>
-                <p class="text-base font-medium text-gray-900 dark:text-white">{{ row.first_name }} {{ row.last_name }}</p>
-                <p class="text-sm text-gray-500 dark:text-gray-400">{{ row.email }}</p>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Informations -->
-          <div class="p-4 space-y-3">
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Rôle</p>
-                <span 
-                  class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium"
-                  :class="getRoleClass(row.role)"
-                >
-                  {{ formatRole(row.role) }}
-                </span>
-              </div>
-              
-              <div>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Statut</p>
-                <span 
-                  class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium"
-                  :class="getStatusClass(row.is_active)"
-                >
-                  <span class="w-2 h-2 rounded-full mr-2" :class="getStatusDotClass(row.is_active)"></span>
-                  {{ row.is_active ? 'Actif' : 'Bloqué' }}
-                </span>
-              </div>
-            </div>
-            
-            <!-- Certification (pour experts) -->
-            <div v-if="row.role === 'expert'">
-              <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Certification</p>
-              <span 
-                class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium"
-                :class="row.is_verified ? 'bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-amber-50 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'"
-              >
-                <span class="w-2 h-2 rounded-full mr-2" :class="row.is_verified ? 'bg-green-500' : 'bg-amber-500'"></span>
-                {{ row.is_verified ? 'Certifié' : 'Non certifié' }}
-              </span>
-            </div>
-            
-            <!-- Date d'inscription -->
             <div>
-              <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Inscription</p>
-              <p class="text-sm text-gray-700 dark:text-gray-300">{{ formatDate(row.created_at) }}</p>
+              <p class="text-sm font-medium text-gray-900 dark:text-white">
+                {{ row.first_name }} {{ row.last_name }}
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                {{ row.email }}
+              </p>
             </div>
           </div>
-          
-          <!-- Actions -->
-          <div class="px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-2">
-            <button 
-              @click="editUser(row)"
-              class="px-3 py-1.5 flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors"
-            >
-              <Edit class="h-4 w-4" />
-              <span>Modifier</span>
-            </button>
-            <button 
-              @click="viewUser(row)"
-              class="px-3 py-1.5 flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors"
-            >
-              <Eye class="h-4 w-4" />
-              <span>Profil</span>
-            </button>
-            <button 
-              @click="toggleUserStatus(row)"
-              class="px-3 py-1.5 flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-            >
-              <component :is="row.is_active ? 'Ban' : 'UserCheck'" class="h-4 w-4" />
-              <span>{{ row.is_active ? 'Bloquer' : 'Activer' }}</span>
-            </button>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Pagination responsive -->
-      <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6">
-        <div class="text-sm text-gray-600 dark:text-gray-400 order-2 sm:order-1 text-center sm:text-left">
-          Affichage de {{ paginatedUsers.length }} sur {{ filteredUsers.length }} utilisateurs
-        </div>
-        <div class="flex items-center justify-center gap-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-1 shadow-sm order-1 sm:order-2">
-          <button 
-            @click="currentPage > 1 ? currentPage-- : null"
-            :disabled="currentPage === 1"
-            class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 disabled:opacity-50 disabled:hover:bg-transparent dark:disabled:hover:bg-transparent transition-colors"
+        </template>
+
+        <!-- Role cell -->
+        <template #role-data="{ row }">
+          <UBadge
+            :color="getRoleBadgeColor(row.role)"
+            variant="subtle"
+            size="sm"
           >
-            <ChevronLeft class="h-5 w-5" />
-          </button>
-          <span class="px-2 text-sm text-gray-600 dark:text-gray-400">
-            Page {{ currentPage }} sur {{ totalPages }}
-          </span>
-          <button 
-            @click="currentPage < totalPages ? currentPage++ : null"
-            :disabled="currentPage === totalPages"
-            class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 disabled:opacity-50 disabled:hover:bg-transparent dark:disabled:hover:bg-transparent transition-colors"
+            {{ formatRole(row.role) }}
+          </UBadge>
+        </template>
+
+        <!-- Status cell -->
+        <template #status-data="{ row }">
+          <UBadge
+            :color="row.is_active ? 'green' : 'red'"
+            variant="subtle"
+            size="sm"
           >
-            <ChevronRight class="h-5 w-5" />
-          </button>
-        </div>
-      </div>
-    </div>
+            <div class="flex items-center gap-1">
+              <div 
+                class="w-1.5 h-1.5 rounded-full"
+                :class="row.is_active ? 'bg-green-500' : 'bg-red-500'"
+              />
+              {{ row.is_active ? 'Actif' : 'Bloqué' }}
+            </div>
+          </UBadge>
+        </template>
+
+        <!-- Date cell -->
+        <template #created_at-data="{ row }">
+          {{ formatDate(row.created_at) }}
+        </template>
+
+        <!-- Actions cell -->
+        <template #actions-data="{ row }">
+          <UDropdown
+            :items="[
+              [
+                {
+                  label: 'Modifier',
+                  icon: 'i-heroicons-pencil-square',
+                  click: () => editUser(row)
+                },
+                {
+                  label: 'Voir le profil',
+                  icon: 'i-heroicons-eye',
+                  click: () => viewUser(row)
+                }
+              ],
+              [
+                {
+                  label: row.is_active ? 'Bloquer' : 'Débloquer',
+                  icon: row.is_active ? 'i-heroicons-lock-closed' : 'i-heroicons-lock-open',
+                  click: () => toggleUserStatus(row)
+                }
+              ]
+            ]"
+          >
+            <UButton
+              color="gray"
+              variant="ghost"
+              icon="i-heroicons-ellipsis-horizontal"
+            />
+          </UDropdown>
+        </template>
+      </UTable>
+    </UCard>
   </div>
   
   <!-- Modal d'ajout/modification d'utilisateur -->
-  <UModal v-model="showUserModal" :ui="{ width: 'sm:max-w-xl' }">
-    <div class="p-6">
-      <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">
-        {{ editMode ? 'Modifier l\'utilisateur' : 'Ajouter un utilisateur' }}
-      </h2>
-      
-      <form @submit.prevent="saveUser" class="space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Prénom -->
-          <div>
-            <label for="first_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prénom</label>
-            <input 
-              id="first_name"
-              v-model="userForm.first_name"
-              type="text"
-              required
-              class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-              placeholder="Prénom"
-            />
-          </div>
-          
-          <!-- Nom -->
-          <div>
-            <label for="last_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nom</label>
-            <input 
-              id="last_name"
-              v-model="userForm.last_name"
-              type="text"
-              required
-              class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-              placeholder="Nom"
-            />
-          </div>
-        </div>
-        
-        <!-- Email -->
-        <div>
-          <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
-          <input 
-            id="email"
-            v-model="userForm.email"
-            type="email"
-            required
-            :disabled="editMode"
-            class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
-            placeholder="exemple@email.com"
-          />
-          <p v-if="editMode" class="text-xs text-gray-500 mt-1">L'email ne peut pas être modifié</p>
-        </div>
-        
-        <!-- Téléphone -->
-        <div>
-          <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Téléphone</label>
-          <input 
-            id="phone"
-            v-model="userForm.phone"
-            type="tel"
-            class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-            placeholder="+123456789"
-          />
-        </div>
-        
-        <!-- Mot de passe (uniquement pour la création) -->
-        <div v-if="!editMode">
-          <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mot de passe</label>
-          <input 
-            id="password"
-            v-model="userForm.password"
-            type="password"
-            required
-            class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-            placeholder="Minimum 8 caractères"
-            minlength="8"
-          />
-        </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Rôle -->
-          <div>
-            <label for="role" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rôle</label>
-            <select 
-              id="role"
-              v-model="userForm.role"
-              required
-              class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-            >
-              <option value="client">Client</option>
-              <option value="expert">Expert</option>
-              <option value="admin">Administrateur</option>
-            </select>
-          </div>
-          
-          <!-- Statut -->
-          <div class="flex items-center h-full pt-6">
-            <input 
-              id="is_active"
-              v-model="userForm.is_active"
-              type="checkbox"
-              class="h-5 w-5 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-            />
-            <label for="is_active" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-              Utilisateur actif
-            </label>
-          </div>
-        </div>
-        
-        <!-- Statut de vérification pour les experts -->
-        <div v-if="userForm.role === 'expert'">
-          <div class="flex items-center">
-            <input 
-              id="is_verified"
-              v-model="userForm.is_verified"
-              type="checkbox"
-              class="h-5 w-5 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-            />
-            <label for="is_verified" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-              Expert certifié
-            </label>
-          </div>
-        </div>
-        
-        <!-- Adresse -->
-        <div>
-          <label for="location" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Adresse</label>
-          <textarea 
-            id="location"
-            v-model="userForm.location"
-            rows="2"
-            class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-            placeholder="Adresse complète"
-          ></textarea>
-        </div>
-        
-        <!-- Actions -->
-        <div class="flex justify-end gap-3 pt-4">
-          <button 
-            type="button"
-            @click="showUserModal = false"
-            class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+  <TransitionRoot appear :show="showUserModal" as="template">
+    <Dialog as="div" @close="showUserModal = false" class="relative z-50">
+      <TransitionChild
+        enter="duration-300 ease-out"
+        enter-from="opacity-0"
+        enter-to="opacity-100"
+        leave="duration-200 ease-in"
+        leave-from="opacity-100"
+        leave-to="opacity-0"
+      >
+        <div class="fixed inset-0 bg-black/30" />
+      </TransitionChild>
+
+      <div class="fixed inset-0 overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4">
+          <TransitionChild
+            enter="duration-300 ease-out"
+            enter-from="opacity-0 scale-95"
+            enter-to="opacity-100 scale-100"
+            leave="duration-200 ease-in"
+            leave-from="opacity-100 scale-100"
+            leave-to="opacity-0 scale-95"
           >
-            Annuler
-          </button>
-          <button 
-            type="submit"
-            class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl"
-            :disabled="isSaving"
-          >
-            <span v-if="isSaving" class="flex items-center gap-2">
-              <Loader2 class="h-4 w-4 animate-spin" />
-              Enregistrement...
-            </span>
-            <span v-else>
-              {{ editMode ? 'Mettre à jour' : 'Ajouter' }}
-            </span>
-          </button>
+            <DialogPanel class="w-full max-w-2xl transform overflow-hidden rounded-3xl bg-white p-8 border border-gray-100 shadow-xl transition-all">
+              <DialogTitle as="h3" class="text-xl font-semibold text-gray-900">
+                {{ editMode ? 'Modifier l\'utilisateur' : 'Ajouter un utilisateur' }}
+              </DialogTitle>
+
+              <form @submit.prevent="saveUser" class="mt-8">
+                <div class="space-y-8">
+                  <!-- Nom et Prénom -->
+                  <div class="grid grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-base font-semibold text-gray-900 mb-2">Prénom</label>
+                      <input
+                        v-model="userForm.first_name"
+                        type="text"
+                        required
+                        class="block w-full px-4 py-3.5 text-gray-900 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors text-lg"
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-base font-semibold text-gray-900 mb-2">Nom</label>
+                      <input
+                        v-model="userForm.last_name"
+                        type="text"
+                        required
+                        class="block w-full px-4 py-3.5 text-gray-900 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors text-lg"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Email -->
+                  <div>
+                    <label class="block text-base font-semibold text-gray-900 mb-2">Email</label>
+                    <input
+                      v-model="userForm.email"
+                      type="email"
+                      required
+                      :disabled="editMode"
+                      class="block w-full px-4 py-3.5 text-gray-900 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors text-lg disabled:opacity-60 disabled:cursor-not-allowed"
+                    />
+                  </div>
+
+                  <!-- Mot de passe (uniquement pour la création) -->
+                  <div v-if="!editMode">
+                    <label class="block text-base font-semibold text-gray-900 mb-2">Mot de passe</label>
+                    <input
+                      v-model="userForm.password"
+                      type="password"
+                      required
+                      minlength="8"
+                      class="block w-full px-4 py-3.5 text-gray-900 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors text-lg"
+                    />
+                  </div>
+
+                  <!-- Rôle -->
+                  <div>
+                    <label class="block text-base font-semibold text-gray-900 mb-2">Rôle</label>
+                    <select
+                      v-model="userForm.role"
+                      class="block w-full px-4 py-3.5 text-gray-900 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors text-lg"
+                    >
+                      <option value="client">Client</option>
+                      <option value="expert">Expert</option>
+                      <option value="admin">Administrateur</option>
+                    </select>
+                  </div>
+
+                  <!-- Statut -->
+                  <div>
+                    <label class="block text-base font-semibold text-gray-900 mb-2">Statut</label>
+                    <div class="space-y-4">
+                      <div class="flex items-center bg-gray-50 p-4 rounded-2xl">
+                        <Switch
+                          v-model="userForm.is_active"
+                          :class="[userForm.is_active ? 'bg-primary-600' : 'bg-gray-200']"
+                          class="relative inline-flex h-7 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out"
+                        >
+                          <span
+                            :class="[userForm.is_active ? 'translate-x-7' : 'translate-x-0']"
+                            class="pointer-events-none relative inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                          />
+                        </Switch>
+                        <span class="ml-3 text-base text-gray-700">
+                          {{ userForm.is_active ? 'Compte actif' : 'Compte inactif' }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-8 flex justify-end space-x-4">
+                  <button
+                    type="button"
+                    class="px-6 py-4 text-base font-semibold text-gray-700 hover:bg-gray-50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all"
+                    @click="showUserModal = false"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    class="px-6 py-4 bg-primary-600 text-white rounded-2xl font-semibold hover:bg-primary-700 focus:ring-4 focus:ring-primary-500/50 transition-all disabled:opacity-50 disabled:hover:bg-primary-600 flex items-center justify-center gap-2 text-base"
+                    :disabled="isSaving"
+                  >
+                    <Loader2 v-if="isSaving" class="w-5 h-5 animate-spin" />
+                    <UserPlus v-else class="w-5 h-5" />
+                    {{ isSaving ? 'Enregistrement en cours...' : (editMode ? 'Enregistrer les modifications' : 'Ajouter l\'utilisateur') }}
+                  </button>
+                </div>
+              </form>
+            </DialogPanel>
+          </TransitionChild>
         </div>
-      </form>
-    </div>
-  </UModal>
+      </div>
+    </Dialog>
+  </TransitionRoot>
 </template>
 
 <script setup>
@@ -544,8 +269,10 @@ import {
   Info, Users, ChevronLeft, ChevronRight, Eye, EyeOff, User, Download,
   UserPlus, UserCheck, UserX, Shield, Mail, Ban, Loader2
 } from 'lucide-vue-next';
+import { Dialog, DialogPanel, DialogTitle, TransitionRoot, TransitionChild, Switch } from '@headlessui/vue'
 import { useSupabaseClient } from '#imports';
-
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 const supabase = useSupabaseClient();
 const router = useRouter();
 
@@ -592,7 +319,7 @@ const stats = ref([
   }
 ]);
 
-// Colonnes pour UTable
+// Table columns configuration
 const columns = [
   {
     key: 'user',
@@ -621,7 +348,7 @@ const columns = [
   },
   {
     key: 'actions',
-    label: 'Actions',
+    label: '',
     sortable: false
   }
 ];
@@ -730,11 +457,7 @@ const formatRole = (role) => {
 const formatDate = (dateString) => {
   if (!dateString) return '-';
   const date = new Date(dateString);
-  return new Intl.DateTimeFormat('fr-FR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  }).format(date);
+  return format(date, 'dd MMM yyyy', { locale: fr });
 };
 
 // Changer le statut d'un utilisateur
@@ -871,26 +594,14 @@ const getInitials = (name) => {
 };
 
 // Obtenir la classe pour le rôle
-const getRoleClass = (role) => {
-  const roleClasses = {
-    client: 'bg-blue-50 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
-    expert: 'bg-amber-50 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
-    admin: 'bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-  };
-  return roleClasses[role] || 'bg-gray-50 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
-};
-
-// Obtenir la classe pour le statut
-const getStatusClass = (isActive) => {
-  return isActive 
-    ? 'bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
-    : 'bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-400';
-};
-
-// Obtenir la classe pour le point de statut
-const getStatusDotClass = (isActive) => {
-  return isActive ? 'bg-green-500' : 'bg-red-500';
-};
+const getRoleBadgeColor = (role) => {
+  const colors = {
+    client: 'blue',
+    expert: 'amber',
+    admin: 'green'
+  }
+  return colors[role] || 'gray'
+}
 
 // Modal state and form
 const showUserModal = ref(false);
