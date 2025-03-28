@@ -142,96 +142,106 @@
         </div>
         
         <!-- Proposals section -->
-        <div id="proposals" class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-          <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-            <h3 class="text-lg font-medium text-gray-900">Propositions ({{ proposalCount }})</h3>
-          </div>
-          
-          <div v-if="proposals.length === 0" class="p-6 text-center">
-            <div class="mx-auto h-12 w-12 text-gray-400">
-              <InboxIcon class="h-12 w-12" />
-            </div>
-            <h3 class="mt-2 text-sm font-medium text-gray-900">Aucune proposition</h3>
-            <p class="mt-1 text-sm text-gray-500">
-              Soyez le premier à faire une proposition pour cette demande.
-            </p>
-          </div>
-          
-          <div v-else class="divide-y divide-gray-200">
-            <div 
-              v-for="proposal in proposals" 
-              :key="proposal.id"
-              class="p-6 hover:bg-gray-50 transition-colors"
-            >
-            <div class="flex items-start justify-between">
-                <div class="flex items-center">
-                  <div class="flex-shrink-0">
-                  <img 
-                    v-if="proposal.expert?.avatar_url" 
-                    :src="proposal.expert.avatar_url" 
-                      alt="Expert" 
-                      class="h-10 w-10 rounded-full"
-                  />
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+          <div class="p-6">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <MessageSquare class="h-5 w-5" />
+              Propositions ({{ proposals.length }})
+            </h2>
+
+            <!-- Liste des propositions -->
+            <div class="space-y-4">
+              <div 
+                v-for="proposal in proposals" 
+                :key="proposal.id"
+                class="border dark:border-gray-700 rounded-xl overflow-hidden"
+              >
+                <!-- En-tête avec infos expert -->
+                <div class="p-4 bg-gray-50 dark:bg-gray-700/50">
+                  <div class="flex items-center gap-4">
                     <div 
-                      v-else 
-                      class="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-medium"
+                      v-if="proposal.expert?.avatar_url"
+                      class="w-12 h-12 rounded-full bg-cover bg-center"
+                      :style="{ backgroundImage: `url(${proposal.expert.avatar_url})` }"
+                    ></div>
+                    <div 
+                      v-else
+                      class="w-12 h-12 rounded-full bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center text-primary-600 dark:text-primary-400 font-bold text-xl"
                     >
-                    {{ getInitials(proposal.expert?.first_name, proposal.expert?.last_name) }}
+                      {{ getInitials(proposal.expert?.first_name, proposal.expert?.last_name) }}
                     </div>
-                  </div>
-                  <div class="ml-3">
-                    <p class="text-sm font-medium text-gray-900">
-                      {{ proposal.expert?.first_name }} {{ proposal.expert?.last_name }}
-                    </p>
-                    <div class="flex items-center mt-1">
-                      <div class="flex items-center">
-                        <StarIcon v-for="i in 5" :key="i" class="h-3.5 w-3.5" :class="i <= (proposal.expert?.rating || 0) ? 'text-yellow-400 fill-current' : 'text-gray-300'" />
+
+                    <div class="flex-1">
+                      <div class="flex items-center gap-2">
+                        <h3 class="font-medium text-gray-900 dark:text-white">
+                          {{ proposal.expert?.first_name }} {{ proposal.expert?.last_name }}
+                        </h3>
+                        <span 
+                          class="px-2 py-0.5 rounded-full text-xs font-medium"
+                          :class="getProposalStatusClasses(proposal.status)"
+                        >
+                          {{ getProposalStatusLabel(proposal.status) }}
+                        </span>
                       </div>
-                      <span class="ml-1 text-xs text-gray-500">
-                        ({{ proposal.expert?.review_count || 0 }} avis)
-                      </span>
+                      <p class="text-sm text-gray-500">
+                        Proposition faite le {{ formatDate(proposal.created_at) }}
+                      </p>
                     </div>
                   </div>
                 </div>
-                <div class="text-right">
-                  <div class="text-lg font-bold text-primary-600">
-                    {{ formatPrice(proposal.price) }}
+
+                <!-- Détails de la proposition -->
+                <div class="p-4">
+                  <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                      <div class="text-sm text-gray-500 dark:text-gray-400">Prix proposé</div>
+                      <div class="font-medium text-gray-900 dark:text-white">
+                        {{ formatPrice(proposal.price) }}
+                      </div>
+                    </div>
+                    <div class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                      <div class="text-sm text-gray-500 dark:text-gray-400">Durée estimée</div>
+                      <div class="font-medium text-gray-900 dark:text-white">
+                        {{ proposal.duration }} jour{{ proposal.duration > 1 ? 's' : '' }}
+                      </div>
+                    </div>
                   </div>
-                  <div class="text-sm text-gray-500 mt-1">
-                    {{ proposal.duration }} jours
+
+                  <!-- Message -->
+                  <div class="text-gray-600 dark:text-gray-300 mb-4">
+                    {{ proposal.message }}
+                  </div>
+
+                  <!-- Actions (uniquement pour le client et si la proposition est en attente) -->
+                  <div 
+                    v-if="isOwner && proposal.status === 'pending'"
+                    class="flex items-center gap-3 pt-4 border-t dark:border-gray-700"
+                  >
+                    <button
+                      @click="acceptProposal(proposal.id)"
+                      class="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Check class="h-4 w-4" />
+                      Accepter
+                    </button>
+                    <button
+                      @click="rejectProposal(proposal.id)"
+                      class="flex-1 px-4 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <X class="h-4 w-4" />
+                      Refuser
+                    </button>
                   </div>
                 </div>
               </div>
-              
-              <div class="mt-4 text-sm text-gray-700">
-                {{ proposal.message }}
-              </div>
-              
-              <div class="mt-4 flex justify-between items-center">
-                <span class="text-xs text-gray-500">
-                  {{ formatDate(proposal.created_at) }}
-                </span>
-                
-                <div v-if="isOwner && mission.status === 'open'" class="flex space-x-2">
-                  <button 
-                    @click="acceptProposal(proposal.id)"
-                    class="inline-flex items-center px-3 py-1.5 border border-transparent rounded-full text-xs font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                  >
-                    <Check class="h-3.5 w-3.5 mr-1" />
-                    Accepter
-                  </button>
-                  
-                <button
-                  @click="rejectProposal(proposal.id)"
-                    class="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-full text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                >
-                    <X class="h-3.5 w-3.5 mr-1" />
-                  Refuser
-                </button>
-              </div>
-                
-                <div v-else-if="proposal.status !== 'pending'" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" :class="getProposalStatusClasses(proposal.status)">
-                  {{ getProposalStatusLabel(proposal.status) }}
+
+              <!-- État vide -->
+              <div 
+                v-if="proposals.length === 0"
+                class="text-center py-8 text-gray-500 dark:text-gray-400"
+              >
+                <InboxIcon class="h-12 w-12 mx-auto mb-3" />
+                <p>Aucune proposition reçue pour le moment</p>
               </div>
             </div>
           </div>
@@ -315,7 +325,7 @@
         </div>
       </div>
     </div>
-      </div>
+    
     </main>
   </div>
 </template>
@@ -323,7 +333,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-// import { useSupabaseClient } from '#imports'
+// import { useSupabaseClient, useSupabaseUser } from '#supabase/client'
 import { 
   ArrowLeft, Loader2, AlertCircle, Calendar, Tag, Heart, 
   MessageSquare, Send, Edit, Check, X, Star as StarIcon, Inbox as InboxIcon 
@@ -546,16 +556,18 @@ const submitProposal = async () => {
 }
 
 const acceptProposal = async (proposalId) => {
+  if (!confirm('Êtes-vous sûr de vouloir accepter cette proposition ?')) return
+  
   try {
     // Mettre à jour le statut de la proposition
-    const { error: proposalError } = await supabase
+    const { error: dealError } = await supabase
       .from('deals')
       .update({ status: 'active' })
       .eq('id', proposalId)
     
-    if (proposalError) throw proposalError
+    if (dealError) throw dealError
     
-    // Mettre à jour le statut de la demande
+    // Mettre à jour le statut de la mission
     const { error: missionError } = await supabase
       .from('missions')
       .update({ status: 'assigned' })
@@ -563,23 +575,20 @@ const acceptProposal = async (proposalId) => {
     
     if (missionError) throw missionError
     
-    // Récupérer le contrat créé pour redirection
-    const { data: contractData, error: contractError } = await supabase
-      .from('job_contracts')
-      .select('id')
-      .eq('deal_id', proposalId)
-      .single()
-    
-    if (contractError) throw contractError
+    // Refuser automatiquement les autres propositions
+    const { error: otherDealsError } = await supabase
+      .from('deals')
+      .update({ status: 'rejected' })
+      .eq('mission_id', mission.value.id)
+      .neq('id', proposalId)
+      .eq('status', 'pending')
+
+    if (otherDealsError) throw otherDealsError
     
     // Rafraîchir les données
     await Promise.all([fetchRequest(), fetchProposals()])
     
-    // Afficher une notification de succès
-    alert('Proposition acceptée. Un contrat a été créé.')
-    
-    // Optionnel: Rediriger vers la page du contrat
-    // router.push(`/account/contracts/${contractData.id}`)
+    alert('Proposition acceptée avec succès')
   } catch (err) {
     console.error('Error accepting proposal:', err)
     alert('Une erreur est survenue lors de l\'acceptation de la proposition')
@@ -587,6 +596,8 @@ const acceptProposal = async (proposalId) => {
 }
 
 const rejectProposal = async (proposalId) => {
+  if (!confirm('Êtes-vous sûr de vouloir refuser cette proposition ?')) return
+  
   try {
     const { error } = await supabase
       .from('deals')
@@ -597,6 +608,8 @@ const rejectProposal = async (proposalId) => {
     
     // Rafraîchir les propositions
     await fetchProposals()
+    
+    alert('Proposition refusée')
   } catch (err) {
     console.error('Error rejecting proposal:', err)
     alert('Une erreur est survenue')
@@ -606,7 +619,7 @@ const rejectProposal = async (proposalId) => {
 const getProposalStatusClasses = (status) => {
   const classes = {
     'pending': 'bg-yellow-100 text-yellow-800',
-    'accepted': 'bg-green-100 text-green-800',
+    'active': 'bg-green-100 text-green-800',
     'rejected': 'bg-red-100 text-red-800'
   }
   return classes[status] || 'bg-gray-100 text-gray-800'
@@ -615,7 +628,7 @@ const getProposalStatusClasses = (status) => {
 const getProposalStatusLabel = (status) => {
   const labels = {
     'pending': 'En attente',
-    'accepted': 'Acceptée',
+    'active': 'Acceptée',
     'rejected': 'Refusée'
   }
   return labels[status] || 'Inconnu'

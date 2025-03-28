@@ -193,79 +193,85 @@
       </div>
       
       <div v-else class="space-y-4">
-        <article 
+        <div 
           v-for="mission in filteredMissions" 
           :key="mission.id"
-          class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden transition-all hover:shadow-md"
+          class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden"
         >
-          <!-- En-tête avec profession -->
+          <!-- En-tête avec infos principales -->
           <div class="p-4">
-            <div class="flex items-center justify-between mb-3">
-              <div class="flex items-center gap-2">
-                <div class="w-10 h-10 rounded-full bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center">
-                  <v-icon 
-                    :name="getProfessionIcon(mission.profession?.name)" 
-                    class="text-primary-500"
-                    scale="1.2"
-                  />
-                </div>
-                <div>
-                  <span class="text-sm font-medium text-gray-900 dark:text-white block">
-                    {{ mission.profession?.name }}
-                  </span>
-                  <span class="text-xs text-gray-500 dark:text-gray-400">
-                    {{ formatTimeAgo(mission.created_at) }}
-                  </span>
+            <div class="flex justify-between items-start gap-4">
+              <div class="flex-1 min-w-0">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+                  {{ mission.title }}
+                </h3>
+                <div class="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                  <div class="flex items-center gap-1">
+                    <v-icon name="bi-calendar" />
+                    <span>{{ formatDate(mission.created_at) }}</span>
+                  </div>
+                  <div v-if="mission.profession?.name" class="flex items-center gap-1">
+                    <v-icon name="bi-briefcase" />
+                    <span>{{ mission.profession.name }}</span>
+                  </div>
                 </div>
               </div>
-              <div class="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
-                <span class="flex items-center gap-1">
-                  <v-icon name="bi-eye" />
-                  {{ mission.views_count || 0 }}
-                </span>
-                <span class="flex items-center gap-1">
-                  <v-icon name="bi-people" />
-                  {{ mission.proposals_count || 0 }}
-                </span>
-              </div>
+              <!-- Badge de statut -->
+              <span 
+                class="px-2.5 py-1 rounded-full text-xs font-medium"
+                :class="getMissionStatusClass(mission.status)"
+              >
+                {{ getMissionStatusLabel(mission.status) }}
+              </span>
             </div>
 
-            <!-- Contenu -->
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              {{ mission.title }}
-            </h2>
-            <p class="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
+            <!-- Description -->
+            <p class="mt-3 text-gray-600 dark:text-gray-300 line-clamp-2">
               {{ mission.description }}
             </p>
 
-            <!-- Métadonnées -->
-            <div class="flex flex-wrap items-center gap-4 text-sm">
-              <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400">
-                <v-icon name="bi-currency-dollar" />
-                <span class="font-medium">{{ formatPrice(mission.budget) }}</span>
+            <!-- Budget et deadline -->
+            <div class="mt-4 flex flex-wrap gap-3">
+              <div class="flex items-center gap-2 text-sm">
+                <div class="px-2.5 py-1 rounded-full bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-medium">
+                  {{ formatPrice(mission.budget) }}
+                </div>
               </div>
-              <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                <v-icon name="bi-clock-history" />
-                <span>{{ formatDeliveryTime(mission.delivery_time) }}</span>
-              </div>
-              <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                <v-icon name="bi-geo-alt" />
-                <span>{{ mission.location || 'À distance' }}</span>
+              <div v-if="mission.deadline" class="flex items-center gap-2 text-sm text-gray-500">
+                <v-icon name="bi-clock" />
+                <span>Date limite: {{ formatDate(mission.deadline) }}</span>
               </div>
             </div>
           </div>
 
           <!-- Actions -->
-          <div class="px-4 py-3 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-700">
-            <NuxtLink
-              :to="`/requests/${mission.id}`"
-              class="inline-flex items-center justify-center w-full px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"
-            >
-              <v-icon name="bi-arrow-right" class="mr-2" />
-              Voir les détails
-            </NuxtLink>
+          <div class="px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-100 dark:border-gray-700">
+            <div class="flex items-center justify-between gap-4">
+              <NuxtLink
+                :to="`/requests/${mission.id}`"
+                class="text-sm text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400"
+              >
+                Voir les détails
+              </NuxtLink>
+              
+              <!-- Bouton de proposition -->
+              <button
+                v-if="canMakeProposal(mission)"
+                @click="openProposalModal(mission)"
+                class="inline-flex items-center px-4 py-2 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium transition-all"
+              >
+                <v-icon name="bi-send" class="mr-2" />
+                Faire une proposition
+              </button>
+              <span 
+                v-else-if="hasProposal(mission)"
+                class="text-sm text-gray-500 dark:text-gray-400"
+              >
+                Proposition déjà envoyée
+              </span>
+            </div>
           </div>
-        </article>
+        </div>
 
         <!-- État vide -->
         <div 
@@ -284,12 +290,119 @@
         </div>
       </div>
     </main>
+
+    <!-- Modal de proposition -->
+    <TransitionRoot appear :show="isProposalModalOpen" as="template">
+      <Dialog as="div" @close="closeProposalModal" class="relative z-50">
+        <TransitionChild
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div class="fixed inset-0 bg-black/25 dark:bg-black/40" />
+        </TransitionChild>
+
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild
+              enter="duration-300 ease-out"
+              enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100"
+              leave="duration-200 ease-in"
+              leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95"
+            >
+              <DialogPanel class="w-full max-w-md bg-white dark:bg-gray-800 rounded-xl shadow-xl overflow-hidden">
+                <div class="p-6">
+                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Faire une proposition
+                  </h3>
+
+                  <form @submit.prevent="submitProposal" class="space-y-4">
+                    <!-- Prix proposé -->
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Prix proposé
+                      </label>
+                      <div class="relative">
+                        <input
+                          v-model="proposalForm.price"
+                          type="number"
+                          min="0"
+                          step="1"
+                          required
+                          class="w-full pl-4 pr-12 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900"
+                        />
+                        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">
+                          €
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Durée estimée -->
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Durée estimée (jours)
+                      </label>
+                      <input
+                        v-model="proposalForm.duration"
+                        type="number"
+                        min="1"
+                        required
+                        class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900"
+                      />
+                    </div>
+
+                    <!-- Message -->
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Message
+                      </label>
+                      <textarea
+                        v-model="proposalForm.message"
+                        rows="4"
+                        required
+                        class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900"
+                        placeholder="Décrivez votre approche..."
+                      ></textarea>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex items-center justify-end gap-3 mt-6">
+                      <button
+                        type="button"
+                        @click="closeProposalModal"
+                        class="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300"
+                      >
+                        Annuler
+                      </button>
+                      <button
+                        type="submit"
+                        :disabled="isSubmitting"
+                        class="px-4 py-2 rounded-lg bg-primary-600 hover:bg-primary-700 text-white font-medium disabled:opacity-50"
+                      >
+                        <span v-if="isSubmitting">Envoi en cours...</span>
+                        <span v-else>Envoyer la proposition</span>
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-// import { useSupabaseClient } from '#supabase/client'
+import { Dialog, DialogPanel, TransitionRoot, TransitionChild } from '@headlessui/vue'
+// import { useSupabaseClient, useSupabaseUser } from '#supabase/client'
 import { OhVueIcon as VIcon, addIcons } from 'oh-vue-icons'
 import { 
   BiSearch,
@@ -341,6 +454,7 @@ addIcons(
 )
 
 const supabase = useSupabaseClient()
+const user = useSupabaseUser()
 
 // États
 const missions = ref([])
@@ -517,6 +631,15 @@ const formatTimeAgo = (date) => {
   return `Il y a ${Math.floor(diffDays / 30)} mois`
 }
 
+const formatDate = (date) => {
+  if (!date) return ''
+  return new Date(date).toLocaleDateString('fr-FR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+}
+
 const formatPrice = (price) => {
   if (!price) return 'Prix à définir'
   return new Intl.NumberFormat('fr-FR', {
@@ -529,6 +652,117 @@ const formatPrice = (price) => {
 const formatDeliveryTime = (days) => {
   if (!days) return 'Non spécifié'
   return days === 1 ? '1 jour' : `${days} jours`
+}
+
+// État pour la modal et le formulaire
+const isProposalModalOpen = ref(false)
+const selectedMission = ref(null)
+const isSubmitting = ref(false)
+const proposalForm = ref({
+  price: '',
+  duration: '',
+  message: ''
+})
+
+// Vérifier si l'utilisateur peut faire une proposition
+const canMakeProposal = (mission) => {
+  if (!user.value || !mission) return false
+  return (
+    mission.status === 'open' && 
+    !hasProposal(mission) && 
+    user.value.id !== mission.client_id
+  )
+}
+
+// Vérifier si l'utilisateur a déjà fait une proposition
+const hasProposal = (mission) => {
+  // TODO: Implémenter la vérification des propositions existantes
+  return false
+}
+
+// Ouvrir la modal de proposition
+const openProposalModal = (mission) => {
+  selectedMission.value = mission
+  proposalForm.value = {
+    price: mission.budget || '',
+    duration: '',
+    message: ''
+  }
+  isProposalModalOpen.value = true
+}
+
+// Fermer la modal
+const closeProposalModal = () => {
+  isProposalModalOpen.value = false
+  selectedMission.value = null
+  proposalForm.value = {
+    price: '',
+    duration: '',
+    message: ''
+  }
+}
+
+// Soumettre la proposition
+const submitProposal = async () => {
+  if (!selectedMission.value || !user.value) return
+
+  isSubmitting.value = true
+  try {
+    const { data, error } = await supabase
+      .from('deals')
+      .insert({
+        mission_id: selectedMission.value.id,
+        expert_id: user.value.id,
+        client_id: selectedMission.value.client_id,
+        price: proposalForm.value.price,
+        duration: proposalForm.value.duration,
+        message: proposalForm.value.message,
+        status: 'proposal'
+      })
+
+    if (error) throw error
+
+    // Succès
+    closeProposalModal()
+    // TODO: Afficher une notification de succès
+  } catch (error) {
+    console.error('Erreur lors de l\'envoi de la proposition:', error)
+    // TODO: Afficher une notification d'erreur
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+// Fonction pour obtenir la classe CSS du statut
+const getMissionStatusClass = (status) => {
+  switch (status) {
+    case 'open':
+      return 'bg-green-50 dark:bg-green-900/20 text-green-600'
+    case 'assigned':
+      return 'bg-blue-50 dark:bg-blue-900/20 text-blue-600'
+    case 'completed':
+      return 'bg-gray-50 dark:bg-gray-900/20 text-gray-600'
+    case 'cancelled':
+      return 'bg-red-50 dark:bg-red-900/20 text-red-600'
+    default:
+      return 'bg-gray-50 dark:bg-gray-900/20 text-gray-600'
+  }
+}
+
+// Fonction pour obtenir le libellé du statut
+const getMissionStatusLabel = (status) => {
+  switch (status) {
+    case 'open':
+      return 'Ouverte'
+    case 'assigned':
+      return 'En cours'
+    case 'completed':
+      return 'Terminée'
+    case 'cancelled':
+      return 'Annulée'
+    default:
+      return status
+  }
 }
 
 // Lifecycle

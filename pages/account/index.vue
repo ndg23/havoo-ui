@@ -430,4 +430,8 @@ const getMissionStatusLabel = (status) => {
   }
   return labels[status] || status
 }
+definePageMeta({
+  middleware: 'auth',
+  layout:'account'
+})
 </script>
