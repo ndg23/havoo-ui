@@ -1,203 +1,271 @@
 <template>
-  <div>
-    <PageHeader 
-      title="Journal d'activités"
-      subtitle="Suivi en temps réel des événements et actions sur la plateforme"
-    >
-      <template #actions>
-        <button 
-          @click="exportActivities" 
-          class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-        >
-          <Download class="h-4 w-4 mr-2" />
-          Exporter
-        </button>
-      </template>
-    </PageHeader>
-    
-    <div class="mt-6 space-y-6">
-      <!-- Filtres avancés -->
-      <div class="p-6 bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-100 dark:border-gray-700">
-        <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Filtres</h2>
-        
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type d'activité</label>
-            <select 
-              v-model="filters.type"
-              class="w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm"
-            >
-              <option value="">Tous les types</option>
-              <option value="new_user">Nouveaux utilisateurs</option>
-              <option value="new_mission">Nouvelles demandes</option>
-              <option value="service_completed">Services terminés</option>
-              <option value="payment">Paiements</option>
-              <option value="service_created">Services créés</option>
-              <option value="user_verified">Utilisateurs vérifiés</option>
-              <option value="admin_action">Actions admin</option>
-            </select>
-          </div>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Période</label>
-            <select 
-              v-model="filters.period"
-              class="w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm"
-            >
-              <option value="today">Aujourd'hui</option>
-              <option value="yesterday">Hier</option>
-              <option value="week">7 derniers jours</option>
-              <option value="month">30 derniers jours</option>
-              <option value="custom">Période personnalisée</option>
-            </select>
-          </div>
-          
-          <div v-if="filters.period === 'custom'" class="md:col-span-2 grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date de début</label>
-              <input 
-                type="date" 
-                v-model="filters.startDate"
-                class="w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date de fin</label>
-              <input 
-                type="date" 
-                v-model="filters.endDate"
-                class="w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm"
-              />
-            </div>
-          </div>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Recherche</label>
-            <div class="relative">
-              <span class="absolute inset-y-0 left-0 flex items-center pl-3">
-                <Search class="h-5 w-5 text-gray-500 dark:text-gray-400" />
-              </span>
-              <input 
-                type="text" 
-                v-model="filters.search"
-                placeholder="Rechercher par mots-clés..."
-                class="w-full pl-10 pr-4 py-2 rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm"
-              />
-            </div>
-          </div>
-        </div>
-        
-        <div class="mt-4 flex justify-end">
-          <button 
-            @click="resetFilters"
-            class="px-4 py-2 mr-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700"
-          >
-            Réinitialiser
-          </button>
-          <button 
-            @click="loadActivities"
-            class="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-md shadow-sm"
-          >
-            Appliquer
-          </button>
-        </div>
+  <div class="space-y-6 p-4 sm:p-6 lg:p-8">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Journal d'activités</h1>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Suivi en temps réel des événements et actions sur la plateforme
+        </p>
       </div>
       
-      <!-- Tableau d'activités -->
-      <ActivityTable 
-        :activities="activities"
-        :is-loading="isLoading"
-        :current-page="pagination.page"
-        :total-pages="pagination.totalPages"
-        :total-items="pagination.total"
-        :items-per-page="pagination.perPage"
-        title="Journal d'activités"
-        @page-change="handlePageChange"
-        @view-details="viewActivityDetails"
-      />
+      <div class="flex items-center gap-3">
+        <UButton
+          icon="i-heroicons-funnel"
+          color="gray"
+          variant="ghost"
+          class="h-10 w-10 rounded-full"
+          @click="showFilters = !showFilters"
+        />
+        <UButton
+          icon="i-heroicons-arrow-down-tray"
+          label="Exporter"
+          class="rounded-full"
+          @click="exportActivities"
+        />
+      </div>
     </div>
-    
-    <!-- Modal de détails d'activité -->
-    <teleport to="body">
-      <div v-if="showDetailsModal" class="fixed inset-0 z-50 overflow-y-auto">
-        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-          <div class="fixed inset-0 transition-opacity" @click="showDetailsModal = false">
-            <div class="absolute inset-0 bg-gray-500 dark:bg-gray-900 opacity-75"></div>
+
+    <!-- Filtres -->
+    <UCard v-if="showFilters">
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <!-- Type d'activité -->
+        <USelect
+          v-model="filters.type"
+          :options="activityTypes"
+          option-attribute="label"
+          value-attribute="value"
+          placeholder="Tous les types"
+          class="w-full"
+          icon="i-heroicons-tag"
+          clearable
+        />
+
+        <!-- Période -->
+        <USelect
+          v-model="filters.period"
+          :options="periodOptions"
+          option-attribute="label"
+          value-attribute="value"
+          placeholder="Sélectionner une période"
+          class="w-full"
+          icon="i-heroicons-calendar"
+        />
+
+        <!-- Dates personnalisées -->
+        <template v-if="filters.period === 'custom'">
+          <UInput
+            v-model="filters.startDate"
+            type="date"
+            icon="i-heroicons-calendar-days"
+            class="w-full"
+          />
+          <UInput
+            v-model="filters.endDate"
+            type="date"
+            icon="i-heroicons-calendar-days"
+            class="w-full"
+          />
+        </template>
+
+        <!-- Recherche -->
+        <UInput
+          v-model="filters.search"
+          icon="i-heroicons-magnifying-glass"
+          placeholder="Rechercher..."
+          class="w-full"
+          clearable
+        />
+      </div>
+
+      <div class="flex justify-end gap-3 mt-6">
+        <UButton
+          color="gray"
+          variant="ghost"
+          label="Réinitialiser"
+          icon="i-heroicons-arrow-path"
+          class="rounded-full"
+          @click="resetFilters"
+        />
+        <UButton
+          color="primary"
+          label="Appliquer"
+          icon="i-heroicons-check"
+          class="rounded-full"
+          @click="loadActivities"
+        />
+      </div>
+    </UCard>
+
+    <!-- Table -->
+    <UCard>
+      <UTable
+        :rows="activities || []"
+        :columns="columns"
+        :loading="isLoading"
+        :sort="sort"
+        @update:sort="updateSort"
+        :search-value="filters.search"
+        @update:search-value="filters.search = $event"
+      >
+        <!-- Loading state -->
+        <template #loading>
+          <div class="flex items-center justify-center p-4">
+            <UIcon name="i-heroicons-arrow-path" class="h-6 w-6 animate-spin" />
           </div>
-          
-          <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
-          
-          <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-            <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-              <div class="sm:flex sm:items-start">
-                <div 
-                  class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full sm:mx-0 sm:h-10 sm:w-10"
-                  :class="selectedActivity ? getActivityTypeClass(selectedActivity.type) : 'bg-gray-500'"
-                >
-                  <component 
-                    :is="selectedActivity ? getActivityTypeIcon(selectedActivity.type) : AlertCircle" 
-                    class="h-6 w-6 text-white" 
-                  />
-                </div>
-                
-                <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                  <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
-                    {{ selectedActivity ? selectedActivity.title : 'Détails de l\'activité' }}
-                  </h3>
-                  <div class="mt-2">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">
-                      {{ selectedActivity ? selectedActivity.description : '' }}
-                    </p>
-                    
-                    <div v-if="selectedActivity" class="mt-4">
-                      <div class="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <p class="text-gray-500 dark:text-gray-400">Type:</p>
-                          <p class="font-medium text-gray-900 dark:text-white">{{ formatActivityType(selectedActivity.type) }}</p>
-                        </div>
-                        <div>
-                          <p class="text-gray-500 dark:text-gray-400">Date:</p>
-                          <p class="font-medium text-gray-900 dark:text-white">{{ formatDetailDate(selectedActivity.created_at) }}</p>
-                        </div>
-                        <div v-if="selectedActivity.user">
-                          <p class="text-gray-500 dark:text-gray-400">Utilisateur:</p>
-                          <p class="font-medium text-gray-900 dark:text-white">{{ selectedActivity.user.name }}</p>
-                        </div>
-                        <div v-if="selectedActivity.related_type">
-                          <p class="text-gray-500 dark:text-gray-400">Objet lié:</p>
-                          <p class="font-medium text-gray-900 dark:text-white">{{ formatRelatedType(selectedActivity.related_type) }}</p>
-                        </div>
-                      </div>
-                      
-                      <div v-if="selectedActivity.metadata && Object.keys(selectedActivity.metadata).length > 0" class="mt-4">
-                        <p class="text-gray-500 dark:text-gray-400 mb-2">Métadonnées:</p>
-                        <pre class="text-xs bg-gray-50 dark:bg-gray-900 p-3 rounded overflow-auto max-h-40">{{ JSON.stringify(selectedActivity.metadata, null, 2) }}</pre>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+        </template>
+
+        <!-- Empty state -->
+        <template #empty>
+          <div class="flex flex-col items-center justify-center py-6 px-4 text-center">
+            <UIcon name="i-heroicons-inbox" class="h-12 w-12 text-gray-400 dark:text-gray-500 mb-3" />
+            <p class="text-gray-500 dark:text-gray-400">Aucune activité trouvée</p>
+          </div>
+        </template>
+
+        <!-- Custom cell templates -->
+        <template #type-data="{ row }">
+          <div class="flex items-center gap-2">
+            <UAvatar
+              :icon="getActivityTypeIcon(row.type)"
+              size="sm"
+              :class="getActivityTypeClass(row.type)"
+            />
+            <span>{{ formatActivityType(row.type) }}</span>
+          </div>
+        </template>
+
+        <template #user-data="{ row }">
+          <div v-if="row.user" class="flex items-center gap-2">
+            <UAvatar
+              :src="row.user.avatar_url"
+              :alt="row.user.name"
+              :text="getInitials(row.user.name)"
+              size="sm"
+            />
+            <div>
+              <div class="font-medium text-gray-900 dark:text-white">
+                {{ row.user.name }}
+              </div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">
+                {{ row.user.email }}
               </div>
             </div>
-            <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-              <button 
-                @click="showDetailsModal = false"
-                class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-              >
-                Fermer
-              </button>
+          </div>
+          <span v-else class="text-gray-400">-</span>
+        </template>
+
+        <template #description-data="{ row }">
+          <div class="max-w-md">
+            <div class="font-medium text-gray-900 dark:text-white">
+              {{ row.title }}
+            </div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">
+              {{ row.description }}
             </div>
           </div>
-        </div>
+        </template>
+
+        <template #date-data="{ row }">
+          <div class="whitespace-nowrap">
+            {{ formatDate(row.created_at) }}
+          </div>
+        </template>
+
+        <template #actions-data="{ row }">
+          <UButton
+            color="gray"
+            variant="ghost"
+            icon="i-heroicons-eye"
+            class="h-8 w-8 rounded-full"
+            @click="viewActivityDetails(row)"
+          />
+        </template>
+      </UTable>
+
+      <!-- Pagination -->
+      <div class="mt-4 flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-800">
+        <UPagination
+          v-model="pagination.page"
+          :total="pagination.total"
+          :per-page="pagination.perPage"
+          class="flex-1 flex justify-center sm:justify-end"
+        />
       </div>
-    </teleport>
+    </UCard>
+
+    <!-- Modal de détails -->
+    <UModal v-model="showDetailsModal" :ui="{ width: 'sm:max-w-2xl' }">
+      <UCard>
+        <template #header>
+          <div class="flex items-center gap-4">
+            <UAvatar
+              :icon="selectedActivity ? getActivityTypeIcon(selectedActivity.type) : 'i-heroicons-information-circle'"
+              size="lg"
+              :class="selectedActivity ? getActivityTypeClass(selectedActivity.type) : ''"
+            />
+            <div>
+              <h3 class="text-lg font-semibold">
+                {{ selectedActivity?.title || 'Détails de l\'activité' }}
+              </h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                {{ formatDate(selectedActivity?.created_at) }}
+              </p>
+            </div>
+          </div>
+        </template>
+
+        <div v-if="selectedActivity" class="space-y-6">
+          <div class="prose dark:prose-invert max-w-none">
+            <p>{{ selectedActivity.description }}</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Type</div>
+              <div class="mt-1">{{ formatActivityType(selectedActivity.type) }}</div>
+            </div>
+            <div v-if="selectedActivity.user">
+              <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Utilisateur</div>
+              <div class="mt-1 flex items-center gap-2">
+                <UAvatar
+                  :src="selectedActivity.user.avatar_url"
+                  :alt="selectedActivity.user.name"
+                  :text="getInitials(selectedActivity.user.name)"
+                  size="sm"
+                />
+                <span>{{ selectedActivity.user.name }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="selectedActivity.metadata">
+            <div class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Métadonnées</div>
+            <pre class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg overflow-auto text-xs">{{ JSON.stringify(selectedActivity.metadata, null, 2) }}</pre>
+          </div>
+        </div>
+
+        <template #footer>
+          <div class="flex justify-end">
+            <UButton
+              color="gray"
+              variant="ghost"
+              label="Fermer"
+              @click="showDetailsModal = false"
+            />
+          </div>
+        </template>
+      </UCard>
+    </UModal>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { format, parseISO, subDays, startOfDay, endOfDay } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { useActivityService } from '~/services/activityService'
+import { useSupabaseClient } from '#imports'
 import { 
   Search, 
   Download, 
@@ -215,19 +283,21 @@ import ActivityTable from '~/components/admin/ActivityTable.vue'
 
 // Service d'activités
 const activityService = useActivityService()
+const supabase = useSupabaseClient()
 
 // État
 const activities = ref([])
-const isLoading = ref(false)
+const isLoading = ref(true)
+const showFilters = ref(false)
 const showDetailsModal = ref(false)
 const selectedActivity = ref(null)
+const sort = ref({ column: 'created_at', direction: 'desc' })
 
 // Pagination
 const pagination = reactive({
   page: 1,
   perPage: 10,
-  total: 0,
-  totalPages: 1
+  total: 0
 })
 
 // Filtres
@@ -235,215 +305,206 @@ const filters = reactive({
   type: '',
   period: 'week',
   search: '',
-  startDate: format(subDays(new Date(), 7), 'yyyy-MM-dd'),
-  endDate: format(new Date(), 'yyyy-MM-dd')
+  startDate: '',
+  endDate: ''
 })
 
-// Charger les activités
+// Options pour les filtres
+const activityTypes = [
+  { label: 'Nouveaux utilisateurs', value: 'new_user' },
+  { label: 'Nouvelles missions', value: 'new_mission' },
+  { label: 'Services terminés', value: 'service_completed' },
+  { label: 'Paiements', value: 'payment' },
+  { label: 'Services créés', value: 'service_created' },
+  { label: 'Utilisateurs vérifiés', value: 'user_verified' },
+  { label: 'Actions admin', value: 'admin_action' }
+]
+
+const periodOptions = [
+  { label: 'Aujourd\'hui', value: 'today' },
+  { label: 'Hier', value: 'yesterday' },
+  { label: '7 derniers jours', value: 'week' },
+  { label: '30 derniers jours', value: 'month' },
+  { label: 'Période personnalisée', value: 'custom' }
+]
+
+// Colonnes de la table
+const columns = [
+  {
+    key: 'type',
+    label: 'Type',
+    sortable: true
+  },
+  {
+    key: 'title',
+    label: 'Titre',
+    sortable: true
+  },
+  {
+    key: 'description',
+    label: 'Description',
+    sortable: false
+  },
+  {
+    key: 'user',
+    label: 'Utilisateur',
+    sortable: false
+  },
+  {
+    key: 'created_at',
+    label: 'Date',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: '',
+    sortable: false
+  }
+]
+
+// Chargement des données
 const loadActivities = async () => {
+  isLoading.value = true
   try {
-    isLoading.value = true
-    
-    // Calcul de l'offset pour la pagination
-    const offset = (pagination.page - 1) * pagination.perPage
-    
-    // Préparer les dates si une période est sélectionnée
-    let dateFilter = null
-    if (filters.period !== 'custom') {
-      const endDate = new Date()
-      let startDate = new Date()
-      
-      switch (filters.period) {
-        case 'today':
-          startDate = startOfDay(endDate)
-          break
-        case 'yesterday':
-          startDate = startOfDay(subDays(endDate, 1))
-          endDate = endOfDay(subDays(endDate, 1))
-          break
-        case 'week':
-          startDate = subDays(endDate, 7)
-          break
-        case 'month':
-          startDate = subDays(endDate, 30)
-          break
-      }
-      
-      dateFilter = {
-        start: startDate.toISOString(),
-        end: endDate.toISOString()
-      }
-    } else if (filters.startDate && filters.endDate) {
-      // Utiliser les dates personnalisées
-      const startDate = new Date(filters.startDate)
-      const endDate = new Date(filters.endDate)
-      endDate.setHours(23, 59, 59, 999) // Fin de journée
-      
-      dateFilter = {
-        start: startDate.toISOString(),
-        end: endDate.toISOString()
-      }
-    }
-    
-    // Pour l'instant, on charge toutes les activités (à remplacer par une requête filtrée)
-    // Dans une vraie implémentation, tous ces filtres seraient passés au backend
-    let data = await activityService.getRecentActivities(100, 0, filters.type || null)
-    
-    // Filtrage côté client (à remplacer par une requête filtrée)
-    if (dateFilter) {
-      data = data.filter(activity => {
-        const activityDate = new Date(activity.created_at)
-        return activityDate >= new Date(dateFilter.start) && activityDate <= new Date(dateFilter.end)
-      })
-    }
-    
-    if (filters.search) {
-      const search = filters.search.toLowerCase()
-      data = data.filter(activity => 
-        activity.title.toLowerCase().includes(search) || 
-        activity.description.toLowerCase().includes(search) ||
-        (activity.user && activity.user.name.toLowerCase().includes(search))
+    let query = supabase
+      .from('activities')
+      .select(`
+        *,
+        user:profiles(*)
+      `, { count: 'exact' })
+      .order(sort.value.column, { ascending: sort.value.direction === 'asc' })
+      .range(
+        (pagination.page - 1) * pagination.perPage,
+        pagination.page * pagination.perPage - 1
       )
+
+    // Appliquer les filtres
+    if (filters.type) {
+      query = query.eq('type', filters.type)
     }
+
+    if (filters.search) {
+      query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`)
+    }
+
+    const { data, error, count } = await query
+
+    if (error) throw error
+
+    activities.value = data?.map(activity => ({
+      ...activity,
+      user: activity.user || null
+    })) || []
     
-    // Mise à jour des données
-    pagination.total = data.length
-    pagination.totalPages = Math.ceil(data.length / pagination.perPage)
-    
-    // Paginer les résultats
-    activities.value = data.slice(offset, offset + pagination.perPage)
-    
+    pagination.total = count || 0
   } catch (error) {
-    console.error('Erreur lors du chargement des activités:', error)
+    console.error('Error loading activities:', error)
+    activities.value = []
+    pagination.total = 0
   } finally {
     isLoading.value = false
   }
 }
 
-// Réinitialiser les filtres
-const resetFilters = () => {
-  filters.type = ''
-  filters.period = 'week'
-  filters.search = ''
-  filters.startDate = format(subDays(new Date(), 7), 'yyyy-MM-dd')
-  filters.endDate = format(new Date(), 'yyyy-MM-dd')
+// Helpers
+const formatDate = (date) => {
+  if (!date) return ''
+  try {
+    return format(new Date(date), 'dd MMM yyyy HH:mm', { locale: fr })
+  } catch (error) {
+    console.error('Error formatting date:', error)
+    return date
+  }
 }
 
-// Gérer le changement de page
-const handlePageChange = (page) => {
-  pagination.page = page
+const getActivityTypeIcon = (type) => {
+  if (!type) return 'i-heroicons-bell'
+  const icons = {
+    new_user: 'i-heroicons-user-plus',
+    new_mission: 'i-heroicons-briefcase',
+    service_completed: 'i-heroicons-check-circle',
+    payment: 'i-heroicons-currency-euro',
+    service_created: 'i-heroicons-plus-circle',
+    user_verified: 'i-heroicons-shield-check',
+    admin_action: 'i-heroicons-cog'
+  }
+  return icons[type] || 'i-heroicons-bell'
+}
+
+const getActivityTypeClass = (type) => {
+  if (!type) return 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+  const classes = {
+    new_user: 'bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400',
+    new_mission: 'bg-green-100 text-green-600 dark:bg-green-900/50 dark:text-green-400',
+    service_completed: 'bg-purple-100 text-purple-600 dark:bg-purple-900/50 dark:text-purple-400',
+    payment: 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/50 dark:text-yellow-400',
+    service_created: 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-400',
+    user_verified: 'bg-teal-100 text-teal-600 dark:bg-teal-900/50 dark:text-teal-400',
+    admin_action: 'bg-gray-100 text-gray-600 dark:bg-gray-900/50 dark:text-gray-400'
+  }
+  return classes[type] || 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+}
+
+const formatActivityType = (type) => {
+  if (!type) return ''
+  const labels = {
+    new_user: 'Nouvel utilisateur',
+    new_mission: 'Nouvelle mission',
+    service_completed: 'Service terminé',
+    payment: 'Paiement',
+    service_created: 'Service créé',
+    user_verified: 'Utilisateur vérifié',
+    admin_action: 'Action admin'
+  }
+  return labels[type] || type
+}
+
+const getInitials = (name) => {
+  if (!name) return ''
+  return name
+    .split(' ')
+    .map(word => word[0])
+    .join('')
+    .toUpperCase()
+}
+
+// Actions
+const updateSort = (newSort) => {
+  sort.value = newSort
   loadActivities()
 }
 
-// Afficher les détails d'une activité
 const viewActivityDetails = (activity) => {
   selectedActivity.value = activity
   showDetailsModal.value = true
 }
 
-// Exporter les activités
+const resetFilters = () => {
+  Object.assign(filters, {
+    type: '',
+    period: 'week',
+    search: '',
+    startDate: '',
+    endDate: ''
+  })
+  loadActivities()
+}
+
 const exportActivities = () => {
-  try {
-    // Créer un CSV avec les activités filtrées
-    const csvContent = [
-      // En-têtes
-      ['Type', 'Titre', 'Description', 'Utilisateur', 'Date', 'Objet lié'].join(','),
-      // Données
-      ...activities.value.map(activity => [
-        formatActivityType(activity.type),
-        `"${activity.title.replace(/"/g, '""')}"`,
-        `"${activity.description.replace(/"/g, '""')}"`,
-        activity.user ? `"${activity.user.name.replace(/"/g, '""')}"` : '',
-        formatDetailDate(activity.created_at),
-        activity.related_type ? formatRelatedType(activity.related_type) : ''
-      ].join(','))
-    ].join('\n')
-    
-    // Créer un blob et un lien de téléchargement
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.setAttribute('href', url)
-    link.setAttribute('download', `activites_${format(new Date(), 'yyyyMMdd')}.csv`)
-    link.style.visibility = 'hidden'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  } catch (error) {
-    console.error('Erreur lors de l\'exportation des activités:', error)
-  }
+  // Implémenter l'export
+  console.log('Export activities')
 }
 
-// Formater les types d'activité pour l'affichage
-const formatActivityType = (type) => {
-  switch (type) {
-    case 'new_user': return 'Nouvel utilisateur'
-    case 'new_mission': return 'Nouvelle demande'
-    case 'service_completed': return 'Service terminé'
-    case 'payment': return 'Paiement'
-    case 'service_created': return 'Service créé'
-    case 'user_verified': return 'Utilisateur vérifié'
-    case 'admin_action': return 'Action administrative'
-    default: return type
-  }
-}
+// Watch pagination changes
+watch(() => pagination.page, () => {
+  loadActivities()
+})
 
-// Formater les types d'objets liés pour l'affichage
-const formatRelatedType = (type) => {
-  switch (type) {
-    case 'user': return 'Utilisateur'
-    case 'mission': return 'Demande'
-    case 'service': return 'Service'
-    case 'payment': return 'Paiement'
-    default: return type
-  }
-}
-
-// Formater la date détaillée
-const formatDetailDate = (dateString) => {
-  try {
-    const date = parseISO(dateString)
-    return format(date, 'dd MMMM yyyy à HH:mm:ss', { locale: fr })
-  } catch (error) {
-    console.error('Erreur de formatage de date:', error)
-    return dateString
-  }
-}
-
-// Récupérer l'icône pour un type d'activité
-const getActivityTypeIcon = (type) => {
-  switch (type) {
-    case 'new_user': return UserPlus
-    case 'new_mission': return MessageSquare
-    case 'service_completed': return CheckCircle
-    case 'payment': return DollarSign
-    case 'service_created': return Package
-    case 'user_verified': return Shield
-    case 'admin_action': return Settings
-    default: return AlertCircle
-  }
-}
-
-// Récupérer la classe CSS pour un type d'activité
-const getActivityTypeClass = (type) => {
-  switch (type) {
-    case 'new_user': return 'bg-green-500'
-    case 'new_mission': return 'bg-blue-500'
-    case 'service_completed': return 'bg-purple-500'
-    case 'payment': return 'bg-amber-500'
-    case 'service_created': return 'bg-indigo-500'
-    case 'user_verified': return 'bg-teal-500'
-    case 'admin_action': return 'bg-gray-500'
-    default: return 'bg-gray-400'
-  }
-}
-
-// Initialisation
+// Initial load
 onMounted(() => {
   loadActivities()
 })
 
-// Configuration de la page
 definePageMeta({
   layout: 'admin'
 })

@@ -49,6 +49,8 @@ import {
   BiStar,
   BiChatText,
   RiDashboard3Line,
+  LaClock,
+  IoBriefcaseOutline,
   FaRegularHandshake// List settings
 } from "oh-vue-icons/icons";
 
@@ -65,6 +67,8 @@ addIcons(
   BiStarFill,
   RiSettings4Fill,
   BiChatText,
+  LaClock,
+  IoBriefcaseOutline,
   RiDashboard3Line,
   RiDatabase2Fill,
   RiHome4Fill,

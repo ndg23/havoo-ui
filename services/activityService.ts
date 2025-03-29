@@ -13,21 +13,11 @@ export default class ActivityService {
    * @param type Filtrer par type d'activité
    * @returns Liste des activités récentes
    */
-  async getRecentActivities(limit = 10, offset = 0, type = null) {
+  async getRecentActivities(limit = 10, offset = 0, type = null, startDate = null, endDate = null) {
     try {
       let query = this.supabase
         .from('activities')
-        .select(`
-          id,
-          created_at,
-          type,
-          title,
-          description,
-          user_id,
-          related_id,
-          related_type,
-          metadata,
-          profiles:user_id(id, first_name, last_name, avatar_url)
+        .select(`*
         `)
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1)

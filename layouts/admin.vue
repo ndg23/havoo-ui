@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-white dark:bg-black">
+  <div class="min-h-screen bg-white dark:bg-black wrapper">
     <div class="flex">
       <!-- Sidebar Admin Twitter-style -->
       <aside class="hidden md:flex h-screen w-72 lg:w-80 fixed flex-col py-4 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950">
@@ -170,146 +170,100 @@
         </div>
       </div>
       
-      <!-- Contenu principal -->
-      <main class="flex-1 md:ml-72 lg:ml-80 min-h-screen pb-16 md:pb-0">
-        <!-- Header mobile -->
-        <header class="md:hidden flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 sticky top-0 z-40">
-          <div class="flex items-center">
+      <!-- Header Mobile -->
+      <header class="md:hidden fixed top-0 left-0 right-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800">
+        <div class="flex items-center justify-between p-4">
+          <div class="flex items-center gap-3">
+            <UButton
+              icon="i-heroicons-bars-3"
+              color="gray"
+              variant="ghost"
+              class="h-10 w-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+              @click="isMobileMenuOpen = true"
+            />
             <h1 class="font-bold text-xl">{{ getPageTitle() }}</h1>
-            <div class="ml-2 px-2 py-0.5 bg-gray-800 dark:bg-gray-700 rounded text-xs font-bold text-white">
-              ADMIN
-            </div>
           </div>
-          <button @click="isMobileMenuOpen = true" class="p-2">
-            <div class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
-              <v-icon name="ri-shield-user-fill" class="h-4 w-4" />
-            </div>
-          </button>
-        </header>
-        
-        <!-- Menu mobile slide-out -->
+          <UButton
+            icon="i-heroicons-user-circle"
+            color="gray"
+            variant="ghost"
+            class="h-10 w-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+          />
+        </div>
+      </header>
+
+      <!-- Sidebar Mobile -->
+      <div 
+        class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 transition-opacity duration-300"
+        :class="isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'"
+        @click="isMobileMenuOpen = false"
+      >
         <div 
-          v-if="isMobileMenuOpen" 
-          class="fixed inset-0 z-50 md:hidden"
+          class="fixed inset-y-0 left-0 w-[280px] bg-white dark:bg-gray-900 transform transition-transform duration-300 ease-out"
+          :class="isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'"
+          @click.stop
         >
-          <!-- Backdrop -->
-          <div 
-            class="absolute inset-0 bg-black/50" 
-            @click="isMobileMenuOpen = false"
-          ></div>
-          
-          <!-- Menu slide-in -->
-          <div class="absolute top-0 left-0 h-full w-4/5 max-w-xs bg-white dark:bg-gray-900 transform transition-transform duration-300 ease-in-out animate-slide-in">
-            <div class="p-4 flex justify-between items-center border-b border-gray-200 dark:border-gray-800">
-              <div class="flex items-center">
-                <Logo :small="true" />
-                <div class="ml-2 px-2 py-0.5 bg-gray-800 dark:bg-gray-700 rounded text-xs font-bold text-white">
-                  ADMIN
-                </div>
-              </div>
-              <button @click="isMobileMenuOpen = false" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
-                <v-icon name="ri-close-fill" class="h-6 w-6 text-gray-500 dark:text-gray-400" />
-              </button>
+          <!-- Sidebar Content -->
+          <div class="flex flex-col h-full">
+            <!-- Header -->
+            <div class="p-4 flex items-center justify-between border-b border-gray-200 dark:border-gray-800">
+              <Logo class="h-8" />
+              <UButton
+                icon="i-heroicons-x-mark"
+                color="gray"
+                variant="ghost"
+                class="h-10 w-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+                @click="isMobileMenuOpen = false"
+              />
             </div>
-            
-            <div class="p-4">
-              <div class="flex items-center mb-6">
-                <div class="h-14 w-14 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold mr-3">
-                  <v-icon name="ri-shield-user-fill" class="h-7 w-7" />
-                </div>
-                <div>
-                  <div class="font-bold text-lg">{{ adminName || 'Admin' }}</div>
-                  <div class="text-gray-500 dark:text-gray-400">
-                    Administrateur
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Sections de navigation mobile -->
-              <div class="space-y-6">
-                <!-- Vue d'ensemble -->
-                <div>
-                  <div class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
-                    Vue d'ensemble
-                  </div>
-                  <nav class="space-y-1">
-                    <NuxtLink 
-                      v-for="item in dashboardItems" 
-                      :key="item.to" 
-                      :to="item.to"
-                      class="flex items-center p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                      :class="route.path === item.to ? 'font-bold' : 'font-medium text-gray-700 dark:text-gray-300'"
-                      @click="isMobileMenuOpen = false"
-                    >
-                      <v-icon :name="item.icon" class="h-6 w-6 mr-3" :class="route.path === item.to ? 'text-blue-500' : ''" />
-                      <span>{{ item.label }}</span>
-                    </NuxtLink>
-                  </nav>
-                </div>
-                
-                <!-- Gestion -->
-                <div>
-                  <div class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
-                    Gestion
-                  </div>
-                  <nav class="space-y-1">
-                    <NuxtLink 
-                      v-for="item in managementItems" 
-                      :key="item.to" 
-                      :to="item.to"
-                      class="flex items-center p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                      :class="route.path.includes(item.to) ? 'font-bold' : 'font-medium text-gray-700 dark:text-gray-300'"
-                      @click="isMobileMenuOpen = false"
-                    >
-                      <v-icon :name="item.icon" class="h-6 w-6 mr-3" :class="route.path.includes(item.to) ? 'text-blue-500' : ''" />
-                      <span>{{ item.label }}</span>
-                    </NuxtLink>
-                  </nav>
-                </div>
-                
-                <!-- Configuration -->
-                <div>
-                  <div class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
-                    Configuration
-                  </div>
-                  <nav class="space-y-1">
-                    <NuxtLink 
-                      v-for="item in configItems" 
-                      :key="item.to" 
-                      :to="item.to"
-                      class="flex items-center p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                      :class="route.path === item.to ? 'font-bold' : 'font-medium text-gray-700 dark:text-gray-300'"
-                      @click="isMobileMenuOpen = false"
-                    >
-                      <v-icon :name="item.icon" class="h-6 w-6 mr-3" :class="route.path === item.to ? 'text-blue-500' : ''" />
-                      <span>{{ item.label }}</span>
-                    </NuxtLink>
-                  </nav>
-                </div>
-              </div>
-              
-              <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-800">
-                <NuxtLink 
-                  to="/" 
-                  class="flex items-center w-full p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 font-medium"
+
+            <!-- Navigation -->
+            <div class="flex-1 overflow-y-auto">
+              <nav class="p-4 space-y-1">
+                <NuxtLink
+                  v-for="item in navigationItems"
+                  :key="item.to"
+                  :to="item.to"
+                  class="flex items-center gap-3 p-3 rounded-full transition-colors text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  :class="route.path === item.to ? 'font-bold bg-gray-100 dark:bg-gray-800' : ''"
                   @click="isMobileMenuOpen = false"
                 >
-                  <v-icon name="ri-arrow-left-line" class="h-6 w-6 mr-3" />
-                  <span>Retour au site</span>
+                  <v-icon 
+                    :name="item.icon" 
+                    class="h-6 w-6"
+                    :class="route.path === item.to ? 'text-primary-500' : ''"
+                  />
+                  {{ item.label }}
                 </NuxtLink>
-                
-                <button 
-                  @click="logout"
-                  class="flex items-center w-full p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-red-600 dark:text-red-400 font-medium mt-2"
+              </nav>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-4 border-t border-gray-200 dark:border-gray-800">
+              <div class="space-y-2">
+                <NuxtLink
+                  to="/"
+                  class="flex items-center gap-3 p-3 rounded-full text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  @click="isMobileMenuOpen = false"
                 >
-                  <v-icon name="ri-logout-box-r-line" class="h-6 w-6 mr-3" />
-                  <span>Déconnexion</span>
+                  <v-icon name="ri-arrow-left-line" class="h-6 w-6" />
+                  Retour au site
+                </NuxtLink>
+                <button
+                  @click="logout"
+                  class="w-full flex items-center gap-3 p-3 rounded-full text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  <v-icon name="ri-logout-box-r-line" class="h-6 w-6" />
+                  Déconnexion
                 </button>
               </div>
             </div>
           </div>
         </div>
-        
+      </div>
+      
+      <!-- Contenu principal -->
+      <main class="flex-1 md:ml-72 lg:ml-80 min-h-screen pb-16 md:pb-0">
         <!-- Contenu de la page admin -->
         <div class="p-4 md:p-8 max-w-7xl mx-auto">
           <slot />
@@ -409,12 +363,13 @@ const managementItems = computed(() => [
   // { to: '/admin/experts', label: 'Experts', icon: 'ri-user-star-fill' },
   
   // Gestion des missions et deals
-  { to: '/admin/missions', label: 'Missions', icon: 'bi-file-earmark-text' },
+  { to: '/admin/missions', label: 'Missions', icon: 'io-briefcase-outline' },
   { to: '/admin/deals', label: 'Deals', icon: 'fa-regular-handshake' },
   
   // Gestion du catalogue
   { to: '/admin/professions', label: 'Professions', icon: 'la-graduation-cap-solid' },
-  { to: '/admin/skills', label: 'Compétences', icon: 'bi-star' },
+    { to: '/admin/skills', label: 'Compétences', icon: 'bi-star' },
+  { to: '/admin/activities', label: 'Activités', icon: 'la-clock' },
   
   // Communication
   // { to: '/admin/conversations', label: 'Conversations', icon: 'ri-message2-fill' },
@@ -444,21 +399,68 @@ const logout = async () => {
     console.error('Erreur lors de la déconnexion:', error)
   }
 }
+
+const navigationLinks = [
+  {
+    to: '/admin',
+    icon: 'i-heroicons-home',
+    label: 'Tableau de bord'
+  },
+  {
+    to: '/admin/activities',
+    icon: 'i-heroicons-clock',
+    label: 'Activités'
+  },
+  {
+    to: '/admin/users',
+    icon: 'i-heroicons-users',
+    label: 'Utilisateurs'
+  },
+  {
+    to: '/admin/missions',
+    icon: 'i-heroicons-briefcase',
+    label: 'Missions'
+  }
+  // ... autres liens ...
+]
+
+const isActiveRoute = (path) => {
+  if (path === '/admin') {
+    return route.path === path
+  }
+  return route.path.startsWith(path)
+}
 </script>
 
 <style scoped>
-/* Effet de transition pour le menu mobile */
-@keyframes slide-in {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(0); }
-}
-
-.animate-slide-in {
-  animation: slide-in 0.3s ease-out forwards;
+/* Supprimer le padding du bas sur mobile */
+@media (max-width: 768px) {
+  main {
+    padding-bottom: 0 !important;
+  }
 }
 
 /* Prévenir le scrolling quand le menu mobile est ouvert */
 :global(body) {
   overflow: v-bind(isMobileMenuOpen ? 'hidden' : 'auto');
+}
+
+/* Nouveaux styles pour corriger l'overflow */
+.wrapper {
+  @apply min-h-screen w-full overflow-x-hidden;
+}
+
+main {
+  @apply w-full overflow-x-hidden;
+}
+
+/* Ajustements pour le menu mobile */
+.dialog-panel {
+  @apply w-[280px] max-w-[80vw] h-[100dvh] overflow-hidden;
+}
+
+/* Ajustements pour le contenu scrollable */
+.mobile-menu-content {
+  @apply flex-1 overflow-y-auto overflow-x-hidden;
 }
 </style> 

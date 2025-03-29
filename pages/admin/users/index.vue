@@ -60,6 +60,17 @@
           >
             {{ formatRole(row.role) }}
           </UBadge>
+          <UBadge
+            v-if="row.is_admin"
+            color="blue"
+            label="Admin"
+            variant="subtle"
+            class="ml-2"
+          >
+            <template #prefix>
+              <UIcon name="i-heroicons-shield-check" class="h-3.5 w-3.5" />
+            </template>
+          </UBadge>
         </template>
 
         <!-- Status cell -->
