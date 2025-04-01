@@ -5,7 +5,7 @@ All notable changes to the Havoo UI mission will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this mission adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [v0.2.0] - 2025-04-01
 
 ### Added
 - Simplified contract rating system directly integrated with the deals table
@@ -119,6 +119,34 @@ and this mission adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Mise en place de politiques de sécurité (RLS) pour les signalements
 - Validation des types de signalements et des raisons
 - Protection contre les signalements multiples
+
+## [v0.2.1] - 2025-04-01
+
+### Added
+- Système de signalement pour les experts et les missions
+  - Bouton de signalement sur les profils experts
+  - Bouton de signalement sur les pages de missions
+  - Interface d'administration des signalements
+  - Notifications en temps réel des nouveaux signalements
+  - Filtres et recherche avancée des signalements
+- Avatar par défaut en SVG base64 pour les experts sans photo de profil
+
+### Changed
+- Amélioration du design des pages experts avec style Apple
+- Optimisation des performances de chargement des avatars
+
+### Security
+- Mise en place de politiques de sécurité (RLS) pour les signalements
+- Validation des types de signalements et des raisons
+- Protection contre les signalements multiples
+
+## [v0.1.0] - 2025-03-14
+
+### Added
+- Première version de l'application
+- Système d'authentification
+- Profils experts
+- Gestion des missions
 
 ## [Previous versions]
 ...
