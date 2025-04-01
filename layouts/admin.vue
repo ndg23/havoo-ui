@@ -52,7 +52,7 @@
               :key="item.to" 
               :to="item.to"
               class="flex items-center p-3 text-lg rounded-full transition-colors group relative hover:bg-gray-100 dark:hover:bg-gray-900"
-              :class="route.path === item.to ? 'font-bold' : 'font-medium text-gray-700 dark:text-gray-300'"
+              :class="route.path.includes(item.to) ? 'font-bold' : 'font-medium text-gray-700 dark:text-gray-300'"
             >
               <v-icon 
                 :name="item.icon"
@@ -60,6 +60,13 @@
                 :class="route.path.includes(item.to) ? 'text-blue-500' : ''"
               />
               <span>{{ item.label }}</span>
+              <!-- Badge pour les signalements non traités -->
+              <div 
+                v-if="item.to === '/admin/reports' && pendingReportsCount > 0"
+                class="absolute right-4 px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full"
+              >
+                {{ pendingReportsCount }}
+              </div>
               <div 
                 v-if="route.path.includes(item.to)" 
                 class="absolute right-4 h-2 w-2 rounded-full bg-blue-500"
@@ -374,6 +381,7 @@ const managementItems = computed(() => [
   // Communication
   // { to: '/admin/conversations', label: 'Conversations', icon: 'ri-message2-fill' },
   { to: '/admin/reviews', label: 'Avis', icon: 'bi-chat-text' },
+  { to: '/admin/reports', label: 'Signalements', icon: 'ri-flag-2-line' },
 ])
 
 // Menu de configuration
@@ -430,6 +438,51 @@ const isActiveRoute = (path) => {
   }
   return route.path.startsWith(path)
 }
+
+// Compteur de signalements en attente
+const pendingReportsCount = ref(0)
+
+// Récupération du nombre de signalements en attente
+const fetchPendingReportsCount = async () => {
+  try {
+    const { count, error } = await client
+      .from('reports')
+      .select('*', { count: 'exact' })
+      .eq('status', 'pending')
+
+    if (error) throw error
+    pendingReportsCount.value = count || 0
+  } catch (error) {
+    console.error('Erreur lors de la récupération des signalements:', error)
+    pendingReportsCount.value = 0
+  }
+}
+
+// Mise à jour en temps réel des signalements
+onMounted(() => {
+  fetchPendingReportsCount()
+
+  // Abonnement aux changements de la table reports
+  const reportsSubscription = client
+    .channel('reports_changes')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'reports'
+      },
+      () => {
+        fetchPendingReportsCount()
+      }
+    )
+    .subscribe()
+
+  // Nettoyage à la destruction du composant
+  onUnmounted(() => {
+    reportsSubscription.unsubscribe()
+  })
+})
 </script>
 
 <style scoped>

@@ -1,401 +1,218 @@
 <template>
-  <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
-    <!-- Header fixe -->
-    <header class="sticky top-0 z-10 bg-white dark:bg-gray-800 shadow-sm">
-      <div class="max-w-2xl mx-auto px-4 py-3">
+  <div class="min-h-screen bg-white dark:bg-gray-900">
+    <!-- Header avec style Apple -->
+    <header class="sticky top-0 z-10 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-100/50 dark:border-gray-800/50">
+      <div class="max-w-2xl mx-auto px-6 py-4">
         <div class="flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="flex items-center gap-2">
-              <v-icon name="bi-briefcase" scale="1.2" class="text-primary-500" />
-              <h1 class="text-xl font-bold text-gray-900 dark:text-white">Missions</h1>
-            </div>
-            <!-- Compteur de missions -->
-            <span class="text-sm text-gray-500 dark:text-gray-400">
+          <div class="flex items-center gap-4">
+            <h1 class="text-2xl font-medium text-gray-900 dark:text-white">
+              Missions
+            </h1>
+            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">
               {{ filteredMissions.length }} disponibles
             </span>
           </div>
+          
           <NuxtLink
             to="/requests/new"
-            class="inline-flex items-center px-4 py-2 rounded-full bg-primary-600 hover:bg-primary-700 text-white font-medium transition-all shadow-sm hover:shadow"
+            class="inline-flex items-center px-5 py-2.5 rounded-full 
+                   bg-gray-900 dark:bg-white
+                   text-white dark:text-gray-900
+                   hover:bg-gray-800 dark:hover:bg-gray-100
+                   transition-all duration-200 font-medium text-sm"
           >
-            <v-icon name="bi-plus-lg" class="mr-2" />
-            Publier une mission
+            <Plus class="h-4 w-4 mr-2" />
+            Publier
           </NuxtLink>
         </div>
       </div>
     </header>
 
-    <main class="max-w-2xl mx-auto px-4 py-6 space-y-4">
-      <!-- Barre de recherche avec filtres avancés -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm">
-        <!-- Recherche -->
-        <div class="p-4">
-          <div class="relative">
-            <input
-              v-model="searchQuery"
-              type="text"
-              placeholder="Rechercher une mission..."
-              class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-            <v-icon
-              name="bi-search"
-              class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"
-            />
-          </div>
-        </div>
-
-        <!-- Filtres rapides -->
-        <div class="px-4 pb-4 flex items-center gap-3 overflow-x-auto">
-          <button
-            v-for="filter in quickFilters"
-            :key="filter.value"
-            @click="activeFilter = filter.value"
-            class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all"
-            :class="[
-              activeFilter === filter.value
-                ? 'bg-primary-600 text-white shadow-sm'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-            ]"
-          >
-            <v-icon :name="filter.icon" class="mr-2" />
-            {{ filter.label }}
-          </button>
-        </div>
-
-        <!-- Filtres avancés -->
-        <div 
-          v-show="showAdvancedFilters"
-          class="px-4 py-3 border-t border-gray-100 dark:border-gray-700 space-y-4"
-        >
-          <!-- Budget -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Budget
-            </label>
-            <div class="flex items-center gap-4">
-              <div class="flex-1">
-                <input
-                  v-model="filters.minBudget"
-                  type="number"
-                  placeholder="Min"
-                  class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900"
-                />
-              </div>
-              <span class="text-gray-500">-</span>
-              <div class="flex-1">
-                <input
-                  v-model="filters.maxBudget"
-                  type="number"
-                  placeholder="Max"
-                  class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900"
-                />
-              </div>
-            </div>
-          </div>
-
-          <!-- Professions -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Professions
-            </label>
-            <div class="flex flex-wrap gap-2">
-              <button
-                v-for="profession in professions"
-                :key="profession.id"
-                @click="toggleProfession(profession.id)"
-                class="inline-flex items-center px-3 py-1.5 rounded-full text-sm transition-all"
-                :class="[
-                  filters.professions.includes(profession.id)
-                    ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
-                ]"
-              >
-                <v-icon :name="getProfessionIcon(profession.name)" class="mr-1.5" />
-                {{ profession.name }}
-              </button>
-            </div>
-          </div>
-
-          <!-- Délai de livraison -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Délai de livraison
-            </label>
-            <select
-              v-model="filters.deliveryTime"
-              class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900"
-            >
-              <option value="">Tous les délais</option>
-              <option value="1">1 jour ou moins</option>
-              <option value="3">3 jours ou moins</option>
-              <option value="7">1 semaine ou moins</option>
-              <option value="14">2 semaines ou moins</option>
-              <option value="30">1 mois ou moins</option>
-            </select>
-          </div>
-
-          <!-- Localisation -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Localisation
-            </label>
-            <div class="flex items-center gap-3">
-              <label class="inline-flex items-center">
-                <input
-                  v-model="filters.location"
-                  type="radio"
-                  value="all"
-                  class="text-primary-600"
-                />
-                <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">Toutes</span>
-              </label>
-              <label class="inline-flex items-center">
-                <input
-                  v-model="filters.location"
-                  type="radio"
-                  value="remote"
-                  class="text-primary-600"
-                />
-                <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">À distance</span>
-              </label>
-              <label class="inline-flex items-center">
-                <input
-                  v-model="filters.location"
-                  type="radio"
-                  value="onsite"
-                  class="text-primary-600"
-                />
-                <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">Sur place</span>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <!-- Toggle filtres avancés -->
-        <button
-          @click="showAdvancedFilters = !showAdvancedFilters"
-          class="w-full px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 border-t border-gray-100 dark:border-gray-700 transition-colors flex items-center justify-center gap-2"
-        >
-          <span>{{ showAdvancedFilters ? 'Masquer les filtres' : 'Plus de filtres' }}</span>
-          <v-icon
-            :name="showAdvancedFilters ? 'bi-chevron-up' : 'bi-chevron-down'"
-            scale="0.9"
+    <main class="max-w-2xl mx-auto px-6 py-6">
+      <!-- Barre de recherche -->
+      <div class="mb-6">
+        <div class="relative">
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Rechercher une mission..."
+            class="w-full pl-12 pr-4 py-3.5 rounded-2xl
+                   bg-gray-50 dark:bg-gray-800
+                   border border-gray-200 dark:border-gray-700
+                   focus:ring-2 focus:ring-primary-500 focus:border-transparent
+                   text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
           />
+          <Search class="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+        </div>
+      </div>
+
+      <!-- Filtres rapides -->
+      <div class="flex gap-2 overflow-x-auto pb-4 scrollbar-hide">
+        <button
+          v-for="filter in quickFilters"
+          :key="filter.value"
+          @click="activeFilter = filter.value"
+          class="flex items-center px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all"
+          :class="[
+            activeFilter === filter.value
+              ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+          ]"
+        >
+          <component :is="filter.icon" class="h-4 w-4 mr-2" />
+          {{ filter.label }}
         </button>
       </div>
 
       <!-- Liste des missions -->
-      <div v-if="isLoading" class="space-y-4">
-        <div v-for="i in 3" :key="i" class="bg-white dark:bg-gray-800 rounded-xl p-4 animate-pulse shadow-sm">
-          <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded-full w-3/4 mb-4"></div>
-          <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded-full w-1/2"></div>
+      <div class="space-y-4">
+        <!-- Loading state -->
+        <div v-if="isLoading" class="flex justify-center py-12">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
         </div>
-      </div>
-      
-      <div v-else class="space-y-4">
-        <div 
-          v-for="mission in filteredMissions" 
-          :key="mission.id"
-          class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden"
-        >
-          <!-- En-tête avec infos principales -->
-          <div class="p-4">
-            <div class="flex justify-between items-start gap-4">
-              <div class="flex-1 min-w-0">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                  {{ mission.title }}
-                </h3>
-                <div class="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
-                  <div class="flex items-center gap-1">
-                    <v-icon name="bi-calendar" />
-                    <span>{{ formatDate(mission.created_at) }}</span>
-                  </div>
-                  <div v-if="mission.profession?.name" class="flex items-center gap-1">
-                    <v-icon name="bi-briefcase" />
-                    <span>{{ mission.profession.name }}</span>
+
+        <!-- Liste des missions -->
+        <template v-else>
+          <div v-if="filteredMissions.length > 0" class="space-y-4">
+            <div 
+              v-for="mission in filteredMissions" 
+              :key="mission.id"
+              class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100 dark:border-gray-700"
+            >
+              <!-- En-tête de la mission -->
+              <div class="flex justify-between items-start mb-4">
+                <div>
+                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+                    {{ mission.title }}
+                  </h3>
+                  <div class="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                    <span>{{ formatTimeAgo(mission.created_at) }}</span>
+                    <span>•</span>
+                    <span>{{ formatPrice(mission.budget) }}</span>
+                    <span v-if="mission.location">•</span>
+                    <span v-if="mission.location">{{ mission.location }}</span>
                   </div>
                 </div>
+                
+                <!-- Badge statut -->
+                <span 
+                  class="px-3 py-1 rounded-full text-sm font-medium"
+                  :class="getMissionStatusClass(mission.status)"
+                >
+                  {{ getMissionStatusLabel(mission.status) }}
+                </span>
               </div>
-              <!-- Badge de statut -->
-              <span 
-                class="px-2.5 py-1 rounded-full text-xs font-medium"
-                :class="getMissionStatusClass(mission.status)"
-              >
-                {{ getMissionStatusLabel(mission.status) }}
-              </span>
-            </div>
 
-            <!-- Description -->
-            <p class="mt-3 text-gray-600 dark:text-gray-300 line-clamp-2">
-              {{ mission.description }}
+              <!-- Description -->
+              <p class="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
+                {{ mission.description }}
+              </p>
+
+              <!-- Footer avec actions -->
+              <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                <!-- Info client -->
+                <div class="flex items-center gap-2">
+                  <div class="h-8 w-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                    <span class="text-sm font-medium text-gray-600 dark:text-gray-300">
+                      {{ mission.client?.first_name?.[0] }}{{ mission.client?.last_name?.[0] }}
+                    </span>
+                  </div>
+                  <span class="text-sm text-gray-600 dark:text-gray-300">
+                    {{ mission.client?.first_name }} {{ mission.client?.last_name }}
+                  </span>
+                </div>
+
+                <!-- Bouton d'action -->
+                <div>
+                  <NuxtLink
+                    v-if="!canMakeProposal(mission)"
+                    :to="`/requests/${mission.id}`"
+                    class="inline-flex items-center px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm font-medium"
+                  >
+                    Voir les détails
+                  </NuxtLink>
+                  <button
+                    v-else
+                    @click="openProposalModal(mission)"
+                    class="inline-flex items-center px-4 py-2 rounded-full bg-primary-500 hover:bg-primary-600 text-white transition-colors text-sm font-medium"
+                  >
+                    Faire une proposition
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- État vide -->
+          <div 
+            v-else
+            class="text-center py-12"
+          >
+            <InboxIcon class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600 mb-4" />
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              Aucune mission trouvée
+            </h3>
+            <p class="text-gray-500 dark:text-gray-400">
+              Essayez de modifier vos filtres ou revenez plus tard
             </p>
-
-            <!-- Budget et deadline -->
-            <div class="mt-4 flex flex-wrap gap-3">
-              <div class="flex items-center gap-2 text-sm">
-                <div class="px-2.5 py-1 rounded-full bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-medium">
-                  {{ formatPrice(mission.budget) }}
-                </div>
-              </div>
-              <div v-if="mission.deadline" class="flex items-center gap-2 text-sm text-gray-500">
-                <v-icon name="bi-clock" />
-                <span>Date limite: {{ formatDate(mission.deadline) }}</span>
-              </div>
-            </div>
           </div>
-
-          <!-- Actions -->
-          <div class="px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-100 dark:border-gray-700">
-            <div class="flex items-center justify-between gap-4">
-              <NuxtLink
-                :to="`/requests/${mission.id}`"
-                class="text-sm text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400"
-              >
-                Voir les détails
-              </NuxtLink>
-              
-              <!-- Bouton de proposition -->
-              <button
-                v-if="canMakeProposal(mission)"
-                @click="openProposalModal(mission)"
-                class="inline-flex items-center px-4 py-2 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium transition-all"
-              >
-                <v-icon name="bi-send" class="mr-2" />
-                Faire une proposition
-              </button>
-              <span 
-                v-else-if="hasProposal(mission)"
-                class="text-sm text-gray-500 dark:text-gray-400"
-              >
-                Proposition déjà envoyée
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <!-- État vide -->
-        <div 
-          v-if="!isLoading && filteredMissions.length === 0"
-          class="text-center py-12 bg-white dark:bg-gray-800 rounded-xl shadow-sm"
-        >
-          <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-            <v-icon name="bi-inbox" scale="1.5" class="text-gray-400" />
-          </div>
-          <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-1">
-            Aucune mission trouvée
-          </h3>
-          <p class="text-gray-500 dark:text-gray-400">
-            Modifiez vos filtres ou revenez plus tard
-          </p>
-        </div>
+        </template>
       </div>
     </main>
 
     <!-- Modal de proposition -->
-    <TransitionRoot appear :show="isProposalModalOpen" as="template">
-      <Dialog as="div" @close="closeProposalModal" class="relative z-50">
-        <TransitionChild
-          enter="duration-300 ease-out"
-          enter-from="opacity-0"
-          enter-to="opacity-100"
-          leave="duration-200 ease-in"
-          leave-from="opacity-100"
-          leave-to="opacity-0"
-        >
-          <div class="fixed inset-0 bg-black/25 dark:bg-black/40" />
-        </TransitionChild>
-
-        <div class="fixed inset-0 overflow-y-auto">
-          <div class="flex min-h-full items-center justify-center p-4">
-            <TransitionChild
-              enter="duration-300 ease-out"
-              enter-from="opacity-0 scale-95"
-              enter-to="opacity-100 scale-100"
-              leave="duration-200 ease-in"
-              leave-from="opacity-100 scale-100"
-              leave-to="opacity-0 scale-95"
-            >
-              <DialogPanel class="w-full max-w-md bg-white dark:bg-gray-800 rounded-xl shadow-xl overflow-hidden">
-                <div class="p-6">
-                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                    Faire une proposition
-                  </h3>
-
-                  <form @submit.prevent="submitProposal" class="space-y-4">
-                    <!-- Prix proposé -->
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Prix proposé
-                      </label>
-                      <div class="relative">
-                        <input
-                          v-model="proposalForm.price"
-                          type="number"
-                          min="0"
-                          step="1"
-                          required
-                          class="w-full pl-4 pr-12 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900"
-                        />
-                        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">
-                          €
-                        </span>
-                      </div>
-                    </div>
-
-                    <!-- Durée estimée -->
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Durée estimée (jours)
-                      </label>
-                      <input
-                        v-model="proposalForm.duration"
-                        type="number"
-                        min="1"
-                        required
-                        class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900"
-                      />
-                    </div>
-
-                    <!-- Message -->
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Message
-                      </label>
-                      <textarea
-                        v-model="proposalForm.message"
-                        rows="4"
-                        required
-                        class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900"
-                        placeholder="Décrivez votre approche..."
-                      ></textarea>
-                    </div>
-
-                    <!-- Actions -->
-                    <div class="flex items-center justify-end gap-3 mt-6">
-                      <button
-                        type="button"
-                        @click="closeProposalModal"
-                        class="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300"
-                      >
-                        Annuler
-                      </button>
-                      <button
-                        type="submit"
-                        :disabled="isSubmitting"
-                        class="px-4 py-2 rounded-lg bg-primary-600 hover:bg-primary-700 text-white font-medium disabled:opacity-50"
-                      >
-                        <span v-if="isSubmitting">Envoi en cours...</span>
-                        <span v-else>Envoyer la proposition</span>
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </DialogPanel>
-            </TransitionChild>
+    <UModal v-model="isProposalModalOpen">
+      <div class="p-6">
+        <h2 class="text-xl font-semibold mb-4">
+          Faire une proposition
+        </h2>
+        <form @submit.prevent="submitProposal" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">Prix proposé</label>
+            <input
+              v-model="proposalForm.price"
+              type="number"
+              class="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700"
+              required
+            />
           </div>
-        </div>
-      </Dialog>
-    </TransitionRoot>
+          <div>
+            <label class="block text-sm font-medium mb-1">Durée (en jours)</label>
+            <input
+              v-model="proposalForm.duration"
+              type="number"
+              class="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700"
+              required
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Message</label>
+            <textarea
+              v-model="proposalForm.message"
+              rows="4"
+              class="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700"
+              required
+            ></textarea>
+          </div>
+          <div class="flex justify-end gap-3 mt-6">
+            <button
+              type="button"
+              @click="closeProposalModal"
+              class="px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              :disabled="isSubmitting"
+              class="px-4 py-2 rounded-xl bg-primary-500 text-white"
+            >
+              {{ isSubmitting ? 'Envoi...' : 'Envoyer' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </UModal>
   </div>
 </template>
 
@@ -427,6 +244,10 @@ import {
   BiPlusLg,
   BiInbox
 } from 'oh-vue-icons/icons'
+import { 
+  Search, Plus, Briefcase, Clock, Filter,
+  CheckCircle, XCircle, InboxIcon
+} from 'lucide-vue-next'
 
 // Mise à jour des icônes
 addIcons(
@@ -515,23 +336,30 @@ const toggleProfession = (id) => {
 
 // Fetch des missions avec les professions
 const fetchMissions = async () => {
+  isLoading.value = true
   try {
-    isLoading.value = true
     const { data, error } = await supabase
       .from('missions')
       .select(`
         *,
-        profession:professions (
+        client:profiles!missions_client_id_fkey(
           id,
-          name
+          first_name,
+          last_name,
+          avatar_url
+        ),
+        deals(
+          id,
+          expert_id,
+          status
         )
       `)
       .order('created_at', { ascending: false })
 
     if (error) throw error
-    missions.value = data || []
+    missions.value = data
   } catch (error) {
-    console.error('Error fetching missions:', error)
+    console.error('Erreur lors de la récupération des missions:', error)
   } finally {
     isLoading.value = false
   }
@@ -560,32 +388,25 @@ const getProfessionIcon = (professionName) => {
   return professionIcons.default
 }
 
-// Computed pour filtrer les missions
+// Filtrage des missions
 const filteredMissions = computed(() => {
-  let filtered = missions.value
+  let filtered = [...missions.value]
 
-  // Filtre de recherche
+  // Filtre par recherche
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(mission => 
-      mission.title?.toLowerCase().includes(query) ||
-      mission.description?.toLowerCase().includes(query)
+    filtered = filtered.filter(m => 
+      m.title.toLowerCase().includes(query) ||
+      m.description.toLowerCase().includes(query)
     )
   }
 
-  // Filtres avancés
-  if (filters.value.minBudget) {
-    filtered = filtered.filter(m => m.budget >= Number(filters.value.minBudget))
+  // Filtre par catégorie
+  if (filters.value.category !== 'all') {
+    filtered = filtered.filter(m => m.category === filters.value.category)
   }
-  if (filters.value.maxBudget) {
-    filtered = filtered.filter(m => m.budget <= Number(filters.value.maxBudget))
-  }
-  if (filters.value.professions.length > 0) {
-    filtered = filtered.filter(m => filters.value.professions.includes(m.profession?.id))
-  }
-  if (filters.value.deliveryTime) {
-    filtered = filtered.filter(m => m.delivery_time <= Number(filters.value.deliveryTime))
-  }
+
+  // Filtre par localisation
   if (filters.value.location !== 'all') {
     filtered = filtered.filter(m => {
       if (filters.value.location === 'remote') return !m.location
@@ -654,7 +475,7 @@ const formatDeliveryTime = (days) => {
   return days === 1 ? '1 jour' : `${days} jours`
 }
 
-// État pour la modal et le formulaire
+// État pour la modal et le formulaire de proposition
 const isProposalModalOpen = ref(false)
 const selectedMission = ref(null)
 const isSubmitting = ref(false)
@@ -676,8 +497,10 @@ const canMakeProposal = (mission) => {
 
 // Vérifier si l'utilisateur a déjà fait une proposition
 const hasProposal = (mission) => {
-  // TODO: Implémenter la vérification des propositions existantes
-  return false
+  return mission.deals?.some(deal => 
+    deal.expert_id === user.value?.id && 
+    ['proposal', 'accepted', 'in_progress'].includes(deal.status)
+  )
 }
 
 // Ouvrir la modal de proposition
@@ -724,10 +547,23 @@ const submitProposal = async () => {
 
     // Succès
     closeProposalModal()
-    // TODO: Afficher une notification de succès
+    const toast = useToast()
+    toast.add({
+      title: 'Proposition envoyée',
+      description: 'Votre proposition a été envoyée avec succès',
+      color: 'green'
+    })
+    
+    // Rafraîchir les missions pour mettre à jour l'état
+    await fetchMissions()
   } catch (error) {
     console.error('Erreur lors de l\'envoi de la proposition:', error)
-    // TODO: Afficher une notification d'erreur
+    const toast = useToast()
+    toast.add({
+      title: 'Erreur',
+      description: 'Impossible d\'envoyer votre proposition',
+      color: 'red'
+    })
   } finally {
     isSubmitting.value = false
   }
@@ -772,48 +608,28 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Animations et styles */
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+/* Masquer la scrollbar tout en gardant le défilement */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: .5; }
+/* Animation d'entrée des cartes */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* Scrollbar personnalisée */
-.overflow-x-auto {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
-}
-
-.overflow-x-auto::-webkit-scrollbar {
-  height: 6px;
-}
-
-.overflow-x-auto::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.overflow-x-auto::-webkit-scrollbar-thumb {
-  background-color: rgba(156, 163, 175, 0.5);
-  border-radius: 20px;
-}
-
-/* Hover effects */
-.hover\:shadow-md {
-  transition: all 0.2s ease;
-}
-
-.hover\:shadow-md:hover {
-  transform: translateY(-1px);
+.mission-card {
+  animation: fadeInUp 0.3s ease-out;
 }
 </style>

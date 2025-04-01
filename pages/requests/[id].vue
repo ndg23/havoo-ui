@@ -1,497 +1,417 @@
 <template>
-  <div class="min-h-screen bg-white">
-    <!-- Header -->
-    <header class="sticky top-0 z-10 bg-white/90 backdrop-blur-sm border-b border-gray-100">
-      <div class="max-w-3xl mx-auto px-4 py-3 flex items-center">
-      <NuxtLink 
-        to="/requests" 
-          class="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors"
-      >
+  <div class="min-h-screen bg-white dark:bg-gray-900">
+    <!-- Header: More minimal, with subtle backdrop blur -->
+    <header class="sticky top-0 z-10 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md">
+      <div class="max-w-2xl mx-auto px-6 py-4 flex items-center">
+        <NuxtLink 
+          to="/requests" 
+          class="p-2 -ml-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+        >
           <ArrowLeft class="w-5 h-5" />
-      </NuxtLink>
-        <h1 class="ml-4 text-xl font-bold">Détail de la demande</h1>
-    </div>
+        </NuxtLink>
+        <h1 class="ml-4 text-xl font-medium text-gray-900 dark:text-white">
+          Détail de la mission
+        </h1>
+      </div>
     </header>
 
     <!-- Main content -->
-    <main class="max-w-3xl mx-auto px-4 py-6">
-    <!-- Loading state -->
+    <main class="max-w-2xl mx-auto px-6 py-8">
+      <!-- Loading state -->
       <div v-if="isLoading" class="flex flex-col items-center justify-center py-12">
-        <Loader2 class="h-8 w-8 text-gray-400 mb-4 animate-spin" />
-        <p class="text-gray-500">Chargement de la demande...</p>
-    </div>
+        <Loader2 class="h-8 w-8 text-gray-300 animate-spin" />
+      </div>
 
       <!-- Error state -->
-    <div v-else-if="error" class="bg-red-50 p-4 rounded-lg text-red-700 my-6">
-      <div class="flex">
-          <AlertCircle class="h-5 w-5 text-red-400 mr-3" />
-        <p>{{ error }}</p>
+      <div 
+        v-else-if="error" 
+        class="p-4 rounded-2xl bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400"
+      >
+        <div class="flex items-center gap-3">
+          <AlertCircle class="h-5 w-5" />
+          <p>{{ error }}</p>
+        </div>
       </div>
-    </div>
 
-    <!-- Request details -->
-      <div v-else class="space-y-6">
-        <!-- Request card -->
-        <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-      <!-- Request header -->
-        <div class="p-6">
-            <div class="flex items-start justify-between">
-          <div>
-                <h2 class="text-xl font-bold text-gray-900">{{ mission.title }}</h2>
-                <div class="flex items-center mt-2 space-x-4">
-                  <span class="inline-flex items-center text-sm text-gray-500">
-                    <Calendar class="h-4 w-4 mr-1.5" />
-                    {{ formatDate(mission.created_at) }}
-                  </span>
-                  <span class="inline-flex items-center text-sm text-gray-500">
-                    <Tag class="h-4 w-4 mr-1.5" />
-                    {{ mission.category?.name || 'Non catégorisé' }}
-              </span>
-              <span 
-                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                    :class="statusClasses"
-              >
-                    {{ statusLabel }}
-              </span>
-            </div>
-          </div>
-          <div class="text-right">
-                <div class="text-lg font-bold text-primary-600">
-                  {{ formatPrice(mission.budget) }}
-                </div>
-                <div v-if="mission.deadline" class="text-sm text-gray-500 mt-1">
-                  Deadline: {{ formatDate(mission.deadline) }}
-          </div>
-            </div>
-          </div>
-          
-          <!-- Client info -->
-            <div class="flex items-center mt-6 pb-6 border-b border-gray-100">
-              <div class="flex-shrink-0">
-                <img 
-                  v-if="mission.client?.avatar_url" 
-                  :src="mission.client.avatar_url" 
-                  alt="Client" 
-                  class="h-10 w-10 rounded-full"
-                />
-                <div 
-                  v-else 
-                  class="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-medium"
-                >
-                  {{ getInitials(mission.client?.first_name, mission.client?.last_name) }}
-                </div>
-        </div>
-              <div class="ml-3">
-                <p class="text-sm font-medium text-gray-900">
-                  {{ mission.client?.first_name }} {{ mission.client?.last_name }}
-                </p>
-                <p class="text-xs text-gray-500">Client</p>
-              </div>
-                </div>
-            
-            <!-- Description -->
-            <div class="mt-6">
-              <h3 class="text-base font-medium text-gray-900 mb-3">Description</h3>
-              <div class="prose prose-sm max-w-none text-gray-700">
-                {{ mission.description }}
-              </div>
-            </div>
-          </div>
-          
-          <!-- Action buttons -->
-          <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
-            <div class="flex space-x-2">
-              <button 
-                @click="toggleLike"
-                class="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-full text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-              >
-                <Heart v-if="isLiked" class="h-4 w-4 mr-1.5 text-red-500" fill="currentColor" />
-                <Heart v-else class="h-4 w-4 mr-1.5" />
-                {{ likeCount }}
-              </button>
-              
-              <button 
-                @click="scrollToProposals"
-                class="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-full text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-              >
-                <MessageSquare class="h-4 w-4 mr-1.5" />
-                {{ proposalCount }} Propositions
-              </button>
-      </div>
-      
-            <div>
-              <NuxtLink 
-                v-if="canMakeProposal"
-                :to="`/proposals/new?id=${mission.id}`"
-                class="inline-flex items-center px-4 py-2 border border-transparent rounded-full shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
-              >
-                <Send class="h-4 w-4 mr-1.5" />
-                Faire une proposition
-              </NuxtLink>
-              
-              <button 
-                v-else-if="isOwner"
-                @click="editRequest"
-                class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-full text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-              >
-                <Edit class="h-4 w-4 mr-1.5" />
-                Modifier
-              </button>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Proposals section -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
-          <div class="p-6">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <MessageSquare class="h-5 w-5" />
-              Propositions ({{ proposals.length }})
+      <!-- Mission details -->
+      <div v-else class="space-y-8">
+        <!-- Mission header -->
+        <div class="space-y-4">
+          <div class="flex items-start justify-between gap-4">
+            <h2 class="text-2xl font-medium text-gray-900 dark:text-white">
+              {{ mission.title }}
             </h2>
-
-            <!-- Liste des propositions -->
-            <div class="space-y-4">
-              <div 
-                v-for="proposal in proposals" 
-                :key="proposal.id"
-                class="border dark:border-gray-700 rounded-xl overflow-hidden"
-              >
-                <!-- En-tête avec infos expert -->
-                <div class="p-4 bg-gray-50 dark:bg-gray-700/50">
-                  <div class="flex items-center gap-4">
-                    <div 
-                      v-if="proposal.expert?.avatar_url"
-                      class="w-12 h-12 rounded-full bg-cover bg-center"
-                      :style="{ backgroundImage: `url(${proposal.expert.avatar_url})` }"
-                    ></div>
-                    <div 
-                      v-else
-                      class="w-12 h-12 rounded-full bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center text-primary-600 dark:text-primary-400 font-bold text-xl"
-                    >
-                      {{ getInitials(proposal.expert?.first_name, proposal.expert?.last_name) }}
-                    </div>
-
-                    <div class="flex-1">
-                      <div class="flex items-center gap-2">
-                        <h3 class="font-medium text-gray-900 dark:text-white">
-                          {{ proposal.expert?.first_name }} {{ proposal.expert?.last_name }}
-                        </h3>
-                        <span 
-                          class="px-2 py-0.5 rounded-full text-xs font-medium"
-                          :class="getProposalStatusClasses(proposal.status)"
-                        >
-                          {{ getProposalStatusLabel(proposal.status) }}
-                        </span>
-                      </div>
-                      <p class="text-sm text-gray-500">
-                        Proposition faite le {{ formatDate(proposal.created_at) }}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Détails de la proposition -->
-                <div class="p-4">
-                  <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                      <div class="text-sm text-gray-500 dark:text-gray-400">Prix proposé</div>
-                      <div class="font-medium text-gray-900 dark:text-white">
-                        {{ formatPrice(proposal.price) }}
-                      </div>
-                    </div>
-                    <div class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                      <div class="text-sm text-gray-500 dark:text-gray-400">Durée estimée</div>
-                      <div class="font-medium text-gray-900 dark:text-white">
-                        {{ proposal.duration }} jour{{ proposal.duration > 1 ? 's' : '' }}
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Message -->
-                  <div class="text-gray-600 dark:text-gray-300 mb-4">
-                    {{ proposal.message }}
-                  </div>
-
-                  <!-- Actions (uniquement pour le client et si la proposition est en attente) -->
-                  <div 
-                    v-if="isOwner && proposal.status === 'pending'"
-                    class="flex items-center gap-3 pt-4 border-t dark:border-gray-700"
-                  >
-                    <button
-                      @click="acceptProposal(proposal.id)"
-                      class="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-                    >
-                      <Check class="h-4 w-4" />
-                      Accepter
-                    </button>
-                    <button
-                      @click="rejectProposal(proposal.id)"
-                      class="flex-1 px-4 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
-                    >
-                      <X class="h-4 w-4" />
-                      Refuser
-                    </button>
-                  </div>
-                </div>
+            <div class="text-right">
+              <div class="text-lg font-medium text-primary-600 dark:text-primary-400">
+                {{ formatPrice(mission.budget) }}
               </div>
-
-              <!-- État vide -->
-              <div 
-                v-if="proposals.length === 0"
-                class="text-center py-8 text-gray-500 dark:text-gray-400"
-              >
-                <InboxIcon class="h-12 w-12 mx-auto mb-3" />
-                <p>Aucune proposition reçue pour le moment</p>
+              <div v-if="mission.deadline" class="text-sm text-gray-500 dark:text-gray-400">
+                Deadline: {{ formatDate(mission.deadline) }}
               </div>
             </div>
           </div>
-        </div>
-      </div>
-      
-        <!-- Make proposal form -->
-        <div v-if="showProposalForm" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-          <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-              <h3 class="text-lg font-medium text-gray-900">Faire une proposition</h3>
-              <button @click="showProposalForm = false" class="text-gray-400 hover:text-gray-500">
-                <X class="h-5 w-5" />
-              </button>
-        </div>
-        
-        <div class="p-6">
-              <form @submit.prevent="submitProposal">
-                <div class="space-y-4">
-              <div>
-                    <label for="price" class="block text-sm font-medium text-gray-700">Prix proposé</label>
-                <div class="mt-1 relative rounded-md shadow-sm">
-                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span class="text-gray-500 sm:text-sm">FCFA</span>
-                  </div>
-                  <input 
-                    type="number"
-                    id="price"
-                    v-model="proposalForm.price" 
-                        class="focus:ring-primary-500 focus:border-primary-500 block w-full pl-16 pr-12 sm:text-sm border-gray-300 rounded-md" 
-                        placeholder="0.00" 
-                    min="0" 
-                    step="0.01"
-                    required
-                  />
-                </div>
-              </div>
-              
-              <div>
-                    <label for="duration" class="block text-sm font-medium text-gray-700">Durée (jours)</label>
-                <input 
-                  type="number"
-                      id="duration" 
-                  v-model="proposalForm.duration" 
-                      class="focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-gray-300 rounded-md" 
-                  min="1" 
-                  required
-                />
-            </div>
 
-            <div>
-                    <label for="message" class="block text-sm font-medium text-gray-700">Message</label>
-              <textarea 
-                id="message"
-                v-model="proposalForm.message" 
-                rows="4"
-                      class="focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-gray-300 rounded-md" 
-                required
-              ></textarea>
-                  </div>
-            </div>
-
-                <div class="mt-6 flex justify-end">
-                  <button 
-                    type="button" 
-                    @click="showProposalForm = false" 
-                    class="mr-3 inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-                  >
-                    Annuler
-                  </button>
-              <button
-                type="submit"
-                    class="inline-flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-                :disabled="isSubmitting"
-              >
-                    <Loader2 v-if="isSubmitting" class="animate-spin h-4 w-4 mr-1.5" />
-                    <span>{{ isSubmitting ? 'Envoi en cours...' : 'Envoyer' }}</span>
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Ajouter le modal d'évaluation -->
-    <TransitionRoot appear :show="isRatingModalOpen" as="template">
-      <Dialog as="div" @close="closeRatingModal" class="relative z-50">
-        <TransitionChild
-          enter="duration-300 ease-out"
-          enter-from="opacity-0"
-          enter-to="opacity-100"
-          leave="duration-200 ease-in"
-          leave-from="opacity-100"
-          leave-to="opacity-0"
-        >
-          <div class="fixed inset-0 bg-black/25" />
-        </TransitionChild>
-
-        <div class="fixed inset-0 overflow-y-auto">
-          <div class="flex min-h-full items-center justify-center p-4">
-            <TransitionChild
-              enter="duration-300 ease-out"
-              enter-from="opacity-0 scale-95"
-              enter-to="opacity-100 scale-100"
-              leave="duration-200 ease-in"
-              leave-from="opacity-100 scale-100"
-              leave-to="opacity-0 scale-95"
+          <div class="flex flex-wrap gap-3">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm
+                       bg-gray-100 dark:bg-gray-800 
+                       text-gray-600 dark:text-gray-300">
+              <Calendar class="h-4 w-4 mr-1.5" />
+              {{ formatDate(mission.created_at) }}
+            </span>
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm
+                       bg-gray-100 dark:bg-gray-800 
+                       text-gray-600 dark:text-gray-300">
+              <Tag class="h-4 w-4 mr-1.5" />
+              {{ mission.category?.name || 'Non catégorisé' }}
+            </span>
+            <span 
+              class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
+              :class="statusClasses"
             >
-              <DialogPanel class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all">
-                <DialogTitle as="h3" class="text-lg font-medium leading-6 text-gray-900 mb-4">
-                  Évaluer {{ isClient ? "l'expert" : "le client" }}
-                </DialogTitle>
-
-                <form @submit.prevent="submitRating" class="space-y-4">
-                  <!-- Note globale -->
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                      Note globale
-                    </label>
-                    <div class="flex items-center gap-1">
-                      <button 
-                        v-for="i in 5" 
-                        :key="i"
-                        type="button"
-                        @click="ratingForm.overall_rating = i"
-                        class="p-1 focus:outline-none"
-                      >
-                        <Star 
-                          :class="[
-                            'w-6 h-6',
-                            i <= ratingForm.overall_rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                          ]"
-                        />
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- Note de communication -->
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                      Communication
-                    </label>
-                    <div class="flex items-center gap-1">
-                      <button 
-                        v-for="i in 5" 
-                        :key="i"
-                        type="button"
-                        @click="ratingForm.communication_rating = i"
-                        class="p-1 focus:outline-none"
-                      >
-                        <Star 
-                          :class="[
-                            'w-6 h-6',
-                            i <= ratingForm.communication_rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                          ]"
-                        />
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- Note spécifique (qualité ou fiabilité) -->
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                      {{ isClient ? 'Qualité du travail' : 'Fiabilité' }}
-                    </label>
-                    <div class="flex items-center gap-1">
-                      <button 
-                        v-for="i in 5" 
-                        :key="i"
-                        type="button"
-                        @click="ratingForm.specific_rating = i"
-                        class="p-1 focus:outline-none"
-                      >
-                        <Star 
-                          :class="[
-                            'w-6 h-6',
-                            i <= ratingForm.specific_rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                          ]"
-                        />
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- Recommandation -->
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                      Recommanderiez-vous {{ isClient ? "cet expert" : "ce client" }} ?
-                    </label>
-                    <div class="flex items-center gap-4">
-                      <label class="inline-flex items-center">
-                        <input
-                          type="radio"
-                          v-model="ratingForm.would_recommend"
-                          :value="true"
-                          class="form-radio text-primary-600"
-                        />
-                        <span class="ml-2">Oui</span>
-                      </label>
-                      <label class="inline-flex items-center">
-                        <input
-                          type="radio"
-                          v-model="ratingForm.would_recommend"
-                          :value="false"
-                          class="form-radio text-primary-600"
-                        />
-                        <span class="ml-2">Non</span>
-                      </label>
-                    </div>
-                  </div>
-
-                  <!-- Commentaire -->
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                      Commentaire
-                    </label>
-                    <textarea
-                      v-model="ratingForm.comment"
-                      rows="3"
-                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-                      placeholder="Partagez votre expérience..."
-                    ></textarea>
-                  </div>
-
-                  <!-- Boutons d'action -->
-                  <div class="mt-6 flex justify-end gap-3">
-                    <button
-                      type="button"
-                      @click="closeRatingModal"
-                      class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                    >
-                      Annuler
-                    </button>
-                    <button
-                      type="submit"
-                      :disabled="isSubmittingRating"
-                      class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-                    >
-                      <Loader2 v-if="isSubmittingRating" class="w-4 h-4 mr-2 animate-spin" />
-                      {{ isSubmittingRating ? 'Envoi...' : 'Envoyer' }}
-                    </button>
-                  </div>
-                </form>
-              </DialogPanel>
-            </TransitionChild>
+              {{ statusLabel }}
+            </span>
           </div>
         </div>
-      </Dialog>
-    </TransitionRoot>
-    
+
+        <!-- Client info -->
+        <div class="flex items-center p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50">
+          <div class="flex-shrink-0">
+            <img 
+              v-if="mission.client?.avatar_url" 
+              :src="mission.client.avatar_url" 
+              alt="Client" 
+              class="h-12 w-12 rounded-full object-cover"
+            />
+            <div 
+              v-else 
+              class="h-12 w-12 rounded-full bg-primary-100 dark:bg-primary-900/20 
+                     flex items-center justify-center 
+                     text-primary-600 dark:text-primary-400 text-lg font-medium"
+            >
+              {{ getInitials(mission.client?.first_name, mission.client?.last_name) }}
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-base font-medium text-gray-900 dark:text-white">
+              {{ mission.client?.first_name }} {{ mission.client?.last_name }}
+            </p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Client</p>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="space-y-3">
+          <h3 class="text-lg font-medium text-gray-900 dark:text-white">Description</h3>
+          <div class="prose prose-gray dark:prose-invert max-w-none">
+            {{ mission.description }}
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="flex items-center justify-between pt-6">
+          <div class="flex gap-3">
+            <button 
+              @click="toggleLike"
+              class="inline-flex items-center px-4 py-2 rounded-full text-sm
+                     bg-gray-100 dark:bg-gray-800 
+                     text-gray-700 dark:text-gray-300
+                     hover:bg-gray-200 dark:hover:bg-gray-700
+                     transition-colors"
+            >
+              <Heart 
+                :class="[
+                  'h-4 w-4 mr-1.5',
+                  isLiked ? 'text-red-500 fill-current' : ''
+                ]" 
+              />
+              {{ likeCount }}
+            </button>
+            
+            <button 
+              @click="scrollToProposals"
+              class="inline-flex items-center px-4 py-2 rounded-full text-sm
+                     bg-gray-100 dark:bg-gray-800 
+                     text-gray-700 dark:text-gray-300
+                     hover:bg-gray-200 dark:hover:bg-gray-700
+                     transition-colors"
+            >
+              <MessageSquare class="h-4 w-4 mr-1.5" />
+              {{ proposalCount }} Propositions
+            </button>
+          </div>
+          
+          <div>
+            <NuxtLink 
+              v-if="canMakeProposal"
+              :to="`/proposals/new?id=${mission.id}`"
+              class="inline-flex items-center px-6 py-2.5 rounded-full text-sm font-medium
+                     bg-gray-900 dark:bg-white
+                     text-white dark:text-gray-900
+                     hover:bg-gray-800 dark:hover:bg-gray-100
+                     transition-colors"
+            >
+              <Send class="h-4 w-4 mr-1.5" />
+              Faire une proposition
+            </NuxtLink>
+            
+            <button 
+              v-else-if="isOwner"
+              @click="editRequest"
+              class="inline-flex items-center px-4 py-2 rounded-full text-sm
+                     bg-gray-100 dark:bg-gray-800 
+                     text-gray-700 dark:text-gray-300
+                     hover:bg-gray-200 dark:hover:bg-gray-700
+                     transition-colors"
+            >
+              <Edit class="h-4 w-4 mr-1.5" />
+              Modifier
+            </button>
+          </div>
+        </div>
+
+        <!-- Proposals section -->
+        <div class="mt-12 space-y-6">
+          <h2 class="text-lg font-medium text-gray-900 dark:text-white flex items-center gap-2">
+            <MessageSquare class="h-5 w-5" />
+            Propositions ({{ proposals.length }})
+          </h2>
+
+          <!-- Proposals list -->
+          <div class="space-y-4">
+            <div 
+              v-for="proposal in proposals" 
+              :key="proposal.id"
+              class="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50 space-y-4"
+            >
+              <!-- Expert info -->
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div 
+                    v-if="proposal.expert?.avatar_url"
+                    class="h-10 w-10 rounded-full bg-cover bg-center"
+                    :style="{ backgroundImage: `url(${proposal.expert.avatar_url})` }"
+                  ></div>
+                  <div 
+                    v-else
+                    class="h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900/20 
+                           flex items-center justify-center 
+                           text-primary-600 dark:text-primary-400 font-medium"
+                  >
+                    {{ getInitials(proposal.expert?.first_name, proposal.expert?.last_name) }}
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <p class="font-medium text-gray-900 dark:text-white">
+                        {{ proposal.expert?.first_name }} {{ proposal.expert?.last_name }}
+                      </p>
+                      <span 
+                        class="px-2 py-0.5 rounded-full text-xs font-medium"
+                        :class="getProposalStatusClasses(proposal.status)"
+                      >
+                        {{ getProposalStatusLabel(proposal.status) }}
+                      </span>
+                    </div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                      {{ formatDate(proposal.created_at) }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Proposal details -->
+              <div class="grid grid-cols-2 gap-4">
+                <div class="p-3 rounded-xl bg-white dark:bg-gray-800">
+                  <div class="text-sm text-gray-500 dark:text-gray-400">Prix proposé</div>
+                  <div class="font-medium text-gray-900 dark:text-white">
+                    {{ formatPrice(proposal.price) }}
+                  </div>
+                </div>
+                <div class="p-3 rounded-xl bg-white dark:bg-gray-800">
+                  <div class="text-sm text-gray-500 dark:text-gray-400">Durée estimée</div>
+                  <div class="font-medium text-gray-900 dark:text-white">
+                    {{ proposal.duration }} jour{{ proposal.duration > 1 ? 's' : '' }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Message -->
+              <p class="text-gray-600 dark:text-gray-300">
+                {{ proposal.message }}
+              </p>
+
+              <!-- Actions -->
+              <div 
+                v-if="isOwner && proposal.status === 'pending'"
+                class="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700"
+              >
+                <button
+                  @click="acceptProposal(proposal.id)"
+                  class="flex-1 px-4 py-2 rounded-xl text-sm font-medium
+                         bg-gray-900 dark:bg-white
+                         text-white dark:text-gray-900
+                         hover:bg-gray-800 dark:hover:bg-gray-100
+                         transition-colors"
+                >
+                  <Check class="h-4 w-4 mr-1.5" />
+                  Accepter
+                </button>
+                <button
+                  @click="rejectProposal(proposal.id)"
+                  class="flex-1 px-4 py-2 rounded-xl text-sm font-medium
+                         bg-gray-100 dark:bg-gray-800
+                         text-gray-700 dark:text-gray-300
+                         hover:bg-gray-200 dark:hover:bg-gray-700
+                         transition-colors"
+                >
+                  <X class="h-4 w-4 mr-1.5" />
+                  Refuser
+                </button>
+              </div>
+            </div>
+
+            <!-- Empty state -->
+            <div 
+              v-if="proposals.length === 0"
+              class="py-12 text-center text-gray-500 dark:text-gray-400"
+            >
+              <InboxIcon class="h-12 w-12 mx-auto mb-3" />
+              <p>Aucune proposition reçue pour le moment</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ajouter avant la fin de la section principale -->
+        <div class="mt-4 border-t border-gray-100 dark:border-gray-800 pt-4">
+          <button
+            @click="showReportModal = true"
+            class="w-full inline-flex items-center justify-center px-4 py-3 rounded-xl 
+                   bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700
+                   text-red-600 dark:text-red-400 font-medium transition-all"
+          >
+            <UIcon name="i-heroicons-flag" class="h-5 w-5 mr-2" />
+            Signaler cette mission
+          </button>
+        </div>
+      </div>
     </main>
+
+    <!-- Modal de signalement mise à jour -->
+    <UModal v-model="showReportModal">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-lg w-full">
+        <!-- En-tête de la modal -->
+        <div class="text-center mb-6">
+          <div 
+            class="mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-4"
+            :class="{
+              'bg-red-50 dark:bg-red-900/20': !reportStatus.success,
+              'bg-green-50 dark:bg-green-900/20': reportStatus.success
+            }"
+          >
+            <UIcon 
+              :name="reportStatus.success ? 'i-heroicons-check-circle' : 'i-heroicons-flag'" 
+              class="h-6 w-6"
+              :class="{
+                'text-red-600': !reportStatus.success,
+                'text-green-600': reportStatus.success
+              }"
+            />
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+            {{ reportStatus.success ? reportStatus.message : 'Signaler cette mission' }}
+          </h3>
+          <p 
+            v-if="reportStatus.details" 
+            class="mt-2 text-sm"
+            :class="{
+              'text-gray-600 dark:text-gray-400': !reportStatus.success,
+              'text-green-600 dark:text-green-400': reportStatus.success
+            }"
+          >
+            {{ reportStatus.details }}
+          </p>
+        </div>
+
+        <!-- Formulaire (caché si succès) -->
+        <form 
+          v-if="!reportStatus.success"
+          @submit.prevent="handleReport" 
+          class="space-y-4"
+        >
+          <!-- Raisons du signalement -->
+          <div class="space-y-2">
+            <label 
+              v-for="reason in reportReasons" 
+              :key="reason.value"
+              class="flex items-center p-3 rounded-xl border border-gray-200 dark:border-gray-700
+                     cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+            >
+              <input
+                type="radio"
+                name="reportReason"
+                :value="reason.value"
+                v-model="selectedReason"
+                class="w-4 h-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+              />
+              <span class="ml-3 text-gray-900 dark:text-white">{{ reason.label }}</span>
+            </label>
+          </div>
+
+          <!-- Description -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Description détaillée (optionnelle)
+            </label>
+            <textarea
+              v-model="reportDescription"
+              rows="3"
+              class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700
+                     bg-white dark:bg-gray-800 text-gray-900 dark:text-white
+                     focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              placeholder="Décrivez le problème..."
+            ></textarea>
+          </div>
+
+          <!-- Boutons d'action avec états de chargement -->
+          <div class="flex gap-3 mt-6">
+            <button
+              type="button"
+              @click="showReportModal = false"
+              :disabled="isSubmitting"
+              class="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700
+                     text-gray-700 dark:text-gray-300 font-medium
+                     hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors
+                     disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              :disabled="!selectedReason || isSubmitting"
+              class="flex-1 px-4 py-3 rounded-xl bg-red-600 hover:bg-red-700
+                     text-white font-medium transition-colors 
+                     disabled:opacity-50 disabled:cursor-not-allowed
+                     focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            >
+              <span v-if="isSubmitting" class="flex items-center justify-center">
+                <UIcon name="i-heroicons-arrow-path" class="h-5 w-5 animate-spin mr-2" />
+                Envoi...
+              </span>
+              <span v-else>Signaler</span>
+            </button>
+          </div>
+        </form>
+
+        <!-- Message de succès (affiché uniquement en cas de succès) -->
+        <div 
+          v-else
+          class="text-center text-green-600 dark:text-green-400 animate-fade-in"
+        >
+          <p class="text-sm mt-2">
+            Merci pour votre signalement. Notre équipe va l'examiner rapidement.
+          </p>
+        </div>
+      </div>
+    </UModal>
   </div>
 </template>
 
@@ -534,6 +454,21 @@ const ratingForm = ref({
   specific_rating: 0,
   would_recommend: null,
   comment: ''
+})
+
+// États pour le signalement
+const showReportModal = ref(false)
+const selectedReason = ref('')
+const reportDescription = ref('')
+
+// Système de notification amélioré
+const toast = useToast()
+
+// États de feedback
+const reportStatus = ref({
+  success: false,
+  message: '',
+  details: ''
 })
 
 // Computed
@@ -580,6 +515,15 @@ const canRate = computed(() => {
                        user.value.id === mission.value.expert_id
   return mission.value.status === 'completed' && isParticipant
 })
+
+// Raisons de signalement spécifiques aux missions
+const reportReasons = [
+  { value: 'inappropriate_content', label: 'Contenu inapproprié' },
+  { value: 'suspicious_mission', label: 'Mission suspecte' },
+  { value: 'wrong_category', label: 'Mauvaise catégorie' },
+  { value: 'spam', label: 'Spam' },
+  { value: 'other', label: 'Autre raison' }
+]
 
 // Méthodes
 const fetchRequest = async () => {
@@ -898,6 +842,83 @@ const submitRating = async () => {
   }
 }
 
+// Gestion du signalement avec feedback amélioré
+const handleReport = async () => {
+  if (!selectedReason.value) return
+
+  try {
+    isSubmitting.value = true
+    
+    // Envoi du signalement
+    const { data, error } = await supabase
+      .from('reports')
+      .insert({
+        report_type: 'mission',
+        reported_mission_id: route.params.id,
+        reason: selectedReason.value,
+        description: reportDescription.value,
+        status: 'pending'
+      })
+      .select('id')
+      .single()
+
+    if (error) {
+      if (error.code === '23505') { // Code d'erreur pour violation d'unicité
+        throw new Error('Vous avez déjà signalé cette mission')
+      }
+      throw error
+    }
+
+    // Mise à jour du statut de succès
+    reportStatus.value = {
+      success: true,
+      message: 'Signalement envoyé avec succès',
+      details: `Référence: #${data.id.slice(0, 8)}`
+    }
+
+    // Notification de succès
+    toast.add({
+      title: 'Signalement envoyé',
+      description: 'Nous examinerons votre signalement dans les plus brefs délais.',
+      icon: 'i-heroicons-check-circle',
+      color: 'green',
+      timeout: 5000
+    })
+
+    // Fermeture différée de la modal pour montrer le succès
+    setTimeout(() => {
+      showReportModal.value = false
+      // Réinitialisation après fermeture
+      setTimeout(() => {
+        selectedReason.value = ''
+        reportDescription.value = ''
+        reportStatus.value = { success: false, message: '', details: '' }
+      }, 300)
+    }, 2000)
+
+  } catch (error) {
+    console.error('Erreur lors du signalement:', error)
+    
+    // Mise à jour du statut d'erreur
+    reportStatus.value = {
+      success: false,
+      message: 'Erreur lors du signalement',
+      details: error.message
+    }
+
+    // Notification d'erreur
+    toast.add({
+      title: 'Erreur',
+      description: error.message || 'Impossible d\'envoyer le signalement. Veuillez réessayer.',
+      icon: 'i-heroicons-exclamation-circle',
+      color: 'red',
+      timeout: 5000
+    })
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
 // Initialisation
 onMounted(async () => {
   try {
@@ -923,5 +944,20 @@ definePageMeta({
 .prose {
   max-width: 65ch;
   color: inherit;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style> 

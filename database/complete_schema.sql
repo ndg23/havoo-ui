@@ -199,6 +199,113 @@ CREATE TABLE settings (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Table des signalements (modifiée pour supporter les missions)
+CREATE TABLE reports (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  -- Type de signalement (utilisateur ou mission)
+  report_type VARCHAR(20) NOT NULL CHECK (
+    report_type IN (
+      'user',
+      'mission'
+    )
+  ),
+  -- ID de l'élément signalé (peut être un utilisateur ou une mission)
+  reported_user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  reported_mission_id UUID REFERENCES missions(id) ON DELETE CASCADE,
+  reporter_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
+  
+  -- Raisons spécifiques selon le type
+  reason VARCHAR(50) NOT NULL CHECK (
+    reason IN (
+      -- Raisons pour les utilisateurs
+      'fake_profile',
+      'inappropriate_behavior',
+      'scam',
+      -- Raisons pour les missions
+      'inappropriate_content',
+      'suspicious_mission',
+      'wrong_category',
+      'spam',
+      'other'
+    )
+  ),
+  description TEXT,
+  status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (
+    status IN (
+      'pending',
+      'investigating',
+      'resolved',
+      'dismissed'
+    )
+  ),
+  admin_notes TEXT,
+  resolved_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  
+  -- Contrainte pour s'assurer qu'un seul type d'élément est signalé à la fois
+  CONSTRAINT one_report_target CHECK (
+    (reported_user_id IS NOT NULL AND reported_mission_id IS NULL AND report_type = 'user') OR
+    (reported_mission_id IS NOT NULL AND reported_user_id IS NULL AND report_type = 'mission')
+  )
+);
+
+-- Index pour les performances
+CREATE INDEX reports_reported_user_id_idx ON reports(reported_user_id);
+CREATE INDEX reports_reported_mission_id_idx ON reports(reported_mission_id);
+CREATE INDEX reports_reporter_id_idx ON reports(reporter_id);
+CREATE INDEX reports_status_idx ON reports(status);
+CREATE INDEX reports_report_type_idx ON reports(report_type);
+
+-- Trigger pour updated_at reste inchangé
+CREATE TRIGGER set_updated_at
+  BEFORE UPDATE ON reports
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+-- Politiques de sécurité RLS
+ALTER TABLE reports ENABLE ROW LEVEL SECURITY;
+
+-- Les utilisateurs peuvent créer des signalements
+CREATE POLICY "Users can create reports" ON reports
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    -- Empêcher les utilisateurs de signaler leurs propres missions
+    (report_type = 'mission' AND 
+     reported_mission_id NOT IN (
+       SELECT id FROM missions WHERE client_id = auth.uid()
+     ))
+    OR
+    -- Empêcher les utilisateurs de se signaler eux-mêmes
+    (report_type = 'user' AND reported_user_id != auth.uid())
+  );
+
+-- Les utilisateurs peuvent voir leurs propres signalements
+CREATE POLICY "Users can view their own reports" ON reports
+  FOR SELECT
+  TO authenticated
+  USING (reporter_id = auth.uid());
+
+-- Les admins ont un accès complet
+CREATE POLICY "Admins have full access" ON reports
+  FOR ALL
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.role = 'admin'
+    )
+  );
+
+-- Empêcher les doublons de signalements
+CREATE UNIQUE INDEX one_report_per_user_mission ON reports (
+  reporter_id,
+  COALESCE(reported_mission_id, reported_user_id),
+  report_type
+) WHERE status = 'pending';
+
 -- =========================================================================
 -- ACTIVITÉS - SUIVI DES ACTIONS UTILISATEURS
 -- =========================================================================

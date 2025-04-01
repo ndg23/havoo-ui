@@ -1,309 +1,180 @@
 <template>
-  <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
-    <!-- Header fixe -->
-    <header class="sticky top-0 z-10 bg-white dark:bg-gray-800 shadow-sm">
-      <div class="max-w-2xl mx-auto px-4 py-3">
+  <div class="min-h-screen bg-white dark:bg-gray-900">
+    <!-- Header avec style Apple -->
+    <header class="sticky top-0 z-10 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-100/50 dark:border-gray-800/50">
+      <div class="max-w-2xl mx-auto px-6 py-4">
         <div class="flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="flex items-center gap-2">
-              <v-icon name="bi-people" scale="1.2" class="text-primary-500" />
-              <h1 class="text-xl font-bold text-gray-900 dark:text-white">Experts</h1>
-            </div>
-            <!-- Compteur d'experts -->
-            <span class="text-sm text-gray-500 dark:text-gray-400">
+          <div class="flex items-center gap-4">
+            <h1 class="text-2xl font-medium text-gray-900 dark:text-white">
+              Experts
+            </h1>
+            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">
               {{ filteredExperts.length }} disponibles
             </span>
           </div>
-          <NuxtLink
-            to="/experts/become"
-            class="inline-flex items-center px-4 py-2 rounded-full bg-primary-600 hover:bg-primary-700 text-white font-medium transition-all shadow-sm hover:shadow"
-          >
-            <v-icon name="bi-plus-lg" class="mr-2" />
-            Devenir expert
-          </NuxtLink>
         </div>
-      </div>
-    </header>
 
-    <main class="max-w-2xl mx-auto px-4 py-6 space-y-4">
-      <!-- Barre de recherche avec filtres avancés -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm">
-        <!-- Recherche -->
-        <div class="p-4">
+        <!-- Barre de recherche -->
+        <div class="mt-4">
           <div class="relative">
             <input
               v-model="searchQuery"
               type="text"
               placeholder="Rechercher un expert..."
-              class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 
+                     border border-gray-200 dark:border-gray-700
+                     focus:ring-2 focus:ring-primary-500 focus:border-primary-500
+                     text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
             />
-            <v-icon
-              name="bi-search"
-              class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"
+            <UIcon 
+              name="i-heroicons-magnifying-glass" 
+              class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400"
             />
           </div>
         </div>
+      </div>
+    </header>
 
-        <!-- Filtres rapides -->
-        <div class="px-4 pb-4 flex items-center gap-3 overflow-x-auto">
-          <button
-            v-for="filter in quickFilters"
-            :key="filter.value"
-            @click="activeFilter = filter.value"
-            class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all"
-            :class="[
-              activeFilter === filter.value
-                ? 'bg-primary-600 text-white shadow-sm'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-            ]"
-          >
-            <v-icon :name="filter.icon" class="mr-2" />
-            {{ filter.label }}
-          </button>
-        </div>
-
-        <!-- Filtres avancés -->
-        <div 
-          v-show="showAdvancedFilters"
-          class="px-4 py-3 border-t border-gray-100 dark:border-gray-700 space-y-4"
-        >
-          <!-- Professions -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Professions
-            </label>
-            <div class="flex flex-wrap gap-2">
-              <button
-                v-for="profession in professions"
-                :key="profession.id"
-                @click="toggleProfession(profession.id)"
-                class="inline-flex items-center px-3 py-1.5 rounded-full text-sm transition-all"
-                :class="[
-                  filters.professions.includes(profession.id)
-                    ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
-                ]"
-              >
-                <v-icon :name="getProfessionIcon(profession.name)" class="mr-1.5" />
-                {{ profession.name }}
-              </button>
-            </div>
-          </div>
-
-          <!-- Note minimale -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Note minimale
-            </label>
-            <div class="flex items-center gap-4">
-              <button
-                v-for="rating in [4, 4.5, 4.8]"
-                :key="rating"
-                @click="filters.minRating = rating"
-                class="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm transition-all"
-                :class="[
-                  filters.minRating === rating
-                    ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
-                ]"
-              >
-                <v-icon name="bi-star-fill" class="text-yellow-400" />
-                <span>{{ rating }}+</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Temps de réponse -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Temps de réponse
-            </label>
-            <select
-              v-model="filters.responseTime"
-              class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900"
-            >
-              <option value="">Tous les délais</option>
-              <option value="1h">Moins d'1 heure</option>
-              <option value="2h">Moins de 2 heures</option>
-              <option value="4h">Moins de 4 heures</option>
-              <option value="24h">Moins de 24 heures</option>
-            </select>
-          </div>
-
-          <!-- Disponibilité -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Disponibilité
-            </label>
-            <div class="flex items-center gap-3">
-              <label class="inline-flex items-center">
-                <input
-                  v-model="filters.availability"
-                  type="radio"
-                  value="all"
-                  class="text-primary-600"
-                />
-                <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">Tous</span>
-              </label>
-              <label class="inline-flex items-center">
-                <input
-                  v-model="filters.availability"
-                  type="radio"
-                  value="available"
-                  class="text-primary-600"
-                />
-                <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">Disponible</span>
-              </label>
-              <label class="inline-flex items-center">
-                <input
-                  v-model="filters.availability"
-                  type="radio"
-                  value="busy"
-                  class="text-primary-600"
-                />
-                <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">Occupé</span>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <!-- Toggle filtres avancés -->
+    <main class="max-w-2xl mx-auto px-6 py-6">
+      <!-- Filtres rapides -->
+      <div class="flex overflow-x-auto gap-2 pb-4 scrollbar-hide">
         <button
-          @click="showAdvancedFilters = !showAdvancedFilters"
-          class="w-full px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 border-t border-gray-100 dark:border-gray-700 transition-colors flex items-center justify-center gap-2"
+          v-for="filter in quickFilters"
+          :key="filter.value"
+          @click="activeFilter = filter.value"
+          class="flex items-center px-4 py-2 rounded-full whitespace-nowrap transition-all"
+          :class="[
+            activeFilter === filter.value
+              ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+          ]"
         >
-          <span>{{ showAdvancedFilters ? 'Masquer les filtres' : 'Plus de filtres' }}</span>
-          <v-icon
-            :name="showAdvancedFilters ? 'bi-chevron-up' : 'bi-chevron-down'"
-            scale="0.9"
-          />
+          <UIcon :name="filter.icon" class="h-4 w-4 mr-2" />
+          {{ filter.label }}
         </button>
       </div>
 
       <!-- Liste des experts -->
-      <div v-if="isLoading" class="space-y-4">
-        <div v-for="i in 3" :key="i" class="bg-white dark:bg-gray-800 rounded-xl p-4 animate-pulse shadow-sm">
-          <div class="flex items-center gap-4 mb-4">
-            <div class="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-            <div class="flex-1">
-              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded-full w-1/3 mb-2"></div>
-              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded-full w-1/4"></div>
-            </div>
-          </div>
-          <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded-full w-3/4"></div>
-        </div>
-      </div>
-      
-      <div v-else class="space-y-4">
-        <article 
-          v-for="expert in filteredExperts" 
-          :key="expert.id"
-          class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden transition-all hover:shadow-md"
-        >
-          <!-- En-tête avec photo et infos principales -->
-          <div class="p-4">
+      <div class="space-y-6 mt-6">
+        <template v-if="!isLoading && filteredExperts.length > 0">
+          <article 
+            v-for="expert in filteredExperts" 
+            :key="expert.id"
+            class="bg-white dark:bg-gray-800 rounded-2xl p-6 mb-4 shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100 dark:border-gray-700"
+          >
+            <!-- En-tête avec photo et infos principales -->
             <div class="flex items-start gap-4 mb-4">
-              <!-- Avatar ou initiales -->
-              <div 
-                v-if="expert.avatar_url"
-                class="w-12 h-12 rounded-full bg-cover bg-center"
-                :style="{ backgroundImage: `url(${expert.avatar_url})` }"
-              ></div>
-              <div 
-                v-else
-                class="w-12 h-12 rounded-full bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center text-primary-600 dark:text-primary-400 font-medium text-lg"
-              >
-                {{ getInitials(expert.first_name, expert.last_name) }}
+              <div class="relative">
+                <UAvatar
+                  :src="expert.avatar_url || defaultAvatar"
+                  :alt="expert.first_name"
+                  size="lg"
+                />
+                <div 
+                  v-if="expert.availability_status=='available'"
+                  class="absolute bottom-0 right-0 w-4 h-4 bg-green-400 rounded-full border-2 border-white dark:border-gray-800"
+                ></div>
               </div>
 
-              <!-- Infos principales -->
-              <div class="flex-1">
-                <div class="flex items-center justify-between mb-1">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-start justify-between">
                   <div>
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
                       {{ expert.first_name }} {{ expert.last_name }}
                     </h2>
-                    <!-- Profession si disponible -->
-                    <div v-if="expert.profession?.name" class="text-sm text-gray-600 dark:text-gray-400 mt-0.5">
-                      {{ expert.profession.name }}
-                    </div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                      <UIcon name="i-heroicons-map-pin" class="h-4 w-4" />
+                      {{ expert.location || 'À distance' }}
+                    </p>
                   </div>
-                  <!-- Badge vérifié si applicable -->
-                  <div v-if="expert.is_verified" class="flex items-center gap-1 text-primary-600">
-                    <v-icon name="bi-patch-check-fill" />
-                    <span class="text-sm">Vérifié</span>
+                  <div v-if="expert.is_verified" class="flex items-center gap-1 px-2 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20">
+                    <UIcon name="i-heroicons-check-badge" class="h-4 w-4 text-blue-500" />
+                    <span class="text-xs font-medium text-blue-500">Vérifié</span>
                   </div>
                 </div>
-                
-                <!-- Localisation si disponible -->
-                <div v-if="getLocation(expert)" class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  <v-icon name="bi-geo-alt" />
-                  <span>{{ getLocation(expert) }}</span>
+
+                <!-- Compétences -->
+                <div class="mt-3 flex flex-wrap gap-2">
+                  <span 
+                    v-for="skill in expert.skills" 
+                    :key="skill"
+                    class="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                  >
+                    {{ skill }}
+                  </span>
                 </div>
               </div>
             </div>
 
             <!-- Bio -->
-            <p v-if="expert.bio" class="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
+            <p class="text-gray-600 dark:text-gray-300 text-sm line-clamp-2 mb-4">
               {{ expert.bio }}
             </p>
-            <p v-else class="text-gray-400 dark:text-gray-500 mb-4 italic">
-              Aucune biographie disponible
-            </p>
 
-            <!-- Stats et badges -->
-            <div class="flex flex-wrap items-center gap-4 text-sm">
-              <!-- Badge de disponibilité -->
-              <div 
-                class="flex items-center gap-2 px-3 py-1 rounded-full"
-                :class="{
-                  'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400': expert.availability_status === 'available',
-                  'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400': expert.availability_status === 'busy'
-                }"
-              >
-                <v-icon :name="expert.availability_status === 'available' ? 'bi-circle-fill' : 'bi-dash-circle-fill'" />
-                <span>{{ expert.availability_status === 'available' ? 'Disponible' : 'Occupé' }}</span>
+            <!-- Footer avec stats - Modifié pour gérer les valeurs undefined -->
+            <div class="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
+              <div class="flex items-center gap-4">
+                <div class="flex items-center gap-1">
+                  <UIcon name="i-heroicons-star" class="h-4 w-4 text-yellow-400" />
+                  <span class="text-sm font-medium">
+                    {{ expert.rating.toFixed(1) }}
+                  </span>
+                  <span class="text-sm text-gray-500 dark:text-gray-400">
+                    ({{ expert.completed_missions }})
+                  </span>
+                </div>
+                <div class="flex items-center gap-1 text-gray-500 dark:text-gray-400">
+                  <UIcon name="i-heroicons-briefcase" class="h-4 w-4" />
+                  <span class="text-sm">
+                    {{ expert.completed_missions || 0 }} missions
+                  </span>
+                </div>
               </div>
-              <!-- Pourcentage de complétion du profil -->
-              <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                <v-icon name="bi-person-check" />
-                <span>Profil complété à {{ expert.profile_completion_percentage }}%</span>
-              </div>
-            </div>
-          </div>
 
-          <!-- Actions -->
-          <div class="px-4 py-3 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-700">
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-gray-500 dark:text-gray-400">
-                Membre depuis {{ formatDate(expert.created_at) }}
-              </span>
               <NuxtLink
                 :to="`/experts/${expert.id}`"
-                class="inline-flex items-center px-4 py-2 rounded-full bg-primary-600 hover:bg-primary-700 text-white font-medium transition-all"
+                class="inline-flex items-center px-4 py-2 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-medium hover:opacity-90 transition-opacity"
               >
-                <v-icon name="bi-arrow-right" class="mr-2" />
                 Voir profil
+                <UIcon name="i-heroicons-arrow-right" class="h-4 w-4 ml-2" />
               </NuxtLink>
             </div>
+          </article>
+        </template>
+
+        <!-- Loading state -->
+        <template v-else-if="isLoading">
+          <div class="space-y-4">
+            <div v-for="i in 3" :key="i" class="animate-pulse">
+              <div class="bg-white dark:bg-gray-800 rounded-2xl p-6">
+                <div class="flex items-center gap-4 mb-4">
+                  <div class="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+                  <div class="flex-1">
+                    <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-2"></div>
+                    <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+                  </div>
+                </div>
+                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+              </div>
+            </div>
           </div>
-        </article>
+        </template>
 
         <!-- État vide -->
-        <div 
-          v-if="!isLoading && filteredExperts.length === 0"
-          class="text-center py-12 bg-white dark:bg-gray-800 rounded-xl shadow-sm"
-        >
-          <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-            <v-icon name="bi-people" scale="1.5" class="text-gray-400" />
+        <template v-else>
+          <div class="text-center py-12 bg-white dark:bg-gray-800 rounded-2xl">
+            <UIcon 
+              name="i-heroicons-users" 
+              class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600"
+            />
+            <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">
+              Aucun expert trouvé
+            </h3>
+            <p class="mt-2 text-gray-500 dark:text-gray-400">
+              Essayez de modifier vos filtres ou revenez plus tard
+            </p>
           </div>
-          <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-1">
-            Aucun expert trouvé
-          </h3>
-          <p class="text-gray-500 dark:text-gray-400">
-            Modifiez vos filtres ou revenez plus tard
-          </p>
-        </div>
+        </template>
       </div>
     </main>
   </div>
@@ -374,159 +245,122 @@ addIcons(
 
 const supabase = useSupabaseClient()
 
-// États
-const experts = ref([])
-const isLoading = ref(true)
 const searchQuery = ref('')
+const isLoading = ref(true)
+const experts = ref([])
 const activeFilter = ref('all')
-const showAdvancedFilters = ref(false)
-const filters = ref({
-  professions: [],
-  minRating: null,
-  responseTime: '',
-  availability: 'all'
-})
 
 // Filtres rapides
 const quickFilters = [
-  { label: 'Tous', value: 'all', icon: 'bi-grid' },
-  { label: 'Disponibles', value: 'available', icon: 'bi-circle-fill' },
-  { label: 'Vérifiés', value: 'verified', icon: 'bi-patch-check-fill' },
-  { label: 'Profils complets', value: 'complete', icon: 'bi-person-check' }
+  { label: 'Tous', value: 'all', icon: 'i-heroicons-users' },
+  { label: 'Mieux notés', value: 'top-rated', icon: 'i-heroicons-star' },
+  { label: 'Plus actifs', value: 'most-active', icon: 'i-heroicons-bolt' },
+  { label: 'Récents', value: 'recent', icon: 'i-heroicons-clock' },
+  { label: 'Vérifiés', value: 'verified', icon: 'i-heroicons-check-badge' }
 ]
 
-// Mapping des icônes par profession
-const professionIcons = {
-  'Développeur': 'bi-code-slash',
-  'Designer': 'bi-palette',
-  'Rédacteur': 'bi-pencil',
-  'Photographe': 'bi-camera',
-  'Marketeur': 'bi-graph-up',
-  'Traducteur': 'bi-translate',
-  'Community Manager': 'bi-people',
-  'Consultant': 'bi-person-workspace',
-  'Graphiste': 'bi-brush',
-  'Monteur vidéo': 'bi-camera-video',
-  'default': 'bi-briefcase'
-}
+// Avatar par défaut en base64
+const defaultAvatar = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NDgiIGhlaWdodD0iNTEyIiB2aWV3Qm94PSIwIDAgNDQ4IDUxMiI+CiAgICA8cGF0aCBmaWxsPSIjYzZjNWM1IgogICAgICAgIGQ9Ik0yMjQgMjU2YTEyOCAxMjggMCAxIDAgMC0yNTZhMTI4IDEyOCAwIDEgMCAwIDI1Nm0tNDUuNyA0OEM3OS44IDMwNCAwIDM4My44IDAgNDgyLjNDMCA0OTguNyAxMy4zIDUxMiAyOS43IDUxMmgzODguNmMxNi40IDAgMjkuNy0xMy4zIDI5LjctMjkuN2MwLTk4LjUtNzkuOC0xNzguMy0xNzguMy0xNzguM3oiIC8+Cjwvc3ZnPg=='
 
-// Fetch des experts
+// Récupération des experts avec leurs notations
 const fetchExperts = async () => {
   try {
     isLoading.value = true
     const { data, error } = await supabase
       .from('profiles')
       .select(`
-        *
+        *,
+        deals!deals_expert_id_fkey (
+          expert_rating,
+          status
+        )
       `)
-      .eq('is_expert', true)
-      .order('created_at', { ascending: false })
+      .eq('role', 'expert')
 
     if (error) throw error
-    experts.value = data || []
+    
+    // Traiter les données pour calculer les moyennes
+    experts.value = (data || []).map(expert => {
+      // Filtrer les deals complétés avec notation
+      const completedDeals = expert.deals?.filter(deal => 
+        deal.status === 'completed' && deal.expert_rating !== null
+      ) || []
+
+      // Calculer la moyenne des notations
+      const totalRating = completedDeals.reduce((sum, deal) => 
+        sum + (deal.expert_rating || 0), 0
+      )
+      
+      const averageRating = completedDeals.length > 0 
+        ? totalRating / completedDeals.length 
+        : 0
+
+      return {
+        ...expert,
+        rating: averageRating,
+        completed_missions: completedDeals.length,
+        skills: expert.skills || [],
+        location: expert.location || 'À distance',
+        bio: expert.bio || 'Aucune description disponible'
+      }
+    })
+    
+    console.log('Experts chargés:', experts.value.length)
   } catch (error) {
-    console.error('Error fetching experts:', error)
+    console.error('Erreur lors de la récupération des experts:', error)
+    experts.value = []
   } finally {
     isLoading.value = false
   }
 }
 
-// Computed pour filtrer les experts
+// Filtrage des experts modifié pour prendre en compte les nouvelles notations
 const filteredExperts = computed(() => {
-  let filtered = experts.value
+  let filtered = [...experts.value]
 
-  // Recherche
+  // Filtre par recherche
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(expert => 
-      expert.first_name?.toLowerCase().includes(query) ||
-      expert.last_name?.toLowerCase().includes(query) ||
+      expert.first_name.toLowerCase().includes(query) ||
+      expert.last_name.toLowerCase().includes(query) ||
       expert.bio?.toLowerCase().includes(query) ||
-      expert.city?.toLowerCase().includes(query) ||
-      expert.country?.toLowerCase().includes(query) ||
-      expert.profession?.name?.toLowerCase().includes(query)
+      expert.skills?.some(skill => skill.toLowerCase().includes(query))
     )
   }
 
   // Filtres rapides
   switch (activeFilter.value) {
-    case 'available':
-      filtered = filtered.filter(e => e.availability_status === 'available')
+    case 'top-rated':
+      filtered = filtered.sort((a, b) => b.rating - a.rating)
+      break
+    case 'most-active':
+      filtered = filtered.sort((a, b) => b.completed_missions - a.completed_missions)
+      break
+    case 'recent':
+      filtered = filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
       break
     case 'verified':
-      filtered = filtered.filter(e => e.is_verified)
+      filtered = filtered.filter(expert => expert.is_verified)
       break
-    case 'complete':
-      filtered = filtered.filter(e => e.profile_completion_percentage >= 80)
-      break
-  }
-
-  // Filtre de disponibilité
-  if (filters.value.availability !== 'all') {
-    filtered = filtered.filter(e => e.availability_status === filters.value.availability)
   }
 
   return filtered
 })
 
-// Helpers
-const getInitials = (firstName, lastName) => {
-  return `${firstName?.charAt(0) || ''}${lastName?.charAt(0) || ''}`.toUpperCase()
-}
-
-const getProfessionIcon = (professionName) => {
-  return professionIcons[professionName] || professionIcons.default
-}
-
-const formatPrice = (price) => {
-  if (!price) return 'Prix à définir'
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'XOF',
-    maximumFractionDigits: 0
-  }).format(price)
-}
-
-const formatDate = (date) => {
-  return new Date(date).toLocaleDateString('fr-FR', {
-    month: 'long',
-    year: 'numeric'
-  })
-}
-
-// Helper pour formater la localisation
-const getLocation = (expert) => {
-  const parts = []
-  if (expert.city) parts.push(expert.city)
-  if (expert.country) parts.push(expert.country)
-  return parts.length > 0 ? parts.join(', ') : null
-}
-
-// Lifecycle
-onMounted(() => {
-  fetchExperts()
+// Initialisation modifiée
+onMounted(async () => {
+  console.log('Composant monté, début du chargement')
+  await fetchExperts()
 })
 </script>
 
 <style scoped>
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: .5; }
-}
-
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* Ajout de styles pour améliorer l'espacement */
-.flex-1 > div:not(:last-child) {
-  margin-bottom: 0.5rem;
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 </style>

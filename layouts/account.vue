@@ -3,156 +3,179 @@
     <template #default>
       <!-- Loading state -->
       <div v-if="isLoading" class="min-h-screen flex items-center justify-center">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
       </div>
 
       <!-- Content when loaded -->
       <div v-else class="min-h-screen bg-white dark:bg-gray-900">
-        <!-- Header fixe avec design Twitter -->
-        <header class="sticky top-0 z-40 backdrop-blur-sm">
-          <div class="bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-800">
-            <!-- Profil condensé -->
+        <!-- Twitter-inspired header -->
+        <header class="sticky top-0 z-40 backdrop-blur-xl">
+          <div class="bg-white/90 dark:bg-gray-900/90 border-b border-gray-100/50 dark:border-gray-800/50">
             <div class="max-w-6xl mx-auto px-4">
-              <div class="h-16 flex items-center justify-between gap-4">
-                <!-- Info utilisateur -->
-                <div class="flex items-center gap-3">
-                  <div class="relative">
-                    <div class="w-9 h-9 rounded-full ring-2 ring-white dark:ring-gray-800 overflow-hidden">
-                      <img 
-                        v-if="user?.avatar_url" 
-                        :src="user.avatar_url" 
-                        :alt="user?.first_name"
-                        class="w-full h-full object-cover"
-                      />
-                      <div 
-                        v-else 
-                        class="w-full h-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-sm font-bold text-white"
-                      >
-                        {{ getInitials(user?.first_name, user?.last_name) }}
-                      </div>
-                    </div>
-                    <div 
-                      class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full ring-2 ring-white dark:ring-gray-800"
-                      :class="{
-                        'bg-green-500': user?.availability_status === 'available',
-                        'bg-yellow-500': user?.availability_status === 'busy',
-                        'bg-red-500': user?.availability_status === 'unavailable'
-                      }"
-                    />
-                  </div>
-                  <div class="hidden sm:block">
-                    <div class="font-bold text-gray-900 dark:text-white">
-                      {{ user?.first_name }} {{ user?.last_name }}
-                    </div>
-                    <div class="text-sm text-gray-800 dark:text-gray-400">
-                      {{ user?.role === 'expert' ? 'Expert' : 'Client' }}
-                      <span v-if="user?.is_verified" class="ml-1 text-primary-500">
-                        <v-icon name="bi-patch-check-fill" scale="1.1" />
-                      </span>
-                    </div>
-                  </div>
+              <div class="h-16 flex items-center justify-between">
+                <!-- Logo/Brand -->
+                <div class="flex items-center">
+                  <span class="text-blue-500 font-bold text-xl">Freelance</span>
                 </div>
-
+                
                 <!-- Navigation desktop -->
-                <nav class="hidden md:flex h-full flex-1 items-center justify-center">
-                  <div class="flex h-full space-x-1">
+                <nav class="hidden md:flex h-full">
+                  <div class="flex h-full space-x-6">
                     <NuxtLink 
                       v-for="item in navigationItems"
                       :key="item.to"
                       :to="item.to"
-                      class="twitter-tab group relative flex items-center px-8 h-full"
+                      class="twitter-tab group relative flex items-center px-4 h-full"
                       :class="[
                         isActivePath(item.to) 
                           ? 'twitter-tab-active' 
                           : ''
                       ]"
                     >
-                      <!-- Icône et label avec effet hover -->
                       <div class="flex flex-col items-center">
                         <v-icon 
                           :name="item.icon" 
-                          class="w-6 h-6 mb-0.5 transition-colors duration-200"
+                          class="w-6 h-6 transition-all duration-300"
                           :class="[
                             isActivePath(item.to) 
-                              ? 'text-primary-500 dark:text-primary-400' 
-                              : 'text-gray-800 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white'
+                              ? 'text-blue-500' 
+                              : 'text-gray-600 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white'
                           ]"
                         />
                         <span 
-                          class="text-sm font-medium transition-colors duration-200"
+                          class="text-sm font-semibold transition-colors duration-300 mt-1"
                           :class="[
                             isActivePath(item.to) 
-                              ? 'text-gray-900 dark:text-white' 
-                              : 'text-gray-800 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white'
+                              ? 'text-blue-500' 
+                              : 'text-gray-600 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white'
                           ]"
                         >
                           {{ item.label }}
                         </span>
                       </div>
-
-                      <!-- Indicateur actif -->
+                      
+                      <!-- Twitter-style indicator -->
                       <div 
-                        class="absolute bottom-0 left-0 right-0 h-1 bg-primary-500 dark:bg-primary-400 transition-all duration-200"
+                        class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1/2 h-1 bg-blue-500 rounded-full transition-all duration-300"
                         :class="[
                           isActivePath(item.to) 
-                            ? 'opacity-100' 
-                            : 'opacity-0 group-hover:opacity-100'
+                            ? 'opacity-100 scale-x-100' 
+                            : 'opacity-0 scale-x-0 group-hover:opacity-40 group-hover:scale-x-50'
                         ]"
                       />
                     </NuxtLink>
                   </div>
                 </nav>
 
-                <!-- Actions -->
-                <!-- <div class="flex items-center gap-3">
-                  <button class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-                    <v-icon name="bi-bell" class="w-6 h-6" />
+                <!-- User profile -->
+                <div class="flex items-center space-x-4">
+                  <button class="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+                    <v-icon name="bi-bell" class="w-5 h-5" />
                   </button>
-                </div> -->
-              </div>
-            </div>
-
-            <!-- Navigation mobile -->
-            <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 z-50">
-              <div class="flex justify-around">
-                <NuxtLink 
-                  v-for="item in navigationItems"
-                  :key="item.to"
-                  :to="item.to"
-                  class="flex-1 flex flex-col items-center py-3 relative"
-                  :class="[
-                    isActivePath(item.to) 
-                      ? 'text-primary-500 dark:text-primary-400' 
-                      : 'text-gray-800 dark:text-gray-400'
-                  ]"
-                >
-                  <v-icon 
-                    :name="item.icon" 
-                    class="w-6 h-6 mb-1"
-                  />
-                  <span class="text-xs font-medium">
-                    {{ item.label }}
-                  </span>
-
-                  <!-- Indicateur actif mobile -->
-                  <div 
-                    class="absolute -top-px left-0 right-0 h-0.5 bg-primary-500 dark:bg-primary-400 transition-all duration-200"
-                    :class="[
-                      isActivePath(item.to) 
-                        ? 'opacity-100' 
-                        : 'opacity-0'
-                    ]"
-                  />
-                </NuxtLink>
+                  <div v-if="user" class="flex items-center space-x-2">
+                    <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-500 font-semibold">
+                      {{ getInitials(user.first_name, user.last_name) }}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </header>
 
-        <!-- Contenu principal -->
-        <main class="max-w-6xl mx-auto px-4 py-6">
-          <slot />
-        </main>
+        <!-- Main container with Twitter-style layout -->
+        <div class="max-w-6xl mx-auto px-4 py-6 md:flex">
+          <!-- Left sidebar (desktop only) -->
+          <div class="hidden md:block w-64 pr-6">
+            <div class="sticky top-20">
+              <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 mb-4">
+                <div class="flex items-center space-x-3 mb-4">
+                  <div class="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-500 font-semibold text-lg">
+                    {{ getInitials(user?.first_name, user?.last_name) }}
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-gray-900 dark:text-white">{{ user?.first_name }} {{ user?.last_name }}</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ isExpert ? 'Expert' : 'Client' }}</p>
+                  </div>
+                </div>
+                
+                <div class="flex justify-between text-sm mb-3">
+                  <div>
+                    <span class="font-bold text-gray-900 dark:text-white">{{ user?.missions_count || 0 }}</span>
+                    <span class="text-gray-500 dark:text-gray-400 ml-1">Missions</span>
+                  </div>
+                  <div>
+                    <span class="font-bold text-gray-900 dark:text-white">{{ user?.contracts_count || 0 }}</span>
+                    <span class="text-gray-500 dark:text-gray-400 ml-1">Contrats</span>
+                  </div>
+                </div>
+                
+                <div v-if="isVerified" class="flex items-center text-sm text-green-600 dark:text-green-500 mb-3">
+                  <v-icon name="bi-check-circle-fill" class="w-4 h-4 mr-1" />
+                  <span>Profil vérifié</span>
+                </div>
+              </div>
+              
+              <!-- Quick actions -->
+              <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4">
+                <h3 class="font-bold text-gray-900 dark:text-white mb-3">Actions rapides</h3>
+                <div class="space-y-2">
+                  <NuxtLink v-if="isExpert" to="/account/services/create" class="flex items-center justify-between p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                    <div class="flex items-center">
+                      <v-icon name="bi-plus-circle" class="w-5 h-5 text-blue-500 mr-2" />
+                      <span class="text-gray-700 dark:text-gray-300">Ajouter un service</span>
+                    </div>
+                    <v-icon name="bi-chevron-right" class="w-4 h-4 text-gray-400" />
+                  </NuxtLink>
+                  <NuxtLink to="/account/edit-profile" class="flex items-center justify-between p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                    <div class="flex items-center">
+                      <v-icon name="bi-person" class="w-5 h-5 text-blue-500 mr-2" />
+                      <span class="text-gray-700 dark:text-gray-300">Modifier le profil</span>
+                    </div>
+                    <v-icon name="bi-chevron-right" class="w-4 h-4 text-gray-400" />
+                  </NuxtLink>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Main content area -->
+          <main class="flex-1">
+            <slot />
+          </main>
+        </div>
+
+        <!-- Navigation mobile with Twitter style -->
+        <div class="md:hidden fixed bottom-0 inset-x-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border-t border-gray-100/50 dark:border-gray-800/50 z-50">
+          <div class="flex justify-around">
+            <NuxtLink 
+              v-for="item in navigationItems"
+              :key="item.to"
+              :to="item.to"
+              class="flex-1 flex flex-col items-center py-3 relative"
+              :class="[
+                isActivePath(item.to) 
+                  ? 'text-blue-500' 
+                  : 'text-gray-500 dark:text-gray-400'
+              ]"
+            >
+              <v-icon 
+                :name="item.icon" 
+                class="w-6 h-6 transition-all duration-300"
+                :class="{ 'scale-110': isActivePath(item.to) }"
+              />
+              <span class="text-xs font-medium mt-1">
+                {{ item.label }}
+              </span>
+              
+              <!-- Twitter-style dot indicator for mobile -->
+              <div 
+                v-if="isActivePath(item.to)"
+                class="absolute bottom-0 w-1 h-1 bg-blue-500 rounded-full"
+              />
+            </NuxtLink>
+          </div>
+        </div>
       </div>
     </template>
   </NuxtLayout>
@@ -163,27 +186,28 @@ import { ref, computed, onMounted } from 'vue'
 import { useSupabaseClient, useSupabaseUser, useRoute } from '#imports'
 import { OhVueIcon as VIcon, addIcons } from 'oh-vue-icons'
 import { 
-  HomeIcon, 
-  BriefcaseIcon,
-  ChatBubbleLeftRightIcon,
-  UserIcon,
-  BellIcon,
-  PlusIcon,
-  ChevronRightIcon
-} from '@heroicons/vue/24/outline'
-import { 
   BiHouseDoor,
   BiBriefcase,
   BiFileText,
-  BiGear
+  BiGear,
+  BiPerson,
+  BiBell,
+  BiPlusCircle,
+  BiCheckCircleFill,
+  BiChevronRight
 } from 'oh-vue-icons/icons'
 
-// Mise à jour des icônes
+// Register icons
 addIcons(
   BiHouseDoor,
   BiBriefcase,
   BiFileText,
-  BiGear
+  BiGear,
+  BiPerson,
+  BiBell,
+  BiPlusCircle,
+  BiCheckCircleFill,
+  BiChevronRight
 )
 
 const route = useRoute()
@@ -193,13 +217,15 @@ const supabaseUser = useSupabaseUser()
 const user = ref(null)
 const isLoading = ref(true)
 
-// Récupérer le profil de l'utilisateur
+// Fetch user profile
 const fetchUserProfile = async () => {
   try {
     const { data, error } = await supabase
       .from('profiles')
       .select(`
-        *
+        *,
+        missions_count:missions(count),
+        contracts_count:contracts(count)
       `)
       .eq('id', supabaseUser.value.id)
       .single()
@@ -233,7 +259,7 @@ const navigationItems = computed(() => [
   ...(isExpert.value ? [{
     label: 'Services',
     to: '/account/services',
-    icon: 'bi-briefcase'
+    icon: 'bi-file-text'
   }] : []),
   { 
     label: 'Contrats',
@@ -252,17 +278,17 @@ const navigationItems = computed(() => [
   }] : [])
 ])
 
-// Charger les données au montage
+// Load data on mount
 onMounted(() => {
   fetchUserProfile()
 })
 
 const isActivePath = (path) => {
   if (path === '/account') {
-    // Exact match pour la page d'accueil
+    // Exact match for home page
     return route.path === path
   }
-  // Prefix match pour les autres pages
+  // Prefix match for other pages
   return route.path.startsWith(path) && path !== '/account'
 }
 
@@ -272,39 +298,50 @@ const getInitials = (firstName, lastName) => {
 </script>
 
 <style scoped>
+/* Twitter-inspired styles */
 .twitter-tab {
-  @apply relative transition-all duration-200;
+  @apply relative transition-all duration-300;
 }
 
-.twitter-tab::after {
-  content: '';
-  @apply absolute bottom-0 left-0 right-0 h-1 bg-primary-500 dark:bg-primary-400 transform scale-x-0 transition-transform duration-200;
-}
-
-.twitter-tab:hover::after {
-  @apply scale-x-100;
-}
-
-.twitter-tab-active::after {
-  @apply scale-x-100;
-}
-
-/* Animation pour le hover */
 .twitter-tab:hover {
-  @apply bg-gray-50 dark:bg-gray-800;
+  @apply bg-gray-50/50 dark:bg-gray-800/30;
 }
 
-/* Style actif */
 .twitter-tab-active {
-  @apply font-semibold;
+  @apply font-bold;
 }
 
-/* Effet de transition pour les icônes */
+/* Smooth transition effects */
 .v-icon {
-  @apply transform transition-transform duration-200;
+  @apply transform transition-all duration-300 ease-out;
 }
 
+/* Subtle hover animation */
 .twitter-tab:hover .v-icon {
   @apply scale-110;
+}
+
+/* Click effect */
+.twitter-tab:active {
+  @apply scale-95;
+}
+
+/* Entrance/exit animations */
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.header-content {
+  animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+main {
+  animation: fadeIn 0.5s ease-out;
 }
 </style>

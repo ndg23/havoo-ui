@@ -22,6 +22,13 @@ and this mission adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Upload direct vers Cloudinary depuis le frontend
   - Support des URLs Cloudinary dans les fonctions de vérification
   - Utilitaires d'administration adaptés pour gérer les documents Cloudinary
+- Système de signalement pour les experts et les missions
+  - Bouton de signalement sur les profils experts
+  - Bouton de signalement sur les pages de missions
+  - Interface d'administration des signalements
+  - Notifications en temps réel des nouveaux signalements
+  - Filtres et recherche avancée des signalements
+- Avatar par défaut en SVG base64 pour les experts sans photo de profil
 
 ### Changed
 - Refactored contract system to use the deals table directly instead of job_contracts
@@ -34,6 +41,8 @@ and this mission adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refined user profile cards with hover effects and verification badges
 - Enhanced stats display with improved data visualization
 - Updated navigation with smoother transitions and feedback
+- Amélioration du design des pages experts avec style Apple
+- Optimisation des performances de chargement des avatars
 
 ### Fixed
 - Fixed "relation job_contracts does not exist" error by removing dependencies on non-existent table
@@ -105,4 +114,12 @@ and this mission adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - N/A (initial release)
+
+### Security
+- Mise en place de politiques de sécurité (RLS) pour les signalements
+- Validation des types de signalements et des raisons
+- Protection contre les signalements multiples
+
+## [Previous versions]
+...
 
