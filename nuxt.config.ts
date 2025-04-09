@@ -10,6 +10,9 @@ export default defineNuxtConfig({
     '@nuxtjs/supabase',
     '@nuxtjs/robots',
   ], 
+  css: ['@fontsource/inter/400.css',
+    '@fontsource/inter/500.css',
+    '@fontsource/inter/700.css'],
   build: {
     transpile: ["oh-vue-icons"]
   },

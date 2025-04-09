@@ -60,16 +60,26 @@
           <article 
             v-for="expert in filteredExperts" 
             :key="expert.id"
-            class="bg-white dark:bg-gray-800 rounded-2xl p-6 mb-4 shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100 dark:border-gray-700"
+            class="bg-white dark:bg-gray-800 rounded-2xl p-6 mb-4 shadow-sm- -hover:shadow-md transition-all duration-200 border border-gray-100 dark:border-gray-700"
           >
             <!-- En-tête avec photo et infos principales -->
             <div class="flex items-start gap-4 mb-4">
               <div class="relative">
-                <UAvatar
-                  :src="expert.avatar_url || defaultAvatar"
-                  :alt="expert.first_name"
-                  size="lg"
-                />
+                <div 
+                  v-if="!!expert.avatar_url"
+                  class="w-16 h-16 rounded-full bg-cover bg-center ring-2- -ring-white dark:ring-gray-800 shadow-md-"
+                  :style="{ backgroundImage: `url(${expert.avatar_url})` }"
+                ></div>
+                <div 
+                  v-else
+                  class="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 ring-2- -ring-white dark:ring-gray-800 shadow-md flex items-center justify-center p-3"
+                >
+                  <img 
+                    :src="defaultAvatar" 
+                    alt="Avatar par défaut"
+                    class="w-full h-full object-contain"
+                  />
+                </div>
                 <div 
                   v-if="expert.availability_status=='available'"
                   class="absolute bottom-0 right-0 w-4 h-4 bg-green-400 rounded-full border-2 border-white dark:border-gray-800"

@@ -1,143 +1,243 @@
 <template>
-  <div class="min-h-screen bg-white">
-    <!-- Twitter-inspired sticky header with lighter design -->
-    <header class="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-3 mb-5">
-      <div class="max-w-7xl mx-auto flex items-center justify-between">
-        <div>
-          <h1 class="text-xl font-bold text-gray-900">Tableau de bord</h1>
-          <p class="text-gray-600 text-sm">Vue d'ensemble de la plateforme Havoo</p>
-        </div>
-        <div class="flex items-center gap-3">
-          <button 
-            @click="loadDashboardData" 
-            class="p-2.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 font-medium rounded-full transition-colors flex items-center gap-2"
-          >
-            <RefreshIcon class="h-4 w-4" />
-            <span>Actualiser</span>
-          </button>
+  <div class="min-h-screen bg-white dark:bg-black">
+    <!-- En-tête style Twitter 2022 -->
+    <header class="sticky top-0 z-10 bg-white/90 dark:bg-black/90 backdrop-blur-md border-b border-gray-100 dark:border-gray-800">
+      <div class="max-w-7xl mx-auto">
+        <div class="px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+          <div>
+            <h1 class="text-xl font-extrabold text-black dark:text-white">
+              Tableau de bord
+            </h1>
+          </div>
           
-          <button class="p-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-full transition-colors flex items-center gap-2">
-            <PlusIcon class="h-4 w-4" />
-            <span>Nouvelle action</span>
-          </button>
+          <div class="flex items-center gap-3">
+            <UButton
+              icon="i-heroicons-arrow-path"
+              color="white"
+              variant="ghost"
+              class="rounded-full h-10 w-10 !p-0"
+              :loading="isLoading"
+              @click="loadDashboardData"
+            />
+            <UButton
+              color="black"
+              variant="solid"
+              label="Nouvelle action"
+              icon="i-heroicons-plus"
+              class="rounded-full font-bold"
+              :ui="{ rounded: 'rounded-full' }"
+            />
+          </div>
         </div>
       </div>
     </header>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <!-- Enhanced loading state with Twitter spinner -->
-      <div v-if="isLoading" class="flex flex-col items-center justify-center py-24">
-        <div class="animate-spin h-10 w-10 mb-5 text-primary-500">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="#E1E8ED" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
+      <!-- Stats Cards style Twitter 2022 -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div 
+          v-for="stat in summaryStats" 
+          :key="stat.name"
+          class="bg-white dark:bg-gray-900 rounded-xl p-5 border border-gray-200 dark:border-gray-800 hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
+        >
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-sm font-bold text-gray-800 dark:text-gray-200">
+              {{ stat.name }}
+            </span>
+            <UIcon
+              :name="stat.icon"
+              class="h-5 w-5 text-blue-500"
+            />
+          </div>
+          
+          <div class="flex items-baseline">
+            <span class="text-3xl font-extrabold text-black dark:text-white">
+              {{ stat.value }}
+            </span>
+            <span class="ml-2 text-sm font-medium text-gray-500 dark:text-gray-400">
+              {{ stat.label }}
+            </span>
+          </div>
+          
+          <div class="mt-3 flex flex-wrap gap-2">
+            <span
+              v-for="subStat in stat.subStats"
+              :key="subStat"
+              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200"
+            >
+              {{ subStat }}
+            </span>
+          </div>
         </div>
-        <p class="text-gray-500 font-medium">Chargement du tableau de bord...</p>
       </div>
 
-      <div v-else class="space-y-8">
-        <!-- Key metrics in Twitter-style cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div v-for="stat in summaryStats" :key="stat.name" class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
-            <div class="flex items-center justify-between">
-              <h3 class="text-gray-500 dark:text-gray-400 text-sm font-medium">{{ stat.name }}</h3>
-              <v-icon :name="stat.icon" class="h-5 w-5 text-blue-500" />
-            </div>
-            <div class="mt-2 flex items-baseline">
-              <p class="text-2xl font-semibold">{{ stat.value }}</p>
-              <p class="ml-2 text-sm text-gray-500 dark:text-gray-400">{{ stat.label }}</p>
-            </div>
-            <div v-if="stat.subStats" class="mt-1 flex items-center text-sm">
-              <span v-for="(subStat, index) in stat.subStats" :key="index">
-                <span class="text-gray-600 dark:text-gray-300">{{ subStat }}</span>
-                <span v-if="index < stat.subStats.length - 1" class="mx-1.5 text-gray-500 dark:text-gray-400">•</span>
-              </span>
-            </div>
+      <!-- Sections principales style Twitter 2022 -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Dernières missions -->
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+          <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+            <h2 class="text-lg font-bold text-black dark:text-white">
+              Dernières missions
+            </h2>
+            <UButton
+              color="gray"
+              variant="ghost"
+              icon="i-heroicons-ellipsis-horizontal"
+              class="rounded-full h-8 w-8 !p-0"
+            />
           </div>
-        </div>
-        
-        <!-- Latest missions with Twitter timeline aesthetic -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm">
-          <div class="p-6 border-b border-gray-100 dark:border-gray-700">
-            <h3 class="font-semibold">Dernières missions</h3>
-          </div>
-          
-          <div class="divide-y divide-gray-100 dark:divide-gray-700">
-            <div v-if="latestRequests.length === 0" class="py-12 text-center">
-              <div class="mx-auto h-16 w-16 text-gray-300 bg-gray-50 rounded-full flex items-center justify-center">
-                <MessageSquareIcon class="h-8 w-8" />
-              </div>
-              <h3 class="mt-4 text-base font-medium text-gray-900">Aucune demande</h3>
-              <p class="mt-1 text-sm text-gray-500">Les demandes récentes apparaîtront ici</p>
-            </div>
-            
+
+          <div>
             <div 
-              v-else
               v-for="mission in latestRequests" 
               :key="mission.id"
-              class="p-4"
+              class="px-5 py-3 border-b border-gray-100 dark:border-gray-800 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
             >
               <div class="flex items-center justify-between">
-                <div class="flex items-center min-w-0">
-                  <div class="flex-1 min-w-0">
-                    <p class="font-medium text-gray-900 dark:text-gray-100">{{ mission.service }}</p>
-                    <p class="text-sm text-gray-500">
-                      {{ mission.client.name }} • {{ mission.date }}
-                    </p>
-                  </div>
+                <div class="min-w-0">
+                  <p class="text-sm font-bold text-black dark:text-white truncate">
+                    {{ mission.service }}
+                  </p>
+                  <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                    {{ mission.client.name }} • {{ mission.date }}
+                  </p>
                 </div>
-                <span :class="getStatusClass(mission.status)" class="ml-4 px-2.5 py-0.5 rounded-full text-xs font-medium">
-                  {{ getStatusLabel(mission.status) }}
-                </span>
+                <UBadge
+                  :label="getStatusLabel(mission.status)"
+                  :color="getStatusColor(mission.status)"
+                  class="ml-4"
+                  variant="subtle"
+                  :ui="{ rounded: 'rounded-full' }"
+                />
               </div>
             </div>
           </div>
         </div>
-        
-        <!-- Recent activities with Twitter timeline style -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm mb-8">
-          <div class="p-6 border-b border-gray-100 dark:border-gray-700">
-            <h3 class="font-semibold">Activités récentes</h3>
+
+        <!-- Activités récentes -->
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+          <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+            <h2 class="text-lg font-bold text-black dark:text-white">
+              Activités récentes
+            </h2>
+            <UButton
+              color="gray"
+              variant="ghost"
+              icon="i-heroicons-ellipsis-horizontal"
+              class="rounded-full h-8 w-8 !p-0"
+            />
           </div>
-          
-          <div v-if="!recentActivities.length" class="p-12 text-center">
-            <div class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
-              <v-icon name="ri-notification-4-line" class="h-6 w-6 text-gray-600 dark:text-gray-400" />
-            </div>
-            <h3 class="mt-4 text-base font-medium text-gray-900 dark:text-gray-100">Aucune activité</h3>
-            <p class="mt-1 text-sm text-gray-500">Les activités récentes apparaîtront ici</p>
-          </div>
-          
-          <div v-else class="divide-y divide-gray-100 dark:divide-gray-700">
-            <div v-for="activity in recentActivities" :key="activity.id" class="p-4 hover:bg-gray-50 dark:hover:bg-gray-800">
-              <div class="flex gap-4">
-                <div class="h-10 w-10 rounded-full flex items-center justify-center" :class="getActivityColorClass(activity.type)">
-                  <v-icon :name="getActivityIcon(activity.type)" class="h-5 w-5 text-white" />
+
+          <div>
+            <div 
+              v-for="activity in recentActivities" 
+              :key="activity.id"
+              class="px-5 py-3 border-b border-gray-100 dark:border-gray-800 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+            >
+              <div class="flex items-start gap-3">
+                <div 
+                  class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
+                  :class="getActivityColorClass(activity.type)"
+                >
+                  <UIcon
+                    :name="getActivityIcon(activity.type)"
+                    class="h-4 w-4 text-white"
+                  />
                 </div>
+                
                 <div class="flex-1 min-w-0">
-                  <p class="font-medium text-gray-900 dark:text-gray-100">{{ activity.title }}</p>
-                  <div class="flex items-center mt-1 text-sm text-gray-500">
-                    <span>{{ activity.time }}</span>
-                    <span v-if="activity.user" class="flex items-center mx-1.5">•</span>
-                    <span v-if="activity.user" class="font-medium text-gray-700 dark:text-gray-300">
-                      {{ activity.user.name }}
+                  <p class="text-sm font-bold text-black dark:text-white">
+                    {{ activity.title }}
+                  </p>
+                  <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                    {{ activity.time }}
+                    <span v-if="activity.user" class="font-medium">
+                      • {{ activity.user.name }}
                     </span>
-                  </div>
+                  </p>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        
-        <!-- Twitter-style footer -->
-        <div class="mt-6 pt-5 border-t border-gray-100">
-          <div class="flex flex-col sm:flex-row items-center justify-between text-sm text-gray-500">
-            <div>
-              <span>Havoo - Version 1.0.0</span>
-            </div>
-            <div class="mt-3 sm:mt-0">
-              <span>© {{ new Date().getFullYear() }} Havoo</span>
+      </div>
+
+      <!-- Section Derniers utilisateurs style Twitter 2022 -->
+      <div class="mt-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-bold text-black dark:text-white">
+            Derniers utilisateurs
+          </h2>
+          <UButton
+            color="gray"
+            variant="ghost"
+            label="Voir tous"
+            icon="i-heroicons-arrow-right"
+            to="/admin/users"
+            class="rounded-full text-sm"
+          />
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div 
+            v-for="user in latestUsers" 
+            :key="user.id"
+            class="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 hover:border-blue-300 dark:hover:border-blue-700 transition-colors group"
+          >
+            <div class="flex items-start gap-3">
+              <!-- Avatar avec badge de rôle -->
+              <div class="relative">
+                <div 
+                  v-if="user.avatar_url"
+                  class="w-10 h-10 rounded-full bg-cover bg-center"
+                  :style="{ backgroundImage: `url(${user.avatar_url})` }"
+                ></div>
+                <div 
+                  v-else
+                  class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center"
+                >
+                  <span class="text-sm font-medium text-gray-600 dark:text-gray-300">
+                    {{ getInitials(user.first_name, user.last_name) }}
+                  </span>
+                </div>
+                <div 
+                  class="absolute -bottom-1 -right-1 rounded-full px-1.5 py-0.5 text-xs font-medium"
+                  :class="getRoleClass(user.role)"
+                >
+                  {{ getRoleLabel(user.role) }}
+                </div>
+              </div>
+
+              <!-- Informations utilisateur -->
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between">
+                  <p class="text-sm font-bold text-black dark:text-white truncate">
+                    {{ user.first_name }} {{ user.last_name }}
+                  </p>
+                  <UButton
+                    color="gray"
+                    variant="ghost"
+                    icon="i-heroicons-chevron-right"
+                    :to="`/admin/users/${user.id}`"
+                    class="opacity-0 group-hover:opacity-100 transition-opacity -mr-2 h-7 w-7 !p-0 rounded-full"
+                  />
+                </div>
+                <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                  {{ user.email }}
+                </p>
+                <div class="mt-1.5 flex items-center gap-2">
+                  <span class="text-xs text-gray-500 dark:text-gray-400">
+                    {{ formatDate(user.created_at) }}
+                  </span>
+                  <div 
+                    v-if="user.is_verified"
+                    class="flex items-center text-xs text-blue-500 dark:text-blue-400"
+                  >
+                    <UIcon name="i-heroicons-check-badge" class="h-3 w-3 mr-0.5" />
+                    Vérifié
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -210,6 +310,7 @@ const summaryStats = ref([
 ])
 const recentActivities = ref([])
 const latestRequests = ref([])
+const latestUsers = ref([])
 
 // Chargement des données depuis Supabase
 const loadDashboardData = async () => {
@@ -225,8 +326,11 @@ const loadDashboardData = async () => {
     // 3. Chargement des dernières demandes
     const missionsPromise = fetchLatestRequests()
     
+    // 4. Chargement des derniers utilisateurs
+    const usersPromise = fetchLatestUsers()
+    
     // Attendre toutes les promesses
-    await Promise.all([statsPromise, activitiesPromise, missionsPromise])
+    await Promise.all([statsPromise, activitiesPromise, missionsPromise, usersPromise])
     
   } catch (error) {
     console.error('Erreur lors du chargement des données du dashboard:', error)
@@ -342,6 +446,23 @@ const fetchLatestRequests = async () => {
   }
 }
 
+// Fonction pour charger les derniers utilisateurs
+const fetchLatestUsers = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(6)
+
+    if (error) throw error
+    latestUsers.value = data
+
+  } catch (error) {
+    console.error('Erreur lors du chargement des utilisateurs:', error)
+  }
+}
+
 // Fonctions de récupération des statistiques
 const fetchUsersStats = async () => {
   const { data: totalUsers } = await supabase
@@ -444,15 +565,15 @@ const formatTimeAgo = (dateString) => {
   }
 }
 
-// Récupérer la classe de couleur pour un type d'activité
+// Mise à jour des couleurs d'activité pour le style Twitter 2022
 const getActivityColorClass = (type) => {
   switch (type) {
-    case 'new_user': return 'bg-green-500'
-    case 'new_mission': return 'bg-blue-500'
+    case 'new_user': return 'bg-blue-500'
+    case 'new_mission': return 'bg-green-500'
     case 'service_completed': return 'bg-purple-500'
-    case 'payment': return 'bg-amber-500'
-    case 'service_created': return 'bg-indigo-500'
-    case 'user_verified': return 'bg-teal-500'
+    case 'payment': return 'bg-yellow-500'
+    case 'service_created': return 'bg-pink-500'
+    case 'user_verified': return 'bg-blue-400'
     case 'admin_action': return 'bg-gray-500'
     case 'settings_updated': return 'bg-orange-500'
     case 'login': return 'bg-blue-600'
@@ -496,6 +617,40 @@ const getStatusLabel = (status) => {
     case 'cancelled': return 'Annulé'
     default: return status
   }
+}
+
+// Nouvelles fonctions helper pour les statuts
+const getStatusColor = (status) => {
+  switch (status) {
+    case 'pending': return 'yellow'
+    case 'in_progress': return 'blue'
+    case 'completed': return 'green'
+    case 'cancelled': return 'red'
+    default: return 'gray'
+  }
+}
+
+// Helpers pour les utilisateurs
+const getInitials = (firstName = '', lastName = '') => {
+  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
+}
+
+const getRoleClass = (role) => {
+  const classes = {
+    expert: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
+    client: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+    admin: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+  }
+  return classes[role] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
+}
+
+const getRoleLabel = (role) => {
+  const labels = {
+    expert: 'Expert',
+    client: 'Client',
+    admin: 'Admin'
+  }
+  return labels[role] || role
 }
 
 // Initialisation

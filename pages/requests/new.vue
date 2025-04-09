@@ -11,76 +11,87 @@
         tag="div"
       >
         <div :key="currentStep" class="space-y-8">
-          <!-- Impactful header with Twitter-inspired styling -->
-          <div class="space-y-3">
-            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-blue-50 text-blue-500 dark:bg-blue-900/30 dark:text-blue-400">
+          <!-- En-tête avec style Apple -->
+          <div class="space-y-4">
+            <span 
+              class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-gray-900 text-white dark:bg-white dark:text-gray-900"
+            >
               Étape {{ currentStep }}/{{ steps.length }}
             </span>
-            <h1 class="text-3xl font-extrabold text-gray-900 dark:text-white">
+            <h1 class="text-4xl font-bold text-gray-900 dark:text-white font-poppins">
               {{ steps[currentStep - 1].question }}
             </h1>
-            <p class="text-base text-gray-600 dark:text-gray-400">
+            <p class="text-lg text-gray-600 dark:text-gray-400">
               {{ steps[currentStep - 1].description }}
             </p>
           </div>
 
-          <!-- Dynamic fields with Twitter-inspired styling -->
-          <div class="space-y-5">
+          <!-- Champs dynamiques avec style Apple -->
+          <div class="space-y-6">
             <!-- Input texte -->
             <template v-if="steps[currentStep - 1].type === 'text'">
               <input
                 v-model="missionData[steps[currentStep - 1].key]"
                 type="text"
                 :placeholder="steps[currentStep - 1].placeholder"
-                class="w-full px-4 py-4 text-lg rounded-2xl 
+                class="w-full px-6 py-4 text-lg rounded-2xl
                        border border-gray-200 dark:border-gray-700
-                       bg-white dark:bg-gray-800 
-                       focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                       placeholder:text-gray-500 dark:placeholder:text-gray-500
+                       bg-gray-50 dark:bg-gray-800/50 
+                       focus:ring-2 focus:ring-gray-900 dark:focus:ring-white
+                       placeholder:text-gray-500 dark:placeholder:text-gray-400
                        text-gray-900 dark:text-white"
               />
             </template>
 
             <!-- Description -->
             <template v-if="steps[currentStep - 1].type === 'textarea'">
-              <textarea
-                v-model="missionData[steps[currentStep - 1].key]"
-                :placeholder="steps[currentStep - 1].placeholder"
-                rows="5"
-                class="w-full px-5 py-3.5 text-lg 
-           rounded-xl
-           border border-gray-200/40 dark:border-gray-700/40
-           bg-white dark:bg-gray-800
-           focus:outline-none
-           focus:border-gray-300 dark:focus:border-gray-600
-           focus:ring-0
-           placeholder:text-gray-400/80 dark:placeholder:text-gray-500/80
-           text-gray-900 dark:text-white
-           shadow-sm
-           resize-none
-           transition-all duration-200 ease-in-out"
-  />
-              
-              <div class="flex justify-between items-center text-sm">
-                <span class="text-gray-500">{{ missionData[steps[currentStep - 1].key]?.length || 0 }}/500</span>
-                <button 
-                  @click="showTips = !showTips"
-                  class="text-blue-500 font-medium hover:text-blue-600"
-                >
-                  {{ showTips ? 'Masquer les conseils' : 'Voir les conseils' }}
-                </button>
-              </div>
+              <div class="space-y-4">
+                <textarea
+                  v-model="missionData[steps[currentStep - 1].key]"
+                  :placeholder="steps[currentStep - 1].placeholder"
+                  rows="5"
+                  class="w-full px-6 py-4 text-lg rounded-2xl
+                         border border-gray-200 dark:border-gray-700
+                         bg-gray-50 dark:bg-gray-800/50
+                         focus:ring-2 focus:ring-gray-900 dark:focus:ring-white
+                         placeholder:text-gray-500 dark:placeholder:text-gray-400
+                         text-gray-900 dark:text-white
+                         resize-none"
+                />
+                
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-gray-500">
+                    {{ missionData[steps[currentStep - 1].key]?.length || 0 }}/500
+                  </span>
+                  <button 
+                    @click="showTips = !showTips"
+                    class="text-sm font-medium text-gray-900 dark:text-white hover:opacity-70"
+                  >
+                    {{ showTips ? 'Masquer les conseils' : 'Voir les conseils' }}
+                  </button>
+                </div>
 
-              <!-- Tips in Twitter card style -->
-              <div v-if="showTips" class="mt-4 space-y-3 rounded-2xl bg-gray-50 dark:bg-gray-900 p-4 border border-gray-200 dark:border-gray-800">
-                <h3 class="font-bold text-gray-900 dark:text-white">Conseils de rédaction</h3>
+                <!-- Tips avec style Apple -->
                 <div 
-                  v-for="(tip, index) in descriptionTips" 
-                  :key="index"
-                  class="flex items-start gap-2.5"
+                  v-if="showTips" 
+                  class="rounded-2xl bg-gray-50 dark:bg-gray-800/50 p-6 space-y-4"
                 >
-                  <UIcon name="i-heroicons-light-bulb" class="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
-                  <p class="text-sm text-gray-700 dark:text-gray-300">{{ tip }}</p>
+                  <h3 class="font-semibold text-gray-900 dark:text-white">
+                    Conseils de rédaction
+                  </h3>
+                  <div class="space-y-3">
+                    <div 
+                      v-for="(tip, index) in descriptionTips" 
+                      :key="index"
+                      class="flex gap-3 text-sm"
+                    >
+                      <UIcon 
+                        name="i-heroicons-light-bulb" 
+                        class="h-5 w-5 text-gray-900 dark:text-white flex-shrink-0" 
+                      />
+                      <p class="text-gray-600 dark:text-gray-400">{{ tip }}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </template>
@@ -351,14 +362,14 @@
           </div>
 
           <!-- Twitter-style navigation buttons -->
-          <div class="space-y-3 pt-4">
+          <div class="space-y-3 pt-6">
             <button
               @click="nextStep"
               :disabled="!isCurrentStepValid"
-              class="w-full px-4 py-3.5 rounded-full text-base font-bold
-                     bg-blue-500 text-white
+              class="w-full px-6 py-4 rounded-2xl text-base font-medium
+                     bg-gray-900 text-white dark:bg-white dark:text-gray-900
                      disabled:opacity-50 disabled:cursor-not-allowed
-                     hover:bg-blue-600 transition-colors active:scale-98"
+                     hover:opacity-90 transition-opacity"
             >
               {{ isLastStep ? 'Publier la mission' : 'Continuer' }}
             </button>
@@ -366,10 +377,9 @@
             <button
               v-if="currentStep > 1"
               @click="previousStep"
-              class="w-full px-4 py-3.5 rounded-full text-base font-bold
-                     bg-transparent text-gray-700 dark:text-gray-300
-                     hover:bg-gray-100 dark:hover:bg-gray-800
-                     transition-colors"
+              class="w-full px-6 py-4 rounded-2xl text-base font-medium
+                     bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white
+                     hover:opacity-90 transition-opacity"
             >
               Retour
             </button>
@@ -451,25 +461,19 @@
 </template>
 
 <style scoped>
-.slide-fade-enter-active {
-  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-  position: relative;
-}
-
+.slide-fade-enter-active,
 .slide-fade-leave-active {
-  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-  position: absolute;
-  width: 100%;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .slide-fade-enter-from {
   opacity: 0;
-  transform: translateX(30px);
+  transform: translateY(20px);
 }
 
 .slide-fade-leave-to {
   opacity: 0;
-  transform: translateX(-30px);
+  transform: translateY(-20px);
 }
 
 .max-w-xl {

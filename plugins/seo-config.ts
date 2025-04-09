@@ -1,12 +1,12 @@
 export default defineNuxtPlugin(() => {
     useSeoMeta({
-      titleTemplate: '%s | NomDeVotrePlateforme',
-      defaultTitle: 'NomDeVotrePlateforme - Description courte de votre plateforme',
+      titleTemplate: '%s | Keetaf',
+      defaultTitle: 'Keetaf - Description courte de votre plateforme',
       description: 'Description complète de votre plateforme, optimisée pour les moteurs de recherche',
       
       // Open Graph / Facebook
       ogType: 'website',
-      ogSiteName: 'NomDeVotrePlateforme',
+      ogSiteName: 'Keetaf',
       ogImage: 'https://keetaf.com/images/og-image.jpg',
       
       // Twitter

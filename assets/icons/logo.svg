@@ -1,0 +1,15 @@
+<svg viewBox="0 0 300 80" width="300" height="80" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fond blanc -->
+
+  
+  <!-- Encadré coloré avec coins plus arrondis -->
+  <rect x="15" y="10" width="270" height="60" rx="16" ry="16" fill="#FF5F40"/>
+  
+  <!-- Texte Keetaf avec police arrondie -->
+  <text x="150" y="52" 
+        font-family="Arial Rounded MT Bold, Verdana, Arial, sans-serif" 
+        font-size="36"
+        text-anchor="middle"
+        font-weight="bold"
+        fill="white">Keetaf</text>
+</svg>

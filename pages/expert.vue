@@ -419,7 +419,7 @@ const filteredExperts = computed(() => {
         return b.rating - a.rating
       case 'price_asc':
         return parseInt(a.hourlyRate) - parseInt(b.hourlyRate)
-      case 'price_desc':
+      case 'price_desc'   :
         return parseInt(b.hourlyRate) - parseInt(a.hourlyRate)
       default:
         return 0

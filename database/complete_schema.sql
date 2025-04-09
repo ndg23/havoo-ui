@@ -97,6 +97,7 @@ CREATE TABLE deals (
   client_rating INTEGER CHECK (client_rating BETWEEN 1 AND 5),
   expert_rating INTEGER CHECK (expert_rating BETWEEN 1 AND 5),
   client_review TEXT,
+  duration_unit VARCHAR(10) DEFAULT 'days' CHECK (duration_unit IN ('days', 'weeks', 'months')),
   expert_review TEXT,
   client_has_rated BOOLEAN DEFAULT FALSE,
   expert_has_rated BOOLEAN DEFAULT FALSE,

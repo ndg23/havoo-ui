@@ -77,68 +77,124 @@
             <div 
               v-for="mission in filteredMissions" 
               :key="mission.id"
-              class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100 dark:border-gray-700"
+              class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 cursor-pointer group transition-all duration-200
+                hover:border-primary-500 dark:hover:border-primary-400"
             >
-              <!-- En-tête de la mission -->
-              <div class="flex justify-between items-start mb-4">
-                <div>
-                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                    {{ mission.title }}
-                  </h3>
-                  <div class="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
-                    <span>{{ formatTimeAgo(mission.created_at) }}</span>
-                    <span>•</span>
-                    <span>{{ formatPrice(mission.budget) }}</span>
-                    <span v-if="mission.location">•</span>
-                    <span v-if="mission.location">{{ mission.location }}</span>
+              <div @click="router.push(`/requests/${mission.id}`)">
+                <!-- En-tête de la mission -->
+                <div class="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                      {{ mission.title }}
+                    </h3>
+                    <div class="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                      <span class="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+                        <UIcon name="i-heroicons-banknotes" class="w-4 h-4" />
+                        {{ formatPrice(mission.budget) }}
+                      </span>
+                      <span class="text-gray-300 dark:text-gray-600">•</span>
+                      <span class="flex items-center gap-1 font-medium">
+                        <UIcon name="i-heroicons-clock" 
+                          class="w-4 h-4"
+                          :class="getDeadlineColor(mission.deadline)"
+                        />
+                        {{ formatDeadline(mission.deadline) }}
+                      </span>
+                      <span class="text-gray-300 dark:text-gray-600">•</span>
+                      <span class="text-blue-600 dark:text-blue-400 font-medium">
+                        {{ formatTimeAgo(mission.created_at) }}
+                      </span>
+                      <span v-if="mission.location" class="text-gray-300 dark:text-gray-600">•</span>
+                      <span v-if="mission.location" class="flex items-center gap-1 text-purple-600 dark:text-purple-400 font-medium">
+                        <UIcon name="i-heroicons-map-pin" class="w-4 h-4" />
+                        {{ mission.location }}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <!-- Badge statut -->
+                  <div
+                    class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium whitespace-nowrap"
+                    :class="`text-${getMissionStatusColor(mission.status)}-600 dark:text-${getMissionStatusColor(mission.status)}-400`"
+                  >
+                    <UIcon 
+                      :name="getMissionStatusIcon(mission.status)" 
+                      class="w-4 h-4" 
+                    />
+                    {{ getMissionStatusLabel(mission.status) }}
                   </div>
                 </div>
-                
-                <!-- Badge statut -->
-                <span 
-                  class="px-3 py-1 rounded-full text-sm font-medium"
-                  :class="getMissionStatusClass(mission.status)"
-                >
-                  {{ getMissionStatusLabel(mission.status) }}
-                </span>
+
+                <!-- Description et actions -->
+                <div class="space-y-4">
+                  <p class="text-gray-600 dark:text-gray-300 line-clamp-2">
+                    {{ mission.description }}
+                  </p>
+
+                  <!-- Client info -->
+                  <div class="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
+                    <!-- Info client -->
+                    <div class="flex items-center gap-3">
+                      <UAvatar
+                        :src="mission.client?.avatar_url"
+                        :alt="`${mission.client?.first_name} ${mission.client?.last_name}`"
+                        size="sm"
+                      />
+                      <div class="text-sm">
+                        <div class="font-medium text-gray-900 dark:text-white flex items-center gap-2">
+                          {{ mission.client?.first_name }} {{ mission.client?.last_name }}
+                          <span class="text-gray-500 dark:text-gray-400 font-normal">
+                            @{{ mission.client?.username || mission.client?.email?.split('@')[0] }}
+                          </span>
+                        </div>
+                        <div class="text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                          <span class="flex items-center gap-1">
+                            <UIcon name="i-heroicons-star" class="w-4 h-4 text-yellow-400" />
+                            {{ mission.client?.rating || '0' }}
+                          </span>
+                          <span>•</span>
+                          <span>{{ mission.client?.missions_count || '0' }} missions</span>
+                          <span v-if="mission.client?.city">•</span>
+                          <span v-if="mission.client?.city" class="flex items-center gap-1">
+                            <UIcon name="i-heroicons-map-pin" class="w-4 h-4" />
+                            {{ mission.client?.city }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Proposal count with Twitter 2023 style -->
+                    <div class="flex items-center gap-2">
+                      <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium text-sm">
+                        <UIcon name="i-heroicons-chat-bubble-left-right" class="w-4 h-4" />
+                        <span>{{ mission.deals.length || 0 }}</span>
+                        <span class="text-blue-500/70 dark:text-blue-400/70">propositions</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <!-- Description -->
-              <p class="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
-                {{ mission.description }}
-              </p>
-
-              <!-- Footer avec actions -->
-              <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-                <!-- Info client -->
-                <div class="flex items-center gap-2">
-                  <div class="h-8 w-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                    <span class="text-sm font-medium text-gray-600 dark:text-gray-300">
-                      {{ mission.client?.first_name?.[0] }}{{ mission.client?.last_name?.[0] }}
-                    </span>
-                  </div>
-                  <span class="text-sm text-gray-600 dark:text-gray-300">
-                    {{ mission.client?.first_name }} {{ mission.client?.last_name }}
-                  </span>
-                </div>
-
-                <!-- Bouton d'action -->
-                <div>
-                  <NuxtLink
-                    v-if="!canMakeProposal(mission)"
-                    :to="`/requests/${mission.id}`"
-                    class="inline-flex items-center px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm font-medium"
-                  >
-                    Voir les détails
-                  </NuxtLink>
-                  <button
-                    v-else
-                    @click="openProposalModal(mission)"
-                    class="inline-flex items-center px-4 py-2 rounded-full bg-primary-500 hover:bg-primary-600 text-white transition-colors text-sm font-medium"
-                  >
-                    Faire une proposition
-                  </button>
-                </div>
+              <!-- Bouton de proposition (isolé du conteneur parent) -->
+              <div class="mt-4 flex justify-end">
+                <UButton
+                  v-if="mission.status === 'open' && canMakeProposal(mission)"
+                  color="primary"
+                  variant="soft"
+                  icon="i-heroicons-paper-airplane"
+                  class="rounded-full"
+                  @click="openProposalModal(mission)"
+                >
+                  Faire une proposition
+                </UButton>
+                <UBadge
+                  v-else-if="mission.status === 'open' && hasProposal(mission)"
+                  color="gray"
+                  variant="subtle"
+                  class="rounded-full"
+                >
+                  Proposition envoyée
+                </UBadge>
               </div>
             </div>
           </div>
@@ -160,58 +216,130 @@
       </div>
     </main>
 
-    <!-- Modal de proposition -->
-    <UModal v-model="isProposalModalOpen">
-      <div class="p-6">
-        <h2 class="text-xl font-semibold mb-4">
-          Faire une proposition
-        </h2>
-        <form @submit.prevent="submitProposal" class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium mb-1">Prix proposé</label>
+    <!-- Modal Faire une proposition -->
+    <UModal v-model="showApplyModal">
+      <!-- Header personnalisé -->
+      <template #header>
+        <div class="space-y-1 px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700">
+          <h2 class="text-2xl font-bold text-white mb-1">
+            Proposer une affaire
+          </h2>
+          <div class="text-sm text-primary-100 font-medium">
+             pour
+          </div>
+          <div class="text-lg font-semibold text-white line-clamp-1">
+            {{ selectedMission?.title }}
+          </div>
+          <div class="text-sm text-primary-100">
+            Budget initial : {{ formatPrice(selectedMission?.budget) }}
+          </div>
+        </div>
+      </template>
+
+      <div class="space-y-8 p-4">
+        <!-- Prix -->
+        <div class="text-center">
+          <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+            Prix proposé
+          </label>
+          <div class="relative inline-block">
             <input
-              v-model="proposalForm.price"
+              v-model="price"
               type="number"
-              class="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700"
-              required
+              class="text-6xl font-bold text-center bg-transparent focus:outline-none text-primary-600 dark:text-primary-400 tracking-tight w-full"
+              min="0"
+              step="1"
+              @focus="$event.target.select()"
+              @input="handlePriceInput"
             />
           </div>
-          <div>
-            <label class="block text-sm font-medium mb-1">Durée (en jours)</label>
-            <input
-              v-model="proposalForm.duration"
-              type="number"
-              class="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700"
-              required
-            />
+        </div>
+
+        <!-- Délai -->
+        <div class="text-center">
+          <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+            Délai de livraison
+          </label>
+          <div class="relative inline-block">
+            <span class="text-6xl font-bold text-primary-600 dark:text-primary-400 tracking-tight">
+              {{ delay }}
+            </span>
+            <span class="ml-2 text-2xl font-medium text-gray-500 dark:text-gray-400">
+              {{ delayUnit === 'days' ? 'jours' : delayUnit === 'weeks' ? 'sem.' : 'mois' }}
+            </span>
+            <div class="absolute -right-16 top-1/2 -translate-y-1/2 flex flex-col gap-2">
+              <button
+                class="rounded-full h-10 w-10 flex items-center justify-center border border-gray-200 dark:border-gray-700 hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors"
+                @click="delay++"
+              >
+                <PlusIcon class="h-5 w-5 text-primary-500" />
+              </button>
+              <button
+                class="rounded-full h-10 w-10 flex items-center justify-center border border-gray-200 dark:border-gray-700 hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors"
+                @click="delay > 1 ? delay-- : null"
+              >
+                <MinusIcon class="h-5 w-5 text-primary-500" />
+              </button>
+            </div>
           </div>
-          <div>
-            <label class="block text-sm font-medium mb-1">Message</label>
-            <textarea
-              v-model="proposalForm.message"
-              rows="4"
-              class="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700"
-              required
-            ></textarea>
-          </div>
-          <div class="flex justify-end gap-3 mt-6">
+          <div class="flex justify-center gap-2 mt-4">
             <button
-              type="button"
-              @click="closeProposalModal"
-              class="px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700"
+              v-for="unit in ['days', 'weeks', 'months']"
+              :key="unit"
+              class="px-4 py-2 rounded-full text-sm font-medium transition-colors"
+              :class="delayUnit === unit 
+                ? 'bg-primary-600 text-white dark:bg-primary-500' 
+                : 'bg-gray-100 text-gray-600 hover:bg-primary-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-primary-900/30'"
+              @click="delayUnit = unit"
             >
-              Annuler
-            </button>
-            <button
-              type="submit"
-              :disabled="isSubmitting"
-              class="px-4 py-2 rounded-xl bg-primary-500 text-white"
-            >
-              {{ isSubmitting ? 'Envoi...' : 'Envoyer' }}
+              {{ unit === 'days' ? 'Jours' : unit === 'weeks' ? 'Semaines' : 'Mois' }}
             </button>
           </div>
-        </form>
+        </div>
+
+        <!-- Message -->
+        <div>
+          <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+            Message
+          </label>
+          <textarea
+            v-model="message"
+            rows="4"
+            placeholder="Décrivez votre proposition..."
+            class="w-full rounded-2xl resize-none border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-4 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          />
+          <div class="mt-1 flex justify-end">
+            <span class="text-xs text-gray-500 dark:text-gray-400">
+              {{ message.length }}/500
+            </span>
+          </div>
+        </div>
       </div>
+
+      <template #footer>
+        <button
+          class="px-6 py-3 rounded-full text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+          @click="showApplyModal = false"
+        >
+          Annuler
+        </button>
+        <button
+          class="px-6 py-3 rounded-full text-sm font-medium bg-primary-600 text-white hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          :disabled="!isValid || isSubmitting"
+          @click="submitProposal"
+        >
+          <span v-if="isSubmitting" class="flex items-center">
+            <svg class="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+            Envoi en cours...
+          </span>
+          <span v-else>
+            Envoyer ma proposition
+          </span>
+        </button>
+      </template>
     </UModal>
   </div>
 </template>
@@ -246,8 +374,10 @@ import {
 } from 'oh-vue-icons/icons'
 import { 
   Search, Plus, Briefcase, Clock, Filter,
-  CheckCircle, XCircle, InboxIcon
+  CheckCircle, XCircle, InboxIcon, PlusIcon, MinusIcon
 } from 'lucide-vue-next'
+import { useCustomToast } from '@/composables/useCustomToast'
+import { useRouter } from 'vue-router'
 
 // Mise à jour des icônes
 addIcons(
@@ -276,6 +406,10 @@ addIcons(
 
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
+
+const { showToast } = useCustomToast()
+
+const router = useRouter()
 
 // États
 const missions = ref([])
@@ -453,21 +587,23 @@ const formatTimeAgo = (date) => {
 }
 
 const formatDate = (date) => {
-  if (!date) return ''
+  if (!date) return '-'
   return new Date(date).toLocaleDateString('fr-FR', {
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
   })
 }
 
-const formatPrice = (price) => {
-  if (!price) return 'Prix à définir'
+const formatPrice = (value) => {
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
     currency: 'XOF',
+    minimumFractionDigits: 0,
     maximumFractionDigits: 0
-  }).format(price)
+  }).format(value)
 }
 
 const formatDeliveryTime = (days) => {
@@ -475,130 +611,207 @@ const formatDeliveryTime = (days) => {
   return days === 1 ? '1 jour' : `${days} jours`
 }
 
-// État pour la modal et le formulaire de proposition
-const isProposalModalOpen = ref(false)
-const selectedMission = ref(null)
+// États pour la modal de proposition
+const showApplyModal = ref(false)
+const price = ref(0)
+const delay = ref(1)
+const delayUnit = ref('days')
+const message = ref('')
 const isSubmitting = ref(false)
-const proposalForm = ref({
-  price: '',
-  duration: '',
-  message: ''
-})
 
-// Vérifier si l'utilisateur peut faire une proposition
-const canMakeProposal = (mission) => {
-  if (!user.value || !mission) return false
-  return (
-    mission.status === 'open' && 
-    !hasProposal(mission) && 
-    user.value.id !== mission.client_id
-  )
-}
+// Ajout de la référence à la mission sélectionnée
+const selectedMission = ref(null)
 
-// Vérifier si l'utilisateur a déjà fait une proposition
-const hasProposal = (mission) => {
-  return mission.deals?.some(deal => 
-    deal.expert_id === user.value?.id && 
-    ['proposal', 'accepted', 'in_progress'].includes(deal.status)
-  )
-}
-
-// Ouvrir la modal de proposition
+// Fonction pour ouvrir le modal de proposition
 const openProposalModal = (mission) => {
   selectedMission.value = mission
-  proposalForm.value = {
-    price: mission.budget || '',
-    duration: '',
-    message: ''
-  }
-  isProposalModalOpen.value = true
+  price.value = mission.budget // Initialiser avec le budget de la mission
+  showApplyModal.value = true
 }
 
-// Fermer la modal
-const closeProposalModal = () => {
-  isProposalModalOpen.value = false
-  selectedMission.value = null
-  proposalForm.value = {
-    price: '',
-    duration: '',
-    message: ''
+// Simplification de la gestion du prix
+const handlePriceInput = (event) => {
+  let value = parseInt(event.target.value)
+  
+  // Juste s'assurer que c'est un nombre valide
+  if (isNaN(value)) {
+    value = 0
   }
+  
+  price.value = value
 }
 
-// Soumettre la proposition
+// Soumission de la proposition
 const submitProposal = async () => {
-  if (!selectedMission.value || !user.value) return
+  if (!isValid.value) return
 
-  isSubmitting.value = true
   try {
+    isSubmitting.value = true
+    
+    // Calculer les dates de début et de fin
+    const startDate = new Date()
+    const endDate = new Date(startDate)
+    
+    // Calculer la date de fin en fonction de l'unité de durée
+    if (delayUnit.value === 'days') {
+      endDate.setDate(endDate.getDate() + delay.value)
+    } else if (delayUnit.value === 'weeks') {
+      endDate.setDate(endDate.getDate() + (delay.value * 7))
+    } else if (delayUnit.value === 'months') {
+      endDate.setMonth(endDate.getMonth() + delay.value)
+    }
+
+    // Créer la proposition
     const { data, error } = await supabase
       .from('deals')
       .insert({
         mission_id: selectedMission.value.id,
         expert_id: user.value.id,
         client_id: selectedMission.value.client_id,
-        price: proposalForm.value.price,
-        duration: proposalForm.value.duration,
-        message: proposalForm.value.message,
+        price: price.value,
+        duration: delay.value,
+        duration_unit: delayUnit.value,
+        message: message.value,
         status: 'proposal'
       })
 
     if (error) throw error
 
-    // Succès
-    closeProposalModal()
-    const toast = useToast()
-    toast.add({
-      title: 'Proposition envoyée',
-      description: 'Votre proposition a été envoyée avec succès',
-      color: 'green'
-    })
-    
-    // Rafraîchir les missions pour mettre à jour l'état
-    await fetchMissions()
+    showToast.success(
+      'Proposition envoyée',
+      'Votre proposition a été envoyée avec succès'
+    )
+
+    showApplyModal.value = false
+    resetForm()
+
   } catch (error) {
     console.error('Erreur lors de l\'envoi de la proposition:', error)
-    const toast = useToast()
-    toast.add({
-      title: 'Erreur',
-      description: 'Impossible d\'envoyer votre proposition',
-      color: 'red'
-    })
+    showToast.error(
+      'Erreur',
+      'Impossible d\'envoyer votre proposition'
+    )
   } finally {
     isSubmitting.value = false
   }
 }
 
-// Fonction pour obtenir la classe CSS du statut
-const getMissionStatusClass = (status) => {
-  switch (status) {
-    case 'open':
-      return 'bg-green-50 dark:bg-green-900/20 text-green-600'
-    case 'assigned':
-      return 'bg-blue-50 dark:bg-blue-900/20 text-blue-600'
-    case 'completed':
-      return 'bg-gray-50 dark:bg-gray-900/20 text-gray-600'
-    case 'cancelled':
-      return 'bg-red-50 dark:bg-red-900/20 text-red-600'
-    default:
-      return 'bg-gray-50 dark:bg-gray-900/20 text-gray-600'
-  }
+// Réinitialisation du formulaire
+const resetForm = () => {
+  price.value = 0
+  delay.value = 1
+  delayUnit.value = 'days'
+  message.value = ''
 }
 
-// Fonction pour obtenir le libellé du statut
-const getMissionStatusLabel = (status) => {
-  switch (status) {
-    case 'open':
-      return 'Ouverte'
-    case 'assigned':
-      return 'En cours'
-    case 'completed':
-      return 'Terminée'
-    case 'cancelled':
-      return 'Annulée'
-    default:
-      return status
+// Vérifier si l'utilisateur peut faire une proposition
+const canMakeProposal = (mission) => {
+  if (!user.value || !mission) return false
+  
+  // Vérifier si l'utilisateur est le client de la mission
+  if (user.value.id === mission.client_id) return false
+  
+  // Vérifier si l'utilisateur a déjà fait une proposition
+  if (hasProposal(mission)) return false
+  
+  return mission.status === 'open'
+}
+
+// Vérifier si l'utilisateur a déjà fait une proposition
+const hasProposal = (mission) => {
+  if (!user.value || !mission.deals) return false
+  
+  return mission.deals.some(deal => 
+    deal.expert_id === user.value.id && 
+    ['proposal', 'accepted', 'in_progress'].includes(deal.status)
+  )
+}
+
+// Fonctions utilitaires pour les statuts
+const getMissionStatusClass = (status) => {
+  const classes = {
+    pending: 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+    in_progress: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+    completed: 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+    cancelled: 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400',
   }
+  return classes[status] || 'bg-gray-50 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
+}
+
+const getMissionStatusLabel = (status) => {
+  const labels = {
+    proposal: 'Proposition envoyée',
+    open: 'En attente',
+    in_progress: 'En cours',
+    completed: 'Terminée',
+    cancelled: 'Annulée',
+    assigned: 'Assignée',
+    want: 'Je veux'
+  }
+  return labels[status] || status
+}
+
+const getMissionStatusIcon = (status) => {
+  const icons = {
+    proposal: 'i-heroicons-paper-airplane',
+    open: 'i-heroicons-clock',
+    in_progress: 'i-heroicons-play',
+    completed: 'i-heroicons-check-circle',
+    cancelled: 'i-heroicons-x-circle',
+    assigned: 'i-heroicons-user-plus',
+    want: 'i-heroicons-heart'
+  }
+  return icons[status] || 'i-heroicons-question-mark-circle'
+}
+
+// Validation
+const isValid = computed(() => {
+  return price.value > 0 && delay.value > 0 && message.value.length > 0
+})
+
+// Fonction pour formater la deadline
+const formatDeadline = (deadline) => {
+  if (!deadline) return 'Pas de deadline'
+  
+  const deadlineDate = new Date(deadline)
+  const now = new Date()
+  const diffTime = deadlineDate - now
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  
+  if (diffDays < 0) return 'Expirée'
+  if (diffDays === 0) return "Aujourd'hui"
+  if (diffDays === 1) return 'Demain'
+  if (diffDays <= 7) return `${diffDays} jours`
+  if (diffDays <= 30) return `${Math.floor(diffDays / 7)} semaines`
+  if (diffDays <= 365) return `${Math.floor(diffDays / 30)} mois`
+  return `${Math.floor(diffDays / 365)} ans`
+}
+
+// Fonction pour obtenir la couleur selon la deadline
+const getDeadlineColor = (deadline) => {
+  if (!deadline) return 'text-gray-400 dark:text-gray-500'
+  
+  const diffDays = Math.ceil((new Date(deadline) - new Date()) / (1000 * 60 * 60 * 24))
+  
+  if (diffDays < 0) return 'text-red-500 dark:text-red-400'
+  if (diffDays <= 3) return 'text-amber-500 dark:text-amber-400'
+  if (diffDays <= 7) return 'text-orange-500 dark:text-orange-400'
+  return 'text-teal-500 dark:text-teal-400'
+}
+
+// Fonction pour obtenir la couleur du statut
+const getMissionStatusColor = (status) => {
+  const colors = {
+    'open': 'emerald',
+    'in_progress': 'blue',
+    'completed': 'purple',
+    'cancelled': 'rose',
+    'pending': 'amber',
+    'proposal': 'indigo',
+    'assigned': 'cyan',
+    'want': 'pink'
+  }
+  return colors[status] || 'gray'
 }
 
 // Lifecycle
@@ -631,5 +844,15 @@ onMounted(() => {
 
 .mission-card {
   animation: fadeInUp 0.3s ease-out;
+}
+
+/* Effet de hover amélioré */
+.hover\:shadow-md {
+  transition: all 0.2s ease-in-out;
+}
+
+.hover\:shadow-md:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 </style>

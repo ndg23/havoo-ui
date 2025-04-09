@@ -1,182 +1,171 @@
 <template>
-  <div class="max-w-2xl mx-auto px-4 py-6">
-    <!-- En-tête -->
+  <div class="max-w-xl mx-auto px-4 py-8">
+    <!-- Header -->
     <div class="mb-8">
-      <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Paramètres</h1>
-      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Gérez vos informations personnelles et préférences</p>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Paramètres</h1>
+      <p class="mt-2 text-base text-gray-600 dark:text-gray-400">
+        Gérez vos informations personnelles
+      </p>
     </div>
 
-    <!-- Formulaire principal -->
-    <div class="space-y-6">
-      <!-- Photo de profil -->
-      <div class="flex items-center gap-4">
+    <!-- Profile Section -->
+    <div class="mb-6">
+      <div class="flex items-start space-x-4 mb-8">
         <img 
           :src="form.avatar_url || '/default-avatar.png'" 
-          class="h-20 w-20 rounded-full object-cover border border-gray-200 dark:border-gray-700"
+          class="h-20 w-20 rounded-full object-cover ring-2 ring-gray-100 dark:ring-gray-800"
           alt="Photo de profil"
         />
-        <button class="text-sm text-primary-600 dark:text-primary-400 hover:underline">
-          Modifier la photo
-        </button>
-      </div>
-
-      <!-- Informations de base -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl divide-y divide-gray-200 dark:divide-gray-700">
-        <div class="p-4 space-y-4">
-          <h2 class="font-medium text-gray-900 dark:text-white">Informations personnelles</h2>
-          
-          <div class="grid gap-4">
-            <FloatingLabelInput
-              v-model="form.first_name"
-              label="Prénom"
-              placeholder="Votre prénom"
-            />
-
-            <FloatingLabelInput
-              v-model="form.last_name"
-              label="Nom"
-              placeholder="Votre nom"
-            />
-
-            <FloatingLabelInput
-              v-model="form.email"
-              label="Email"
-              type="email"
-              placeholder="vous@exemple.com"
-              disabled
-            />
-
-            <FloatingLabelInput
-              v-model="form.phone"
-              label="Téléphone"
-              type="tel"
-              placeholder="+33 6 XX XX XX XX"
-            />
-          </div>
-        </div>
-
-        <div class="p-4 space-y-4">
-          <h2 class="font-medium text-gray-900 dark:text-white">Profession</h2>
-          
-          <div class="grid gap-4">
-            <!-- Sélection de la profession -->
-            <FloatingLabelInput
-              v-model="form.profession_id"
-              label="Votre métier"
-              :isSelect="true"
-            >
-              <option value="">Sélectionnez votre profession</option>
-              <option 
-                v-for="profession in professions" 
-                :key="profession.id" 
-                :value="profession.id"
-              >
-                {{ profession.name }}
-              </option>
-            </FloatingLabelInput>
-
-            <!-- Bio -->
-            <div class="space-y-2">
-              <TwitterInput
-                v-model="form.bio"
-                placeholder="Décrivez votre activité en quelques mots"
-                :maxLength="280"
-                showCount
-                type="textarea"
-                :rows="4"
-              />
-            </div>
-
-            <!-- Tarif horaire -->
-            <FloatingLabelInput
-              v-model="form.hourly_rate"
-              label="Tarif horaire"
-              type="number"
-              min="0"
-              step="5"
-            >
-              <template #suffix>
-                <span class="text-gray-500">€/h</span>
-              </template>
-            </FloatingLabelInput>
-          </div>
-        </div>
-
-        <div class="p-4 space-y-4">
-          <h2 class="font-medium text-gray-900 dark:text-white">Localisation</h2>
-          
-          <div class="grid gap-4">
-            <FloatingLabelInput
-              v-model="form.city"
-              label="Ville"
-              placeholder="Votre ville"
-            />
-
-            <FloatingLabelInput
-              v-model="form.country"
-              label="Pays"
-              :isSelect="true"
-            >
-              <option value="">Sélectionnez votre pays</option>
-              <option value="FR">France</option>
-              <option value="BE">Belgique</option>
-              <option value="CH">Suisse</option>
-              <option value="CA">Canada</option>
-            </FloatingLabelInput>
-          </div>
-        </div>
-
-        <!-- Disponibilité -->
-        <div class="p-4">
-          <div class="flex items-center justify-between">
-            <div>
-              <h2 class="font-medium text-gray-900 dark:text-white">Disponibilité</h2>
-              <p class="text-sm text-gray-500 dark:text-gray-400">Indiquez si vous êtes disponible pour des missions</p>
-            </div>
-            
-            <button 
-              type="button"
-              role="switch"
-              :aria-checked="form.availability_status === 'available'"
-              @click="toggleAvailability"
-              class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-600 focus:ring-offset-2"
-              :class="[
-                form.availability_status === 'available' 
-                  ? 'bg-primary-600' 
-                  : 'bg-gray-200 dark:bg-gray-700'
-              ]"
-            >
-              <span 
-                class="pointer-events-none relative inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
-                :class="[
-                  form.availability_status === 'available' 
-                    ? 'translate-x-5' 
-                    : 'translate-x-0'
-                ]"
-              />
-            </button>
-          </div>
+        <div class="mt-2">
+          <button class="text-primary-600 dark:text-primary-400 text-sm font-medium hover:underline">
+            Modifier la photo
+          </button>
+          <p class="mt-1 text-xs text-gray-500">
+            JPG ou PNG. 1MB max.
+          </p>
         </div>
       </div>
 
-      <!-- Boutons d'action -->
-      <div class="flex justify-end gap-3">
-        <button
-          type="button"
-          @click="resetForm"
-          class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
+      <!-- Basic Info -->
+      <div class="space-y-6">
+        <FloatingLabelInput
+          v-model="form.first_name"
+          label="Prénom"
+          class="bg-transparent border-b border-gray-200 dark:border-gray-700 focus-within:border-primary-600 rounded-none px-0"
+        />
+        <FloatingLabelInput
+          v-model="form.last_name"
+          label="Nom"
+          class="bg-transparent border-b border-gray-200 dark:border-gray-700 focus-within:border-primary-600 rounded-none px-0"
+        />
+        <FloatingLabelInput
+          v-model="form.email"
+          label="Email"
+          type="email"
+          disabled
+          class="bg-transparent border-b border-gray-200 dark:border-gray-700 rounded-none px-0"
+        />
+        <FloatingLabelInput
+          v-model="form.phone"
+          label="Téléphone"
+          type="tel"
+          class="bg-transparent border-b border-gray-200 dark:border-gray-700 focus-within:border-primary-600 rounded-none px-0"
+        />
+      </div>
+    </div>
+
+    <!-- Professional Info -->
+    <div class="my-8 pt-8 border-t border-gray-100 dark:border-gray-800">
+      <h2 class="text-xl font-semibold mb-6 text-gray-900 dark:text-white">
+        Informations professionnelles
+      </h2>
+
+      <div class="space-y-6">
+        <FloatingLabelInput
+          v-model="form.profession_id"
+          label="Profession"
+          :isSelect="true"
+          class="bg-transparent border-b border-gray-200 dark:border-gray-700 focus-within:border-primary-600 rounded-none px-0"
         >
-          Annuler
-        </button>
-        
-        <button
-          @click="saveSettings"
-          class="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors disabled:opacity-50"
-          :disabled="isSaving"
+          <option value="">Sélectionnez votre profession</option>
+          <option 
+            v-for="profession in professions" 
+            :key="profession.id" 
+            :value="profession.id"
+          >
+            {{ profession.name }}
+          </option>
+        </FloatingLabelInput>
+
+        <div class="space-y-2">
+          <label class="text-sm text-gray-700 dark:text-gray-300">Bio</label>
+          <TwitterInput
+            v-model="form.bio"
+            placeholder="Décrivez votre activité..."
+            :maxLength="280"
+            showCount
+            type="textarea"
+            :rows="3"
+            class="w-full bg-transparent border border-gray-200 dark:border-gray-700 focus:border-primary-600 rounded-2xl p-4"
+          />
+        </div>
+
+        <FloatingLabelInput
+          v-model="form.hourly_rate"
+          label="Tarif horaire"
+          type="number"
+          min="0"
+          class="bg-transparent border-b border-gray-200 dark:border-gray-700 focus-within:border-primary-600 rounded-none px-0"
         >
-          {{ isSaving ? 'Enregistrement...' : 'Enregistrer' }}
-        </button>
+          <template #suffix>€/h</template>
+        </FloatingLabelInput>
+
+        <div class="flex items-center justify-between py-4">
+          <div>
+            <p class="text-sm font-medium text-gray-900 dark:text-white">Disponibilité</p>
+            <p class="text-sm text-gray-500">Disponible pour des missions</p>
+          </div>
+          <button 
+            type="button"
+            role="switch"
+            :aria-checked="form.availability_status === 'available'"
+            @click="toggleAvailability"
+            class="relative inline-flex h-7 w-12 rounded-full transition-colors duration-200 ease-in-out focus:outline-none"
+            :class="[form.availability_status === 'available' ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700']"
+          >
+            <span 
+              class="pointer-events-none relative inline-block h-6 w-6 transform rounded-full bg-white shadow-sm ring-1 ring-gray-200 transition duration-200 ease-in-out translate-y-0.5"
+              :class="[form.availability_status === 'available' ? 'translate-x-5' : 'translate-x-0.5']"
+            />
+          </button>
+        </div>
       </div>
+    </div>
+
+    <!-- Location -->
+    <div class="my-8 pt-8 border-t border-gray-100 dark:border-gray-800">
+      <h2 class="text-xl font-semibold mb-6 text-gray-900 dark:text-white">
+        Localisation
+      </h2>
+
+      <div class="space-y-6">
+        <FloatingLabelInput
+          v-model="form.city"
+          label="Ville"
+          class="bg-transparent border-b border-gray-200 dark:border-gray-700 focus-within:border-primary-600 rounded-none px-0"
+        />
+        <FloatingLabelInput
+          v-model="form.country"
+          label="Pays"
+          :isSelect="true"
+          class="bg-transparent border-b border-gray-200 dark:border-gray-700 focus-within:border-primary-600 rounded-none px-0"
+        >
+          <option value="">Sélectionnez votre pays</option>
+          <option value="FR">France</option>
+          <option value="BE">Belgique</option>
+          <option value="CH">Suisse</option>
+          <option value="CA">Canada</option>
+        </FloatingLabelInput>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex justify-end gap-4 mt-12">
+      <button
+        type="button"
+        @click="resetForm"
+        class="px-6 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800 rounded-full transition-colors"
+      >
+        Annuler
+      </button>
+      
+      <button
+        @click="saveSettings"
+        class="px-6 py-2.5 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 dark:bg-primary-600 dark:hover:bg-primary-700 rounded-full transition-colors disabled:opacity-50"
+        :disabled="isSaving"
+      >
+        {{ isSaving ? 'Enregistrement...' : 'Enregistrer' }}
+      </button>
     </div>
   </div>
 </template>

@@ -1,24 +1,54 @@
 // pages/experts/_id.vue
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-    <!-- Header avec style Apple -->
-    <header class="sticky top-0 z-10 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-100/50 dark:border-gray-700/50">
+  <div class="min-h-screen bg-white dark:bg-gray-900">
+    <!-- Header avec style Twitter 2022 -->
+    <header class="sticky top-0 z-10 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-100/50 dark:border-gray-800/50">
       <div class="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
         <button 
           @click="$router.back()" 
-          class="p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          class="p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
         >
           <UIcon name="i-heroicons-arrow-left" class="h-5 w-5 text-gray-900 dark:text-white" />
         </button>
         <h1 class="text-lg font-medium text-gray-900 dark:text-white">
-          Profil Expert
+          Profil Prestataire
         </h1>
       </div>
     </header>
 
-    <!-- Loading state -->
-    <div v-if="isLoading" class="animate-pulse">
-      <div class="h-48 bg-white dark:bg-gray-800"></div>
+    <!-- Loader avec style Twitter 2022 -->
+    <div v-if="loading" class="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
+      <div class="animate-pulse flex flex-col items-center gap-8 w-full max-w-3xl">
+        <!-- Header skeleton -->
+        <div class="w-full flex items-start gap-6">
+          <div class="w-24 h-24 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+          <div class="flex-1 space-y-3">
+            <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md w-1/3"></div>
+            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded-md w-1/2"></div>
+            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded-md w-3/4"></div>
+          </div>
+        </div>
+
+        <!-- Stats skeleton -->
+        <div class="grid grid-cols-3 gap-4 w-full">
+          <div class="h-20 bg-gray-200 dark:bg-gray-700 rounded-xl"></div>
+          <div class="h-20 bg-gray-200 dark:bg-gray-700 rounded-xl"></div>
+          <div class="h-20 bg-gray-200 dark:bg-gray-700 rounded-xl"></div>
+        </div>
+
+        <!-- Content skeleton -->
+        <div class="w-full space-y-4">
+          <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded-md w-full"></div>
+          <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded-md w-5/6"></div>
+          <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded-md w-4/6"></div>
+        </div>
+
+        <!-- Reviews skeleton -->
+        <div class="w-full space-y-4">
+          <div class="h-24 bg-gray-200 dark:bg-gray-700 rounded-xl"></div>
+          <div class="h-24 bg-gray-200 dark:bg-gray-700 rounded-xl"></div>
+        </div>
+      </div>
     </div>
 
     <template v-else-if="expert">
@@ -30,14 +60,18 @@
             <div class="relative mb-4">
               <div 
                 v-if="expert.avatar_url"
-                class="w-28 h-28 rounded-full bg-cover bg-center ring-4 ring-white dark:ring-gray-800 shadow-lg"
+                class="w-28 h-28 rounded-full bg-cover bg-center ring-2 ring-gray-100 dark:ring-gray-700 shadow-lg"
                 :style="{ backgroundImage: `url(${expert.avatar_url})` }"
               ></div>
               <div 
                 v-else
-                class="w-28 h-28 rounded-full bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center text-primary-600 dark:text-primary-400 text-4xl font-bold ring-4 ring-white dark:ring-gray-800"
+                class="w-28 h-28 rounded-full bg-gray-100 dark:bg-gray-700 ring-2 ring-gray-100 dark:ring-gray-700 shadow-lg flex items-center justify-center p-5"
               >
-                {{ getInitials(expert.first_name, expert.last_name) }}
+                <img 
+                  :src="defaultAvatar" 
+                  alt="Avatar par défaut"
+                  class="w-full h-full object-contain"
+                />
               </div>
               
               <!-- Badge vérifié -->
@@ -54,13 +88,13 @@
               <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
                 {{ expert.first_name }} {{ expert.last_name }}
               </h2>
-              <div class="mt-1 text-lg text-gray-600 dark:text-gray-400">
+              <div class="mt-1 text-lg font-medium text-gray-600 dark:text-gray-400">
                 {{ expert.profession?.name }}
               </div>
               
               <!-- Statut de disponibilité -->
               <div 
-                class="mt-3 inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium"
+                class="mt-3 inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap"
                 :class="{
                   'bg-green-50 dark:bg-green-900/20 text-green-600': expert.availability_status === 'available',
                   'bg-red-50 dark:bg-red-900/20 text-red-600': expert.availability_status !== 'available'
@@ -87,30 +121,30 @@
             </div>
           </div>
 
-          <!-- Stats avec style Apple -->
+          <!-- Stats avec style Twitter 2022 -->
           <div class="grid grid-cols-3 gap-4 mt-8">
-            <div class="bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-4 text-center">
+            <div class="bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-4 text-center border border-gray-100 dark:border-gray-700">
               <div class="flex items-center justify-center gap-1 text-2xl font-bold text-gray-900 dark:text-white">
                 <UIcon name="i-heroicons-star" class="h-6 w-6 text-yellow-400" />
                 {{ averageRating.toFixed(1) }}
               </div>
-              <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              <div class="text-sm font-medium text-gray-600 dark:text-gray-400 mt-1">
                 Note moyenne
               </div>
             </div>
-            <div class="bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-4 text-center">
+            <div class="bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-4 text-center border border-gray-100 dark:border-gray-700">
               <div class="text-2xl font-bold text-gray-900 dark:text-white">
                 {{ completedDeals.length }}
               </div>
-              <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              <div class="text-sm font-medium text-gray-600 dark:text-gray-400 mt-1">
                 Missions
               </div>
             </div>
-            <div class="bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-4 text-center">
+            <div class="bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-4 text-center border border-gray-100 dark:border-gray-700">
               <div class="text-2xl font-bold text-gray-900 dark:text-white">
                 {{ formatMemberDuration(expert.created_at) }}
               </div>
-              <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              <div class="text-sm font-medium text-gray-600 dark:text-gray-400 mt-1">
                 d'expérience
               </div>
             </div>
@@ -121,7 +155,7 @@
       <!-- Sections d'informations -->
       <div class="max-w-2xl mx-auto px-4 py-6 space-y-4">
         <!-- À propos -->
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
           <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             À propos
           </h2>
@@ -131,7 +165,7 @@
         </div>
 
         <!-- Compétences -->
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
           <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Compétences
           </h2>
@@ -139,7 +173,7 @@
             <span 
               v-for="skill in expert.skills" 
               :key="skill.id"
-              class="px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium"
+              class="px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium whitespace-nowrap"
             >
               {{ skill.name }}
             </span>
@@ -147,12 +181,12 @@
         </div>
 
         <!-- Avis -->
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
           <div class="flex items-center justify-between mb-6">
             <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
               Avis
             </h2>
-            <span class="text-sm text-gray-500 dark:text-gray-400">
+            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">
               {{ completedDeals.length }} avis
             </span>
           </div>
@@ -198,7 +232,7 @@
         </div>
 
         <!-- Contact -->
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
           <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Contact
           </h2>
@@ -206,10 +240,10 @@
             <!-- Email -->
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-full bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center text-primary-600">
-                <v-icon name="bi-envelope" />
+                <UIcon name="i-heroicons-envelope" class="h-5 w-5" />
               </div>
               <div>
-                <div class="text-sm text-gray-500 dark:text-gray-400">Email</div>
+                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Email</div>
                 <div class="text-gray-900 dark:text-white">{{ expert.email }}</div>
               </div>
             </div>
@@ -217,10 +251,10 @@
             <!-- Téléphone -->
             <div v-if="expert.phone" class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-full bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center text-primary-600">
-                <v-icon name="bi-phone" />
+                <UIcon name="i-heroicons-phone" class="h-5 w-5" />
               </div>
               <div>
-                <div class="text-sm text-gray-500 dark:text-gray-400">Téléphone</div>
+                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Téléphone</div>
                 <div class="text-gray-900 dark:text-white">{{ expert.phone }}</div>
               </div>
             </div>
@@ -228,10 +262,10 @@
             <!-- Localisation -->
             <div v-if="getLocation(expert)" class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-full bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center text-primary-600">
-                <v-icon name="bi-geo-alt" />
+                <UIcon name="i-heroicons-map-pin" class="h-5 w-5" />
               </div>
               <div>
-                <div class="text-sm text-gray-500 dark:text-gray-400">Localisation</div>
+                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Localisation</div>
                 <div class="text-gray-900 dark:text-white">{{ getLocation(expert) }}</div>
               </div>
             </div>
@@ -254,10 +288,10 @@
       v-else 
       class="max-w-2xl mx-auto px-4 py-8 text-center"
     >
-      <div class="bg-white dark:bg-gray-800 rounded-xl p-8">
-        <v-icon 
-          name="bi-exclamation-circle"
-          class="text-4xl text-red-500 mb-4"
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-8 border border-gray-100 dark:border-gray-700">
+        <UIcon 
+          name="i-heroicons-exclamation-circle"
+          class="h-12 w-12 text-red-500 mx-auto mb-4"
         />
         <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
           Expert introuvable
@@ -269,7 +303,7 @@
           to="/experts"
           class="inline-flex items-center px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-medium transition-all"
         >
-          <v-icon name="bi-arrow-left" class="mr-2" />
+          <UIcon name="i-heroicons-arrow-left" class="h-5 w-5 mr-2" />
           Retour aux experts
         </NuxtLink>
       </div>
@@ -282,7 +316,7 @@
         @click="showReportModal = true"
         class="w-full mt-2 inline-flex items-center justify-center px-6 py-4 rounded-2xl 
                bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700
-               text-red-600 dark:text-red-400 font-medium transition-all"
+               text-red-600 dark:text-red-400 font-medium transition-all border border-gray-100 dark:border-gray-700"
       >
         <UIcon name="i-heroicons-flag" class="h-5 w-5 mr-2" />
         Signaler cet expert
@@ -376,7 +410,7 @@ const route = useRoute()
 const router = useRouter()
 const supabase = useSupabaseClient()
 const expert = ref(null)
-const isLoading = ref(true)
+const loading = ref(true)
 
 // Nouvelles propriétés pour les deals
 const completedDeals = ref([])
@@ -401,6 +435,9 @@ const reportReasons = [
   { value: 'scam', label: 'Tentative d\'arnaque' },
   { value: 'other', label: 'Autre raison' }
 ]
+
+// Avatar par défaut en base64
+const defaultAvatar = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NDgiIGhlaWdodD0iNTEyIiB2aWV3Qm94PSIwIDAgNDQ4IDUxMiI+CiAgICA8cGF0aCBmaWxsPSIjYzZjNWM1IgogICAgICAgIGQ9Ik0yMjQgMjU2YTEyOCAxMjggMCAxIDAgMC0yNTZhMTI4IDEyOCAwIDEgMCAwIDI1Nm0tNDUuNyA0OEM3OS44IDMwNCAwIDM4My44IDAgNDgyLjNDMCA0OTguNyAxMy4zIDUxMiAyOS43IDUxMmgzODguNmMxNi40IDAgMjkuNy0xMy4zIDI5LjctMjkuN2MwLTk4LjUtNzkuOC0xNzguMy0xNzguMy0xNzguM3oiIC8+Cjwvc3ZnPg=='
 
 // Charger les données de l'expert
 onMounted(async () => {
@@ -437,7 +474,7 @@ onMounted(async () => {
     console.error('Erreur lors du chargement du profil:', error)
     expert.value = null
   } finally {
-    isLoading.value = false
+    loading.value = false
   }
 })
 
@@ -532,12 +569,12 @@ const handleReport = async () => {
 </script>
 
 <style scoped>
-/* Animations douces style Apple */
+/* Animations douces style Twitter 2022 */
 .transition-all {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Ombre subtile style Apple */
+/* Ombre subtile style Twitter 2022 */
 .shadow-sm {
   box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 }
@@ -551,5 +588,18 @@ const handleReport = async () => {
 }
 .animate-ping {
   animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
+  }
 }
 </style>

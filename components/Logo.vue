@@ -1,21 +1,11 @@
 <template>
   <div 
-    class="logo" 
-    :class="{ 'logo-small': small }"
+ 
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
   >
-    <!-- Logo Icon - Design moderne pour Keetaf -->
-    <div class="logo-icon-container">
-      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5.593 9.225c2.246-3.602 3.368-5.403 4.84-5.945a4.53 4.53 0 0 1 3.134 0c1.472.542 2.594 2.343 4.84 5.945c2.527 4.053 3.79 6.08 3.568 7.753a4.66 4.66 0 0 1-1.599 2.938C19.1 21 16.733 21 12 21s-7.1 0-8.376-1.084a4.66 4.66 0 0 1-1.599-2.938c-.222-1.673 1.041-3.7 3.568-7.753" color="currentColor"/></svg>        
-        
-        </div>
-    
-    <!-- Texte du logo avec séparation visuelle pour Keetaf Services -->
-    <div v-if="!iconOnly" class="logo-text" :class="{ 'logo-text-hovered': isHovered }">
-      <span class="brand-name">Keetaf</span>
-      <!-- <span class="service-text">services</span> -->
-    </div>
+  <img src="/assets/icons/logo.svg" alt="Keetaf" width="150" height="150" :class="{ 'logo-small': small }">
+
   </div>
 </template>
 
@@ -36,11 +26,7 @@ defineProps({
 
 <style scoped>
 .logo {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  transition: transform 0.3s ease;
+ width: 300px;
 }
 
 .logo-small {

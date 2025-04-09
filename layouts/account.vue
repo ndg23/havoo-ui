@@ -10,13 +10,11 @@
       <div v-else class="min-h-screen bg-white dark:bg-gray-900">
         <!-- Twitter-inspired header -->
         <header class="sticky top-0 z-40 backdrop-blur-xl">
-          <div class="bg-white/90 dark:bg-gray-900/90 border-b border-gray-100/50 dark:border-gray-800/50">
+          <div class="bg-white/90 dark:bg-gray-900/90 border rounded mt-12- border-gray-100/50 dark:border-gray-800/50">
             <div class="max-w-6xl mx-auto px-4">
-              <div class="h-16 flex items-center justify-between">
+              <div class="h-16 flex items-center justify-center">
                 <!-- Logo/Brand -->
-                <div class="flex items-center">
-                  <span class="text-blue-500 font-bold text-xl">Freelance</span>
-                </div>
+               
                 
                 <!-- Navigation desktop -->
                 <nav class="hidden md:flex h-full">
@@ -25,7 +23,7 @@
                       v-for="item in navigationItems"
                       :key="item.to"
                       :to="item.to"
-                      class="twitter-tab group relative flex items-center px-4 h-full"
+                      class="twitter-tab group  relative flex items-center px-4 h-full"
                       :class="[
                         isActivePath(item.to) 
                           ? 'twitter-tab-active' 
@@ -38,7 +36,7 @@
                           class="w-6 h-6 transition-all duration-300"
                           :class="[
                             isActivePath(item.to) 
-                              ? 'text-blue-500' 
+                              ? 'text-primary-500' 
                               : 'text-gray-600 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white'
                           ]"
                         />
@@ -46,7 +44,7 @@
                           class="text-sm font-semibold transition-colors duration-300 mt-1"
                           :class="[
                             isActivePath(item.to) 
-                              ? 'text-blue-500' 
+                              ? 'text-primary-500' 
                               : 'text-gray-600 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white'
                           ]"
                         >
@@ -56,7 +54,7 @@
                       
                       <!-- Twitter-style indicator -->
                       <div 
-                        class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1/2 h-1 bg-blue-500 rounded-full transition-all duration-300"
+                        class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1/2 h-1 bg-primary-500 rounded-full transition-all duration-300"
                         :class="[
                           isActivePath(item.to) 
                             ? 'opacity-100 scale-x-100' 
@@ -67,17 +65,7 @@
                   </div>
                 </nav>
 
-                <!-- User profile -->
-                <div class="flex items-center space-x-4">
-                  <button class="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
-                    <v-icon name="bi-bell" class="w-5 h-5" />
-                  </button>
-                  <div v-if="user" class="flex items-center space-x-2">
-                    <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-500 font-semibold">
-                      {{ getInitials(user.first_name, user.last_name) }}
-                    </div>
-                  </div>
-                </div>
+             
               </div>
             </div>
           </div>
@@ -86,58 +74,7 @@
         <!-- Main container with Twitter-style layout -->
         <div class="max-w-6xl mx-auto px-4 py-6 md:flex">
           <!-- Left sidebar (desktop only) -->
-          <div class="hidden md:block w-64 pr-6">
-            <div class="sticky top-20">
-              <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 mb-4">
-                <div class="flex items-center space-x-3 mb-4">
-                  <div class="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-500 font-semibold text-lg">
-                    {{ getInitials(user?.first_name, user?.last_name) }}
-                  </div>
-                  <div>
-                    <h3 class="font-bold text-gray-900 dark:text-white">{{ user?.first_name }} {{ user?.last_name }}</h3>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ isExpert ? 'Expert' : 'Client' }}</p>
-                  </div>
-                </div>
-                
-                <div class="flex justify-between text-sm mb-3">
-                  <div>
-                    <span class="font-bold text-gray-900 dark:text-white">{{ user?.missions_count || 0 }}</span>
-                    <span class="text-gray-500 dark:text-gray-400 ml-1">Missions</span>
-                  </div>
-                  <div>
-                    <span class="font-bold text-gray-900 dark:text-white">{{ user?.contracts_count || 0 }}</span>
-                    <span class="text-gray-500 dark:text-gray-400 ml-1">Contrats</span>
-                  </div>
-                </div>
-                
-                <div v-if="isVerified" class="flex items-center text-sm text-green-600 dark:text-green-500 mb-3">
-                  <v-icon name="bi-check-circle-fill" class="w-4 h-4 mr-1" />
-                  <span>Profil vérifié</span>
-                </div>
-              </div>
-              
-              <!-- Quick actions -->
-              <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4">
-                <h3 class="font-bold text-gray-900 dark:text-white mb-3">Actions rapides</h3>
-                <div class="space-y-2">
-                  <NuxtLink v-if="isExpert" to="/account/services/create" class="flex items-center justify-between p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                    <div class="flex items-center">
-                      <v-icon name="bi-plus-circle" class="w-5 h-5 text-blue-500 mr-2" />
-                      <span class="text-gray-700 dark:text-gray-300">Ajouter un service</span>
-                    </div>
-                    <v-icon name="bi-chevron-right" class="w-4 h-4 text-gray-400" />
-                  </NuxtLink>
-                  <NuxtLink to="/account/edit-profile" class="flex items-center justify-between p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                    <div class="flex items-center">
-                      <v-icon name="bi-person" class="w-5 h-5 text-blue-500 mr-2" />
-                      <span class="text-gray-700 dark:text-gray-300">Modifier le profil</span>
-                    </div>
-                    <v-icon name="bi-chevron-right" class="w-4 h-4 text-gray-400" />
-                  </NuxtLink>
-                </div>
-              </div>
-            </div>
-          </div>
+         
           
           <!-- Main content area -->
           <main class="flex-1">
