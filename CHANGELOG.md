@@ -151,3 +151,34 @@ and this mission adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Previous versions]
 ...
 
+## [Non Publié]
+
+### Ajouté
+- Page de réinitialisation de mot de passe avec design moderne
+- Page 404 personnalisée avec navigation intuitive
+- Nouveau design des boutons style Twitter 2021
+- Support du mode sombre sur toutes les pages d'authentification
+
+### Modifié
+- Refonte complète de l'interface de connexion
+- Amélioration des messages d'erreur pour plus de clarté
+- Optimisation du formulaire de création de mission
+- Simplification de la navigation entre les pages d'authentification
+
+### Corrigé
+- Gestion des erreurs de connexion plus détaillée
+- Validation des champs en temps réel
+- Affichage des placeholders pour les champs de type date
+- Problèmes de contraste en mode sombre
+
+### Sécurité
+- Amélioration de la gestion des sessions utilisateur
+- Validation renforcée des entrées utilisateur
+- Meilleure gestion des redirections après authentification
+
+### Technique
+- Migration vers le nouveau composant FloatingLabelInput
+- Standardisation des styles et animations
+- Optimisation des performances de rendu
+- Meilleure gestion des états de chargement
+
