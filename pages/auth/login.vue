@@ -1,26 +1,42 @@
 <template>
-  <div class="min-h-[60vh] bg-white flex flex-col justify-center px-4 sm:px-6 lg:px-8">
-    <div class="sm:mx-auto sm:w-full sm:max-w-md">
-      <h1 class="mt-8 text-center text-3xl font-bold tracking-tight text-gray-900">
-        Connectez-vous
-      </h1>
+  <div class="min-h-screen bg-white dark:bg-gray-900">
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 h-14 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800">
+      <div class="max-w-lg mx-auto px-4 h-full flex items-center">
+        <Logo class="w-8 h-8" />
+      </div>
+    </header>
+
+    <!-- Main content -->
+    <main class="pt-20 pb-10 px-4 max-w-lg mx-auto sm:mx-auto sm:w-full sm:max-w-md">
+      <div class="max-w-lg mx-auto">
+        <div class="text-center mb-12">
+          <h1 class="text-5xl font-extrabold text-gray-900 mb-4">
+            Se connecter à Keetaf
+          </h1>
       <p class="mt-2 text-center text-gray-600">
         Ou
         <NuxtLink to="/auth/register" class="font-medium text-primary-600 hover:text-primary-500">
           créez un compte
         </NuxtLink>
         en quelques clics
-      </p>
-    </div>
+          </p>
+        </div>
 
-    <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-md">
-      <!-- Message de succès/erreur -->
-      <div v-if="messageText" class="mb-6 rounded-lg p-4 text-sm" :class="messageType === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'">
-        {{ messageText }}
-      </div>
+        <!-- Message d'erreur/succès -->
+        <div 
+          v-if="messageText" 
+          class="mb-6 p-4 rounded-xl text-sm flex items-center gap-3"
+          :class="messageType === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'"
+        >
+          <UIcon 
+            :name="messageType === 'success' ? 'i-heroicons-check-circle' : 'i-heroicons-exclamation-circle'" 
+            class="w-5 h-5 flex-shrink-0"
+          />
+          {{ messageText }}
+        </div>
 
-      <!-- Boutons de connexion sociale -->
-      <div class="space-y-3">
+        <!-- Bouton Google -->
         <button
           @click="socialLogin('google')"
           type="button"
@@ -34,85 +50,101 @@
               </svg>
           Continuer avec Google
         </button>
-      </div>
 
-      <div class="relative my-8">
-        <div class="absolute inset-0 flex items-center">
-          <div class="w-full border-t border-gray-200"></div>
+        <!-- Séparateur -->
+        <div class="relative my-6">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-gray-200 dark:border-gray-700"></div>
+          </div>
+          <div class="relative flex justify-center text-sm">
+            <span class="px-4 bg-white dark:bg-gray-900 text-gray-500">ou</span>
+          </div>
         </div>
-        <div class="relative flex justify-center">
-          <span class="bg-white px-4 text-sm text-gray-500">ou</span>
-        </div>
-      </div>
 
-      <!-- Formulaire de connexion -->
-      <form @submit.prevent="login" class="space-y-5">
-        <FloatingLabelInput
-          id="email"
-          label="Email"
-          type="email"
-          v-model="email"
-          required
-          autocomplete="email"
-        />
-
-        <div class="relative">
+        <!-- Formulaire -->
+        <form @submit.prevent="login" class="space-y-4">
           <FloatingLabelInput
-            id="password"
-            label="Mot de passe"
-            :type="showPassword ? 'text' : 'password'"
-            v-model="password"
+            id="email"
+            v-model="email"
+            type="email"
+            label="Adresse email"
             required
-            autocomplete="current-password"
+            autocomplete="email"
           />
-          <button 
-            type="button"
-            @click="showPassword = !showPassword"
-            class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-          >
-            <svg v-if="showPassword" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-            <svg v-else class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-            </svg>
-          </button>
-        </div>
 
-        <div class="flex items-center justify-between">
-          <div class="flex items-center">
-            <input
-              id="remember-me"
-              name="remember-me"
-              type="checkbox"
-              v-model="rememberMe"
-              class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+          <div class="relative">
+            <FloatingLabelInput
+              id="password"
+              v-model="password"
+              :type="showPassword ? 'text' : 'password'"
+              label="Mot de passe"
+              required
+              autocomplete="current-password"
             />
-            <label for="remember-me" class="ml-2 block text-sm text-gray-700">
-              Se souvenir de moi
-            </label>
+            <button 
+              type="button"
+              @click="showPassword = !showPassword"
+              class="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-gray-600"
+            >
+              <UIcon 
+                :name="showPassword ? 'i-heroicons-eye' : 'i-heroicons-eye-slash'" 
+                class="w-5 h-5"
+              />
+            </button>
           </div>
 
-          <div class="text-sm">
-            <NuxtLink to="/auth/reset-password" class="font-medium text-primary-600 hover:text-primary-500">
-              Mot de passe oublié?
+          <div class="flex items-center justify-end pt-2">
+            <!-- <label class="flex items-center gap-2">
+              <input 
+                type="checkbox" 
+                v-model="rememberMe"
+                class="w-4 h-4 rounded text-primary focus:ring-primary border-gray-300"
+              />
+              <span class="text-sm text-gray-600 dark:text-gray-400">
+                Se souvenir de moi
+              </span>
+            </label> -->
+            <NuxtLink 
+              to="/auth/reset-password"
+              class="text-sm text-primary hover:text-primary-600 transition-colors"
+            >
+              Mot de passe oublié ?
             </NuxtLink>
           </div>
-        </div>
 
-        <div>
+          <!-- Bouton de connexion -->
           <button
             type="submit"
             :disabled="isLoading"
-            class="flex w-full justify-center items-center rounded-full bg-primary-600 px-6 py-3.5 text-base font-semibold text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            class="relative w-full h-14 rounded-full font-medium text-lg
+                   bg-black dark:bg-white text-white dark:text-gray-900
+                   hover:bg-gray-800 dark:hover:bg-gray-100
+                   disabled:opacity-50 disabled:cursor-not-allowed 
+                   transition-all duration-200 transform hover:scale-[1.02]
+                   flex items-center justify-center gap-3 mt-6"
           >
-            <span v-if="isLoading" class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-current border-t-transparent mr-2"></span>
-            Se connecter
+            <UIcon 
+              v-if="isLoading"
+              name="i-heroicons-arrow-path" 
+              class="w-5 h-5 animate-spin"
+            />
+            <span>{{ isLoading ? 'Connexion...' : 'Se connecter' }}</span>
           </button>
-        </div>
-      </form>
-    </div>
+        </form>
+
+        <!-- Lien d'inscription -->
+        <p class="mt-8 text-center text-[15px] text-gray-600 dark:text-gray-400">
+          Pas encore de compte ?
+          <NuxtLink 
+            to="/auth/register"
+            class="text-black dark:text-white hover:text-gray-800 dark:hover:text-gray-200 
+                   font-medium transition-colors"
+          >
+            S'inscrire
+          </NuxtLink>
+        </p>
+      </div>
+    </main>
   </div>
 </template>
 
@@ -174,6 +206,10 @@ const login = async () => {
       messageText.value = 'Email ou mot de passe incorrect'
     } else if (error.message.includes('Email not confirmed')) {
       messageText.value = 'Veuillez confirmer votre email avant de vous connecter'
+    } else if (error.message.includes('User not found')) {
+      messageText.value = 'Aucun utilisateur trouvé avec cette adresse email'
+    } else if (error.message.includes('missing email or phone')) {
+      messageText.value = 'Veuillez entrer un mot de passe ou une adresse email'
     } else {
       messageText.value = error.message || 'Une erreur est survenue lors de la connexion'
     }
@@ -207,3 +243,16 @@ const socialLogin = async (provider) => {
 // })
 
 </script>
+
+<style scoped>
+.bg-grid-white {
+  background-size: 40px 40px;
+  background-image: linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px);
+}
+
+/* Effet de pression sur les boutons */
+button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+</style>

@@ -1,6 +1,6 @@
 <template>
-  <footer class="py-6 border-t border-gray-100 dark:border-gray-800/40">
-    <div class="max-w-3xl mx-auto px-4">
+  <footer class="bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
+    <div class="max-w-7xl mx-auto px-4 py-12">
       <!-- Logo et liens principaux -->
       <div class="flex flex-col items-center">
         <!-- Logo -->
@@ -49,11 +49,16 @@
         
         <!-- Legal links et copyright combinés -->
         <div class="text-xs text-gray-400 dark:text-gray-500 text-center">
-          <div class="flex justify-center flex-wrap gap-x-3 gap-y-1 mb-2">
-            <NuxtLink to="/terms" class="hover:underline">Conditions</NuxtLink>
-            <NuxtLink to="/privacy" class="hover:underline">Confidentialité</NuxtLink>
-            <NuxtLink to="/cookies" class="hover:underline">Cookies</NuxtLink>
-            <NuxtLink to="/accessibility" class="hover:underline">Accessibilité</NuxtLink>
+          <div class="flex items-center justify-center mt-8 space-x-6">
+            <a href="#" class="link-primary">
+              Conditions
+            </a>
+            <a href="#" class="link-primary">
+              Confidentialité
+            </a>
+            <a href="#" class="link-primary">
+              Contact
+            </a>
           </div>
           <p>&copy; {{ new Date().getFullYear() }} Keetaf</p>
         </div>

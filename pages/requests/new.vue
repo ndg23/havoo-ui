@@ -1,1285 +1,325 @@
 <template>
-  <NuxtLayout 
-    name="creation"
-    :current-step="currentStep"
-    :total-steps="steps.length"
-  >
-    <div class="max-w-xl mx-auto px-4 pb-24">
-      <TransitionGroup 
-        name="slide-fade"
-        mode="out-in"
-        tag="div"
-      >
-        <div :key="currentStep" class="space-y-8">
-          <!-- En-tête avec style Apple -->
-          <div class="space-y-4">
-            <span 
-              class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-gray-900 text-white dark:bg-white dark:text-gray-900"
-            >
-              Étape {{ currentStep }}/{{ steps.length }}
-            </span>
-            <h1 class="text-4xl font-bold text-gray-900 dark:text-white font-poppins">
-              {{ steps[currentStep - 1].question }}
+  <div class="min-h-screen bg-white dark:bg-gray-900">
+    <!-- Header avec style GAFAM -->
+    <header class="sticky top-0 z-10 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800">
+      <div class="max-w-2xl mx-auto px-4 py-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <NuxtLink to="/requests" class="p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+              <UIcon name="i-heroicons-arrow-left" class="w-5 h-5 text-gray-700 dark:text-gray-300" />
+            </NuxtLink>
+            <h1 class="text-2xl font-semibold bg-gradient-to-r from-primary to-primary-600 bg-clip-text text-transparent">
+              Nouvelle mission
             </h1>
-            <p class="text-lg text-gray-600 dark:text-gray-400">
-              {{ steps[currentStep - 1].description }}
+          </div>
+          <div class="text-sm text-gray-500">
+            {{ isFormValid ? 'Prêt à publier' : 'En cours de rédaction' }}
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Formulaire -->
+    <main class="max-w-2xl mx-auto px-4 py-6">
+      <form @submit.prevent="handleSubmit" class="space-y-6">
+        <!-- Titre -->
+        <FloatingLabelInput
+          id="title"
+          v-model="formData.title"
+          label="Titre de votre mission"
+          :error="formErrors.title"
+          required
+          maxlength="100"
+          helpText="Soyez clair et concis dans votre titre (max 100 caractères)"
+        />
+
+        <!-- Description -->
+        <div class="relative w-full">
+          <textarea
+            id="description"
+            v-model="formData.description"
+            rows="4"
+            class="block w-full pl-6 pr-4 pt-6 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 rounded-2xl  transition-colors text-lg dark:bg-gray-800"
+            :class="{ 'border-red-500': formErrors.description }"
+            maxlength="500"
+          />
+          <label
+            for="description"
+            class="absolute left-4 pointer-events-none transition-all duration-200 ease-out"
+            :class="[
+              formData?.description ? 'text-xs top-2 text-blue-600' : 'text-base top-4 text-gray-500'
+            ]"
+          >
+            Description détaillée
+            <span class="text-red-500 ml-0.5">*</span>
+          </label>
+          <div class="mt-1 flex justify-end">
+            <span class="text-sm text-gray-500">
+              {{ formData?.description?.length || 0 }}/500
+            </span>
+          </div>
+        </div>
+
+        <!-- Budget -->
+        <FloatingLabelInput
+          id="budget"
+          v-model="formData.budget"
+          label="Budget (en FCFA)"
+          type="number"
+          :error="formErrors.budget"
+          required
+          min="1000"
+          helpText="Montant minimum: 1000 FCFA"
+        />
+
+        <!-- Date limite -->
+        <FloatingLabelInput
+          id="deadline"
+          v-model="formData.deadline"
+          label="Date limite"
+          type="date"
+          :error="formErrors.deadline"
+          required
+          :min="minDate"
+          helpText="Date limite de réalisation"
+        />
+
+        <!-- Type de travail -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Type de travail
+          </label>
+          <div class="flex gap-4">
+            <label class="flex items-center gap-2 p-4 border rounded-xl cursor-pointer transition-colors"
+              :class="formData.workType === 'remote' ? 'border-primary bg-primary/5' : 'border-gray-200'">
+              <input 
+                type="radio" 
+                v-model="formData.workType" 
+                value="remote"
+                class="text-primary focus:ring-primary"
+              />
+              <span>En ligne</span>
+            </label>
+            <label class="flex items-center gap-2 p-4 border rounded-xl cursor-pointer transition-colors"
+              :class="formData.workType === 'onsite' ? 'border-primary bg-primary/5' : 'border-gray-200'">
+              <input 
+                type="radio" 
+                v-model="formData.workType" 
+                value="onsite"
+                class="text-primary focus:ring-primary"
+              />
+              <span>Sur place</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Urgence -->
+        <label class="flex items-center gap-3 p-4 border rounded-xl cursor-pointer transition-colors"
+          :class="formData.isUrgent ? 'border-primary bg-primary/5' : 'border-gray-200'">
+          <input 
+            type="checkbox" 
+            v-model="formData.isUrgent"
+            class="rounded text-primary focus:ring-primary"
+          />
+          <div>
+            <span class="font-medium">Mission urgente</span>
+            <p class="text-sm text-gray-500">La mission nécessite une réalisation rapide</p>
+          </div>
+        </label>
+
+        <!-- Bouton de soumission amélioré -->
+        <div class="fixed- bottom-0 left-0 right-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-t border-gray-100 dark:border-gray-800">
+          <div class="max-w-2xl mx-auto px-4 py-4">
+            <button
+              type="submit"
+              :disabled="!isFormValid || isSubmitting"
+              class="relative w-full h-14 rounded-2xl font-medium text-white overflow-hidden transition-all duration-300"
+              :class="[
+                isFormValid ? 'bg-gradient-to-r from-primary to-primary-600 hover:scale-[1.02]' : 'bg-gray-200 dark:bg-gray-800'
+              ]"
+            >
+              <span class="relative z-10 flex items-center justify-center gap-2">
+                <UIcon 
+                  :name="isSubmitting ? 'i-heroicons-arrow-path' : 'i-heroicons-rocket-launch'" 
+                  class="w-5 h-5"
+                  :class="{ 'animate-spin': isSubmitting }"
+                />
+                {{ isSubmitting ? 'Publication en cours...' : 'Publier la mission' }}
+              </span>
+              <div 
+                v-if="isFormValid && !isSubmitting"
+                class="absolute inset-0 bg-gradient-to-r from-primary-600 to-primary opacity-0 hover:opacity-100 transition-opacity duration-300"
+              />
+            </button>
+            
+            <p v-if="formErrors.submit" class="mt-2 text-sm text-red-600 text-center">
+              {{ formErrors.submit }}
             </p>
           </div>
-
-          <!-- Champs dynamiques avec style Apple -->
-          <div class="space-y-6">
-            <!-- Input texte -->
-            <template v-if="steps[currentStep - 1].type === 'text'">
-              <input
-                v-model="missionData[steps[currentStep - 1].key]"
-                type="text"
-                :placeholder="steps[currentStep - 1].placeholder"
-                class="w-full px-6 py-4 text-lg rounded-2xl
-                       border border-gray-200 dark:border-gray-700
-                       bg-gray-50 dark:bg-gray-800/50 
-                       focus:ring-2 focus:ring-gray-900 dark:focus:ring-white
-                       placeholder:text-gray-500 dark:placeholder:text-gray-400
-                       text-gray-900 dark:text-white"
-              />
-            </template>
-
-            <!-- Description -->
-            <template v-if="steps[currentStep - 1].type === 'textarea'">
-              <div class="space-y-4">
-                <textarea
-                  v-model="missionData[steps[currentStep - 1].key]"
-                  :placeholder="steps[currentStep - 1].placeholder"
-                  rows="5"
-                  class="w-full px-6 py-4 text-lg rounded-2xl
-                         border border-gray-200 dark:border-gray-700
-                         bg-gray-50 dark:bg-gray-800/50
-                         focus:ring-2 focus:ring-gray-900 dark:focus:ring-white
-                         placeholder:text-gray-500 dark:placeholder:text-gray-400
-                         text-gray-900 dark:text-white
-                         resize-none"
-                />
-                
-                <div class="flex justify-between items-center">
-                  <span class="text-sm text-gray-500">
-                    {{ missionData[steps[currentStep - 1].key]?.length || 0 }}/500
-                  </span>
-                  <button 
-                    @click="showTips = !showTips"
-                    class="text-sm font-medium text-gray-900 dark:text-white hover:opacity-70"
-                  >
-                    {{ showTips ? 'Masquer les conseils' : 'Voir les conseils' }}
-                  </button>
-                </div>
-
-                <!-- Tips avec style Apple -->
-                <div 
-                  v-if="showTips" 
-                  class="rounded-2xl bg-gray-50 dark:bg-gray-800/50 p-6 space-y-4"
-                >
-                  <h3 class="font-semibold text-gray-900 dark:text-white">
-                    Conseils de rédaction
-                  </h3>
-                  <div class="space-y-3">
-                    <div 
-                      v-for="(tip, index) in descriptionTips" 
-                      :key="index"
-                      class="flex gap-3 text-sm"
-                    >
-                      <UIcon 
-                        name="i-heroicons-light-bulb" 
-                        class="h-5 w-5 text-gray-900 dark:text-white flex-shrink-0" 
-                      />
-                      <p class="text-gray-600 dark:text-gray-400">{{ tip }}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </template>
-
-            <!-- Catégories avec design Twitter -->
-            <template v-if="steps[currentStep - 1].type === 'categories'">
-              <div class="space-y-4">
-                <!-- Barre de recherche avec icône intégrée -->
-                <div class="relative">
-                  <input
-                    v-model="search"
-                    type="text"
-                    placeholder="Rechercher une expertise..."
-                    class="w-full pl-12 pr-5 py-3.5 text-lg 
-           rounded-xl
-           border border-gray-200/40 dark:border-gray-700/40
-           bg-white dark:bg-gray-800
-           focus:outline-none
-           focus:border-gray-300 dark:focus:border-gray-600
-           focus:ring-0
-           placeholder:text-gray-400/80 dark:placeholder:text-gray-500/80
-           text-gray-900 dark:text-white
-           shadow-sm
-           transition-all duration-200 ease-in-out"
-  />
-                  <UIcon 
-                    name="i-heroicons-magnifying-glass" 
-                    class="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500"
-                  />
-                </div>
-
-                <!-- Liste des professions au style Twitter -->
-                <div 
-                  ref="professionsContainer"
-                  class="overflow-y-auto max-h-[400px] space-y-2.5 pr-2 
-                         scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700
-                         scrollbar-track-transparent"
-                  @scroll="handleScroll"
-                >
-                  <button
-                    v-for="profession in displayedProfessions"
-                    :key="profession.id"
-                    @click="selectItem(profession)"
-                    class="w-full flex items-center gap-3 p-4 text-left
-                           rounded-2xl border transition-all duration-150"
-                    :class="[
-                      selectedCategory?.id === profession.id 
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
-                        : 'border-transparent bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
-                    ]"
-                  >
-                    <div class="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30">
-                      <UIcon 
-                        :name="getProfessionIcon(profession.name)"
-                        class="h-5 w-5 text-blue-500 flex-shrink-0"
-                      />
-                    </div>
-                    <div class="min-w-0 flex-1">
-                      <div class="font-bold text-gray-900 dark:text-white">
-                        {{ profession.name }}
-                      </div>
-                      <div class="text-sm text-gray-600 dark:text-gray-400 truncate">
-                        {{ profession.description }}
-                      </div>
-                    </div>
-                    <UIcon 
-                      v-if="selectedCategory?.id === profession.id"
-                      name="i-heroicons-check-circle-solid" 
-                      class="h-6 w-6 text-blue-500 flex-shrink-0"
-                    />
-                  </button>
-
-                  <!-- Loading state -->
-                  <div 
-                    v-if="isLoadingMore" 
-                    class="py-4 text-center"
-                  >
-                    <div class="inline-flex items-center gap-2">
-                      <UIcon 
-                        name="i-heroicons-arrow-path" 
-                        class="h-5 w-5 animate-spin text-blue-500"
-                      />
-                      <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Chargement...
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Empty state -->
-                <div 
-                  v-if="displayedProfessions.length === 0" 
-                  class="py-12 text-center rounded-2xl bg-gray-100 dark:bg-gray-800"
-                >
-                  <UIcon 
-                    name="i-heroicons-magnifying-glass" 
-                    class="mx-auto h-12 w-12 text-gray-400"
-                  />
-                  <p class="mt-3 font-medium text-gray-700 dark:text-gray-300">
-                    Aucune expertise trouvée
-                  </p>
-                </div>
-              </div>
-            </template>
-
-            <!-- Budget avec design Twitter -->
-            <template v-if="steps[currentStep - 1].type === 'budget'">
-              <div class="space-y-6">
-                <!-- Options de budget prédéfinies -->
-                <div class="grid grid-cols-2 gap-3">
-                  <button
-                    v-for="amount in quickAmounts"
-                    :key="amount"
-                    @click="selectBudget(amount)"
-                    class="relative group overflow-hidden p-6 rounded-2xl text-left
-                           border-2 transition-all duration-150"
-                    :class="[
-                      missionData.budget === amount 
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
-                        : 'border-transparent bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
-                    ]"
-                  >
-                    <!-- Amount -->
-                    <div class="text-2xl font-bold text-gray-900 dark:text-white">
-                      {{ formatPrice(amount) }}
-                    </div>
-                    
-                    <!-- Description -->
-                    <div class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                      {{ getBudgetDescription(amount) }}
-                    </div>
-
-                    <!-- Selection indicator -->
-                    <div 
-                      v-if="missionData.budget === amount"
-                      class="absolute top-3 right-3"
-                    >
-                      <UIcon 
-                        name="i-heroicons-check-circle-solid" 
-                        class="h-6 w-6 text-blue-500"
-                      />
-                    </div>
-                  </button>
-                </div>
-
-                <!-- Separator -->
-                <div class="relative">
-                  <div class="absolute inset-0 flex items-center">
-                    <div class="w-full border-t border-gray-200 dark:border-gray-800"></div>
-                  </div>
-                  <div class="relative flex justify-center">
-                    <span class="px-4 text-sm font-medium text-gray-500 bg-white dark:bg-black">ou</span>
-                  </div>
-                </div>
-
-                <!-- Custom budget -->
-                <div class="space-y-3">
-                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Budget personnalisé
-                  </label>
-                  <div class="relative">
-                    <input
-                      v-model.number="missionData.budget"
-                      type="number"
-                      min="1000"
-                      step="1000"
-                      placeholder="Ex: 15000"
-                      class="w-full pl-4 pr-16 py-4 text-xl rounded-2xl
-                             border border-gray-200 dark:border-gray-700
-                             bg-white dark:bg-gray-800
-                             focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                             placeholder:text-gray-500 dark:placeholder:text-gray-500
-                             text-gray-900 dark:text-white"
-                    />
-                    <div class="absolute right-4 top-1/2 -translate-y-1/2 font-medium text-gray-500">
-                      XOF
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </template>
-
-            <!-- Date avec design Twitter -->
-            <template v-if="steps[currentStep - 1].type === 'deadline'">
-              <div class="space-y-6">
-                <!-- Options rapides -->
-                <div class="grid grid-cols-2 gap-3">
-                  <button
-                    v-for="option in quickDateOptions"
-                    :key="option.days"
-                    @click="selectQuickDate(option.days)"
-                    class="relative group p-6 rounded-2xl text-left
-                           border-2 transition-all duration-150"
-                    :class="[
-                      missionData.deadline === getDateFromDays(option.days)
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                        : 'border-transparent bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
-                    ]"
-                  >
-                    <!-- Label -->
-                    <div class="text-xl font-bold text-gray-900 dark:text-white">
-                      {{ option.label }}
-                    </div>
-                    
-                    <!-- Formatted date -->
-                    <div class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                      {{ getFormattedDate(option.days) }}
-                    </div>
-
-                    <!-- Indicator -->
-                    <div 
-                      v-if="missionData.deadline === getDateFromDays(option.days)"
-                      class="absolute top-3 right-3"
-                    >
-                      <UIcon 
-                        name="i-heroicons-check-circle-solid" 
-                        class="h-6 w-6 text-blue-500"
-                      />
-                    </div>
-                  </button>
-                </div>
-
-                <!-- Separator -->
-                <div class="relative">
-                  <div class="absolute inset-0 flex items-center">
-                    <div class="w-full border-t border-gray-200 dark:border-gray-800"></div>
-                  </div>
-                  <div class="relative flex justify-center">
-                    <span class="px-4 text-sm font-medium text-gray-500 bg-white dark:bg-black">ou</span>
-                  </div>
-                </div>
-
-                <!-- Custom date -->
-                <div class="space-y-3">
-                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Date personnalisée
-                  </label>
-                  <div class="relative">
-                    <input
-                      v-model="missionData.deadline"
-                      type="date"
-                      :min="new Date().toISOString().split('T')[0]"
-                      class="w-full pl-4 pr-12 py-4 text-xl rounded-2xl
-                             border border-gray-200 dark:border-gray-700
-                             bg-white dark:bg-gray-800
-                             focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                             text-gray-900 dark:text-white"
-                    />
-                    <UIcon 
-                      name="i-heroicons-calendar" 
-                      class="absolute right-4 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-500"
-                    />
-                  </div>
-                </div>
-
-                <!-- Information box -->
-                <div class="flex items-start gap-3 p-4 rounded-2xl bg-blue-50 dark:bg-blue-900/20">
-                  <UIcon 
-                    name="i-heroicons-information-circle" 
-                    class="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5"
-                  />
-                  <p class="text-sm text-blue-700 dark:text-blue-300">
-                    Choisissez une date qui vous laisse suffisamment de temps pour échanger avec les talents et affiner votre projet.
-                  </p>
-                </div>
-              </div>
-            </template>
-          </div>
-
-          <!-- Twitter-style navigation buttons -->
-          <div class="space-y-3 pt-6">
-            <button
-              @click="nextStep"
-              :disabled="!isCurrentStepValid"
-              class="w-full px-6 py-4 rounded-2xl text-base font-medium
-                     bg-gray-900 text-white dark:bg-white dark:text-gray-900
-                     disabled:opacity-50 disabled:cursor-not-allowed
-                     hover:opacity-90 transition-opacity"
-            >
-              {{ isLastStep ? 'Publier la mission' : 'Continuer' }}
-            </button>
-
-            <button
-              v-if="currentStep > 1"
-              @click="previousStep"
-              class="w-full px-6 py-4 rounded-2xl text-base font-medium
-                     bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white
-                     hover:opacity-90 transition-opacity"
-            >
-              Retour
-            </button>
-          </div>
         </div>
-      </TransitionGroup>
-    </div>
+      </form>
+    </main>
 
-    <!-- Success modal with Twitter style -->
-    <Teleport to="body">
-      <TransitionRoot appear :show="showSuccessModal" as="template">
-        <Dialog as="div" @close="closeSuccessModal" class="relative z-50">
-          <TransitionChild
-            enter="duration-300 ease-out"
-            enter-from="opacity-0"
-            enter-to="opacity-100"
-            leave="duration-200 ease-in"
-            leave-from="opacity-100"
-            leave-to="opacity-0"
+    <!-- Modal de succès amélioré -->
+    <UModal v-model="showSuccessModal">
+      <div class="p-8 text-center">
+        <div class="mx-auto w-16 h-16 rounded-full bg-gradient-to-r from-green-400 to-green-500 flex items-center justify-center mb-6">
+          <UIcon name="i-heroicons-check" class="w-8 h-8 text-white" />
+        </div>
+        <h3 class="text-2xl font-semibold text-gray-900 dark:text-white mb-3">
+          Mission publiée !
+        </h3>
+        <p class="text-gray-600 dark:text-gray-400 mb-8">
+          Votre mission est maintenant en ligne et visible par les experts.
+        </p>
+        <div class="flex flex-col gap-3">
+          <button
+            @click="router.push('/requests')"
+            class="w-full h-12 rounded-xl bg-gradient-to-r from-primary to-primary-600 text-white font-medium hover:scale-[1.02] transition-transform"
           >
-            <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" />
-          </TransitionChild>
-
-          <div class="fixed inset-0 overflow-y-auto">
-            <div class="flex min-h-full items-center justify-center p-4 text-center">
-              <TransitionChild
-                enter="duration-300 ease-out"
-                enter-from="opacity-0 scale-95"
-                enter-to="opacity-100 scale-100"
-                leave="duration-200 ease-in"
-                leave-from="opacity-100 scale-100"
-                leave-to="opacity-0 scale-95"
-              >
-                <DialogPanel class="w-full max-w-md transform overflow-hidden rounded-3xl bg-white dark:bg-gray-900 p-8 text-left align-middle shadow-xl transition-all">
-                  <div class="text-center">
-                    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/50">
-                      <UIcon name="i-heroicons-check" class="h-8 w-8 text-green-600 dark:text-green-300" />
-                    </div>
-                    <DialogTitle as="h3" class="mt-5 text-2xl font-bold text-gray-900 dark:text-white">
-                      Mission publiée !
-                    </DialogTitle>
-                    <div class="mt-3">
-                      <p class="text-gray-600 dark:text-gray-400">
-                        Votre mission a été publiée avec succès. Vous recevrez bientôt des propositions de talents.
-                      </p>
-                    </div>
-                    <div class="mt-7">
-                      <button
-                        @click="closeSuccessModal"
-                        class="inline-flex justify-center rounded-full bg-blue-500 hover:bg-blue-600 px-8 py-3 text-base font-bold text-white transition-colors active:scale-95"
-                      >
-                        Voir mes missions
-                      </button>
-                    </div>
-                  </div>
-                </DialogPanel>
-              </TransitionChild>
-            </div>
-          </div>
-        </Dialog>
-      </TransitionRoot>
-
-      <!-- Global loader with Twitter style -->
-      <TransitionRoot :show="isLoading" as="template">
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-white/80 dark:bg-black/80 backdrop-blur-sm">
-          <div class="text-center">
-            <div class="inline-flex items-center gap-3 px-6 py-3.5 bg-blue-500 rounded-full">
-              <UIcon name="i-heroicons-arrow-path" class="h-5 w-5 animate-spin text-white" />
-              <span class="text-base font-bold text-white">Publication en cours...</span>
-            </div>
-          </div>
+            Voir mes missions
+          </button>
+          <button
+            @click="showSuccessModal = false"
+            class="w-full h-12 rounded-xl border border-gray-200 dark:border-gray-700 font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+          >
+            Fermer
+          </button>
         </div>
-      </TransitionRoot>
-    </Teleport>
-
-    <!-- For accessibility -->
-    <div id="step-announcement" class="sr-only" aria-live="polite"></div>
-  </NuxtLayout>
+      </div>
+    </UModal>
+  </div>
 </template>
 
-<style scoped>
-.slide-fade-enter-active,
-.slide-fade-leave-active {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.slide-fade-enter-from {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.slide-fade-leave-to {
-  opacity: 0;
-  transform: translateY(-20px);
-}
-
-.max-w-xl {
-  position: relative;
-}
-
-@keyframes subtle-bounce {
-  0% { transform: translateX(30px); }
-  70% { transform: translateX(-5px); }
-  100% { transform: translateX(0); }
-}
-
-.slide-fade-enter-active {
-  animation: subtle-bounce 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-input[type="date"]::-webkit-calendar-picker-indicator {
-  @apply opacity-0 absolute inset-0 w-full h-full cursor-pointer;
-}
-
-/* Custom scrollbar styles */
-.scrollbar-thin {
-  scrollbar-width: thin;
-}
-
-.scrollbar-thin::-webkit-scrollbar {
-  width: 4px;
-}
-
-.scrollbar-thin::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.scrollbar-thin::-webkit-scrollbar-thumb {
-  background-color: rgba(156, 163, 175, 0.5);
-  border-radius: 4px;
-}
-
-/* Spinner animation */
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-spin {
-  animation: spin 1s linear infinite;
-}
-
-.active\:scale-95:active {
-  transform: scale(0.95);
-}
-
-.active\:scale-98:active {
-  transform: scale(0.98);
-}
-
-/* Subtle focus effect */
-input:focus, textarea:focus {
-  box-shadow: 0 0 0 1px rgba(0,0,0,0.05),
-              0 2px 4px rgba(0,0,0,0.02),
-              0 4px 8px rgba(0,0,0,0.02);
-}
-
-/* Dark mode focus effect */
-.dark input:focus, .dark textarea:focus {
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.05),
-              0 2px 4px rgba(0,0,0,0.1),
-              0 4px 8px rgba(0,0,0,0.1);
-}
-
-/* Remove default focus outline for Safari */
-input:focus, textarea:focus {
-  outline: none;
-}
-
-/* Remove default appearance for Safari */
-input, textarea {
-  -webkit-appearance: none;
-  appearance: none;
-}
-</style>
-
-
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
-import { useRouter } from 'vue-router';
-import { Dialog, DialogPanel, DialogTitle, TransitionRoot, TransitionChild } from '@headlessui/vue';
-import { onClickOutside } from '@vueuse/core';
-import { useThrottle } from '@vueuse/core';
-// import { useSupabaseClient } from '#import';
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useSupabaseClient } from '#imports'
+import FloatingLabelInput from '../../components/FloatingLabelInput.vue'
 
-const router = useRouter();
-const supabase = useSupabaseClient();
+const router = useRouter()
+const supabase = useSupabaseClient()
 
-const steps = ref([
-  {
-    key: 'title',
-    type: 'text',
-    question: 'Quel est le titre de votre mission ?',
-    description: 'Soyez concis et précis pour attirer les meilleurs talents.',
-    placeholder: 'Ex: Création d\'un logo moderne pour une startup'
-  },
-  {
-    key: 'categoryId',
-    type: 'categories',
-    question: 'Quelle est la catégorie de votre mission ?',
-    description: 'Choisissez la catégorie qui correspond le mieux à votre besoin.'
-  },
-  {
-    key: 'description',
-    type: 'textarea',
-    question: 'Décrivez votre mission en détail',
-    description: 'Plus vous serez précis, plus les propositions seront pertinentes.',
-    placeholder: 'Décrivez votre projet, vos attentes et vos contraintes...'
-  },
-  {
-    key: 'budget',
-    type: 'budget',
-    question: 'Quel est votre budget ?',
-    description: 'Définissez le budget que vous souhaitez allouer à cette mission.'
-  },
-  {
-    key: 'deadline',
-    type: 'deadline',
-    question: 'Quelle est votre date limite ?',
-    description: 'Choisissez une date limite pour la réalisation de votre mission.'
-  }
-])
-
-// Price formatting
-const formatPrice = (value) => {
-  if (!value) return 'Personnalisé'
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'XOF',
-    minimumFractionDigits: 0
-  }).format(value)
-}
-
-// État pour la pagination
-const page = ref(1)
-const perPage = 20
-const hasMore = ref(true)
-const isLoadingMore = ref(false)
-const professionsContainer = ref(null)
-// const search = ref('')
-const currentStep = ref(1)
-// Professions affichées
-const displayedProfessions = computed(() => {
-  if (!search.value) {
-    return professions.value.slice(0, page.value * perPage)
-  }
-  return filteredItems.value.slice(0, page.value * perPage)
-})
-
-// Gestion du scroll infini
-const handleScroll = useThrottle((e) => {
-  if (!e?.target) return;
-  
-  const container = e.target;
-  const { scrollTop, scrollHeight, clientHeight } = container;
-  
-  if (scrollHeight - scrollTop <= clientHeight * 1.5 && hasMore.value && !isLoadingMore.value) {
-    loadMore();
-  }
-}, 200);
-
-// Chargement des données
-const loadMore = async () => {
-  if (isLoadingMore.value || !hasMore.value) return
-  
-  isLoadingMore.value = true
-  try {
-    // Calculer l'offset pour la pagination
-    const offset = page.value * perPage
-
-    // Construire la requête Supabase
-    let query = supabase
-      .from('professions')
-      .select('id, name, description')
-      .eq('is_active', true)
-      .order('name')
-      .range(offset, offset + perPage - 1)
-
-    // Ajouter la recherche si nécessaire
-    if (search.value) {
-      query = query.or(`name.ilike.%${search.value}%,description.ilike.%${search.value}%`)
-    }
-
-    // Exécuter la requête
-    const { data, error } = await query
-
-    if (error) throw error
-
-    // Vérifier s'il y a plus de données
-    if (!data || data.length < perPage) {
-      hasMore.value = false
-    }
-
-    // Mettre à jour les professions
-    professions.value = [...professions.value, ...(data || [])]
-    page.value++
-
-  } catch (error) {
-    console.error('Error loading professions:', error)
-    useToast().add({
-      title: 'Erreur',
-      description: 'Impossible de charger les catégories. Veuillez réessayer.',
-      color: 'red'
-    })
-  } finally {
-    isLoadingMore.value = false
-  }
-}
-
-// Recherche
-const search = ref('')
-const filteredItems = computed(() => {
-  if (!search.value) return professions.value
-  
-  const searchTerm = search.value.toLowerCase()
-  return professions.value.filter(profession => 
-    profession.name.toLowerCase().includes(searchTerm) ||
-    profession.description.toLowerCase().includes(searchTerm)
-  )
-})
-
-// Reset de la recherche quand on change d'étape
-watch(() => currentStep.value, () => {
-  search.value = ''
-  page.value = 1
-  hasMore.value = true
-})
-
-// Chargement initial
-onMounted(() => {
-  loadMore()
-})
-
-// Date utility functions
-const getTomorrowDate = () => {
-  const tomorrow = new Date()
-  tomorrow.setDate(tomorrow.getDate() + 1)
-  return tomorrow.toISOString().split('T')[0]
-}
-
-const getDatePlus = (days) => {
-  const date = new Date()
-  date.setDate(date.getDate() + days)
-  return date.toISOString().split('T')[0]
-}
-
-// Minimum date (today)
-const minDate = computed(() => {
-  const today = new Date()
-  return today.toISOString().split('T')[0]
-})
-
-// Deadline options
-const deadlineOptions = computed(() => [
-  { 
-    value: getTomorrowDate(),
-    label: "Demain",
-    description: formatDate(getTomorrowDate())
-  },
-  { 
-    value: getDatePlus(7),
-    label: "Dans une semaine",
-    description: formatDate(getDatePlus(7))
-  },
-  { 
-    value: getDatePlus(14),
-    label: "Dans 2 semaines",
-    description: formatDate(getDatePlus(14))
-  },
-  { 
-    value: getDatePlus(30),
-    label: "Dans un mois",
-    description: formatDate(getDatePlus(30))
-  }
-])
-
-// Format dates
-const formatDate = (date) => {
-  return new Intl.DateTimeFormat('fr-FR', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long'
-  }).format(new Date(date))
-}
-
-// State
-// const currentStep = ref(1)
-const missionData = ref({
+// États
+const formData = ref({
   title: '',
   description: '',
-  categoryId: null,
-  budget: null,
-  deadline: ''
+  budget: '',
+  deadline: '',
+  workType: 'remote',
+  isUrgent: false
 })
 
-// Navigation
-const nextStep = () => {
-  if (currentStep.value < steps.value.length) {
-    document.startViewTransition(() => {
-      currentStep.value++
-      announceStepChange(currentStep.value)
-      triggerHapticFeedback()
-    })
-  } else {
-    handleSubmit()
-  }
-}
-
-const previousStep = () => {
-  if (currentStep.value > 1) {
-    document.startViewTransition(() => {
-      currentStep.value--
-      announceStepChange(currentStep.value)
-      triggerHapticFeedback()
-    })
-  }
-}
-
-// UI state
-const isSubmitting = ref(false);
-const statusMessage = ref('');
-const statusType = ref('info');
-const isOpen = ref(false);
-const selectedCategory = ref(null);
-const professions = ref([
-  { id: 1, name: "Développeur", description: "Applications, sites web et logiciels" },
-  { id: 2, name: "Designer", description: "UI/UX, graphisme et identité visuelle" },
-  { id: 3, name: "Marketing", description: "Stratégie digitale et croissance" },
-  { id: 4, name: "Rédacteur", description: "Articles, contenus et copywriting" },
-  { id: 5, name: "Photographe", description: "Photos professionnelles et retouches" }
-]);
-const isLoadingCategories = ref(false);
-const dropdownRef = ref(null);
-
-// Form validation
 const formErrors = ref({})
+const isSubmitting = ref(false)
+const showSuccessModal = ref(false)
 
-// Form validation computed
+// Validation des champs
+const validateForm = () => {
+  const errors = {}
+  
+  if (!formData.value.title?.trim()) {
+    errors.title = 'Le titre est requis'
+  } else if (formData.value.title.length < 3) {
+    errors.title = 'Le titre doit contenir au moins 3 caractères'
+  }
+
+  if (!formData.value.description?.trim()) {
+    errors.description = 'La description est requise'
+  } else if (formData.value.description.length < 10) {
+    errors.description = 'La description doit contenir au moins 10 caractères'
+  }
+
+  if (!formData.value.budget) {
+    errors.budget = 'Le budget est requis'
+  } else if (Number(formData.value.budget) < 1000) {
+    errors.budget = 'Le budget minimum est de 1000 FCFA'
+  }
+
+  if (!formData.value.deadline) {
+    errors.deadline = 'La date limite est requise'
+  } else {
+    const selectedDate = new Date(formData.value.deadline)
+    const today = new Date()
+    if (selectedDate < today) {
+      errors.deadline = 'La date limite doit être future'
+    }
+  }
+
+  formErrors.value = errors
+  return Object.keys(errors).length === 0
+}
+
+// Validation du formulaire
 const isFormValid = computed(() => {
   return (
-    missionData.value.title?.trim() &&
-    missionData.value.description?.trim() &&
-    missionData.value.categoryId &&
-    missionData.value.budget > 0 &&
-    missionData.value.deadline &&
-    new Date(missionData.value.deadline) > new Date()
+    formData.value.title?.length >= 3 &&
+    formData.value.description?.length >= 10 &&
+    Number(formData.value.budget) >= 1000 &&
+    formData.value.deadline &&
+    new Date(formData.value.deadline) > new Date()
   )
 })
 
-// Show status message
-const showStatus = (message, type = 'info') => {
-  statusMessage.value = message;
-  statusType.value = type;
-  
-  // Auto-hide after 5 seconds
-  setTimeout(() => {
-    statusMessage.value = '';
-  }, 5000);
-};
+// Date minimum (aujourd'hui)
+const minDate = new Date().toISOString().split('T')[0]
 
-// Calcul de la progression
-const formProgress = computed(() => {
-  let progress = 0
-  const fields = {
-    title: 25,
-    description: 25,
-    categoryId: 25,
-    budget: 12.5,
-    deadline: 12.5
-  }
-
-  for (const [field, value] of Object.entries(fields)) {
-    if (missionData.value[field]) progress += value
-  }
-
-  return Math.round(progress)
-})
-
-// Toggle dropdown
-const toggleDropdown = () => {
-  isOpen.value = !isOpen.value;
-  if (isOpen.value) {
-    search.value = ''; // Reset search on open
-    if (professions.value.length === 0 && !isLoadingCategories.value) {
-      fetchProfessions()
-    }
-  }
-}
-
-// Select item
-const selectItem = (profession) => {
-  selectedCategory.value = profession
-  missionData.value.categoryId = profession.id
-  isSearchFocused.value = false
-  search.value = ''
-  triggerHapticFeedback()
-}
-
-// Fetch professions from Supabase
-const fetchProfessions = async () => {
-  isLoadingCategories.value = true;
-  
-  try {
-    const { data, error } = await supabase
-      .from('professions')
-      .select('id, name')
-      .eq('is_active', true)
-      .order('name');
-    
-    if (error) throw error;
-    
-    professions.value = data || [];
-  } catch (error) {
-    console.error('Error fetching professions:', error);
-    showStatus('Impossible de charger les catégories. Veuillez réessayer.', 'error');
-  } finally {
-    isLoadingCategories.value = false;
-  }
-};
-
-// Fonction de soumission
+// Soumission du formulaire
 const handleSubmit = async () => {
-  if (!validateForm()) {
-    return
-  }
-
+  if (!validateForm()) return
+  
   isSubmitting.value = true
-
+  formErrors.value = {}
+  
   try {
-    // Récupérer l'utilisateur connecté
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    if (!user) throw new Error('Non authentifié')
-
-    // Créer la mission
     const { data, error } = await supabase
       .from('missions')
-      .insert([
-        {
-          title: missionData.value.title,
-          description: missionData.value.description,
-          profession_id: missionData.value.categoryId,
-          budget: missionData.value.budget,
-          deadline: missionData.value.deadline,
-          client_id: user.id,
-          status: 'open'
-        }
-      ])
+      .insert({
+        title: formData.value.title.trim(),
+        description: formData.value.description.trim(),
+        budget: Number(formData.value.budget),
+        deadline: formData.value.deadline,
+        work_type: formData.value.workType,
+        is_urgent: formData.value.isUrgent,
+        status: 'open'
+      })
       .select()
       .single()
 
     if (error) throw error
-
-    // Rediriger vers la page de la mission
-    await router.push(`/missions/${data.id}`)
-
+    
+    showSuccessModal.value = true
   } catch (error) {
-    console.error('Error creating mission:', error)
-    // Afficher une notification d'erreur
-    // Si vous utilisez Nuxt UI Toast ou autre système de notification
-    useToast().add({
-      title: 'Erreur',
-      description: 'Impossible de créer la mission. Veuillez réessayer.',
-      color: 'red'
-    })
+    console.error('Error:', error)
+    
+    if (error.code === '23505') { // Code pour violation d'unicité
+      formErrors.value = {
+        submit: 'Une mission similaire existe déjà'
+      }
+    } else if (error.code === '23503') { // Code pour violation de clé étrangère
+      formErrors.value = {
+        submit: 'Erreur de référence dans les données'
+      }
+    } else {
+      formErrors.value = {
+        submit: 'Une erreur est survenue lors de la publication'
+      }
+    }
   } finally {
     isSubmitting.value = false
   }
 }
 
-// Validation du formulaire
-const validateForm = () => {
-  const errors = {}
-  
-  if (!missionData.value.title?.trim()) {
-    errors.title = 'Le titre est requis'
+// Reset du formulaire
+const resetForm = () => {
+  formData.value = {
+    title: '',
+    description: '',
+    budget: '',
+    deadline: '',
+    workType: 'remote',
+    isUrgent: false
   }
-  
-  if (!missionData.value.description?.trim()) {
-    errors.description = 'La description est requise'
-  }
-  
-  if (!missionData.value.categoryId) {
-    errors.categoryId = 'La catégorie est requise'
-  }
-  
-  if (!missionData.value.budget || missionData.value.budget <= 0) {
-    errors.budget = 'Le budget doit être supérieur à 0'
-  }
-  
-  if (!missionData.value.deadline) {
-    errors.deadline = 'La date limite est requise'
-  } else if (new Date(missionData.value.deadline) <= new Date()) {
-    errors.deadline = 'La date limite doit être future'
-  }
-  
-  formErrors.value = errors
-  return Object.keys(errors).length === 0
+  formErrors.value = {}
 }
-
-// Lifecycle hooks
-onMounted(() => {
-  const handleClickOutside = (event) => {
-    if (dropdownRef.value && !dropdownRef.value.contains(event?.target)) {
-      isOpen.value = false
-    }
-  }
-
-  // Utilisation de mousedown au lieu de click
-  document.addEventListener('mousedown', handleClickOutside)
-
-  onBeforeUnmount(() => {
-    document.removeEventListener('mousedown', handleClickOutside)
-  })
-
-  fetchProfessions();
-});
-
-onBeforeUnmount(() => {
-  document.removeEventListener('mousedown', () => {})
-});
-
-// Fonction pour générer une couleur aléatoire basée sur l'ID de la catégorie
-const getRandomColor = (id) => {
-  const colors = [
-    '#3B82F6', // blue
-    '#EC4899', // pink
-    '#10B981', // green
-    '#F59E0B', // amber
-    '#8B5CF6', // purple
-    '#EF4444', // red
-    '#06B6D4', // cyan
-    '#F97316', // orange
-  ];
-  
-  // Utiliser l'ID comme seed pour choisir une couleur
-  return colors[id % colors.length];
-};
-
-// Update selected category when dropdown changes
-const updateSelectedCategory = () => {
-  const categoryId = missionData.value.categoryId;
-  if (categoryId) {
-    selectedCategory.value = professions.value.find(cat => cat.id === categoryId);
-  } else {
-    selectedCategory.value = null;
-  }
-};
-
-// Watch for professions loaded to update selected category if needed
-watch(professions, () => {
-  if (missionData.value.categoryId) {
-    updateSelectedCategory();
-  }
-}, { deep: true });
-
-// Suggestions de titres
-const titleSuggestions = [
-  "Création d'un logo moderne",
-  "Design d'une application mobile",
-  "Développement d'un site web",
-  "Rédaction d'un article blog"
-]
-
-// Conseils pour la description
-const descriptionTips = [
-  "Décrivez le contexte et les objectifs de votre projet",
-  "Précisez vos attentes et les livrables souhaités",
-  "Mentionnez vos contraintes techniques ou créatives",
-  "Indiquez vos références ou inspirations",
-  "Spécifiez le format et la qualité attendus"
-]
-
-const descriptionStructure = [
-  {
-    title: "Contexte du projet",
-    example: "Je souhaite créer une identité visuelle pour ma nouvelle entreprise de..."
-  },
-  {
-    title: "Objectifs",
-    example: "Le but est de transmettre une image moderne et professionnelle..."
-  },
-  {
-    title: "Livrables attendus",
-    example: "J'ai besoin des éléments suivants : logo en formats vectoriel et PNG..."
-  },
-  {
-    title: "Contraintes",
-    example: "Les couleurs doivent respecter notre charte : bleu (#1E40AF) et..."
-  }
-]
-
-// Validation de l'étape date
-const isDeadlineValid = computed(() => {
-  if (steps.value[currentStep.value - 1].type !== 'deadline') return true
-  return !!missionData.value.deadline
-})
-
-// Mise à jour de la validation globale
-const isCurrentStepValid = computed(() => {
-  const currentStepData = steps.value[currentStep.value - 1]
-  const value = missionData.value[currentStepData.key]
-
-  switch (currentStepData.type) {
-    case 'text':
-      return value?.trim().length >= 5 && value?.trim().length <= 100
-    case 'textarea':
-      return value?.trim().length >= 20 && value?.trim().length <= 500
-    case 'categories':
-      return !!value
-    case 'budget':
-      return value > 0
-    case 'deadline':
-      return isDeadlineValid.value
-    default:
-      return false
-  }
-})
-
-const quickAmounts = [5000, 10000, 25000, 50000]
-
-const currentTip = computed(() => {
-  const tips = [
-    "Soyez précis dans vos attentes",
-    "Donnez des exemples concrets",
-    "Mentionnez vos contraintes",
-    "Indiquez vos préférences"
-  ]
-  return tips[Math.floor(Math.random() * tips.length)]
-})
-
-// États
-const showSuccessModal = ref(false)
-const isLoading = ref(false)
-
-// Fermeture du modal
-const closeSuccessModal = () => {
-  showSuccessModal.value = false
-  navigateTo('/requests') // Redirection après fermeture
-}
-
-// Refs
-const searchRef = ref(null)
-
-// Fermeture de la liste au clic en dehors
-onClickOutside(searchRef, () => {
-  isSearchFocused.value = false
-})
-
-// Style des professions
-const getProfessionStyle = (professionName) => ({
-  'Développeur': 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
-  'Designer': 'bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400',
-  'Marketing': 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400',
-  'Rédacteur': 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400'
-})[professionName] || 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
-
-// Icônes des professions
-const getProfessionIcon = (professionName) => ({
-  'Développeur': 'i-heroicons-code-bracket',
-  'Designer': 'i-heroicons-paint-brush',
-  'Marketing': 'i-heroicons-presentation-chart-line',
-  'Rédacteur': 'i-heroicons-pencil'
-})[professionName] || 'i-heroicons-briefcase'
-
-// Fonction pour ajouter du contenu à la description
-const appendToDescription = (structure) => {
-  const currentText = missionData.value.description || ''
-  const newText = `${structure.title}:\n${structure.example}\n\n`
-  missionData.value.description = currentText + newText
-}
-
-// Ajoutez cette fonction pour améliorer l'accessibilité
-const announceStepChange = (step) => {
-  const announcement = document.getElementById('step-announcement')
-  if (announcement) {
-    announcement.textContent = `Étape ${step} sur ${steps.value.length}: ${steps.value[step-1].question}`
-  }
-}
-
-const currentStepData = computed(() => steps.value[currentStep.value - 1])
-const getStepComponent = computed(() => {
-  switch (currentStepData.value.type) {
-    case 'text':
-      return 'TextComponent'
-    case 'textarea':
-      return 'TextareaComponent'
-    case 'categories':
-      return 'CategoriesComponent'
-    case 'budget':
-      return 'BudgetComponent'
-    case 'deadline':
-      return 'DeadlineComponent'
-    default:
-      return null
-  }
-})
-
-const isLastStep = computed(() => currentStep.value === steps.value.length)
-
-// États pour la recherche
-const isSearchFocused = ref(false)
-
-// Description des professions
-const getProfessionDescription = (professionName) => {
-  const descriptions = {
-    'Développeur': 'Applications, sites web et logiciels',
-    'Designer': 'UI/UX, graphisme et identité visuelle',
-    'Marketing': 'Stratégie, acquisition et croissance',
-    'Rédacteur': 'Articles, contenus et copywriting',
-    'default': 'Expert dans son domaine'
-  }
-  return descriptions[professionName] || descriptions.default
-}
-
-// Réinitialisation de la sélection
-const clearSelection = () => {
-  selectedCategory.value = null
-  missionData.value.categoryId = null
-  triggerHapticFeedback()
-}
-
-// Validation spécifique pour les catégories
-const isCategoryValid = computed(() => {
-  return !!missionData.value.categoryId
-})
-
-// Sélection d'une date rapide
-const selectQuickDate = (days) => {
-  const date = new Date()
-  date.setDate(date.getDate() + days)
-  missionData.value.deadline = date.toISOString().split('T')[0]
-}
-
-// Formatage de la date
-const getDateString = (days) => {
-  const date = new Date()
-  date.setDate(date.getDate() + days)
-  return date.toLocaleDateString('fr-FR', { 
-    day: 'numeric',
-    month: 'long'
-  })
-}
-
-// Ajoutez ces constantes et fonctions
-
-const quickDateOptions = [
-  { days: 7, label: '1 semaine' },
-  { days: 14, label: '2 semaines' },
-  { days: 30, label: '1 mois' },
-  { days: 60, label: '2 mois' }
-]
-
-// Obtenir une date à partir du nombre de jours
-const getDateFromDays = (days) => {
-  const date = new Date()
-  date.setDate(date.getDate() + days)
-  return date.toISOString().split('T')[0]
-}
-
-// Formatage de la date
-const getFormattedDate = (days) => {
-  const date = new Date()
-  date.setDate(date.getDate() + days)
-  return new Intl.DateTimeFormat('fr-FR', { 
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  }).format(date)
-}
-
-// Style personnalisé pour l'input date
-const dateInputStyle = computed(() => {
-  if (!missionData.value.deadline) {
-    return 'text-gray-400 dark:text-gray-500'
-  }
-  return 'text-gray-900 dark:text-white'
-})
-
-// Ajout du state pour les tips
-const showTips = ref(false)
-
-// Constantes pour le budget
-const getBudgetDescription = (amount) => ({
-  5000: 'Idéal pour les petits projets',
-  10000: 'Pour les projets simples',
-  25000: 'Pour les projets moyens',
-  50000: 'Pour les projets complexes'
-})[amount] || 'Budget personnalisé'
-
-// Sélection du budget
-const selectBudget = (amount) => {
-  missionData.value.budget = amount
-}
-
-definePageMeta({
-  layout: 'creation',
-  layoutTransition: {
-    name: 'slide-up'
-  }
-})
 </script>
