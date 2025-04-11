@@ -86,7 +86,7 @@ and this mission adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Profils experts
 - Gestion des missions
 
-## [v0.2.1] - 2025-04-10
+## [v0.2.3] - 2025-04-10
 
 ### Ajouté
 - Nouveau design des cartes de mission avec mise en avant du titre
