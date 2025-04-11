@@ -231,59 +231,73 @@ const fetchDeals = async () => {
       .from('deals')
       .select(`
         *,
-        expert:profiles!expert_id(
+        expert:profiles!deals_expert_id_fkey (
           id,
           first_name,
           last_name,
           avatar_url,
-          profession:professions(name)
+          profession_id
         ),
-        mission:missions(
+        mission:missions!deals_mission_id_fkey (
           id,
           title,
-          client:profiles(
+          client:profiles!missions_client_id_fkey (
             first_name,
             last_name
           )
         )
       `, { count: 'exact' })
 
-    // Appliquer les filtres
     if (filters.value.status) {
       query = query.eq('status', filters.value.status)
     }
+    
     if (filters.value.search) {
-      query = query.textSearch('expert.first_name', filters.value.search)
+      const searchTerm = `%${filters.value.search}%`
+      query = query.or(`expert.first_name.ilike.${searchTerm},expert.last_name.ilike.${searchTerm}`)
     }
 
-    // Pagination
-    const from = (currentPage.value - 1) * itemsPerPage
-    const to = from + itemsPerPage - 1
-    
     const { data, count, error } = await query
-      .range(from, to)
+      .range((currentPage.value - 1) * itemsPerPage, (currentPage.value * itemsPerPage) - 1)
       .order('created_at', { ascending: false })
 
     if (error) throw error
 
-    deals.value = data.map(deal => ({
+    // Faire une deuxième requête pour obtenir les professions
+    const professionIds = data?.map(deal => deal.expert?.profession_id).filter(Boolean) || []
+    let professions = {}
+    
+    if (professionIds.length > 0) {
+      const { data: professionsData } = await supabase
+        .from('professions')
+        .select('id, name')
+        .in('id', professionIds)
+
+      professions = Object.fromEntries(
+        professionsData?.map(p => [p.id, p.name]) || []
+      )
+    }
+
+    deals.value = data?.map(deal => ({
       ...deal,
       expert: {
-        name: `${deal.expert.first_name} ${deal.expert.last_name}`,
-        avatar_url: deal.expert.avatar_url,
-        profession: deal.expert.profession?.name
+        name: `${deal.expert?.first_name || ''} ${deal.expert?.last_name || ''}`.trim(),
+        avatar_url: deal.expert?.avatar_url,
+        profession: professions[deal.expert?.profession_id] || 'Non renseigné'
       },
       mission: {
-        title: deal.mission.title,
+        title: deal.mission?.title,
         client: {
-          name: `${deal.mission.client.first_name} ${deal.mission.client.last_name}`
+          name: `${deal.mission?.client?.first_name || ''} ${deal.mission?.client?.last_name || ''}`.trim()
         }
       }
-    }))
+    })) || []
+
     totalItems.value = count || 0
 
   } catch (error) {
-    console.error('Erreur lors de la récupération des propositions:', error)
+    console.error('Erreur:', error)
+    deals.value = []
   } finally {
     isLoading.value = false
   }
@@ -329,7 +343,7 @@ const formatDate = (date) => {
 const formatPrice = (price) => {
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
-    currency: 'EUR'
+    currency: 'XOF'
   }).format(price)
 }
 

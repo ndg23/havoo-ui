@@ -92,6 +92,14 @@
                     <h2 class="text-lg font-bold font-sans text-gray-900 dark:text-white">
                       {{ expert.first_name }} {{ expert.last_name }}
                     </h2>
+                    <div class="flex items-center gap-2 mt-1">
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
+                                   bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                      >
+                        <UIcon name="i-heroicons-briefcase" class="w-3.5 h-3.5" />
+                        {{ expert.profession?.name || 'Non renseigné' }}
+                      </span>
+                    </div>
                     <p class="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
                       <UIcon name="i-heroicons-map-pin" class="h-4 w-4" />
                       {{ expert.location || 'Non renseigné' }}
@@ -279,6 +287,7 @@ const fetchExperts = async () => {
       .from('profiles')
       .select(`
         *,
+        profession:professions(*),
         deals!deals_expert_id_fkey (
           expert_rating,
           status

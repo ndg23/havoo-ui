@@ -1,5 +1,26 @@
 <template>
   <div v-typography class="min-h-screen flex flex-col bg-white dark:bg-gray-900">
+    <!-- Barre d'admin plus subtile -->
+    <div 
+      v-if="isAdmin"
+      class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-100/50 dark:border-gray-800/50 py-1.5 px-4 text-sm flex items-center justify-between"
+    >
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border border-primary-100 dark:border-primary-800">
+          <UIcon name="i-heroicons-shield-check" class="w-3.5 h-3.5" />
+          Admin
+        </span>
+      </div>
+
+      <NuxtLink 
+        to="/admin"
+        class="inline-flex items-center gap-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+      >
+        <span>Console d'administration</span>
+        <UIcon name="i-heroicons-chevron-right" class="w-3.5 h-3.5" />
+      </NuxtLink>
+    </div>
+
     <!-- Header principal style Wave -->
     <header class="sticky top-0 z-50 bg-white dark:bg-gray-800 border- dark:border-gray-700 px-4 py-1">
       <div class="max-w-5xl mx-auto flex items-center justify-between">
@@ -253,7 +274,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
 import { useSupabaseClient, useSupabaseUser, useRouter } from '#imports'
 import {
   Home,
@@ -280,6 +301,10 @@ const showProfileMenu = ref(false)
 const showCreateMenu = ref(false)
 const showMobileCreateMenu = ref(false)
 const isUserMenuOpen = ref(false)
+
+const isAdmin = computed(() => {
+  return userProfile.value?.role === 'admin'
+})
 
 // Fermer le menu en cliquant ailleurs
 const handleClickOutside = (event) => {

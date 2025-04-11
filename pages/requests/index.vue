@@ -164,7 +164,7 @@
               <!-- Bouton de proposition -->
               <div class="mt-4 flex justify-end">
                 <button
-                  v-if="mission.status === 'open' && canMakeProposal(mission)"
+                  v-if="isExpert && mission.status === 'open' && canMakeProposal(mission)"
                   @click="openProposalModal(mission)"
                   class="inline-flex border border-primary-500 items-center gap-2 px-5 py-2 
                          bg-white hover:bg-primary-50 
@@ -181,7 +181,7 @@
                 </button>
 
                 <div
-                  v-else-if="mission.status === 'open' && hasProposal(mission)"
+                  v-else-if="isExpert && mission.status === 'open' && hasProposal(mission)"
                   class="inline-flex items-center gap-2 px-4 py-2 rounded-full
                          bg-gray-50 hover:bg-gray-100 
                          dark:bg-gray-800 dark:hover:bg-gray-700
@@ -445,12 +445,9 @@ addIcons(
 
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
-
-const { showToast } = useCustomToast()
-
 const router = useRouter()
-
 const { defaultAvatar } = useDefaultAvatar()
+const { showToast } = useCustomToast()
 
 // États
 const missions = ref([])
@@ -509,10 +506,23 @@ const toggleProfession = (id) => {
   }
 }
 
+// Computed pour vérifier si l'utilisateur est un expert
+const isExpert = computed(() => {
+  return user.value?.role === 'expert'
+})
+
 // Fetch des missions avec les professions
 const fetchMissions = async () => {
   isLoading.value = true
   try {
+    const { data: userData, error: userError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.value?.id)
+      .single()
+
+    if (userError) throw userError
+
     const { data, error } = await supabase
       .from('missions')
       .select(`
@@ -534,7 +544,8 @@ const fetchMissions = async () => {
     if (error) throw error
     missions.value = data
   } catch (error) {
-    console.error('Erreur lors de la récupération des missions:', error)
+    console.error('Erreur:', error)
+    showToast.error('Erreur', 'Impossible de charger les missions')
   } finally {
     isLoading.value = false
   }
@@ -747,7 +758,7 @@ const resetForm = () => {
 
 // Vérifier si l'utilisateur peut faire une proposition
 const canMakeProposal = (mission) => {
-  if (!user.value || !mission) return false
+  if (!user.value) return false
   
   // Vérifier si l'utilisateur est le client de la mission
   if (user.value.id === mission.client_id) return false
