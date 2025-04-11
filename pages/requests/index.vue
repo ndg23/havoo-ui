@@ -176,8 +176,8 @@
                          focus:outline-none 
                          disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <UIcon name="i-heroicons-paper-airplane" class="w-4 h-4 text-primary-500" />
-                  <span class="hidden md:block text-primary-500 dark:text-primary-400 font-semibold">Proposer</span>
+                  <UIcon name="i-heroicons-paper-airplane" class="w-4 h-4 text-primary-500 hidden md:block" />
+                  <span class="text-primary-500 dark:text-primary-400 font-semibold">Proposer</span>
                 </button>
 
                 <div
@@ -187,7 +187,7 @@
                          dark:bg-gray-800 dark:hover:bg-gray-700
                          text-gray-700 dark:text-gray-300
                          text-sm font-medium
-                         border border-gray-200 dark:border-gray-700"
+                         dark:border-gray-700"
                 >
                   <UIcon name="i-heroicons-check-circle" class="w-4 h-4" />
                   <span>Proposition envoyée</span>

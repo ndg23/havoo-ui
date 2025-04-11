@@ -61,7 +61,7 @@
               <img 
                 :src="expert.avatar_url || defaultAvatar" 
                 :alt="`Photo de profil de ${expert.first_name}`"
-                class="w-28 h-28 rounded-full object-cove ring-2 ring-gray-100 dark:ring-gray-700 p-3 -shadow-lg"
+                class="w-28 h-28 rounded-full object-cove ring-2 ring-gray-100 dark:ring-gray-700 p-2 -shadow-lg"
               />
               
               <!-- Badge vérifié -->
