@@ -4,7 +4,7 @@
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
   >
-  <img src="/assets/icons/logo.svg" alt="Keetaf" width="150" height="150" :class="{ 'logo-small': small }">
+  <img src="/assets/icons/snoo.svg" alt="Keetaf" width="100" height="100" :class="{ 'logo-small': small }">
 
   </div>
 </template>
@@ -26,7 +26,7 @@ defineProps({
 
 <style scoped>
 .logo {
- width: 300px;
+ width: 100px;
 }
 
 .logo-small {

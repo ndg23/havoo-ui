@@ -58,21 +58,11 @@
           <!-- Avatar et infos principales -->
           <div class="flex flex-col items-center">
             <div class="relative mb-4">
-              <div 
-                v-if="expert.avatar_url"
-                class="w-28 h-28 rounded-full bg-cover bg-center ring-2 ring-gray-100 dark:ring-gray-700 shadow-lg"
-                :style="{ backgroundImage: `url(${expert.avatar_url})` }"
-              ></div>
-              <div 
-                v-else
-                class="w-28 h-28 rounded-full bg-gray-100 dark:bg-gray-700 ring-2 ring-gray-100 dark:ring-gray-700 shadow-lg flex items-center justify-center p-5"
-              >
-                <img 
-                  :src="defaultAvatar" 
-                  alt="Avatar par défaut"
-                  class="w-full h-full object-contain"
-                />
-              </div>
+              <img 
+                :src="expert.avatar_url || defaultAvatar" 
+                :alt="`Photo de profil de ${expert.first_name}`"
+                class="w-28 h-28 rounded-full object-cove ring-2 ring-gray-100 dark:ring-gray-700 p-3 -shadow-lg"
+              />
               
               <!-- Badge vérifié -->
               <div 
@@ -121,31 +111,79 @@
             </div>
           </div>
 
-          <!-- Stats avec style Twitter 2022 -->
-          <div class="grid grid-cols-3 gap-4 mt-8">
-            <div class="bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-4 text-center border border-gray-100 dark:border-gray-700">
-              <div class="flex items-center justify-center gap-1 text-2xl font-bold text-gray-900 dark:text-white">
-                <UIcon name="i-heroicons-star" class="h-6 w-6 text-yellow-400" />
-                {{ averageRating.toFixed(1) }}
+          <!-- Remplacer la section des stats -->
+          <div class="mb-8">
+            <h2 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Statistiques</h2>
+            <div class="grid grid-cols-2 gap-4">
+              <!-- Missions -->
+              <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+                    <UIcon name="i-heroicons-briefcase" class="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  </div>
+                </div>
+                <div>
+                  <h3 class="text-3xl font-bold text-gray-900 dark:text-white">
+                    {{ completedDeals.length }}
+                  </h3>
+                  <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mt-1">
+                    Missions complétées
+                  </p>
+                </div>
               </div>
-              <div class="text-sm font-medium text-gray-600 dark:text-gray-400 mt-1">
-                Note moyenne
+
+              <!-- Note moyenne -->
+              <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center">
+                    <UIcon name="i-heroicons-star" class="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                  </div>
+                </div>
+                <div>
+                  <div class="flex items-baseline gap-2">
+                    <h3 class="text-3xl font-bold text-gray-900 dark:text-white">
+                      {{ averageRating.toFixed(1) }}
+                    </h3>
+                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">/{{ MAX_RATING }}</span>
+                  </div>
+                  <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mt-1">
+                    Note moyenne
+                  </p>
+                </div>
               </div>
-            </div>
-            <div class="bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-4 text-center border border-gray-100 dark:border-gray-700">
-              <div class="text-2xl font-bold text-gray-900 dark:text-white">
-                {{ completedDeals.length }}
+
+              <!-- Expérience -->
+              <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="w-12 h-12 rounded-xl bg-green-50 dark:bg-green-900/20 flex items-center justify-center">
+                    <UIcon name="i-heroicons-clock" class="w-6 h-6 text-green-600 dark:text-green-400" />
+                  </div>
+                </div>
+                <div>
+                  <h3 class="text-3xl font-bold text-gray-900 dark:text-white">
+                    {{ formatMemberDuration(expert?.created_at) }}
+                  </h3>
+                  <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mt-1">
+                    d'expérience
+                  </p>
+                </div>
               </div>
-              <div class="text-sm font-medium text-gray-600 dark:text-gray-400 mt-1">
-                Missions
-              </div>
-            </div>
-            <div class="bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-4 text-center border border-gray-100 dark:border-gray-700">
-              <div class="text-2xl font-bold text-gray-900 dark:text-white">
-                {{ formatMemberDuration(expert.created_at) }}
-              </div>
-              <div class="text-sm font-medium text-gray-600 dark:text-gray-400 mt-1">
-                d'expérience
+
+              <!-- Taux de satisfaction -->
+              <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center">
+                    <UIcon name="i-heroicons-heart" class="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                  </div>
+                </div>
+                <div>
+                  <h3 class="text-3xl font-bold text-gray-900 dark:text-white">
+                    {{ satisfactionRate }}%
+                  </h3>
+                  <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mt-1">
+                    Taux de satisfaction
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -154,8 +192,8 @@
 
       <!-- Sections d'informations -->
       <div class="max-w-2xl mx-auto px-4 py-6 space-y-4">
-        <!-- À propos -->
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
+        <!-- Modifier la section À propos -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 mb-4">
           <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             À propos
           </h2>
@@ -164,8 +202,8 @@
           </p>
         </div>
 
-        <!-- Compétences -->
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
+        <!-- Modifier la section Compétences -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 mb-4">
           <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Compétences
           </h2>
@@ -173,7 +211,7 @@
             <span 
               v-for="skill in expert.skills" 
               :key="skill.id"
-              class="px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium whitespace-nowrap"
+              class="px-4 py-2 rounded-full bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium whitespace-nowrap"
             >
               {{ skill.name }}
             </span>
@@ -221,7 +259,7 @@
                 </div>
                 <div class="flex items-center gap-1">
                   <UIcon name="i-heroicons-star" class="h-4 w-4 text-yellow-400" />
-                  <span class="font-medium">{{ deal.expert_rating }}</span>
+                  <span class="font-medium">{{ deal.expert_rating }}/{{ MAX_RATING }}</span>
                 </div>
               </div>
               <p class="text-gray-600 dark:text-gray-300">
@@ -231,16 +269,16 @@
           </div>
         </div>
 
-        <!-- Contact -->
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
+        <!-- Modifier la section Contact -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 mb-4">
           <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Contact
           </h2>
           <div class="space-y-4">
             <!-- Email -->
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-full bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center text-primary-600">
-                <UIcon name="i-heroicons-envelope" class="h-5 w-5" />
+              <div class="w-10 h-10 rounded-xl bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center">
+                <UIcon name="i-heroicons-envelope" class="h-5 w-5 text-primary-600" />
               </div>
               <div>
                 <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Email</div>
@@ -250,23 +288,12 @@
             
             <!-- Téléphone -->
             <div v-if="expert.phone" class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-full bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center text-primary-600">
-                <UIcon name="i-heroicons-phone" class="h-5 w-5" />
+              <div class="w-10 h-10 rounded-xl bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center">
+                <UIcon name="i-heroicons-phone" class="h-5 w-5 text-primary-600" />
               </div>
               <div>
                 <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Téléphone</div>
                 <div class="text-gray-900 dark:text-white">{{ expert.phone }}</div>
-              </div>
-            </div>
-
-            <!-- Localisation -->
-            <div v-if="getLocation(expert)" class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-full bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center text-primary-600">
-                <UIcon name="i-heroicons-map-pin" class="h-5 w-5" />
-              </div>
-              <div>
-                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Localisation</div>
-                <div class="text-gray-900 dark:text-white">{{ getLocation(expert) }}</div>
               </div>
             </div>
           </div>
@@ -403,23 +430,39 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-// import { useToast } from 'vue-toastification'
 // import { useSupabaseClient } from '#supabase/client'
+import { useDefaultAvatar } from '~/composables/useDefaultAvatar'
+import { useCustomToast } from '~/composables/useCustomToast'
 
 const route = useRoute()
 const router = useRouter()
 const supabase = useSupabaseClient()
+const { defaultAvatar } = useDefaultAvatar()
+const { showToast } = useCustomToast()
 const expert = ref(null)
 const loading = ref(true)
 
 // Nouvelles propriétés pour les deals
 const completedDeals = ref([])
+
+// Constante pour la note maximale
+const MAX_RATING = 5
+
+// Modifier le computed averageRating
 const averageRating = computed(() => {
   if (!completedDeals.value.length) return 0
   const total = completedDeals.value.reduce((sum, deal) => 
-    sum + (deal.expert_rating || 0), 0
+    sum + Math.min(deal.expert_rating || 0, MAX_RATING), 0
   )
   return total / completedDeals.value.length
+})
+
+// Modifier le calcul du taux de satisfaction
+const satisfactionRate = computed(() => {
+  if (!completedDeals.value.length) return 0
+  return Math.round(
+    (completedDeals.value.filter(d => d.expert_rating >= (MAX_RATING * 0.8)).length / completedDeals.value.length) * 100
+  )
 })
 
 // États pour le signalement
@@ -428,16 +471,13 @@ const selectedReason = ref('')
 const reportDescription = ref('')
 const isSubmitting = ref(false)
 
-// Raisons de signalement
+// Modifier les raisons de signalement pour utiliser les bons types
 const reportReasons = [
-  { value: 'fake_profile', label: 'Faux profil' },
-  { value: 'inappropriate_behavior', label: 'Comportement inapproprié' },
-  { value: 'scam', label: 'Tentative d\'arnaque' },
-  { value: 'other', label: 'Autre raison' }
+  { value: 'fake_profile', label: 'Faux profil', type: 'user' },
+  { value: 'inappropriate_behavior', label: 'Comportement inapproprié', type: 'user' },
+  { value: 'scam', label: 'Tentative d\'arnaque', type: 'user' },
+  { value: 'other', label: 'Autre raison', type: 'user' }
 ]
-
-// Avatar par défaut en base64
-const defaultAvatar = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NDgiIGhlaWdodD0iNTEyIiB2aWV3Qm94PSIwIDAgNDQ4IDUxMiI+CiAgICA8cGF0aCBmaWxsPSIjYzZjNWM1IgogICAgICAgIGQ9Ik0yMjQgMjU2YTEyOCAxMjggMCAxIDAgMC0yNTZhMTI4IDEyOCAwIDEgMCAwIDI1Nm0tNDUuNyA0OEM3OS44IDMwNCAwIDM4My44IDAgNDgyLjNDMCA0OTguNyAxMy4zIDUxMiAyOS43IDUxMmgzODguNmMxNi40IDAgMjkuNy0xMy4zIDI5LjctMjkuN2MwLTk4LjUtNzkuOC0xNzguMy0xNzguMy0xNzguM3oiIC8+Cjwvc3ZnPg=='
 
 // Charger les données de l'expert
 onMounted(async () => {
@@ -473,6 +513,7 @@ onMounted(async () => {
   } catch (error) {
     console.error('Erreur lors du chargement du profil:', error)
     expert.value = null
+    showToast.error('Erreur lors du chargement du profil')
   } finally {
     loading.value = false
   }
@@ -519,22 +560,23 @@ const formatMemberDuration = (date) => {
 
 const handleContact = () => {
   // TODO: Implémenter la logique de contact
-  console.log('Contact expert:', expert.value.id)
+  showToast.info('Fonctionnalité en cours de développement')
 }
 
-// Gestion du signalement
+// Modifier la fonction handleReport
 const handleReport = async () => {
   if (!selectedReason.value) return
 
   try {
     isSubmitting.value = true
     
-    // Envoi du signalement
+    // Envoi du signalement avec le type correct
     const { error } = await supabase
       .from('reports')
       .insert({
         reported_user_id: expert.value.id,
         reason: selectedReason.value,
+        report_type: 'user', // Type fixe pour le signalement d'utilisateur
         description: reportDescription.value,
         status: 'pending'
       })
@@ -546,22 +588,11 @@ const handleReport = async () => {
     selectedReason.value = ''
     reportDescription.value = ''
 
-    // Notification de succès
-    const toast = useToast()
-    toast.add({
-      title: 'Signalement envoyé',
-      description: 'Nous examinerons votre signalement dans les plus brefs délais.',
-      color: 'green'
-    })
+    showToast.success('Signalement envoyé', 'Nous examinerons votre signalement dans les plus brefs délais.')
 
   } catch (error) {
     console.error('Erreur lors du signalement:', error)
-    const toast = useToast()
-    toast.add({
-      title: 'Erreur',
-      description: 'Impossible d\'envoyer le signalement. Veuillez réessayer.',
-      color: 'red'
-    })
+    showToast.error('Erreur', 'Impossible d\'envoyer le signalement. Veuillez réessayer.')
   } finally {
     isSubmitting.value = false
   }

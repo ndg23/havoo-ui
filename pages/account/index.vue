@@ -4,9 +4,9 @@
     <!-- Profile Header -->
     <div class="flex items-start gap-6 mb-8">
       <img 
-        :src="profile?.avatar_url || '/default-avatar.png'" 
+        :src="profile?.avatar_url || defaultAvatar" 
+        :alt="`Photo de profil de ${profile?.first_name || 'utilisateur'}`"
         class="h-24 w-24 rounded-full object-cover ring-2 ring-gray-100 dark:ring-gray-800"
-        alt="Photo de profil"
       />
       <div>
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
@@ -30,20 +30,149 @@
         </div>
       </div>
     </div>
-
+  <!-- Availability Status -->
+  <div class="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800 mb-8">
+    <div class="flex items-center justify-between">
+      <div>
+        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Statut de disponibilité</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          Indiquez aux clients si vous êtes actuellement disponible pour des missions
+        </p>
+      </div>
+      
+      <div class="flex items-center gap-3">
+        <span class="text-sm font-medium" :class="[
+          profile?.availability_status === 'available' 
+            ? 'text-green-600 dark:text-green-400'
+            : 'text-gray-500 dark:text-gray-400'
+        ]">
+          {{ profile?.availability_status === 'available' ? 'Disponible' : 'Indisponible' }}
+        </span>
+        
+        <button 
+          type="button"
+          role="switch"
+          :aria-checked="profile?.availability_status === 'available'"
+          @click="toggleAvailability"
+          class="relative inline-flex h-8 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-600 focus:ring-offset-2"
+          :class="[
+            profile?.availability_status === 'available' 
+              ? 'bg-green-500 dark:bg-green-600' 
+              : 'bg-gray-200 dark:bg-gray-600'
+          ]"
+        >
+          <span 
+            aria-hidden="true"
+            class="pointer-events-none relative inline-block h-7 w-7 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+            :class="[
+              profile?.availability_status === 'available' 
+                ? 'translate-x-6' 
+                : 'translate-x-0'
+            ]"
+          >
+            <span
+              class="absolute inset-0 flex h-full w-full items-center justify-center transition-opacity"
+              :class="[
+                profile?.availability_status === 'available' 
+                  ? 'opacity-0 duration-100 ease-out' 
+                  : 'opacity-100 duration-200 ease-in'
+              ]"
+            >
+              <svg class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+              </svg>
+            </span>
+            <span
+              class="absolute inset-0 flex h-full w-full items-center justify-center transition-opacity"
+              :class="[
+                profile?.availability_status === 'available' 
+                  ? 'opacity-100 duration-200 ease-in' 
+                  : 'opacity-0 duration-100 ease-out'
+              ]"
+            >
+              <svg class="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+            </span>
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
     <!-- Stats -->
-    <div class="grid grid-cols-3 gap-4 mb-8">
-      <div class="text-center p-4 rounded-2xl bg-gray-50 dark:bg-gray-800">
-        <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ profile?.completed_missions || 0 }}</p>
-        <p class="text-sm text-gray-600 dark:text-gray-400">Missions</p>
-      </div>
-      <div class="text-center p-4 rounded-2xl bg-gray-50 dark:bg-gray-800">
-        <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ profile?.hourly_rate || 0 }}€</p>
-        <p class="text-sm text-gray-600 dark:text-gray-400">Tarif/h</p>
-      </div>
-      <div class="text-center p-4 rounded-2xl bg-gray-50 dark:bg-gray-800">
-        <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ profile?.rating || '4.8' }}</p>
-        <p class="text-sm text-gray-600 dark:text-gray-400">Note</p>
+    <div class="mb-8">
+      <h2 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Statistiques</h2>
+      <div class="grid grid-cols-2 gap-4">
+        <!-- Missions -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+              <UIcon name="i-heroicons-briefcase" class="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            </div>
+          </div>
+          <div>
+            <h3 class="text-3xl font-bold text-gray-900 dark:text-white">
+              {{ completedDeals.length }}
+            </h3>
+            <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mt-1">
+              Missions complétées
+            </p>
+          </div>
+        </div>
+
+        <!-- Note moyenne -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center">
+              <UIcon name="i-heroicons-star" class="w-6 h-6 text-amber-600 dark:text-amber-400" />
+            </div>
+          </div>
+          <div>
+            <div class="flex items-baseline gap-2">
+              <h3 class="text-3xl font-bold text-gray-900 dark:text-white">
+                {{ averageRating.toFixed(1) }}
+              </h3>
+              <span class="text-sm font-medium text-gray-500 dark:text-gray-400">/{{ MAX_RATING }}</span>
+            </div>
+            <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mt-1">
+              Note moyenne
+            </p>
+          </div>
+        </div>
+
+        <!-- Expérience -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-green-50 dark:bg-green-900/20 flex items-center justify-center">
+              <UIcon name="i-heroicons-clock" class="w-6 h-6 text-green-600 dark:text-green-400" />
+            </div>
+          </div>
+          <div>
+            <h3 class="text-3xl font-bold text-gray-900 dark:text-white">
+              {{ formatMemberDuration(profile?.created_at) }}
+            </h3>
+            <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mt-1">
+              d'expérience
+            </p>
+          </div>
+        </div>
+
+        <!-- Taux de satisfaction -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center">
+              <UIcon name="i-heroicons-heart" class="w-6 h-6 text-purple-600 dark:text-purple-400" />
+            </div>
+          </div>
+          <div>
+            <h3 class="text-3xl font-bold text-gray-900 dark:text-white">
+              {{ Math.round((completedDeals.filter(d => d.expert_rating >= 4).length / completedDeals.length) * 100) || 0 }}%
+            </h3>
+            <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mt-1">
+              Taux de satisfaction
+            </p>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -64,39 +193,7 @@
       </div>
     </div>
 
-    <!-- Availability Status -->
-    <div class="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800 mb-8">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <div class="w-3 h-3 rounded-full" 
-            :class="profile?.availability_status === 'available' ? 'bg-[#FF5F40]' : 'bg-gray-400'"
-          />
-          <span class="text-sm font-medium text-gray-900 dark:text-white">
-            {{ profile?.availability_status === 'available' ? 'Disponible' : 'Non disponible' }}
-          </span>
-        </div>
-        <button 
-          @click="toggleAvailability"
-          class="text-sm text-[#FF5F40] hover:text-[#FF5F40]/80 dark:text-[#FF5F40] dark:hover:text-[#FF5F40]/80 hover:underline"
-        >
-          Modifier
-        </button>
-      </div>
-    </div>
-
-    <!-- Skills -->
-    <div class="mb-8">
-      <h2 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Compétences</h2>
-      <div class="flex flex-wrap gap-2">
-        <span 
-          v-for="skill in profile?.skills" 
-          :key="skill.id"
-          class="px-3 py-1 text-sm rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
-        >
-          {{ skill.name }}
-        </span>
-      </div>
-    </div>
+  
 
     <!-- Recent Activity -->
     <div>
@@ -124,61 +221,116 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useSupabaseClient, useSupabaseUser } from '#imports'
+import { useCustomToast } from '~/composables/useCustomToast'
+import { useDefaultAvatar } from '~/composables/useDefaultAvatar'
 
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 const profile = ref(null)
+const completedDeals = ref([])
+const MAX_RATING = 5
+
+const averageRating = computed(() => {
+  if (!completedDeals.value.length) return 0
+  const total = completedDeals.value.reduce((sum, deal) => 
+    sum + Math.min(deal.expert_rating || 0, MAX_RATING), 0
+  )
+  return total / completedDeals.value.length
+})
 const recentActivity = ref([])
+
+// Initialiser useCustomToast
+const { showToast } = useCustomToast()
+
+// Avatar par défaut en base64
+const { defaultAvatar } = useDefaultAvatar()
+
+const toggleAvailability = async () => {
+  try {
+    const newStatus = profile.value.availability_status === 'available' ? 'unavailable' : 'available'
+    
+    const { error } = await supabase
+      .from('profiles')
+      .update({ 
+        availability_status: newStatus,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', user.value.id)
+
+    if (error) throw error
+    
+    profile.value.availability_status = newStatus
+    showToast.success(`Statut mis à jour : ${newStatus === 'available' ? 'Disponible' : 'Indisponible'}`)
+  } catch (error) {
+    console.error('Erreur:', error)
+    showToast.error('Erreur lors de la mise à jour du statut')
+  }
+}
+
+const fetchProfile = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select(`
+        *,
+        profession:profession_id (name),
+        deals!deals_expert_id_fkey (
+          id,
+          expert_rating,
+          expert_review,
+          status,
+          created_at,
+          client:client_id (
+            id,
+            first_name,
+            last_name,
+            avatar_url
+          )
+        )
+      `)
+      .eq('id', user.value.id)
+      .single()
+
+    if (error) throw error
+
+    if (data) {
+      profile.value = data
+      completedDeals.value = data.deals?.filter(deal => 
+        deal.status === 'completed' && deal.expert_rating !== null
+      ) || []
+    }
+  } catch (error) {
+    console.error('Erreur:', error)
+    showToast.error('Erreur lors du chargement du profil')
+  }
+}
+
+// Ajouter la fonction formatMemberDuration
+const formatMemberDuration = (date) => {
+  if (!date) return '0 mois'
+  const months = Math.floor(
+    (new Date() - new Date(date)) / (1000 * 60 * 60 * 24 * 30)
+  )
+  if (months < 1) return '< 1 mois'
+  if (months < 12) return `${months} mois`
+  const years = Math.floor(months / 12)
+  return `${years} ${years === 1 ? 'an' : 'ans'}`
+}
 
 onMounted(async () => {
   if (user.value) {
     await fetchProfile()
-    await fetchRecentActivity()
+  } else {
+    showToast.error('Veuillez vous connecter pour accéder à votre profil')
+    router.push('/auth/login')
   }
 })
 
-const fetchProfile = async () => {
-  const { data } = await supabase
-    .from('profiles')
-    .select(`
-      *,
-      profession:profession_id (name),
-      skills:user_skills (
-        skill:skill_id (id, name)
-      )
-    `)
-    .eq('id', user.value.id)
-    .single()
-
-  if (data) {
-    profile.value = {
-      ...data,
-      skills: data.skills.map(s => s.skill)
-    }
-  }
-}
-
-const fetchRecentActivity = async () => {
-  // Mock data for now
-  recentActivity.value = []
-}
-
-const toggleAvailability = async () => {
-  const newStatus = profile.value.availability_status === 'available' ? 'unavailable' : 'available'
-  
-  const { error } = await supabase
-    .from('profiles')
-    .update({ availability_status: newStatus })
-    .eq('id', user.value.id)
-
-  if (!error) {
-    profile.value.availability_status = newStatus
-  }
-}
 definePageMeta({
-  layout: 'account'
+  layout: 'account',
+  middleware: 'auth'
 })
 </script>
 

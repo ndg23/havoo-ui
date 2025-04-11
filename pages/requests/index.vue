@@ -5,10 +5,10 @@
       <div class="max-w-2xl mx-auto px-6 py-4">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-4">
-            <h1 class="text-2xl font-medium text-gray-900 dark:text-white">
+            <h1 class="text-2xl font-sans font-bold text-gray-900 dark:text-white">
               Missions
             </h1>
-            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">
+            <span class="text-sm font-mono text-gray-500 dark:text-gray-400">
               {{ filteredMissions.length }} disponibles
             </span>
           </div>
@@ -81,120 +81,117 @@
                 hover:border-primary-500 dark:hover:border-primary-400"
             >
               <div @click="router.push(`/requests/${mission.id}`)">
-                <!-- En-tête de la mission -->
-                <div class="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                <!-- En-tête avec titre et statut -->
+                <div class="flex flex-col gap-4 mb-6">
+                  <div class="flex items-start justify-between gap-4">
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white leading-tight group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                       {{ mission.title }}
                     </h3>
-                    <div class="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
-                      <span class="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
-                        <UIcon name="i-heroicons-banknotes" class="w-4 h-4" />
-                        {{ formatPrice(mission.budget) }}
-                      </span>
+                    <div
+                      class="px-2.5 py-1 rounded-full text-xs font-medium shrink-0"
+                      :class="getStatusClasses(mission.status)"
+                    >
+                      {{ getStatusLabel(mission.status) }}
+                    </div>
+                  </div>
+
+                  <!-- Méta-informations importantes -->
+                  <div class="flex flex-wrap items-center gap-3 text-sm">
+                    <!-- Budget -->
+                    <span class="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
+                      <UIcon name="i-heroicons-banknotes" class="w-4 h-4" />
+                      {{ formatPrice(mission.budget) }}
+                    </span>
+                    <span class="text-gray-300 dark:text-gray-600">•</span>
+
+                    <!-- Nombre de propositions -->
+                    <span class="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
+                      <UIcon name="i-heroicons-chat-bubble-left-right" class="w-4 h-4" />
+                      {{ mission.deals?.length || 0 }} proposition{{ mission.deals?.length > 1 ? 's' : '' }}
+                    </span>
+
+                    <!-- Indicateur si on a déjà proposé -->
+                    <span v-if="hasProposal(mission)" class="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
+                      <UIcon name="i-heroicons-check-circle" class="w-4 h-4" />
+                      Déjà proposé
+                    </span>
+
+                    <span class="text-gray-300 dark:text-gray-600">•</span>
+
+                    <!-- Deadline -->
+                    <span class="flex items-center gap-1.5" :class="getDeadlineColor(mission.deadline)">
+                      <UIcon name="i-heroicons-clock" class="w-4 h-4" />
+                      {{ formatDeadline(mission.deadline) }}
+                    </span>
+
+                    <!-- Location (si présente) -->
+                    <template v-if="mission.location">
                       <span class="text-gray-300 dark:text-gray-600">•</span>
-                      <span class="flex items-center gap-1 font-medium">
-                        <UIcon name="i-heroicons-clock" 
-                          class="w-4 h-4"
-                          :class="getDeadlineColor(mission.deadline)"
-                        />
-                        {{ formatDeadline(mission.deadline) }}
-                      </span>
-                      <span class="text-gray-300 dark:text-gray-600">•</span>
-                      <span class="text-blue-600 dark:text-blue-400 font-medium">
-                        {{ formatTimeAgo(mission.created_at) }}
-                      </span>
-                      <span v-if="mission.location" class="text-gray-300 dark:text-gray-600">•</span>
-                      <span v-if="mission.location" class="flex items-center gap-1 text-purple-600 dark:text-purple-400 font-medium">
+                      <span class="flex items-center gap-1.5 text-purple-600 dark:text-purple-400">
                         <UIcon name="i-heroicons-map-pin" class="w-4 h-4" />
                         {{ mission.location }}
                       </span>
-                    </div>
-                  </div>
-                  
-                  <!-- Badge statut -->
-                  <div
-                    class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium whitespace-nowrap"
-                    :class="`text-${getMissionStatusColor(mission.status)}-600 dark:text-${getMissionStatusColor(mission.status)}-400`"
-                  >
-                    <UIcon 
-                      :name="getMissionStatusIcon(mission.status)" 
-                      class="w-4 h-4" 
-                    />
-                    {{ getMissionStatusLabel(mission.status) }}
+                    </template>
                   </div>
                 </div>
 
-                <!-- Description et actions -->
+                <!-- Info client et description -->
                 <div class="space-y-4">
+                  <!-- Client info plus subtile -->
+                  <div class="flex items-center gap-3">
+                    <img 
+                      :src="mission.client?.avatar_url || defaultAvatar"
+                      :alt="`Photo de ${mission.client?.first_name || 'Client'}`"
+                      class="w-8 h-8 rounded-full object-contain ring-1 ring-gray-100 dark:ring-gray-700"
+                    />
+                    <div class="flex flex-col">
+                      <span class="text-sm font-medium text-gray-900 dark:text-white">
+                        {{ mission.client?.first_name }} {{ mission.client?.last_name }}
+                      </span>
+                      <span class="text-xs text-gray-500 dark:text-gray-400">
+                        {{ formatDate(mission.created_at) }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Description -->
                   <p class="text-gray-600 dark:text-gray-300 line-clamp-2">
                     {{ mission.description }}
                   </p>
-
-                  <!-- Client info -->
-                  <div class="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
-                    <!-- Info client -->
-                    <div class="flex items-center gap-3">
-                      <UAvatar
-                        :src="mission.client?.avatar_url"
-                        :alt="`${mission.client?.first_name} ${mission.client?.last_name}`"
-                        size="sm"
-                      />
-                      <div class="text-sm">
-                        <div class="font-medium text-gray-900 dark:text-white flex items-center gap-2">
-                          {{ mission.client?.first_name }} {{ mission.client?.last_name }}
-                          <span class="text-gray-500 dark:text-gray-400 font-normal">
-                            @{{ mission.client?.username || mission.client?.email?.split('@')[0] }}
-                          </span>
-                        </div>
-                        <div class="text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                          <span class="flex items-center gap-1">
-                            <UIcon name="i-heroicons-star" class="w-4 h-4 text-yellow-400" />
-                            {{ mission.client?.rating || '0' }}
-                          </span>
-                          <span>•</span>
-                          <span>{{ mission.client?.missions_count || '0' }} missions</span>
-                          <span v-if="mission.client?.city">•</span>
-                          <span v-if="mission.client?.city" class="flex items-center gap-1">
-                            <UIcon name="i-heroicons-map-pin" class="w-4 h-4" />
-                            {{ mission.client?.city }}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <!-- Proposal count with Twitter 2023 style -->
-                    <div class="flex items-center gap-2">
-                      <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium text-sm">
-                        <UIcon name="i-heroicons-chat-bubble-left-right" class="w-4 h-4" />
-                        <span>{{ mission.deals.length || 0 }}</span>
-                        <span class="text-blue-500/70 dark:text-blue-400/70">propositions</span>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
 
-              <!-- Bouton de proposition (isolé du conteneur parent) -->
+              <!-- Bouton de proposition -->
               <div class="mt-4 flex justify-end">
-                <UButton
+                <button
                   v-if="mission.status === 'open' && canMakeProposal(mission)"
-                  color="primary"
-                  variant="soft"
-                  icon="i-heroicons-paper-airplane"
-                  class="rounded-full"
                   @click="openProposalModal(mission)"
+                  class="inline-flex border border-primary-500 items-center gap-2 px-5 py-2 
+                         bg-white hover:bg-primary-50 
+                         dark:bg-white dark:hover:bg-primary-50
+                         text-primary-500 dark:text-primary-400
+                         text-sm font-medium
+                         rounded-full
+                         transition-colors duration-200
+                         focus:outline-none 
+                         disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Faire une proposition
-                </UButton>
-                <UBadge
+                  <UIcon name="i-heroicons-paper-airplane" class="w-4 h-4 text-primary-500" />
+                  <span class="hidden md:block text-primary-500 dark:text-primary-400 font-semibold">Proposer</span>
+                </button>
+
+                <div
                   v-else-if="mission.status === 'open' && hasProposal(mission)"
-                  color="gray"
-                  variant="subtle"
-                  class="rounded-full"
+                  class="inline-flex items-center gap-2 px-4 py-2 rounded-full
+                         bg-gray-50 hover:bg-gray-100 
+                         dark:bg-gray-800 dark:hover:bg-gray-700
+                         text-gray-700 dark:text-gray-300
+                         text-sm font-medium
+                         border border-gray-200 dark:border-gray-700"
                 >
-                  Proposition envoyée
-                </UBadge>
+                  <UIcon name="i-heroicons-check-circle" class="w-4 h-4" />
+                  <span>Proposition envoyée</span>
+                </div>
               </div>
             </div>
           </div>
@@ -220,19 +217,60 @@
     <UModal v-model="showApplyModal">
       <!-- Header personnalisé -->
       <template #header>
-        <div class="space-y-1 px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700">
-          <h2 class="text-2xl font-bold text-white mb-1">
-            Proposer une affaire
-          </h2>
-          <div class="text-sm text-primary-100 font-medium">
-             pour
+        <div class="px-6 py-6 border-b border-gray-100 dark:border-gray-800">
+          <div class="flex items-start justify-between">
+            <div class="space-y-2">
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-1 text-xs font-medium rounded-full" :class="getStatusClasses(selectedMission?.status)">
+                  {{ getStatusLabel(selectedMission?.status) }}
+                </span>
+                <span class="text-sm text-gray-500 dark:text-gray-400">
+                  Ref. {{ selectedMission?.id?.slice(-6).toUpperCase() }}
+                </span>
+              </div>
+              <h2 class="text-xl font-bold text-gray-900 dark:text-white leading-tight">
+                {{ selectedMission?.title }}
+              </h2>
+              <div class="flex flex-wrap items-center gap-3 text-sm">
+                <span class="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
+                  <UIcon name="i-heroicons-banknotes" class="w-4 h-4" />
+                  {{ formatPrice(selectedMission?.budget) }}
+                </span>
+                <span class="text-gray-300 dark:text-gray-600">•</span>
+                <span class="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
+                  <UIcon name="i-heroicons-chat-bubble-left-right" class="w-4 h-4" />
+                  {{ selectedMission?.deals?.length || 0 }} proposition{{ selectedMission?.deals?.length > 1 ? 's' : '' }}
+                </span>
+                <span class="text-gray-300 dark:text-gray-600">•</span>
+                <span class="flex items-center gap-1.5" :class="getDeadlineColor(selectedMission?.deadline)">
+                  <UIcon name="i-heroicons-clock" class="w-4 h-4" />
+                  {{ formatDeadline(selectedMission?.deadline) }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Client info -->
+            <!-- <div class="flex items-center gap-3">
+              <img 
+                :src="selectedMission?.client?.avatar_url || defaultAvatar"
+                :alt="`Photo de ${selectedMission?.client?.first_name || 'Client'}`"
+                class="w-10 h-10 rounded-full object-cover ring-1 ring-gray-100 dark:ring-gray-700"
+              />
+              <div class="flex flex-col">
+                <span class="text-sm font-medium text-gray-900 dark:text-white">
+                  {{ selectedMission?.client?.first_name }} {{ selectedMission?.client?.last_name }}
+                </span>
+                <span class="text-xs text-gray-500 dark:text-gray-400">
+                  {{ formatDate(selectedMission?.created_at) }}
+                </span>
+              </div>
+            </div> -->
           </div>
-          <div class="text-lg font-semibold text-white line-clamp-1">
-            {{ selectedMission?.title }}
-          </div>
-          <div class="text-sm text-primary-100">
-            Budget initial : {{ formatPrice(selectedMission?.budget) }}
-          </div>
+
+          <!-- Description courte -->
+          <p class="mt-4 text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
+            {{ selectedMission?.description }}
+          </p>
         </div>
       </template>
 
@@ -378,6 +416,7 @@ import {
 } from 'lucide-vue-next'
 import { useCustomToast } from '@/composables/useCustomToast'
 import { useRouter } from 'vue-router'
+import { useDefaultAvatar } from '~/composables/useDefaultAvatar'
 
 // Mise à jour des icônes
 addIcons(
@@ -410,6 +449,8 @@ const user = useSupabaseUser()
 const { showToast } = useCustomToast()
 
 const router = useRouter()
+
+const { defaultAvatar } = useDefaultAvatar()
 
 // États
 const missions = ref([])
@@ -727,41 +768,34 @@ const hasProposal = (mission) => {
   )
 }
 
-// Fonctions utilitaires pour les statuts
-const getMissionStatusClass = (status) => {
+// Fonction pour obtenir les classes CSS selon le statut
+const getStatusClasses = (status) => {
   const classes = {
-    pending: 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-    in_progress: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-    completed: 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-    cancelled: 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+    'open': 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400',
+    'in_progress': 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400',
+    'completed': 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
+    'cancelled': 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400',
+    'pending': 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400',
+    'proposal': 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400',
+    'assigned': 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400',
+    'want': 'bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400'
   }
-  return classes[status] || 'bg-gray-50 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
+  return classes[status] || 'bg-gray-50 dark:bg-gray-900/20 text-gray-600 dark:text-gray-400'
 }
 
-const getMissionStatusLabel = (status) => {
+// Fonction pour obtenir le libellé du statut
+const getStatusLabel = (status) => {
   const labels = {
-    proposal: 'Proposition envoyée',
-    open: 'En attente',
-    in_progress: 'En cours',
-    completed: 'Terminée',
-    cancelled: 'Annulée',
-    assigned: 'Assignée',
-    want: 'Je veux'
+    'open': 'Ouvert',
+    'in_progress': 'En cours',
+    'completed': 'Terminé',
+    'cancelled': 'Annulé',
+    'pending': 'En attente',
+    'proposal': 'Proposition',
+    'assigned': 'Assigné',
+    'want': 'Intéressé'
   }
   return labels[status] || status
-}
-
-const getMissionStatusIcon = (status) => {
-  const icons = {
-    proposal: 'i-heroicons-paper-airplane',
-    open: 'i-heroicons-clock',
-    in_progress: 'i-heroicons-play',
-    completed: 'i-heroicons-check-circle',
-    cancelled: 'i-heroicons-x-circle',
-    assigned: 'i-heroicons-user-plus',
-    want: 'i-heroicons-heart'
-  }
-  return icons[status] || 'i-heroicons-question-mark-circle'
 }
 
 // Validation

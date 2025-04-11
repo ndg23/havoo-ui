@@ -1,14 +1,14 @@
 <template>
-  <div class="min-h-screen bg-white dark:bg-gray-900">
+  <div class="min-h-screen font-sans bg-white dark:bg-gray-900">
     <!-- Header avec style Apple -->
     <header class="sticky top-0 z-10 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-100/50 dark:border-gray-800/50">
       <div class="max-w-2xl mx-auto px-6 py-4">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-4">
-            <h1 class="text-2xl font-medium text-gray-900 dark:text-white">
-              Experts
+            <h1 class="text-2xl font-sans font-bold text-gray-900 dark:text-white">
+              Nos experts
             </h1>
-            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">
+            <span class="text-sm font-mono text-gray-500 dark:text-gray-400">
               {{ filteredExperts.length }} disponibles
             </span>
           </div>
@@ -72,11 +72,11 @@
                 ></div>
                 <div 
                   v-else
-                  class="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 ring-2- -ring-white dark:ring-gray-800 shadow-md flex items-center justify-center p-3"
+                  class="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 ring-2 ring-white dark:ring-gray-800 shadow-md- flex items-center justify-center p-3"
                 >
                   <img 
-                    :src="defaultAvatar" 
-                    alt="Avatar par défaut"
+                    :src="expert.avatar_url || defaultAvatar"
+                    :alt="`Photo de profil de ${expert.first_name}`"
                     class="w-full h-full object-contain"
                   />
                 </div>
@@ -89,12 +89,12 @@
               <div class="flex-1 min-w-0">
                 <div class="flex items-start justify-between">
                   <div>
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                    <h2 class="text-lg font-bold font-sans text-gray-900 dark:text-white">
                       {{ expert.first_name }} {{ expert.last_name }}
                     </h2>
                     <p class="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
                       <UIcon name="i-heroicons-map-pin" class="h-4 w-4" />
-                      {{ expert.location || 'À distance' }}
+                      {{ expert.location || 'Non renseigné' }}
                     </p>
                   </div>
                   <div v-if="expert.is_verified" class="flex items-center gap-1 px-2 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20">
@@ -135,7 +135,7 @@
                 </div>
                 <div class="flex items-center gap-1 text-gray-500 dark:text-gray-400">
                   <UIcon name="i-heroicons-briefcase" class="h-4 w-4" />
-                  <span class="text-sm">
+                  <span class="text-sm font-mono">
                     {{ expert.completed_missions || 0 }} missions
                   </span>
                 </div>
@@ -192,7 +192,8 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-// import { useSupabaseClient } from '#supabase/client'
+import { useSupabaseClient } from '#imports'
+import { useDefaultAvatar } from '~/composables/useDefaultAvatar'
 import { OhVueIcon as VIcon, addIcons } from 'oh-vue-icons'
 import { 
   BiSearch,
@@ -254,6 +255,7 @@ addIcons(
 )
 
 const supabase = useSupabaseClient()
+const { defaultAvatar } = useDefaultAvatar()
 
 const searchQuery = ref('')
 const isLoading = ref(true)
@@ -268,9 +270,6 @@ const quickFilters = [
   { label: 'Récents', value: 'recent', icon: 'i-heroicons-clock' },
   { label: 'Vérifiés', value: 'verified', icon: 'i-heroicons-check-badge' }
 ]
-
-// Avatar par défaut en base64
-const defaultAvatar = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NDgiIGhlaWdodD0iNTEyIiB2aWV3Qm94PSIwIDAgNDQ4IDUxMiI+CiAgICA8cGF0aCBmaWxsPSIjYzZjNWM1IgogICAgICAgIGQ9Ik0yMjQgMjU2YTEyOCAxMjggMCAxIDAgMC0yNTZhMTI4IDEyOCAwIDEgMCAwIDI1Nm0tNDUuNyA0OEM3OS44IDMwNCAwIDM4My44IDAgNDgyLjNDMCA0OTguNyAxMy4zIDUxMiAyOS43IDUxMmgzODguNmMxNi40IDAgMjkuNy0xMy4zIDI5LjctMjkuN2MwLTk4LjUtNzkuOC0xNzguMy0xNzguMy0xNzguM3oiIC8+Cjwvc3ZnPg=='
 
 // Récupération des experts avec leurs notations
 const fetchExperts = async () => {

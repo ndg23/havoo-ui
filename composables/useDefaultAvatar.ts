@@ -1,0 +1,7 @@
+export const useDefaultAvatar = () => {
+  const defaultAvatar = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NDgiIGhlaWdodD0iNTEyIiB2aWV3Qm94PSIwIDAgNDQ4IDUxMiI+CiAgICA8cGF0aCBmaWxsPSIjYzZjNWM1IgogICAgICAgIGQ9Ik0yMjQgMjU2YTEyOCAxMjggMCAxIDAgMC0yNTZhMTI4IDEyOCAwIDEgMCAwIDI1Nm0tNDUuNyA0OEM3OS44IDMwNCAwIDM4My44IDAgNDgyLjNDMCA0OTguNyAxMy4zIDUxMiAyOS43IDUxMmgzODguNmMxNi40IDAgMjkuNy0xMy4zIDI5LjctMjkuN2MwLTk4LjUtNzkuOC0xNzguMy0xNzguMy0xNzguM3oiIC8+Cjwvc3ZnPg=='
+
+  return {
+    defaultAvatar
+  }
+} 
