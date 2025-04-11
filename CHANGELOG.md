@@ -115,6 +115,18 @@ and this mission adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Amélioration de la réutilisabilité des composants
 - Optimisation des performances de rendu
 
+## [v0.2.4] - 2025-04-12
+
+### Corrigé
+- Correction de l'affichage des professions dans la liste des propositions admin
+- Optimisation des requêtes Supabase pour les propositions
+- Amélioration de la gestion des relations dans l'interface admin
+
+### Technique
+- Refactoring de la requête des propositions avec double fetch pour les professions
+- Meilleure gestion des données nullables
+- Optimisation des performances de l'interface admin
+
 ## [1.0.0] - 2024-03-01
 - Version initiale
 
