@@ -117,6 +117,12 @@ and this mission adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [v0.2.4] - 2025-04-12
 
+### Ajouté
+- Modal de signalement avec design Twitter 2025
+- Amélioration de l'UX avec des transitions fluides et un feedback visuel
+- Ajout de l'ID du reporter dans les données envoyées
+- Simplification du processus de signalement
+
 ### Corrigé
 - Correction de l'affichage des professions dans la liste des propositions admin
 - Optimisation des requêtes Supabase pour les propositions
@@ -131,5 +137,4 @@ and this mission adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Version initiale
 
 ## [Previous versions]
-...
 
