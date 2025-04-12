@@ -96,7 +96,27 @@
 
         <!-- Actions column -->
         <template #actions-data="{ row }">
-          <UDropdown :items="getActionItems(row)" :ui="dropdownUI">
+          <UDropdown
+            :items="getActionItems(row)"
+            :ui="{
+              container: 'relative',
+              trigger: 'flex',
+              width: 'w-48',
+              background: 'bg-white dark:bg-gray-800',
+              rounded: 'rounded-lg',
+              shadow: 'shadow-lg',
+              ring: 'ring-1 ring-gray-200 dark:ring-gray-700',
+              base: 'relative overflow-hidden focus:outline-none',
+              divider: 'border-t border-gray-200 dark:border-gray-700 my-1',
+              item: {
+                base: 'group relative flex items-center gap-2 w-full px-4 py-2.5 text-sm transition-colors hover:bg-gray-100 dark:hover:bg-gray-700/50',
+                active: 'bg-gray-100 dark:bg-gray-700/50',
+                icon: 'flex-shrink-0 w-4 h-4 text-gray-500 dark:text-gray-400',
+                label: 'truncate',
+                disabled: 'opacity-50 cursor-not-allowed'
+              }
+            }"
+          >
             <UButton
               color="gray"
               variant="ghost"
@@ -348,33 +368,47 @@ const formatPrice = (price) => {
 }
 
 const getActionItems = (deal) => [
-  {
-    label: 'Voir les détails',
-    icon: 'i-heroicons-eye',
-    click: () => navigateToDeal(deal.id),
-    class: 'hover:text-blue-500'
-  },
-  {
-    label: 'Voir la mission',
-    icon: 'i-heroicons-document-text',
-    click: () => navigateToMission(deal.mission_id),
-    class: 'hover:text-blue-500'
-  },
-  {
-    label: 'Voir l\'expert',
-    icon: 'i-heroicons-user',
-    click: () => navigateToExpert(deal.expert_id),
-    class: 'hover:text-blue-500'
-  },
-  {
-    type: 'divider'
-  },
-  {
-    label: deal.status === 'cancelled' ? 'Réactiver' : 'Annuler',
-    icon: deal.status === 'cancelled' ? 'i-heroicons-arrow-path' : 'i-heroicons-x-circle',
-    click: () => toggleDealStatus(deal),
-    class: deal.status === 'cancelled' ? 'hover:text-green-500' : 'hover:text-red-500'
-  }
+  [
+    {
+      label: 'Voir les détails',
+      icon: 'i-heroicons-eye',
+      click: () => navigateToDeal(deal.id)
+    },
+    {
+      label: 'Voir la mission',
+      icon: 'i-heroicons-document-text',
+      click: () => navigateToMission(deal.mission_id)
+    },
+    {
+      label: 'Voir l\'expert',
+      icon: 'i-heroicons-user',
+      click: () => navigateToExpert(deal.expert_id)
+    }
+  ],
+  [
+    {
+      label: 'Accepter',
+      icon: 'i-heroicons-check-circle',
+      click: () => updateDealStatus(deal.id, 'accepted'),
+      class: 'text-green-600 dark:text-green-400',
+      disabled: deal.status !== 'proposal'
+    },
+    {
+      label: 'Refuser',
+      icon: 'i-heroicons-x-circle',
+      click: () => updateDealStatus(deal.id, 'rejected'),
+      class: 'text-red-600 dark:text-red-400',
+      disabled: deal.status !== 'proposal'
+    }
+  ],
+  [
+    {
+      label: deal.status === 'cancelled' ? 'Réactiver' : 'Annuler',
+      icon: deal.status === 'cancelled' ? 'i-heroicons-arrow-path' : 'i-heroicons-ban',
+      click: () => updateDealStatus(deal.id, deal.status === 'cancelled' ? 'proposal' : 'cancelled'),
+      class: deal.status === 'cancelled' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+    }
+  ]
 ]
 
 const navigateToDeal = (id) => {
@@ -389,19 +423,20 @@ const navigateToExpert = (id) => {
   navigateTo(`/admin/experts/${id}`)
 }
 
-const toggleDealStatus = async (deal) => {
+const updateDealStatus = async (dealId, status) => {
   try {
-    const newStatus = deal.status === 'cancelled' ? 'proposal' : 'cancelled'
     const { error } = await supabase
       .from('deals')
-      .update({ status: newStatus })
-      .eq('id', deal.id)
+      .update({ status })
+      .eq('id', dealId)
 
     if (error) throw error
 
+    showToast.success('Statut mis à jour', 'Le statut de la proposition a été mis à jour avec succès')
     refreshData()
   } catch (error) {
     console.error('Erreur lors de la mise à jour du statut:', error)
+    showToast.error('Erreur', 'Impossible de mettre à jour le statut')
   }
 }
 

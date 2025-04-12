@@ -14,9 +14,9 @@
           </div>
           <div class="text-sm text-gray-500">
             {{ isFormValid ? 'Prêt à publier' : 'En cours de rédaction' }}
-          </div>
-        </div>
-      </div>
+                    </div>
+                  </div>
+                </div>
     </header>
 
     <!-- Formulaire -->
@@ -46,7 +46,7 @@
           <label
             for="description"
             class="absolute left-4 pointer-events-none transition-all duration-200 ease-out"
-            :class="[
+                    :class="[
               formData?.description ? 'text-xs top-2 text-blue-600' : 'text-base top-4 text-gray-500'
             ]"
           >
@@ -56,19 +56,19 @@
           <div class="mt-1 flex justify-end">
             <span class="text-sm text-gray-500">
               {{ formData?.description?.length || 0 }}/500
-            </span>
-          </div>
-        </div>
-
+                      </span>
+                    </div>
+                    </div>
+                    
         <!-- Budget -->
         <FloatingLabelInput
           id="budget"
           v-model="formData.budget"
           label="Budget (en FCFA)"
-          type="number"
+                      type="number"
           :error="formErrors.budget"
           required
-          min="1000"
+                      min="1000"
           helpText="Montant minimum: 1000 FCFA"
         />
 
@@ -86,13 +86,13 @@
 
         <!-- Type de travail -->
         <div class="space-y-2">
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Type de travail
-          </label>
+                  </label>
           <div class="flex gap-4">
             <label class="flex items-center gap-2 p-4 border rounded-xl cursor-pointer transition-colors"
               :class="formData.workType === 'remote' ? 'border-primary bg-primary/5' : 'border-gray-200'">
-              <input 
+                    <input
                 type="radio" 
                 v-model="formData.workType" 
                 value="remote"
@@ -110,8 +110,8 @@
               />
               <span>Sur place</span>
             </label>
-          </div>
-        </div>
+                  </div>
+                </div>
 
         <!-- Urgence -->
         <label class="flex items-center gap-3 p-4 border rounded-xl cursor-pointer transition-colors"
@@ -151,7 +151,7 @@
                 class="absolute inset-0 bg-gradient-to-r from-primary-600 to-primary opacity-0 hover:opacity-100 transition-opacity duration-300"
               />
             </button>
-            
+
             <p v-if="formErrors.submit" class="mt-2 text-sm text-red-600 text-center">
               {{ formErrors.submit }}
             </p>
@@ -165,30 +165,30 @@
       <div class="p-8 text-center">
         <div class="mx-auto w-16 h-16 rounded-full bg-gradient-to-r from-green-400 to-green-500 flex items-center justify-center mb-6">
           <UIcon name="i-heroicons-check" class="w-8 h-8 text-white" />
-        </div>
+                    </div>
         <h3 class="text-2xl font-semibold text-gray-900 dark:text-white mb-3">
-          Mission publiée !
+                      Mission publiée !
         </h3>
         <p class="text-gray-600 dark:text-gray-400 mb-8">
           Votre mission est maintenant en ligne et visible par les experts.
         </p>
         <div class="flex flex-col gap-3">
-          <button
+                      <button
             @click="router.push('/requests')"
             class="w-full h-12 rounded-xl bg-gradient-to-r from-primary to-primary-600 text-white font-medium hover:scale-[1.02] transition-transform"
-          >
-            Voir mes missions
-          </button>
+                      >
+                        Voir mes missions
+                      </button>
           <button
             @click="showSuccessModal = false"
             class="w-full h-12 rounded-xl border border-gray-200 dark:border-gray-700 font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
           >
             Fermer
           </button>
-        </div>
-      </div>
+                    </div>
+                  </div>
     </UModal>
-  </div>
+        </div>
 </template>
 
 <script setup>
@@ -267,7 +267,7 @@ const minDate = new Date().toISOString().split('T')[0]
 // Soumission du formulaire
 const handleSubmit = async () => {
   if (!validateForm()) return
-  
+
   isSubmitting.value = true
   formErrors.value = {}
   
@@ -281,13 +281,13 @@ const handleSubmit = async () => {
         deadline: formData.value.deadline,
         work_type: formData.value.workType,
         is_urgent: formData.value.isUrgent,
-        status: 'open'
+          status: 'open'
       })
       .select()
       .single()
 
     if (error) throw error
-    
+
     showSuccessModal.value = true
   } catch (error) {
     console.error('Error:', error)

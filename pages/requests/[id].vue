@@ -1,417 +1,359 @@
 <template>
-  <div class="min-h-screen bg-white dark:bg-gray-900">
-    <!-- Header: More minimal, with subtle backdrop blur -->
-    <header class="sticky top-0 z-10 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md">
-      <div class="max-w-2xl mx-auto px-6 py-4 flex items-center">
-        <NuxtLink 
-          to="/requests" 
-          class="p-2 -ml-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-        >
-          <ArrowLeft class="w-5 h-5" />
-        </NuxtLink>
-        <h1 class="ml-4 text-xl font-medium text-gray-900 dark:text-white">
-          Détail de la mission
-        </h1>
+  <div class="min-h-screen bg-white">
+    <!-- Header fixe avec fond blanc -->
+    <header class="sticky top-0 z-10 bg-white/95 backdrop-blur border-b border-gray-100">
+      <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <NuxtLink 
+            to="/requests" 
+            class="p-2 -ml-2 rounded-full hover:bg-gray-50 transition-colors"
+          >
+            <UIcon name="i-heroicons-arrow-left" class="w-5 h-5 text-gray-700" />
+          </NuxtLink>
+          <h1 class="text-xl font-bold text-gray-900">Mission</h1>
+        </div>
+        
+        <!-- Actions rapides -->
+        <div class="flex items-center gap-2">
+          <UButton
+            v-if="canMakeProposal"
+            color="black"
+            class="rounded-full"
+            @click="showApplyModal = true"
+          >
+            Proposer
+          </UButton>
+          
+          <UDropdown
+            v-if="isOwner"
+            :items="ownerActions"
+            :popper="{ placement: 'bottom-end' }"
+          >
+            <UButton
+              color="white"
+              variant="ghost"
+              icon="i-heroicons-ellipsis-horizontal"
+              class="rounded-full hover:bg-gray-50"
+            />
+          </UDropdown>
+        </div>
       </div>
     </header>
 
-    <!-- Main content -->
-    <main class="max-w-2xl mx-auto px-6 py-8">
-      <!-- Loading state -->
-      <div v-if="isLoading" class="flex flex-col items-center justify-center py-12">
-        <Loader2 class="h-8 w-8 text-gray-300 animate-spin" />
+    <!-- Contenu principal -->
+    <main class="max-w-3xl mx-auto px-4 pb-20">
+      <!-- État de chargement -->
+      <div v-if="isLoading" class="py-20 text-center">
+        <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 mx-auto animate-spin text-gray-400" />
       </div>
 
-      <!-- Error state -->
-      <div 
-        v-else-if="error" 
-        class="p-4 rounded-2xl bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400"
-      >
-        <div class="flex items-center gap-3">
-          <AlertCircle class="h-5 w-5" />
-          <p>{{ error }}</p>
-        </div>
-      </div>
-
-      <!-- Mission details -->
-      <div v-else class="space-y-8">
-        <!-- Mission header -->
-        <div class="space-y-4">
-          <div class="flex items-start justify-between gap-4">
-            <h2 class="text-2xl font-medium text-gray-900 dark:text-white">
-              {{ mission.title }}
-            </h2>
-            <div class="text-right">
-              <div class="text-lg font-medium text-primary-600 dark:text-primary-400">
-                {{ formatPrice(mission.budget) }}
-              </div>
-              <div v-if="mission.deadline" class="text-sm text-gray-500 dark:text-gray-400">
-                Deadline: {{ formatDate(mission.deadline) }}
-              </div>
-            </div>
-          </div>
-
-          <div class="flex flex-wrap gap-3">
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm
-                       bg-gray-100 dark:bg-gray-800 
-                       text-gray-600 dark:text-gray-300">
-              <Calendar class="h-4 w-4 mr-1.5" />
-              {{ formatDate(mission.created_at) }}
-            </span>
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm
-                       bg-gray-100 dark:bg-gray-800 
-                       text-gray-600 dark:text-gray-300">
-              <Tag class="h-4 w-4 mr-1.5" />
-              {{ mission.category?.name || 'Non catégorisé' }}
-            </span>
-            <span 
-              class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
-              :class="statusClasses"
-            >
-              {{ statusLabel }}
-            </span>
-          </div>
-        </div>
-
-        <!-- Client info -->
-        <div class="flex items-center p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50">
-          <div class="flex-shrink-0">
-            <img 
-              v-if="mission.client?.avatar_url" 
-              :src="mission.client.avatar_url" 
-              alt="Client" 
-              class="h-12 w-12 rounded-full object-cover"
+      <template v-else>
+        <!-- En-tête de la mission -->
+        <div class="py-6">
+          <div class="flex items-center gap-3 mb-4">
+            <UAvatar
+              :src="mission.client?.avatar_url"
+              :alt="mission.client?.first_name"
+              size="md"
             />
-            <div 
-              v-else 
-              class="h-12 w-12 rounded-full bg-primary-100 dark:bg-primary-900/20 
-                     flex items-center justify-center 
-                     text-primary-600 dark:text-primary-400 text-lg font-medium"
-            >
-              {{ getInitials(mission.client?.first_name, mission.client?.last_name) }}
+            <div>
+              <div class="font-medium text-gray-900">
+                {{ mission.client?.first_name }} {{ mission.client?.last_name }}
+              </div>
+              <div class="text-sm text-gray-500">
+                {{ formatDate(mission.created_at) }}
+              </div>
             </div>
           </div>
-          <div class="ml-4">
-            <p class="text-base font-medium text-gray-900 dark:text-white">
-              {{ mission.client?.first_name }} {{ mission.client?.last_name }}
-            </p>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Client</p>
-          </div>
-        </div>
 
-        <!-- Description -->
-        <div class="space-y-3">
-          <h3 class="text-lg font-medium text-gray-900 dark:text-white">Description</h3>
-          <div class="prose prose-gray dark:prose-invert max-w-none">
-            {{ mission.description }}
-          </div>
-        </div>
-
-        <!-- Action buttons -->
-        <div class="flex items-center justify-between pt-6">
-          <div class="flex gap-3">
-            <button 
-              @click="toggleLike"
-              class="inline-flex items-center px-4 py-2 rounded-full text-sm
-                     bg-gray-100 dark:bg-gray-800 
-                     text-gray-700 dark:text-gray-300
-                     hover:bg-gray-200 dark:hover:bg-gray-700
-                     transition-colors"
-            >
-              <Heart 
-                :class="[
-                  'h-4 w-4 mr-1.5',
-                  isLiked ? 'text-red-500 fill-current' : ''
-                ]" 
-              />
-              {{ likeCount }}
-            </button>
-            
-            <button 
-              @click="scrollToProposals"
-              class="inline-flex items-center px-4 py-2 rounded-full text-sm
-                     bg-gray-100 dark:bg-gray-800 
-                     text-gray-700 dark:text-gray-300
-                     hover:bg-gray-200 dark:hover:bg-gray-700
-                     transition-colors"
-            >
-              <MessageSquare class="h-4 w-4 mr-1.5" />
-              {{ proposalCount }} Propositions
-            </button>
-          </div>
-          
-          <div>
-            <NuxtLink 
-              v-if="canMakeProposal"
-              :to="`/proposals/new?id=${mission.id}`"
-              class="inline-flex items-center px-6 py-2.5 rounded-full text-sm font-medium
-                     bg-gray-900 dark:bg-white
-                     text-white dark:text-gray-900
-                     hover:bg-gray-800 dark:hover:bg-gray-100
-                     transition-colors"
-            >
-              <Send class="h-4 w-4 mr-1.5" />
-              Faire une proposition
-            </NuxtLink>
-            
-            <button 
-              v-else-if="isOwner"
-              @click="editRequest"
-              class="inline-flex items-center px-4 py-2 rounded-full text-sm
-                     bg-gray-100 dark:bg-gray-800 
-                     text-gray-700 dark:text-gray-300
-                     hover:bg-gray-200 dark:hover:bg-gray-700
-                     transition-colors"
-            >
-              <Edit class="h-4 w-4 mr-1.5" />
-              Modifier
-            </button>
-          </div>
-        </div>
-
-        <!-- Proposals section -->
-        <div class="mt-12 space-y-6">
-          <h2 class="text-lg font-medium text-gray-900 dark:text-white flex items-center gap-2">
-            <MessageSquare class="h-5 w-5" />
-            Propositions ({{ proposals.length }})
+          <h2 class="text-2xl font-bold text-gray-900 mb-3">
+            {{ mission.title }}
           </h2>
 
-          <!-- Proposals list -->
-          <div class="space-y-4">
-            <div 
-              v-for="proposal in proposals" 
-              :key="proposal.id"
-              class="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50 space-y-4"
+          <p class="text-gray-600 text-lg mb-4 whitespace-pre-wrap">
+            {{ mission.description }}
+          </p>
+
+          <!-- Métadonnées -->
+          <div class="flex flex-wrap gap-3 mb-6">
+            <UBadge
+              :color="getStatusColor(mission.status)"
+              :label="getStatusLabel(mission.status)"
+              variant="subtle"
+              class="rounded-full text-sm"
+            />
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700">
+              {{ formatPrice(mission.budget) }}
+            </span>
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700">
+              <UIcon name="i-heroicons-calendar" class="w-4 h-4 mr-1" />
+              {{ formatDate(mission.deadline) }}
+            </span>
+          </div>
+
+          <!-- Actions et engagement -->
+          <div class="flex items-center justify-between py-4 border-t border-b border-gray-100">
+            <div class="flex items-center -ml-3">
+              <button 
+                @click="scrollToProposals"
+                class="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 rounded-full transition-colors"
+              >
+                <span class="font-bold text-gray-900">{{ proposalCount }}</span>
+                <span class="text-gray-500">Propositions</span>
+              </button>
+
+              <button class="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 rounded-full transition-colors">
+                <span class="font-bold text-gray-900">{{ mission.views || 0 }}</span>
+                <span class="text-gray-500">Vues</span>
+              </button>
+            </div>
+
+            <button 
+              v-if="!isOwner"
+              @click="showReportModal = true"
+              class="flex items-center gap-1 px-4 py-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
             >
-              <!-- Expert info -->
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                  <div 
-                    v-if="proposal.expert?.avatar_url"
-                    class="h-10 w-10 rounded-full bg-cover bg-center"
-                    :style="{ backgroundImage: `url(${proposal.expert.avatar_url})` }"
-                  ></div>
-                  <div 
-                    v-else
-                    class="h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900/20 
-                           flex items-center justify-center 
-                           text-primary-600 dark:text-primary-400 font-medium"
-                  >
-                    {{ getInitials(proposal.expert?.first_name, proposal.expert?.last_name) }}
+              <UIcon name="i-heroicons-flag" class="w-5 h-5" />
+              <span>Signaler</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Liste des propositions -->
+        <div class="space-y-4">
+          <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+            Propositions
+            <UBadge
+              :label="proposalCount.toString()"
+              variant="subtle"
+              class="rounded-full"
+            />
+          </h3>
+
+          <div 
+            v-for="proposal in proposals" 
+            :key="proposal.id"
+            class="bg-white border border-gray-200 rounded-2xl p-4 hover:border-gray-300 transition-colors"
+          >
+            <!-- Expert info -->
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-3">
+                <UAvatar
+                  :src="proposal.expert?.avatar_url"
+                  :alt="proposal.expert?.first_name"
+                  size="sm"
+                />
+                <div>
+                  <div class="font-medium text-gray-900">
+                    {{ proposal.expert?.first_name }} {{ proposal.expert?.last_name }}
+                  </div>
+                  <div class="text-sm text-gray-500">
+                    {{ formatDate(proposal.created_at) }}
+                  </div>
+                </div>
+              </div>
+              <UBadge
+                :color="getProposalStatusColor(proposal.status)"
+                :label="getProposalStatusLabel(proposal.status)"
+                variant="subtle"
+                class="rounded-full"
+              />
+            </div>
+
+            <!-- Détails -->
+            <div class="grid grid-cols-2 gap-4 mb-3">
+              <div>
+                <div class="text-sm text-gray-500">Prix proposé</div>
+                <div class="font-bold text-gray-900">
+                  {{ formatPrice(proposal.price) }}
+                </div>
+              </div>
+              <div>
+                <div class="text-sm text-gray-500">Durée estimée</div>
+                <div class="font-bold text-gray-900">
+                  {{ proposal.duration }} {{ getDurationLabel(proposal.duration_unit) }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Message -->
+            <p class="text-gray-600 mb-4">{{ proposal.message }}</p>
+
+            <!-- Actions (pour le client) -->
+            <div 
+              v-if="isOwner && proposal.status === 'proposal'"
+              class="flex gap-2 pt-3 border-t border-gray-100"
+            >
+              <UButton
+                color="black"
+                block
+                @click="acceptProposal(proposal.id)"
+              >
+                Accepter
+              </UButton>
+              <UButton
+                color="white"
+                variant="outline"
+                block
+                @click="rejectProposal(proposal.id)"
+              >
+                Refuser
+              </UButton>
+            </div>
+          </div>
+        </div>
+      </template>
+    </main>
+
+    <!-- Bouton d'action flottant pour mobile -->
+    <div 
+      v-if="canMakeProposal"
+      class="fixed bottom-6 right-6 md:hidden"
+    >
+      <UButton
+        color="black"
+        size="xl"
+        class="rounded-full shadow-lg"
+        @click="showApplyModal = true"
+      >
+        <UIcon name="i-heroicons-paper-airplane" class="w-6 h-6" />
+      </UButton>
+    </div>
+
+    <!-- Modal de signalement mise à jour -->
+    <TransitionRoot appear :show="showReportModal" as="template">
+      <Dialog as="div" class="relative z-50" @close="showReportModal = false">
+        <!-- Overlay -->
+        <TransitionChild
+          as="template"
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div class="fixed inset-0 bg-black/30 backdrop-blur-sm" />
+        </TransitionChild>
+
+        <!-- Modal -->
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild
+              as="template"
+              enter="duration-300 ease-out"
+              enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100"
+              leave="duration-200 ease-in"
+              leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95"
+            >
+              <DialogPanel class="w-full max-w-lg transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all">
+                <!-- En-tête -->
+                <div class="flex items-center gap-4 mb-6">
+                  <div class="p-3 bg-red-50 rounded-full">
+                    <UIcon name="i-heroicons-exclamation-triangle" class="w-6 h-6 text-red-500" />
                   </div>
                   <div>
-                    <div class="flex items-center gap-2">
-                      <p class="font-medium text-gray-900 dark:text-white">
-                        {{ proposal.expert?.first_name }} {{ proposal.expert?.last_name }}
-                      </p>
-                      <span 
-                        class="px-2 py-0.5 rounded-full text-xs font-medium"
-                        :class="getProposalStatusClasses(proposal.status)"
-                      >
-                        {{ getProposalStatusLabel(proposal.status) }}
-                      </span>
-                    </div>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">
-                      {{ formatDate(proposal.created_at) }}
+                    <DialogTitle as="h3" class="text-lg font-semibold text-gray-900">
+                      Signaler un problème
+                    </DialogTitle>
+                    <p class="text-sm text-gray-500">
+                      Aidez-nous à maintenir un environnement sûr et professionnel
                     </p>
                   </div>
                 </div>
-              </div>
 
-              <!-- Proposal details -->
-              <div class="grid grid-cols-2 gap-4">
-                <div class="p-3 rounded-xl bg-white dark:bg-gray-800">
-                  <div class="text-sm text-gray-500 dark:text-gray-400">Prix proposé</div>
-                  <div class="font-medium text-gray-900 dark:text-white">
-                    {{ formatPrice(proposal.price) }}
+                <!-- Formulaire -->
+                <div class="space-y-6">
+                  <!-- Raisons -->
+                  <fieldset>
+                    <legend class="text-sm font-medium text-gray-700 mb-3">
+                      Pour quelle raison signalez-vous cette mission ?
+                    </legend>
+                    <div class="space-y-2">
+                      <label 
+                        v-for="reason in reportReasons"
+                        :key="reason.value"
+                        class="flex items-center p-4 border rounded-xl cursor-pointer transition-colors"
+                        :class="[
+                          selectedReason === reason.value 
+                            ? 'border-red-500 bg-red-50' 
+                            : 'border-gray-200 hover:bg-gray-50'
+                        ]"
+                      >
+                        <input
+                          type="radio"
+                          :value="reason.value"
+                          v-model="selectedReason"
+                          name="report-reason"
+                          class="sr-only"
+                        />
+                        <div class="flex-1">
+                          <div class="font-medium text-gray-900">
+                            {{ reason.label }}
+                          </div>
+                        </div>
+                        <div 
+                          class="w-5 h-5 rounded-full border-2 flex items-center justify-center"
+                          :class="[
+                            selectedReason === reason.value 
+                              ? 'border-red-500 bg-red-500' 
+                              : 'border-gray-300'
+                          ]"
+                        >
+                          <UIcon
+                            v-if="selectedReason === reason.value"
+                            name="i-heroicons-check"
+                            class="w-3 h-3 text-white"
+                          />
+                        </div>
+                      </label>
+                    </div>
+                  </fieldset>
+
+                  <!-- Description -->
+                  <div>
+                    <FloatingLabelInput
+                      v-model="reportDescription"
+                      type="textarea"
+                      label="Description détaillée (optionnelle)"
+                      placeholder="Donnez-nous plus de détails sur le problème..."
+                      :rows="4"
+                      class="w-full"
+                    />
                   </div>
                 </div>
-                <div class="p-3 rounded-xl bg-white dark:bg-gray-800">
-                  <div class="text-sm text-gray-500 dark:text-gray-400">Durée estimée</div>
-                  <div class="font-medium text-gray-900 dark:text-white">
-                    {{ proposal.duration }} jour{{ proposal.duration > 1 ? 's' : '' }}
-                  </div>
+
+                <!-- Actions -->
+                <div class="mt-8 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    class="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
+                    @click="showReportModal = false"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="button"
+                    class="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-full hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                    :disabled="!selectedReason || isSubmitting"
+                    @click="handleReport"
+                  >
+                    <UIcon
+                      v-if="isSubmitting"
+                      name="i-heroicons-arrow-path"
+                      class="w-4 h-4 animate-spin"
+                    />
+                    <span>{{ isSubmitting ? 'Envoi en cours...' : 'Envoyer le signalement' }}</span>
+                  </button>
                 </div>
-              </div>
-
-              <!-- Message -->
-              <p class="text-gray-600 dark:text-gray-300">
-                {{ proposal.message }}
-              </p>
-
-              <!-- Actions -->
-              <div 
-                v-if="isOwner && proposal.status === 'pending'"
-                class="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700"
-              >
-                <button
-                  @click="acceptProposal(proposal.id)"
-                  class="flex-1 px-4 py-2 rounded-xl text-sm font-medium
-                         bg-gray-900 dark:bg-white
-                         text-white dark:text-gray-900
-                         hover:bg-gray-800 dark:hover:bg-gray-100
-                         transition-colors"
-                >
-                  <Check class="h-4 w-4 mr-1.5" />
-                  Accepter
-                </button>
-                <button
-                  @click="rejectProposal(proposal.id)"
-                  class="flex-1 px-4 py-2 rounded-xl text-sm font-medium
-                         bg-gray-100 dark:bg-gray-800
-                         text-gray-700 dark:text-gray-300
-                         hover:bg-gray-200 dark:hover:bg-gray-700
-                         transition-colors"
-                >
-                  <X class="h-4 w-4 mr-1.5" />
-                  Refuser
-                </button>
-              </div>
-            </div>
-
-            <!-- Empty state -->
-            <div 
-              v-if="proposals.length === 0"
-              class="py-12 text-center text-gray-500 dark:text-gray-400"
-            >
-              <InboxIcon class="h-12 w-12 mx-auto mb-3" />
-              <p>Aucune proposition reçue pour le moment</p>
-            </div>
+              </DialogPanel>
+            </TransitionChild>
           </div>
         </div>
-
-        <!-- Ajouter avant la fin de la section principale -->
-        <div class="mt-4 border-t border-gray-100 dark:border-gray-800 pt-4">
-          <button
-            @click="showReportModal = true"
-            class="w-full inline-flex items-center justify-center px-4 py-3 rounded-xl 
-                   bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700
-                   text-red-600 dark:text-red-400 font-medium transition-all"
-          >
-            <UIcon name="i-heroicons-flag" class="h-5 w-5 mr-2" />
-            Signaler cette mission
-          </button>
-        </div>
-      </div>
-    </main>
-
-    <!-- Modal de signalement mise à jour -->
-    <UModal v-model="showReportModal">
-      <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-lg w-full">
-        <!-- En-tête de la modal -->
-        <div class="text-center mb-6">
-          <div 
-            class="mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-4"
-            :class="{
-              'bg-red-50 dark:bg-red-900/20': !reportStatus.success,
-              'bg-green-50 dark:bg-green-900/20': reportStatus.success
-            }"
-          >
-            <UIcon 
-              :name="reportStatus.success ? 'i-heroicons-check-circle' : 'i-heroicons-flag'" 
-              class="h-6 w-6"
-              :class="{
-                'text-red-600': !reportStatus.success,
-                'text-green-600': reportStatus.success
-              }"
-            />
-          </div>
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-            {{ reportStatus.success ? reportStatus.message : 'Signaler cette mission' }}
-          </h3>
-          <p 
-            v-if="reportStatus.details" 
-            class="mt-2 text-sm"
-            :class="{
-              'text-gray-600 dark:text-gray-400': !reportStatus.success,
-              'text-green-600 dark:text-green-400': reportStatus.success
-            }"
-          >
-            {{ reportStatus.details }}
-          </p>
-        </div>
-
-        <!-- Formulaire (caché si succès) -->
-        <form 
-          v-if="!reportStatus.success"
-          @submit.prevent="handleReport" 
-          class="space-y-4"
-        >
-          <!-- Raisons du signalement -->
-          <div class="space-y-2">
-            <label 
-              v-for="reason in reportReasons" 
-              :key="reason.value"
-              class="flex items-center p-3 rounded-xl border border-gray-200 dark:border-gray-700
-                     cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-            >
-              <input
-                type="radio"
-                name="reportReason"
-                :value="reason.value"
-                v-model="selectedReason"
-                class="w-4 h-4 text-primary-600 border-gray-300 focus:ring-primary-500"
-              />
-              <span class="ml-3 text-gray-900 dark:text-white">{{ reason.label }}</span>
-            </label>
-          </div>
-
-          <!-- Description -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Description détaillée (optionnelle)
-            </label>
-            <textarea
-              v-model="reportDescription"
-              rows="3"
-              class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700
-                     bg-white dark:bg-gray-800 text-gray-900 dark:text-white
-                     focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Décrivez le problème..."
-            ></textarea>
-          </div>
-
-          <!-- Boutons d'action avec états de chargement -->
-          <div class="flex gap-3 mt-6">
-            <button
-              type="button"
-              @click="showReportModal = false"
-              :disabled="isSubmitting"
-              class="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700
-                     text-gray-700 dark:text-gray-300 font-medium
-                     hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors
-                     disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Annuler
-            </button>
-            <button
-              type="submit"
-              :disabled="!selectedReason || isSubmitting"
-              class="flex-1 px-4 py-3 rounded-xl bg-red-600 hover:bg-red-700
-                     text-white font-medium transition-colors 
-                     disabled:opacity-50 disabled:cursor-not-allowed
-                     focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-            >
-              <span v-if="isSubmitting" class="flex items-center justify-center">
-                <UIcon name="i-heroicons-arrow-path" class="h-5 w-5 animate-spin mr-2" />
-                Envoi...
-              </span>
-              <span v-else>Signaler</span>
-            </button>
-          </div>
-        </form>
-
-        <!-- Message de succès (affiché uniquement en cas de succès) -->
-        <div 
-          v-else
-          class="text-center text-green-600 dark:text-green-400 animate-fade-in"
-        >
-          <p class="text-sm mt-2">
-            Merci pour votre signalement. Notre équipe va l'examiner rapidement.
-          </p>
-        </div>
-      </div>
-    </UModal>
+      </Dialog>
+    </TransitionRoot>
 
     <!-- Modal Faire une proposition style Apple -->
     <UModal v-model="showApplyModal" :ui="{ width: 'max-w-xl' }">
@@ -556,12 +498,12 @@ import {
   MessageSquare, Send, Edit, Check, X, Star as StarIcon, Inbox as InboxIcon, Star, PlusIcon, MinusIcon 
 } from 'lucide-vue-next'
 import { Dialog, DialogPanel, DialogTitle, TransitionRoot, TransitionChild } from '@headlessui/vue'
-
+import { useCustomToast } from '~/composables/useCustomToast'
 const route = useRoute()
 const router = useRouter()
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
-
+const { showToast } = useCustomToast()
 // État
 const isLoading = ref(true)
 const error = ref(null)
@@ -600,7 +542,7 @@ const estimatedDays = ref(1)
 const proposalMessage = ref('')
 
 // Système de notification amélioré
-const toast = useToast()
+// const toast = use()
 
 // États de feedback
 const reportStatus = ref({
@@ -656,10 +598,10 @@ const canRate = computed(() => {
 
 // Raisons de signalement spécifiques aux missions
 const reportReasons = [
-  { value: 'inappropriate_content', label: 'Contenu inapproprié' },
-  { value: 'suspicious_mission', label: 'Mission suspecte' },
-  { value: 'wrong_category', label: 'Mauvaise catégorie' },
-  { value: 'spam', label: 'Spam' },
+  { value: 'inappropriate', label: 'Contenu inapproprié' },
+  { value: 'spam', label: 'Spam ou publicité' },
+  { value: 'scam', label: 'Arnaque potentielle' },
+  { value: 'duplicate', label: 'Mission en double' },
   { value: 'other', label: 'Autre raison' }
 ]
 
@@ -719,72 +661,31 @@ const fetchProposals = async () => {
   }
 }
 
-const fetchLikes = async () => {
-  try {
-    // Récupérer le nombre total de likes pour cette demande
-    const { data: countData, error: countError } = await supabase
-      .rpc('get_mission_likes_count', { mission_id: parseInt(route.params.id) })
+// const fetchLikes = async () => {
+//   try {
+//     // Récupérer le nombre total de likes pour cette demande
+//     const { data: countData, error: countError } = await supabase
+//       .rpc('get_mission_likes_count', { mission_id: parseInt(route.params.id) })
     
-    if (countError) throw countError
-    likeCount.value = countData || 0
+//     if (countError) throw countError
+//     likeCount.value = countData || 0
     
-    // Vérifier si l'utilisateur actuel a liké cette demande
-    if (user.value) {
-      const { data: hasLiked, error: likeError } = await supabase
-        .rpc('has_user_liked_mission', { 
-          mission_id: parseInt(route.params.id),
-          user_id: user.value.id
-        })
+//     // Vérifier si l'utilisateur actuel a liké cette demande
+//     if (user.value) {
+//       const { data: hasLiked, error: likeError } = await supabase
+//         .rpc('has_user_liked_mission', { 
+//           mission_id: parseInt(route.params.id),
+//           user_id: user.value.id
+//         })
       
-      if (likeError) throw likeError
-      isLiked.value = hasLiked || false
-    }
-  } catch (err) {
-    console.error('Error fetching likes:', err)
-  }
-}
+//       if (likeError) throw likeError
+//       isLiked.value = hasLiked || false
+//     }
+//   } catch (err) {
+//     console.error('Error fetching likes:', err)
+//   }
+// }
 
-const toggleLike = async () => {
-  if (!user.value) {
-    // Rediriger vers la page de connexion si l'utilisateur n'est pas connecté
-    router.push('/login')
-    return
-  }
-  
-  try {
-    if (isLiked.value) {
-      // Supprimer le like
-      const { error } = await supabase
-        .from('mission_likes')
-        .delete()
-        .eq('mission_id', parseInt(route.params.id))
-        .eq('user_id', user.value.id)
-      
-      if (error) throw error
-      
-      likeCount.value--
-      isLiked.value = false
-    } else {
-      // Ajouter un like
-      const { error } = await supabase
-        .from('mission_likes')
-        .insert({
-          mission_id: parseInt(route.params.id),
-          user_id: user.value.id
-        })
-    
-    if (error) throw error
-    
-      likeCount.value++
-      isLiked.value = true
-    }
-  } catch (err) {
-    console.error('Error toggling like:', err)
-    // Restaurer l'état précédent en cas d'erreur
-    isLiked.value = !isLiked.value
-    likeCount.value += isLiked.value ? 1 : -1
-  }
-}
 
 const scrollToProposals = () => {
   document.getElementById('proposals').scrollIntoView({ behavior: 'smooth' })
@@ -801,12 +702,11 @@ const submitProposal = async () => {
     isSubmitting.value = true
     // ... logique de soumission ...
     
-    toast.add({
-      title: 'Proposition envoyée',
-      description: 'Votre proposition a été envoyée avec succès',
-      icon: 'i-heroicons-check-circle',
-      color: 'green'
-    })
+    showToast.success(
+     'Proposition envoyée',
+     'Votre proposition a été envoyée avec succès',
+ 
+    )
 
     showApplyModal.value = false
     
@@ -817,12 +717,9 @@ const submitProposal = async () => {
 
   } catch (error) {
     console.error('Erreur lors de l\'envoi de la proposition:', error)
-    toast.add({
-      title: 'Erreur',
-      description: 'Impossible d\'envoyer votre proposition',
-      icon: 'i-heroicons-x-circle',
-      color: 'red'
-    })
+    showToast.error('Erreur',
+     'Impossible d\'envoyer votre proposition',
+    )
   } finally {
     isSubmitting.value = false
   }
@@ -861,10 +758,14 @@ const acceptProposal = async (proposalId) => {
     // Rafraîchir les données
     await Promise.all([fetchRequest(), fetchProposals()])
     
-    alert('Proposition acceptée avec succès')
+    showToast.success('Proposition acceptée',
+      'La proposition a été acceptée avec succès',
+    )
   } catch (err) {
     console.error('Error accepting proposal:', err)
-    alert('Une erreur est survenue lors de l\'acceptation de la proposition')
+    showToast.error('Erreur',
+     'Une erreur est survenue lors de l\'acceptation de la proposition',
+    )
   }
 }
 
@@ -882,10 +783,14 @@ const rejectProposal = async (proposalId) => {
     // Rafraîchir les propositions
     await fetchProposals()
     
-    alert('Proposition refusée')
+    showToast.success('Proposition refusée',
+     'La proposition a été refusée avec succès',
+    )
   } catch (err) {
     console.error('Error rejecting proposal:', err)
-    alert('Une erreur est survenue')
+    showToast.error('Erreur',
+     'Une erreur est survenue lors du refus de la proposition',
+    )
   }
 }
 
@@ -898,14 +803,14 @@ const getProposalStatusClasses = (status) => {
   return classes[status] || 'bg-gray-100 text-gray-800'
 }
 
-const getProposalStatusLabel = (status) => {
-  const labels = {
-    'pending': 'En attente',
-    'active': 'Acceptée',
-    'rejected': 'Refusée'
-  }
-  return labels[status] || 'Inconnu'
-}
+// const getProposalStatusLabel = (status) => {
+//   const labels = {
+//     'pending': 'En attente',
+//     'active': 'Acceptée',
+//     'rejected': 'Refusée'
+//   }
+//   return labels[status] || 'Inconnu'
+// }
 
 const formatDate = (dateString) => {
   if (!dateString) return ''
@@ -973,13 +878,17 @@ const submitRating = async () => {
     if (error) throw error
 
     closeRatingModal()
-    alert('Évaluation envoyée avec succès')
+    showToast.success('Évaluation envoyée',
+     'Votre évaluation a été envoyée avec succès',
+    )
     
     // Rafraîchir les données de la mission
     await fetchRequest()
   } catch (err) {
     console.error('Error submitting rating:', err)
-    alert('Une erreur est survenue lors de l\'envoi de l\'évaluation')
+    showToast.error('Erreur',
+     'Une erreur est survenue lors de l\'envoi de l\'évaluation',
+    )
   } finally {
     isSubmittingRating.value = false
   }
@@ -992,71 +901,44 @@ const handleReport = async () => {
   try {
     isSubmitting.value = true
     
-    // Envoi du signalement
+    const reportData = {
+      report_type: 'mission',
+      reported_mission_id: route.params.id,
+      reason: selectedReason.value,
+      description: reportDescription.value || null, // Description optionnelle
+      status: 'pending',
+      reporter_id: user.value?.id // Ajouter l'ID du reporter
+    }
+    
     const { data, error } = await supabase
       .from('reports')
-      .insert({
-        report_type: 'mission',
-        reported_mission_id: route.params.id,
-        reason: selectedReason.value,
-        description: reportDescription.value,
-        status: 'pending'
-      })
+      .insert(reportData)
       .select('id')
       .single()
 
     if (error) {
-      if (error.code === '23505') { // Code d'erreur pour violation d'unicité
+      if (error.code === '23505') {
         throw new Error('Vous avez déjà signalé cette mission')
       }
       throw error
     }
 
-    // Mise à jour du statut de succès
-    reportStatus.value = {
-      success: true,
-      message: 'Signalement envoyé avec succès',
-      details: `Référence: #${data.id.slice(0, 8)}`
-    }
+    showReportModal.value = false
+    showToast.success(
+      'Signalement envoyé',
+      `Référence: #${data.id.slice(0, 8)}. Nous examinerons votre signalement dans les plus brefs délais.`
+    )
 
-    // Notification de succès
-    toast.add({
-      title: 'Signalement envoyé',
-      description: 'Nous examinerons votre signalement dans les plus brefs délais.',
-      icon: 'i-heroicons-check-circle',
-      color: 'green',
-      timeout: 5000
-    })
-
-    // Fermeture différée de la modal pour montrer le succès
-    setTimeout(() => {
-      showReportModal.value = false
-      // Réinitialisation après fermeture
-      setTimeout(() => {
-        selectedReason.value = ''
-        reportDescription.value = ''
-        reportStatus.value = { success: false, message: '', details: '' }
-      }, 300)
-    }, 2000)
+    // Réinitialiser le formulaire
+    selectedReason.value = ''
+    reportDescription.value = ''
 
   } catch (error) {
     console.error('Erreur lors du signalement:', error)
-    
-    // Mise à jour du statut d'erreur
-    reportStatus.value = {
-      success: false,
-      message: 'Erreur lors du signalement',
-      details: error.message
-    }
-
-    // Notification d'erreur
-    toast.add({
-      title: 'Erreur',
-      description: error.message || 'Impossible d\'envoyer le signalement. Veuillez réessayer.',
-      icon: 'i-heroicons-exclamation-circle',
-      color: 'red',
-      timeout: 5000
-    })
+    showToast.error(
+      'Erreur',
+      error.message || 'Impossible d\'envoyer le signalement. Veuillez réessayer.'
+    )
   } finally {
     isSubmitting.value = false
   }
@@ -1077,10 +959,13 @@ onMounted(async () => {
     await Promise.all([
       fetchRequest(),
       fetchProposals(),
-      fetchLikes()
+      // fetchLikes()
     ])
   } catch (err) {
     console.error('Error during initialization:', err)
+    showToast.error('Erreur',
+     'Une erreur est survenue lors de l\'initialisation',
+    )
   } finally {
     isLoading.value = false
   }
@@ -1089,6 +974,129 @@ onMounted(async () => {
 definePageMeta({
   layout: 'default'
 })
+
+// Dans la partie script, ajouter ces fonctions helpers
+const getStatusColor = (status) => {
+  const colors = {
+    open: 'green',
+    in_progress: 'blue',
+    completed: 'gray',
+    cancelled: 'red',
+    proposal: 'yellow'
+  }
+  return colors[status] || 'gray'
+}
+
+const getStatusLabel = (status) => {
+  const labels = {
+    open: 'Ouverte',
+    in_progress: 'En cours',
+    completed: 'Terminée',
+    cancelled: 'Annulée',
+    proposal: 'En attente'
+  }
+  return labels[status] || status
+}
+
+const getProposalStatusColor = (status) => {
+  const colors = {
+    proposal: 'yellow',
+    accepted: 'green',
+    rejected: 'red',
+    cancelled: 'gray'
+  }
+  return colors[status] || 'gray'
+}
+
+const getProposalStatusLabel = (status) => {
+  const labels = {
+    proposal: 'En attente',
+    accepted: 'Acceptée',
+    rejected: 'Refusée',
+    cancelled: 'Annulée'
+  }
+  return labels[status] || status
+}
+
+const getDurationLabel = (unit) => {
+  const labels = {
+    days: 'jours',
+    weeks: 'semaines',
+    months: 'mois'
+  }
+  return labels[unit] || unit
+}
+
+// Ajouter les actions du propriétaire
+const ownerActions = computed(() => [
+  [
+    {
+      label: 'Modifier',
+      icon: 'i-heroicons-pencil',
+      click: () => navigateTo(`/requests/${mission.value.id}/edit`)
+    },
+    {
+      label: mission.value.status === 'open' ? 'Fermer' : 'Réouvrir',
+      icon: mission.value.status === 'open' ? 'i-heroicons-lock-closed' : 'i-heroicons-lock-open',
+      click: () => toggleMissionStatus()
+    }
+  ],
+  [
+    {
+      label: 'Supprimer',
+      icon: 'i-heroicons-trash',
+      click: () => deleteMission(),
+      class: 'text-red-500'
+    }
+  ]
+])
+
+// Ajouter la méthode pour basculer le statut
+const toggleMissionStatus = async () => {
+  try {
+    const newStatus = mission.value.status === 'open' ? 'closed' : 'open'
+    const { error } = await supabase
+      .from('missions')
+      .update({ status: newStatus })
+      .eq('id', mission.value.id)
+
+    if (error) throw error
+
+    mission.value.status = newStatus
+    showToast.success(`Mission ${newStatus === 'open' ? 'réouverte' : 'fermée'}`,
+     'La mission a été modifiée avec succès',
+    )
+  } catch (error) {
+    console.error('Error:', error)
+    showToast.error('Erreur',
+     'Une erreur est survenue lors de la modification de la mission',
+    )
+  }
+}
+
+// Ajouter la méthode pour supprimer
+const deleteMission = async () => {
+  if (!confirm('Êtes-vous sûr de vouloir supprimer cette mission ?')) return
+
+  try {
+    const { error } = await supabase
+      .from('missions')
+      .delete()
+      .eq('id', mission.value.id)
+
+    if (error) throw error
+
+    showToast.success('Mission supprimée',
+     'La mission a été supprimée avec succès',
+    )
+    navigateTo('/requests')
+  } catch (error) {
+    console.error('Error:', error)
+    showToast.error('Erreur',
+     'Une erreur est survenue lors de la suppression de la mission',
+    )
+  }
+}
 </script>
 
 <style scoped>

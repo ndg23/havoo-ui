@@ -79,6 +79,7 @@ CREATE TABLE missions (
   budget DECIMAL(10, 2),
   deadline DATE,
   status VARCHAR(50) DEFAULT 'open' CHECK (status IN ('open', 'assigned', 'completed', 'cancelled')),
+  work_type VARCHAR(50) DEFAULT 'remote' CHECK (work_type IN ('remote', 'on_site')),
   profession_id UUID REFERENCES professions(id) ON DELETE SET NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

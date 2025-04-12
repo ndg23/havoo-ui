@@ -326,7 +326,7 @@
                   <div v-if="filteredProfessions.length" class="py-2">
                     <button
                       v-for="profession in filteredProfessions"
-                      :key="profession.id"
+                :key="profession.id" 
                       @click="selectProfession(profession)"
                       class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                       :class="{ 'bg-primary-50 dark:bg-primary-900/20': form.profession_id === profession.id }"
@@ -341,7 +341,7 @@
                       </div>
                       <div class="flex-1 text-left">
                         <span class="block font-medium text-gray-900 dark:text-white">
-                          {{ profession.name }}
+                {{ profession.name }}
                         </span>
                         <span v-if="profession.description" class="block text-sm text-gray-500 dark:text-gray-400">
                           {{ profession.description }}
@@ -520,7 +520,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSupabaseClient, useSupabaseUser } from '#imports'
-import {
+import { 
   CameraIcon,
   TrashIcon,
   BriefcaseIcon,
@@ -643,7 +643,7 @@ const selectProfession = async (profession: Profession) => {
         updated_at: new Date().toISOString()
       })
       .eq('id', user.value?.id)
-
+    
     if (error) throw error
     showToast.success('Profession mise à jour')
   } catch (error) {
@@ -678,10 +678,10 @@ onMounted(async () => {
       // Charger les professions seulement si l'utilisateur est expert
       if (profile.role === 'expert') {
         const { data: professionsData, error: professionsError } = await supabase
-          .from('professions')
-          .select('*')
-          .order('name')
-        
+    .from('professions')
+    .select('*')
+    .order('name')
+
         if (professionsError) throw professionsError
         professions.value = professionsData || []
       }
@@ -743,7 +743,7 @@ const handleAvatarChange = async (event: Event) => {
 
     form.value.avatar_url = publicUrl
     showToast.success('Photo de profil mise à jour')
-
+    
   } catch (error) {
     console.error('Erreur:', error)
     showToast.error('Erreur lors de la mise à jour')
