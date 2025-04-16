@@ -1,0 +1,865 @@
+<template>
+  <div class="min-h-screen bg-white dark:bg-gray-900">
+    <!-- Header avec style Apple -->
+    <header class="sticky top-0 z-10 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-100/50 dark:border-gray-800/50">
+      <div class="max-w-2xl mx-auto px-6 py-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <h1 class="text-2xl font-sans font-bold text-gray-900 dark:text-white">
+              Missions
+            </h1>
+            <span class="text-sm font-mono text-gray-500 dark:text-gray-400">
+              {{ filteredMissions.length }} disponibles
+            </span>
+          </div>
+          
+          <NuxtLink
+            to="/requests/new"
+            class="inline-flex items-center px-5 py-2.5 rounded-full 
+                   bg-gray-900 dark:bg-white
+                   text-white dark:text-gray-900
+                   hover:bg-gray-800 dark:hover:bg-gray-100
+                   transition-all duration-200 font-medium text-sm"
+          >
+            <Plus class="h-4 w-4 mr-2" />
+            Publier
+          </NuxtLink>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-2xl mx-auto px-6 py-6">
+      <!-- Barre de recherche -->
+      <div class="mb-6">
+        <div class="relative">
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Rechercher une mission..."
+            class="w-full pl-12 pr-4 py-3.5 rounded-2xl
+                   bg-gray-50 dark:bg-gray-800
+                   border border-gray-200 dark:border-gray-700
+                   focus:ring-2 focus:ring-primary-500 focus:border-transparent
+                   text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+          />
+          <Search class="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+        </div>
+      </div>
+
+      <!-- Filtres rapides -->
+      <div class="flex gap-2 overflow-x-auto pb-4 scrollbar-hide">
+        <button
+          v-for="filter in quickFilters"
+          :key="filter.value"
+          @click="activeFilter = filter.value"
+          class="flex items-center px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all"
+          :class="[
+            activeFilter === filter.value
+              ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+          ]"
+        >
+          <component :is="filter.icon" class="h-4 w-4 mr-2" />
+          {{ filter.label }}
+        </button>
+      </div>
+
+      <!-- Liste des missions -->
+      <div class="space-y-4">
+        <!-- Loading state -->
+        <div v-if="isLoading" class="flex justify-center py-12">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+        </div>
+
+        <!-- Liste des missions -->
+        <template v-else>
+          <div v-if="filteredMissions.length > 0" class="space-y-4">
+            <div 
+              v-for="mission in filteredMissions" 
+              :key="mission.id"
+              class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 cursor-pointer group transition-all duration-200
+                hover:border-primary-500 dark:hover:border-primary-400"
+            >
+              <div @click="router.push(`/requests/${mission.id}`)">
+                <!-- En-tête avec titre et statut -->
+                <div class="flex flex-col gap-4 mb-6">
+                  <div class="flex items-start justify-between gap-4">
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white leading-tight group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                      {{ mission.title }}
+                    </h3>
+                    <div
+                      class="px-2.5 py-1 rounded-full text-xs font-medium shrink-0"
+                      :class="getStatusClasses(mission.status)"
+                    >
+                      {{ getStatusLabel(mission.status) }}
+                    </div>
+                  </div>
+
+                  <!-- Méta-informations importantes -->
+                  <div class="flex flex-wrap items-center gap-3 text-sm">
+                    <!-- Budget -->
+                    <span class="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
+                      <UIcon name="i-heroicons-banknotes" class="w-4 h-4" />
+                      {{ formatPrice(mission.budget) }}
+                    </span>
+                    <span class="text-gray-300 dark:text-gray-600">•</span>
+
+                    <!-- Nombre de propositions -->
+                    <span class="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
+                      <UIcon name="i-heroicons-chat-bubble-left-right" class="w-4 h-4" />
+                      {{ mission.deals?.length || 0 }} proposition{{ mission.deals?.length > 1 ? 's' : '' }}
+                    </span>
+
+                    <!-- Indicateur si on a déjà proposé -->
+                    <span v-if="hasProposal(mission)" class="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
+                      <UIcon name="i-heroicons-check-circle" class="w-4 h-4" />
+                      Déjà proposé
+                    </span>
+
+                    <span class="text-gray-300 dark:text-gray-600">•</span>
+
+                    <!-- Deadline -->
+                    <span class="flex items-center gap-1.5" :class="getDeadlineColor(mission.deadline)">
+                      <UIcon name="i-heroicons-clock" class="w-4 h-4" />
+                      {{ formatDeadline(mission.deadline) }}
+                    </span>
+
+                    <!-- Location (si présente) -->
+                    <template v-if="mission.location">
+                      <span class="text-gray-300 dark:text-gray-600">•</span>
+                      <span class="flex items-center gap-1.5 text-purple-600 dark:text-purple-400">
+                        <UIcon name="i-heroicons-map-pin" class="w-4 h-4" />
+                        {{ mission.location }}
+                      </span>
+                    </template>
+                  </div>
+                </div>
+
+                <!-- Info client et description -->
+                <div class="space-y-4">
+                  <!-- Client info plus subtile -->
+                  <div class="flex items-center gap-3">
+                    <img 
+                      :src="mission.client?.avatar_url || defaultAvatar"
+                      :alt="`Photo de ${mission.client?.first_name || 'Client'}`"
+                      class="w-8 h-8 rounded-full object-contain ring-1 ring-gray-100 dark:ring-gray-700"
+                    />
+                    <div class="flex flex-col">
+                      <span class="text-sm font-medium text-gray-900 dark:text-white">
+                        {{ mission.client?.first_name }} {{ mission.client?.last_name }}
+                      </span>
+                      <span class="text-xs text-gray-500 dark:text-gray-400">
+                        {{ formatDate(mission.created_at) }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Description -->
+                  <p class="text-gray-600 dark:text-gray-300 line-clamp-2">
+                    {{ mission.description }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Bouton de proposition -->
+              <div class="mt-4 flex justify-end">
+                <button
+                  v-if="isExpert && mission.status === 'open' && canMakeProposal(mission)"
+                  @click="openProposalModal(mission)"
+                  class="inline-flex border border-primary-500 items-center gap-2 px-5 py-2 
+                         bg-white hover:bg-primary-50 
+                         dark:bg-white dark:hover:bg-primary-50
+                         text-primary-500 dark:text-primary-400
+                         text-sm font-medium
+                         rounded-full
+                         transition-colors duration-200
+                         focus:outline-none 
+                         disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <UIcon name="i-heroicons-paper-airplane" class="w-4 h-4 text-primary-500 hidden md:block" />
+                  <span class="text-primary-500 dark:text-primary-400 font-semibold">Proposer</span>
+                </button>
+
+                <div
+                  v-else-if="isExpert && mission.status === 'open' && hasProposal(mission)"
+                  class="inline-flex items-center gap-2 px-4 py-2 rounded-full
+                         bg-gray-50 hover:bg-gray-100 
+                         dark:bg-gray-800 dark:hover:bg-gray-700
+                         text-gray-700 dark:text-gray-300
+                         text-sm font-medium
+                         dark:border-gray-700"
+                >
+                  <UIcon name="i-heroicons-check-circle" class="w-4 h-4" />
+                  <span>Proposition envoyée</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- État vide -->
+          <div 
+            v-else
+            class="text-center py-12"
+          >
+            <InboxIcon class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600 mb-4" />
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              Aucune mission trouvée
+            </h3>
+            <p class="text-gray-500 dark:text-gray-400">
+              Essayez de modifier vos filtres ou revenez plus tard
+            </p>
+          </div>
+        </template>
+      </div>
+    </main>
+
+    <!-- Modal Faire une proposition -->
+    <TransitionRoot appear :show="showApplyModal" as="template">
+      <Dialog as="div" class="relative z-50" @close="showApplyModal = false">
+        <!-- Overlay avec effet de flou -->
+        <TransitionChild
+          as="template"
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div class="fixed inset-0 bg-black/30 backdrop-blur-sm" />
+        </TransitionChild>
+
+        <!-- Modal -->
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild
+              as="template"
+              enter="duration-300 ease-out"
+              enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100"
+              leave="duration-200 ease-in"
+              leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95"
+            >
+              <DialogPanel class="w-full max-w-lg transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all">
+                <!-- En-tête -->
+                <div class="flex items-start gap-4 mb-6">
+                  <div class="p-3 bg-primary-50 rounded-full shrink-0">
+                    <UIcon name="i-heroicons-paper-airplane" class="w-6 h-6 text-primary-500" />
+                  </div>
+                  <div class="space-y-1">
+                    <DialogTitle as="h3" class="text-lg font-semibold text-gray-900 line-clamp-2">
+                      {{ selectedMission?.title }}
+                    </DialogTitle>
+                    <div class="flex items-center gap-2 text-sm text-gray-500">
+                      <UIcon name="i-heroicons-clock" class="w-4 h-4" />
+                      <span>Date limite : {{ formatDeadline(selectedMission?.deadline) }}</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-sm text-emerald-600">
+                      <UIcon name="i-heroicons-banknotes" class="w-4 h-4" />
+                      <span>Budget : {{ formatPrice(selectedMission?.budget) }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Formulaire -->
+                <form @submit.prevent="submitProposal" class="space-y-6">
+                  <!-- Prix -->
+                  <FloatingLabelInput
+                    v-model="price"
+                    type="number"
+                    label="Prix proposé"
+                    placeholder="Ex: 500000"
+                    min="0"
+                    step="1"
+                    required
+                  />
+
+                  <!-- Délai -->
+                  <FloatingLabelInput
+                    v-model="delay"
+                    type="number"
+                    label="Délai de livraison"
+                    placeholder="Ex: 1"
+                    min="1"
+                    required
+                  />
+
+                  <!-- Unité de délai -->
+                  <div class="flex justify-center gap-2">
+                    <button
+                      v-for="unit in ['days', 'weeks', 'months']"
+                      :key="unit"
+                      class="px-4 py-2 rounded-full text-sm font-medium transition-colors"
+                      :class="delayUnit === unit 
+                        ? 'bg-primary-600 text-white dark:bg-primary-500' 
+                        : 'bg-gray-100 text-gray-600 hover:bg-primary-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-primary-900/30'"
+                      @click="delayUnit = unit"
+                    >
+                      {{ unit === 'days' ? 'Jours' : unit === 'weeks' ? 'Semaines' : 'Mois' }}
+                    </button>
+                  </div>
+
+                  <!-- Message -->
+                  <FloatingLabelInput
+                    v-model="message"
+                    type="textarea"
+                    label="Message"
+                    placeholder="Décrivez votre proposition..."
+                    :rows="4"
+                    required
+                  />
+
+                  <!-- Actions -->
+                  <div class="flex justify-end gap-3 pt-6">
+                    <button
+                      type="button"
+                      class="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
+                      @click="showApplyModal = false"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      type="submit"
+                      class="px-4 py-2 text-sm font-medium text-white bg-primary-500 rounded-full hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                      :disabled="!isValid || isSubmitting"
+                    >
+                      <UIcon
+                        v-if="isSubmitting"
+                        name="i-heroicons-arrow-path"
+                        class="w-4 h-4 animate-spin"
+                      />
+                      <span>{{ isSubmitting ? 'Envoi en cours...' : 'Envoyer ma proposition' }}</span>
+                    </button>
+                  </div>
+                </form>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { Dialog, DialogPanel, DialogTitle, TransitionRoot, TransitionChild } from '@headlessui/vue'
+// import { useSupabaseClient, useSupabaseUser } from '#supabase/client'
+import { OhVueIcon as VIcon, addIcons } from 'oh-vue-icons'
+import { 
+  BiSearch,
+  BiGrid,
+  BiClockHistory,
+  BiCurrencyDollar,
+  BiLightning,
+  BiCodeSlash,
+  BiPalette,
+  BiPencil,
+  BiCamera,
+  BiGraphUp,
+  BiTranslate,
+  BiPeople,
+  BiPersonWorkspace,
+  BiBrush,
+  BiCameraVideo,
+  BiBriefcase,
+  BiGeoAlt,
+  BiEye,
+  BiArrowRight,
+  BiPlusLg,
+  BiInbox
+} from 'oh-vue-icons/icons'
+import { 
+  Search, Plus, Briefcase, Clock, Filter,
+  CheckCircle, XCircle, InboxIcon, PlusIcon, MinusIcon
+} from 'lucide-vue-next'
+import { useCustomToast } from '@/composables/useCustomToast'
+import { useRouter } from 'vue-router'
+import { useDefaultAvatar } from '~/composables/useDefaultAvatar'
+import { useUserProfileStore } from '~/stores/userProfile'
+
+// Mise à jour des icônes
+addIcons(
+  BiSearch,
+  BiGrid,
+  BiClockHistory,
+  BiCurrencyDollar,
+  BiLightning,
+  BiCodeSlash,
+  BiPalette,
+  BiPencil,
+  BiCamera,
+  BiGraphUp,
+  BiTranslate,
+  BiPeople,
+  BiPersonWorkspace,
+  BiBrush,
+  BiCameraVideo,
+  BiBriefcase,
+  BiGeoAlt,
+  BiEye,
+  BiArrowRight,
+  BiPlusLg,
+  BiInbox
+)
+
+const supabase = useSupabaseClient()
+const user = useSupabaseUser()
+const router = useRouter()
+const { defaultAvatar } = useDefaultAvatar()
+const { showToast } = useCustomToast()
+
+// Utiliser le store au lieu du composable
+const userProfileStore = useUserProfileStore()
+
+// États
+const missions = ref([])
+const isLoading = ref(true)
+const searchQuery = ref('')
+const activeFilter = ref('all')
+
+// Nouveaux états pour les filtres
+const showAdvancedFilters = ref(false)
+const filters = ref({
+  minBudget: '',
+  maxBudget: '',
+  professions: [],
+  deliveryTime: '',
+  location: 'all'
+})
+
+// Filtres rapides
+const quickFilters = [
+  { label: 'Toutes', value: 'all', icon: 'bi-grid' },
+  { label: 'Plus récentes', value: 'recent', icon: 'bi-clock-history' },
+  { label: 'Budget élevé', value: 'high-budget', icon: 'bi-currency-dollar' },
+  { label: 'Urgentes', value: 'urgent', icon: 'bi-lightning' }
+]
+
+// Mapping des icônes par profession
+const professionIcons = {
+  'Développeur': 'bi-code-slash',
+  'Designer': 'bi-palette',
+  'Rédacteur': 'bi-pencil',
+  'Photographe': 'bi-camera',
+  'Marketeur': 'bi-graph-up',
+  'Traducteur': 'bi-translate',
+  'Community Manager': 'bi-people',
+  'Consultant': 'bi-person-workspace',
+  'Graphiste': 'bi-brush',
+  'Monteur vidéo': 'bi-camera-video',
+  'default': 'bi-briefcase'
+}
+
+// Liste des professions (à charger depuis l'API)
+const professions = ref([
+  { id: 1, name: 'Développeur' },
+  { id: 2, name: 'Designer' },
+  { id: 3, name: 'Rédacteur' },
+  // ... autres professions
+])
+
+// Toggle profession dans les filtres
+const toggleProfession = (id) => {
+  const index = filters.value.professions.indexOf(id)
+  if (index === -1) {
+    filters.value.professions.push(id)
+  } else {
+    filters.value.professions.splice(index, 1)
+  }
+}
+
+// Remplacer le computed isExpert
+const isExpert = computed(() => userProfileStore.isExpert)
+
+// Fetch des missions avec les professions
+const fetchMissions = async () => {
+  isLoading.value = true
+  try {
+    const { data: userData, error: userError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.value?.id)
+      .single()
+
+    if (userError) throw userError
+
+    const { data, error } = await supabase
+      .from('missions')
+      .select(`
+        *,
+        client:profiles!missions_client_id_fkey(
+          id,
+          first_name,
+          last_name,
+          avatar_url
+        ),
+        deals(
+          id,
+          expert_id,
+          status
+        )
+      `)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    missions.value = data
+  } catch (error) {
+    console.error('Erreur:', error)
+    showToast.error('Erreur', 'Impossible de charger les missions')
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Helper pour obtenir l'icône d'une profession
+const getProfessionIcon = (professionName) => {
+  // Recherche exacte
+  if (professionIcons[professionName]) {
+    return professionIcons[professionName]
+  }
+
+  // Recherche par mot-clé
+  const normalizedName = professionName?.toLowerCase() || ''
+  if (normalizedName.includes('develop')) return 'bi-code-slash'
+  if (normalizedName.includes('design')) return 'bi-palette'
+  if (normalizedName.includes('photo')) return 'bi-camera'
+  if (normalizedName.includes('video')) return 'bi-camera-video'
+  if (normalizedName.includes('market')) return 'bi-graph-up'
+  if (normalizedName.includes('rédac')) return 'bi-pencil'
+  if (normalizedName.includes('traduc')) return 'bi-translate'
+  if (normalizedName.includes('community')) return 'bi-people'
+  if (normalizedName.includes('consult')) return 'bi-person-workspace'
+  if (normalizedName.includes('graph')) return 'bi-brush'
+
+  return professionIcons.default
+}
+
+// Filtrage des missions
+const filteredMissions = computed(() => {
+  let filtered = [...missions.value]
+
+  // Filtre par recherche
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    filtered = filtered.filter(m => 
+      m.title.toLowerCase().includes(query) ||
+      m.description.toLowerCase().includes(query)
+    )
+  }
+
+  // Filtre par catégorie
+  if (filters.value.category !== 'all') {
+    filtered = filtered.filter(m => m.category === filters.value.category)
+  }
+
+  // Filtre par localisation
+  if (filters.value.location !== 'all') {
+    filtered = filtered.filter(m => {
+      if (filters.value.location === 'remote') return !m.location
+      return m.location // onsite
+    })
+  }
+
+  // Filtres rapides
+  switch (activeFilter.value) {
+    case 'recent':
+      filtered = [...filtered].sort((a, b) => 
+        new Date(b.created_at) - new Date(a.created_at)
+      )
+      break
+    case 'high-budget':
+      filtered = [...filtered].sort((a, b) => b.budget - a.budget)
+      break
+    case 'urgent':
+      filtered = filtered.filter(mission => {
+        const deadline = new Date(mission.deadline)
+        const now = new Date()
+        const diffDays = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24))
+        return diffDays <= 7
+      })
+      break
+  }
+
+  return filtered
+})
+
+// Formatage des données
+const formatTimeAgo = (date) => {
+  if (!date) return ''
+  const now = new Date()
+  const past = new Date(date)
+  const diffTime = Math.abs(now - past)
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+  if (diffDays === 0) return "Aujourd'hui"
+  if (diffDays === 1) return "Hier"
+  if (diffDays < 7) return `Il y a ${diffDays} jours`
+  if (diffDays < 30) return `Il y a ${Math.floor(diffDays / 7)} semaine${Math.floor(diffDays / 7) > 1 ? 's' : ''}`
+  return `Il y a ${Math.floor(diffDays / 30)} mois`
+}
+
+const formatDate = (date) => {
+  if (!date) return '-'
+  return new Date(date).toLocaleDateString('fr-FR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+const formatPrice = (value) => {
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'XOF',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(value)
+}
+
+const formatDeliveryTime = (days) => {
+  if (!days) return 'Non spécifié'
+  return days === 1 ? '1 jour' : `${days} jours`
+}
+
+// États pour la modal de proposition
+const showApplyModal = ref(false)
+const price = ref(0)
+const delay = ref(1)
+const delayUnit = ref('days')
+const message = ref('')
+const isSubmitting = ref(false)
+
+// Ajout de la référence à la mission sélectionnée
+const selectedMission = ref(null)
+
+// Fonction pour ouvrir le modal de proposition
+const openProposalModal = (mission) => {
+  selectedMission.value = mission
+  price.value = mission.budget // Initialiser avec le budget de la mission
+  showApplyModal.value = true
+}
+
+// Simplification de la gestion du prix
+const handlePriceInput = (event) => {
+  let value = parseInt(event.target.value)
+  
+  // Juste s'assurer que c'est un nombre valide
+  if (isNaN(value)) {
+    value = 0
+  }
+  
+  price.value = value
+}
+
+// Soumission de la proposition
+const submitProposal = async () => {
+  if (!isValid.value) return
+
+  try {
+    isSubmitting.value = true
+    
+    // Calculer les dates de début et de fin
+    const startDate = new Date()
+    const endDate = new Date(startDate)
+    
+    // Calculer la date de fin en fonction de l'unité de durée
+    if (delayUnit.value === 'days') {
+      endDate.setDate(endDate.getDate() + delay.value)
+    } else if (delayUnit.value === 'weeks') {
+      endDate.setDate(endDate.getDate() + (delay.value * 7))
+    } else if (delayUnit.value === 'months') {
+      endDate.setMonth(endDate.getMonth() + delay.value)
+    }
+
+    // Créer la proposition
+    const { data, error } = await supabase
+      .from('deals')
+      .insert({
+        mission_id: selectedMission.value.id,
+        expert_id: user.value.id,
+        client_id: selectedMission.value.client_id,
+        price: price.value,
+        duration: delay.value,
+        duration_unit: delayUnit.value,
+        message: message.value,
+        status: 'proposal'
+      })
+
+    if (error) throw error
+
+    showToast.success(
+      'Proposition envoyée',
+      'Votre proposition a été envoyée avec succès'
+    )
+
+    showApplyModal.value = false
+    resetForm()
+
+  } catch (error) {
+    console.error('Erreur lors de l\'envoi de la proposition:', error)
+    showToast.error(
+      'Erreur',
+      'Impossible d\'envoyer votre proposition'
+    )
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+// Réinitialisation du formulaire
+const resetForm = () => {
+  price.value = 0
+  delay.value = 1
+  delayUnit.value = 'days'
+  message.value = ''
+}
+
+// Vérifier si l'utilisateur peut faire une proposition
+const canMakeProposal = (mission) => {
+  if (!user.value) return false
+  
+  // Vérifier si l'utilisateur est le client de la mission
+  if (user.value.id === mission.client_id) return false
+  
+  // Vérifier si l'utilisateur a déjà fait une proposition
+  if (hasProposal(mission)) return false
+  
+  return mission.status === 'open'
+}
+
+// Vérifier si l'utilisateur a déjà fait une proposition
+const hasProposal = (mission) => {
+  if (!user.value || !mission.deals) return false
+  
+  return mission.deals.some(deal => 
+    deal.expert_id === user.value.id && 
+    ['proposal', 'accepted', 'in_progress'].includes(deal.status)
+  )
+}
+
+// Fonction pour obtenir les classes CSS selon le statut
+const getStatusClasses = (status) => {
+  const classes = {
+    'open': 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400',
+    'in_progress': 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400',
+    'completed': 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
+    'cancelled': 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400',
+    'pending': 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400',
+    'proposal': 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400',
+    'assigned': 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400',
+    'want': 'bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400'
+  }
+  return classes[status] || 'bg-gray-50 dark:bg-gray-900/20 text-gray-600 dark:text-gray-400'
+}
+
+// Fonction pour obtenir le libellé du statut
+const getStatusLabel = (status) => {
+  const labels = {
+    'open': 'Ouvert',
+    'in_progress': 'En cours',
+    'completed': 'Terminé',
+    'cancelled': 'Annulé',
+    'pending': 'En attente',
+    'proposal': 'Proposition',
+    'assigned': 'Assigné',
+    'want': 'Intéressé'
+  }
+  return labels[status] || status
+}
+
+// Validation
+const isValid = computed(() => {
+  return price.value > 0 && delay.value > 0 && message.value.length > 0
+})
+
+// Fonction pour formater la deadline
+const formatDeadline = (deadline) => {
+  if (!deadline) return 'Pas de deadline'
+  
+  const deadlineDate = new Date(deadline)
+  const now = new Date()
+  const diffTime = deadlineDate - now
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  
+  if (diffDays < 0) return 'Expirée'
+  if (diffDays === 0) return "Aujourd'hui"
+  if (diffDays === 1) return 'Demain'
+  if (diffDays <= 7) return `${diffDays} jours`
+  if (diffDays <= 30) return `${Math.floor(diffDays / 7)} semaines`
+  if (diffDays <= 365) return `${Math.floor(diffDays / 30)} mois`
+  return `${Math.floor(diffDays / 365)} ans`
+}
+
+// Fonction pour obtenir la couleur selon la deadline
+const getDeadlineColor = (deadline) => {
+  if (!deadline) return 'text-gray-400 dark:text-gray-500'
+  
+  const diffDays = Math.ceil((new Date(deadline) - new Date()) / (1000 * 60 * 60 * 24))
+  
+  if (diffDays < 0) return 'text-red-500 dark:text-red-400'
+  if (diffDays <= 3) return 'text-amber-500 dark:text-amber-400'
+  if (diffDays <= 7) return 'text-orange-500 dark:text-orange-400'
+  return 'text-teal-500 dark:text-teal-400'
+}
+
+// Fonction pour obtenir la couleur du statut
+const getMissionStatusColor = (status) => {
+  const colors = {
+    'open': 'emerald',
+    'in_progress': 'blue',
+    'completed': 'purple',
+    'cancelled': 'rose',
+    'pending': 'amber',
+    'proposal': 'indigo',
+    'assigned': 'cyan',
+    'want': 'pink'
+  }
+  return colors[status] || 'gray'
+}
+
+// Lifecycle
+onMounted(() => {
+  fetchMissions()
+})
+</script>
+
+<style scoped>
+/* Masquer la scrollbar tout en gardant le défilement */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Animation d'entrée des cartes */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mission-card {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+/* Effet de hover amélioré */
+.hover\:shadow-md {
+  transition: all 0.2s ease-in-out;
+}
+
+.hover\:shadow-md:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+</style>
