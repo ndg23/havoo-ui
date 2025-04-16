@@ -11,7 +11,7 @@
       <div>
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
           {{ profile?.first_name }} {{ profile?.last_name }}
-        </h1>
+          </h1>
         <p class="text-gray-600 dark:text-gray-400 mt-1">
           {{ profile?.profession?.name }}
         </p>
@@ -29,7 +29,7 @@
           </button>
         </div>
       </div>
-    </div>
+                </div>
   <!-- Availability Status -->
   <div class="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800 mb-8">
     <div class="flex items-center justify-between">
@@ -38,8 +38,8 @@
         <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
           Indiquez aux clients si vous êtes actuellement disponible pour des missions
         </p>
-      </div>
-      
+            </div>
+
       <div class="flex items-center gap-3">
         <span class="text-sm font-medium" :class="[
           profile?.availability_status === 'available' 
@@ -81,7 +81,7 @@
               <svg class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
               </svg>
-            </span>
+                </span>
             <span
               class="absolute inset-0 flex h-full w-full items-center justify-center transition-opacity"
               :class="[
@@ -93,12 +93,12 @@
               <svg class="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
               </svg>
-            </span>
-          </span>
+                </span>
+                </span>
         </button>
-      </div>
-    </div>
-  </div>
+                  </div>
+                </div>
+              </div>
     <!-- Stats -->
     <div class="mb-8">
       <h2 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Statistiques</h2>
@@ -117,8 +117,8 @@
             <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mt-1">
               Missions complétées
             </p>
-          </div>
         </div>
+      </div>
 
         <!-- Note moyenne -->
         <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
@@ -126,7 +126,7 @@
             <div class="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center">
               <UIcon name="i-heroicons-star" class="w-6 h-6 text-amber-600 dark:text-amber-400" />
             </div>
-          </div>
+              </div>
           <div>
             <div class="flex items-baseline gap-2">
               <h3 class="text-3xl font-bold text-gray-900 dark:text-white">
@@ -147,14 +147,14 @@
               <UIcon name="i-heroicons-clock" class="w-6 h-6 text-green-600 dark:text-green-400" />
             </div>
           </div>
-          <div>
+              <div>
             <h3 class="text-3xl font-bold text-gray-900 dark:text-white">
               {{ formatMemberDuration(profile?.created_at) }}
-            </h3>
+                </h3>
             <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mt-1">
               d'expérience
-            </p>
-          </div>
+                </p>
+              </div>
         </div>
 
         <!-- Taux de satisfaction -->

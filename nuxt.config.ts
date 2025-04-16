@@ -9,6 +9,7 @@ export default defineNuxtConfig({
     'nuxt-vue3-google-signin',
     '@nuxtjs/supabase',
     '@nuxtjs/robots',
+    '@pinia/nuxt',
   ], 
   css: ['@fontsource/inter/400.css',
     '@fontsource/inter/500.css',
@@ -91,5 +92,11 @@ export default defineNuxtConfig({
     Allow: '/',
     Disallow: ['/account', '/admin', '/api'],
     Sitemap: 'https://keetaf.com/sitemap.xml'
-  }
+  },
+  pinia: {
+    autoImports: [
+      'defineStore',
+      'storeToRefs'
+    ],
+  },
 })

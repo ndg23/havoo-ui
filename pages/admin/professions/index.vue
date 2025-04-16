@@ -248,22 +248,6 @@
                       </p>
                     </div>
 
-                    <!-- Icône -->
-                    <div>
-                      <label class="block text-base font-semibold text-gray-900 mb-2">
-                        Icône
-                      </label>
-                      <input
-                        v-model="form.icon"
-                        type="text"
-                        class="block w-full px-4 py-3.5 text-gray-900 border border-gray-200 rounded-2xl 
-                          focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-lg"
-                        placeholder="ex: i-heroicons-briefcase"
-                      />
-                      <p class="mt-2 text-sm text-gray-500">
-                        L'icône qui représente cette profession
-                      </p>
-                    </div>
 
                     <!-- Statut -->
                     <div>
@@ -356,7 +340,6 @@ const currentPage = ref(1)
 const form = ref({
   name: '',
   description: '',
-  icon: '',
   is_active: true
 })
 
@@ -482,8 +465,7 @@ const loadData = async () => {
 
 // Watch for page changes
 watch(currentPage, () => {
-  // If you're loading from an API, you might want to fetch new data here
-  // loadData()
+  loadData()
 })
 
 // Initial load

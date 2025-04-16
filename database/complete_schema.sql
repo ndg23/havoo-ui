@@ -78,7 +78,7 @@ CREATE TABLE missions (
   description TEXT NOT NULL,
   budget DECIMAL(10, 2),
   deadline DATE,
-  status VARCHAR(50) DEFAULT 'open' CHECK (status IN ('open', 'assigned', 'completed', 'cancelled')),
+  status VARCHAR(50) DEFAULT 'open' CHECK (status IN ('open', 'assigned', 'completed', 'cancelled', 'in_progress')),
   work_type VARCHAR(50) DEFAULT 'remote' CHECK (work_type IN ('remote', 'on_site')),
   profession_id UUID REFERENCES professions(id) ON DELETE SET NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -94,7 +94,7 @@ CREATE TABLE deals (
   price DECIMAL(10, 2) NOT NULL,
   duration INTEGER NOT NULL, -- En jours
   message TEXT,
-  status VARCHAR(50) DEFAULT 'proposal' CHECK (status IN ('proposal', 'active', 'completed', 'rejected', 'cancelled')),
+  status VARCHAR(50) DEFAULT 'proposal' CHECK (status IN ('proposal', 'active', 'completed', 'rejected', 'cancelled', 'accepted')),
   client_rating INTEGER CHECK (client_rating BETWEEN 1 AND 5),
   expert_rating INTEGER CHECK (expert_rating BETWEEN 1 AND 5),
   client_review TEXT,
