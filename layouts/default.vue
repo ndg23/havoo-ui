@@ -64,14 +64,14 @@
         <!-- User menu -->
         <div class="flex items-center space-x-4">
           <div class="relative hidden md:block">
-          <button 
-            @click="showCreateMenu = !showCreateMenu"
-            class="create-menu-button px-5 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-full font-medium transition-colors flex items-center gap-2"
+          <NuxtLink 
+          to="/requests/new"
+                      class="create-menu-button px-5 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-full font-medium transition-colors flex items-center gap-2"
           >
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m-8-8h16" color="currentColor"/></svg>
 
             Créer
-          </button>
+          </NuxtLink>
           
           <!-- Dropdown menu for "Créer" button -->
           <div v-if="showCreateMenu" 
@@ -170,6 +170,14 @@
                 >
                   <User class="h-5 w-5 text-gray-500" />
                   Mon compte
+                </NuxtLink>
+
+                <NuxtLink 
+                  to="/account/missions"
+                  class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  <UIcon name="i-heroicons-document-text" class="w-5 h-5 text-gray-500" />
+                  Missions
                 </NuxtLink>
                 
                 <NuxtLink 

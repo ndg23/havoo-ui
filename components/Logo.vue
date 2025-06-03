@@ -4,7 +4,7 @@
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
   >
-  <img src="/assets/icons/snoo.svg" alt="Keetaf" width="100" height="100" :class="{ 'logo-small': small }">
+  <img src="/assets/icons/logo.png" alt="Keetaf" width="100" height="100" :class="{ 'logo-small': small }">
 
   </div>
 </template>

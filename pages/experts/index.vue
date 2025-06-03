@@ -1,375 +1,427 @@
 <template>
-  <div class="min-h-screen font-sans bg-white dark:bg-gray-900">
-    <!-- Header avec style Apple -->
-    <header class="sticky top-0 z-10 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-100/50 dark:border-gray-800/50">
-      <div class="max-w-2xl mx-auto px-6 py-4">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-4">
-            <h1 class="text-2xl font-sans font-bold text-gray-900 dark:text-white">
-              Nos experts
-            </h1>
-            <span class="text-sm font-mono text-gray-500 dark:text-gray-400">
-              {{ filteredExperts.length }} disponibles
-            </span>
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <!-- Header compact et moderne -->
+    <div class="sticky top-0 z-20 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-b border-gray-200 dark:border-gray-700 shadow-sm">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+        <div class="flex flex-col gap-4">
+          <!-- Titre et compteur -->
+          <div class="flex items-center justify-between">
+            <div>
+              <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Experts</h1>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                {{ filteredExperts.length }} expert{{ filteredExperts.length > 1 ? 's' : '' }} disponible{{ filteredExperts.length > 1 ? 's' : '' }}
+              </p>
+            </div>
+            <!-- Vue toggle -->
+            <div class="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+              <button 
+                @click="viewMode = 'list'"
+                class="p-2 rounded-md transition-all"
+                :class="viewMode === 'list' ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600' : 'text-gray-500'"
+              >
+                <UIcon name="i-heroicons-bars-3" class="w-5 h-5" />
+              </button>
+              <button 
+                @click="viewMode = 'grid'"
+                class="p-2 rounded-md transition-all"
+                :class="viewMode === 'grid' ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600' : 'text-gray-500'"
+              >
+                <UIcon name="i-heroicons-squares-2x2" class="w-5 h-5" />
+              </button>
+            </div>
           </div>
-        </div>
 
-        <!-- Barre de recherche -->
-        <div class="mt-4">
-          <div class="relative">
-            <input
-              v-model="searchQuery"
-              type="text"
-              placeholder="Rechercher un expert..."
-              class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 
-                     border border-gray-200 dark:border-gray-700
-                     focus:ring-2 focus:ring-primary-500 focus:border-primary-500
-                     text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-            />
-            <UIcon 
-              name="i-heroicons-magnifying-glass" 
-              class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400"
-            />
+          <!-- Filtres en ligne -->
+          <div class="flex flex-col sm:flex-row gap-3">
+            <!-- Recherche avec style moderne -->
+            <div class="relative flex-1 max-w-md">
+              <UIcon name="i-heroicons-magnifying-glass" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                v-model="search"
+                type="text"
+                placeholder="Rechercher par nom, profession..."
+                class="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
+              />
+            </div>
+
+            <!-- Filtres rapides -->
+            <div class="flex gap-2 overflow-x-auto">
+              <button 
+                v-for="tab in tabs" 
+                :key="tab.value"
+                @click="filter = tab.value"
+                class="px-4 py-2 text-sm font-medium rounded-lg whitespace-nowrap transition-all"
+                :class="filter === tab.value 
+                  ? 'bg-blue-600 text-white shadow-sm' 
+                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'"
+              >
+                {{ tab.label }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Pills de professions -->
+          <div class="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
+            <button 
+              @click="professionFilter = null"
+              class="px-3 py-1.5 text-xs rounded-full whitespace-nowrap transition-all border"
+              :class="!professionFilter 
+                ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white' 
+                : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'"
+            >
+              Toutes les professions
+            </button>
+            <button 
+              v-for="profession in professions"
+              :key="profession.id"
+              @click="professionFilter = profession.id"
+              class="px-3 py-1.5 text-xs rounded-full whitespace-nowrap transition-all border"
+              :class="professionFilter === profession.id 
+                ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white' 
+                : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'"
+            >
+              {{ profession.name }}
+            </button>
           </div>
         </div>
       </div>
-    </header>
+    </div>
 
-    <main class="max-w-2xl mx-auto px-6 py-6">
-      <!-- Filtres rapides -->
-      <div class="flex overflow-x-auto gap-2 pb-4 scrollbar-hide">
-        <button
-          v-for="filter in quickFilters"
-          :key="filter.value"
-          @click="activeFilter = filter.value"
-          class="flex items-center px-4 py-2 rounded-full whitespace-nowrap transition-all"
-          :class="[
-            activeFilter === filter.value
-              ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
-              : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-          ]"
-        >
-          <UIcon :name="filter.icon" class="h-4 w-4 mr-2" />
-          {{ filter.label }}
-        </button>
-      </div>
-
-      <!-- Liste des experts -->
-      <div class="space-y-6 mt-6">
-        <template v-if="!isLoading && filteredExperts.length > 0">
+    <!-- Contenu principal -->
+    <div class="max-w-5xl bg-white dark:bg-gray-900 mx-auto px-4 sm:px-6 py-6">
+      <!-- Vue Liste (style Leboncoin amélioré) -->
+      <div v-if="viewMode === 'list'" class="space-y-4 divide-y divide-gray-200 dark:divide-gray-700">
+        <TransitionGroup name="list" tag="div">
           <article 
             v-for="expert in filteredExperts" 
             :key="expert.id"
-            class="bg-white dark:bg-gray-800 rounded-2xl p-6 mb-4 shadow-sm- -hover:shadow-md transition-all duration-200 border border-gray-100 dark:border-gray-700"
+            class="group bg-white dark:bg-gray-800 transition-all duration-300 cursor-pointer overflow-hidden"
+            @click="navigateToExpert(expert.id)"
           >
-            <!-- En-tête avec photo et infos principales -->
-            <div class="flex items-start gap-4 mb-4">
-              <div class="relative">
-                <div 
-                  v-if="!!expert.avatar_url"
-                  class="w-16 h-16 rounded-full bg-cover bg-center ring-2- -ring-white dark:ring-gray-800 shadow-md-"
-                  :style="{ backgroundImage: `url(${expert.avatar_url})` }"
-                ></div>
-                <div 
-                  v-else
-                  class="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 ring-2 ring-white dark:ring-gray-800 shadow-md- flex items-center justify-center p-3"
-                >
-                  <img 
-                    :src="expert.avatar_url || defaultAvatar"
-                    :alt="`Photo de profil de ${expert.first_name}`"
-                    class="w-full h-full object-contain"
-                  />
-                </div>
-                <div 
-                  v-if="expert.availability_status=='available'"
-                  class="absolute bottom-0 right-0 w-4 h-4 bg-green-400 rounded-full border-2 border-white dark:border-gray-800"
-                ></div>
-              </div>
-
-              <div class="flex-1 min-w-0">
-                <div class="flex items-start justify-between">
-                  <div>
-                    <h2 class="text-lg font-bold font-sans text-gray-900 dark:text-white">
-                      {{ expert.first_name }} {{ expert.last_name }}
-                    </h2>
-                    <div class="flex items-center gap-2 mt-1">
-                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
-                                   bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-                      >
-                        <UIcon name="i-heroicons-briefcase" class="w-3.5 h-3.5" />
-                        {{ expert.profession?.name || 'Non renseigné' }}
-                      </span>
-                    </div>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                      <UIcon name="i-heroicons-map-pin" class="h-4 w-4" />
-                      {{ expert.location || 'Non renseigné' }}
-                    </p>
-                  </div>
-                  <div v-if="expert.is_verified" class="flex items-center gap-1 px-2 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20">
-                    <UIcon name="i-heroicons-check-badge" class="h-4 w-4 text-blue-500" />
-                    <span class="text-xs font-medium text-blue-500">Vérifié</span>
-                  </div>
-                </div>
-
-                <!-- Compétences -->
-                <div class="mt-3 flex flex-wrap gap-2">
+            <div class="flex">
+              <!-- Image principale -->
+              <div class="w-72 h-48 bg-gray-100 dark:bg-gray-800 flex-shrink-0 relative overflow-hidden flex items-center justify-center">
+                <img
+                  :src="expert.avatar_url || defaultAvatar"
+                  :alt="expert.first_name"
+                  class="w-32 h-32 object-contain rounded-full ring-2 ring-white dark:ring-gray-700 shadow-lg"
+                />
+                
+                <!-- Badges -->
+                <div class="absolute top-3 left-3 flex flex-col gap-2">
                   <span 
-                    v-for="skill in expert.skills" 
-                    :key="skill"
-                    class="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                    v-if="expert.is_available"
+                    class="bg-green-500 text-white px-2 py-1 rounded-md text-xs font-semibold shadow-lg"
                   >
-                    {{ skill }}
+                    DISPONIBLE
+                  </span>
+                  <span 
+                    v-if="expert.is_verified"
+                    class="bg-blue-600 text-white px-2 py-1 rounded-md text-xs font-semibold shadow-lg flex items-center gap-1"
+                  >
+                    <UIcon name="i-heroicons-check-badge" class="w-3 h-3" />
+                    VÉRIFIÉ
                   </span>
                 </div>
-              </div>
-            </div>
 
-            <!-- Bio -->
-            <p class="text-gray-600 dark:text-gray-300 text-sm line-clamp-2 mb-4">
-              {{ expert.bio }}
-            </p>
-
-            <!-- Footer avec stats - Modifié pour gérer les valeurs undefined -->
-            <div class="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
-              <div class="flex items-center gap-4">
-                <div class="flex items-center gap-1">
-                  <UIcon name="i-heroicons-star" class="h-4 w-4 text-yellow-400" />
-                  <span class="text-sm font-medium">
-                    {{ expert.rating.toFixed(1) }}
-                  </span>
-                  <span class="text-sm text-gray-500 dark:text-gray-400">
-                    ({{ expert.completed_missions }})
-                  </span>
-                </div>
-                <div class="flex items-center gap-1 text-gray-500 dark:text-gray-400">
-                  <UIcon name="i-heroicons-briefcase" class="h-4 w-4" />
-                  <span class="text-sm font-mono">
-                    {{ expert.completed_missions || 0 }} missions
-                  </span>
+                <!-- Prix en overlay -->
+                <div class="absolute bottom-3 right-3">
+                  <div class="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-lg px-3 py-2">
+                    <div class="text-lg font-bold text-gray-900 dark:text-white">
+                      {{ formatPrice(expert.hourly_rate) }}
+                    </div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 text-center">par heure</div>
+                  </div>
                 </div>
               </div>
 
-              <NuxtLink
-                :to="`/experts/${expert.id}`"
-                class="inline-flex items-center px-4 py-2 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-medium hover:opacity-90 transition-opacity"
-              >
-                Voir profil
-                <UIcon name="i-heroicons-arrow-right" class="h-4 w-4 ml-2" />
-              </NuxtLink>
+              <!-- Contenu -->
+              <div class="flex-1 p-6 flex flex-col justify-between min-h-48">
+                <!-- Header -->
+                <div>
+                  <div class="flex items-start justify-between mb-3">
+                    <div>
+                      <h3 class="text-xl font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        {{ expert.first_name }} {{ expert.last_name }}
+                      </h3>
+                      <p class="text-blue-600 dark:text-blue-400 font-medium text-sm mt-1">
+                        {{ expert.profession?.name }}
+                      </p>
+                    </div>
+                    
+                    <!-- Note -->
+                    <div v-if="expert.rating" class="flex items-center gap-1 bg-yellow-50 dark:bg-yellow-900/20 px-2 py-1 rounded-lg">
+                      <UIcon name="i-heroicons-star" class="w-4 h-4 text-yellow-500" />
+                      <span class="text-sm font-semibold text-yellow-700 dark:text-yellow-400">{{ expert.rating }}</span>
+                    </div>
+                  </div>
+
+                  <!-- Description -->
+                  <p class="text-gray-600 dark:text-gray-300 text-sm line-clamp-2 mb-4 leading-relaxed">
+                    {{ expert.bio || 'Aucune description disponible.' }}
+                  </p>
+                </div>
+
+                <!-- Footer avec stats -->
+                <div class="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
+                  <div class="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+                    <span class="flex items-center gap-1">
+                      <UIcon name="i-heroicons-briefcase" class="w-4 h-4" />
+                      {{ expert.completed_missions_count || 0 }} missions
+                    </span>
+                    <span class="flex items-center gap-1">
+                      <UIcon name="i-heroicons-map-pin" class="w-4 h-4" />
+                      {{ expert.location || 'France' }}
+                    </span>
+                    <span class="flex items-center gap-1">
+                      <UIcon name="i-heroicons-clock" class="w-4 h-4" />
+                      {{ formatTimeAgo(expert.last_seen_at) || 'Récemment' }}
+                    </span>
+                  </div>
+
+                  <!-- CTA Button -->
+                  <button 
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
+                    @click.stop="contactExpert(expert)"
+                  >
+                    Contacter
+                  </button>
+                </div>
+              </div>
             </div>
           </article>
-        </template>
+        </TransitionGroup>
+      </div>
 
-        <!-- Loading state -->
-        <template v-else-if="isLoading">
-          <div class="space-y-4">
-            <div v-for="i in 3" :key="i" class="animate-pulse">
-              <div class="bg-white dark:bg-gray-800 rounded-2xl p-6">
-                <div class="flex items-center gap-4 mb-4">
-                  <div class="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-                  <div class="flex-1">
-                    <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-2"></div>
-                    <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
-                  </div>
+      <!-- Vue Grille -->
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <TransitionGroup name="grid" tag="div" class="contents">
+          <article 
+            v-for="expert in filteredExperts" 
+            :key="expert.id"
+            class="group bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-xl border border-gray-200 dark:border-gray-700 transition-all duration-300 cursor-pointer overflow-hidden"
+            @click="navigateToExpert(expert.id)"
+          >
+            <!-- Image avec ratio fixe -->
+            <div class="aspect-[4/3] relative overflow-hidden">
+              <img
+                :src="expert.avatar_url || defaultAvatar"
+                :alt="expert.first_name"
+                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+              />
+              
+              <!-- Badges -->
+              <div class="absolute top-3 left-3 flex flex-col gap-1">
+                <span 
+                  v-if="expert.is_available"
+                  class="bg-green-500 text-white px-2 py-1 rounded text-xs font-semibold"
+                >
+                  DISPONIBLE
+                </span>
+                <span 
+                  v-if="expert.is_verified"
+                  class="bg-blue-600 text-white px-2 py-1 rounded text-xs font-semibold"
+                >
+                  VÉRIFIÉ
+                </span>
+              </div>
+
+              <!-- Prix -->
+              <div class="absolute bottom-3 right-3">
+                <div class="bg-white/95 backdrop-blur-sm rounded-lg px-2 py-1">
+                  <div class="text-sm font-bold text-gray-900">{{ formatPrice(expert.hourly_rate) }}/h</div>
                 </div>
-                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
               </div>
             </div>
-          </div>
-        </template>
 
-        <!-- État vide -->
-        <template v-else>
-          <div class="text-center py-12 bg-white dark:bg-gray-800 rounded-2xl">
-            <UIcon 
-              name="i-heroicons-users" 
-              class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600"
-            />
-            <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">
-              Aucun expert trouvé
-            </h3>
-            <p class="mt-2 text-gray-500 dark:text-gray-400">
-              Essayez de modifier vos filtres ou revenez plus tard
-            </p>
-          </div>
-        </template>
+            <!-- Contenu -->
+            <div class="p-4">
+              <div class="flex items-start justify-between mb-2">
+                <div class="flex-1">
+                  <h3 class="font-bold text-gray-900 dark:text-white text-lg group-hover:text-blue-600 transition-colors">
+                    {{ expert.first_name }} {{ expert.last_name }}
+                  </h3>
+                  <p class="text-blue-600 dark:text-blue-400 text-sm font-medium">{{ expert.profession?.name }}</p>
+                </div>
+                
+                <div v-if="expert.rating" class="flex items-center gap-1">
+                  <UIcon name="i-heroicons-star" class="w-4 h-4 text-yellow-500" />
+                  <span class="text-sm font-semibold">{{ expert.rating }}</span>
+                </div>
+              </div>
+
+              <p class="text-gray-600 dark:text-gray-300 text-sm line-clamp-2 mb-3">
+                {{ expert.bio || 'Aucune description disponible.' }}
+              </p>
+
+              <!-- Stats -->
+              <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-3">
+                <span>{{ expert.completed_missions_count || 0 }} missions</span>
+                <span>{{ expert.location || 'France' }}</span>
+              </div>
+
+              <!-- CTA -->
+              <button 
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm font-medium transition-colors"
+                @click.stop="contactExpert(expert)"
+              >
+                Contacter
+              </button>
+            </div>
+          </article>
+        </TransitionGroup>
       </div>
-    </main>
+
+      <!-- États vides -->
+      <div v-if="isLoading" class="flex justify-center items-center py-20">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+
+      <div v-if="!isLoading && filteredExperts.length === 0" class="text-center py-20">
+        <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+          <UIcon name="i-heroicons-user-group" class="w-12 h-12 text-gray-400" />
+        </div>
+        <h3 class="text-xl font-semibold mb-2 text-gray-900 dark:text-white">Aucun expert trouvé</h3>
+        <p class="text-gray-500 dark:text-gray-400 mb-6">Essayez de modifier vos critères de recherche</p>
+        <button 
+          @click="resetFilters"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+        >
+          Réinitialiser les filtres
+        </button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useSupabaseClient } from '#imports'
+import { useSupabaseClient, useSupabaseUser } from '#imports'
 import { useDefaultAvatar } from '~/composables/useDefaultAvatar'
-import { OhVueIcon as VIcon, addIcons } from 'oh-vue-icons'
-import { 
-  BiSearch,
-  BiGrid,
-  BiStar,
-  BiStarFill,
-  BiLightning,
-  BiClock,
-  BiPeople,
-  BiPerson,
-  BiPlus,
-  BiBriefcase,
-  BiCodeSlash,
-  BiPencil,
-  BiCamera,
-  BiGraphUp,
-  BiTranslate,
-  BiPalette,
-  BiPersonWorkspace,
-  BiBrush,
-  BiCameraVideo,
-  BiChevronUp,
-  BiChevronDown,
-  BiPatchCheckFill,
-  BiCircleFill,
-  BiDashCircleFill,
-  BiPersonCheck,
-  BiGeoAlt
-} from 'oh-vue-icons/icons'
-
-// Mise à jour des icônes
-addIcons(
-  BiSearch,
-  BiGrid,
-  BiStar,
-  BiStarFill,
-  BiLightning,
-  BiClock,
-  BiPeople,
-  BiPerson,
-  BiPlus,
-  BiBriefcase,
-  BiCodeSlash,
-  BiPencil,
-  BiCamera,
-  BiGraphUp,
-  BiTranslate,
-  BiPalette,
-  BiPersonWorkspace,
-  BiBrush,
-  BiCameraVideo,
-  BiChevronUp,
-  BiChevronDown,
-  BiPatchCheckFill,
-  BiCircleFill,
-  BiDashCircleFill,
-  BiPersonCheck,
-  BiGeoAlt
-)
+import { useRouter } from 'vue-router'
+import { format } from 'date-fns'
+import { fr } from 'date-fns/locale'
 
 const supabase = useSupabaseClient()
 const { defaultAvatar } = useDefaultAvatar()
+const router = useRouter()
+const user = useSupabaseUser()
 
-const searchQuery = ref('')
-const isLoading = ref(true)
+// États
+const viewMode = ref('list') // 'list' ou 'grid'
+const filter = ref('all')
+const professionFilter = ref(null)
+const search = ref('')
 const experts = ref([])
-const activeFilter = ref('all')
+const professions = ref([])
+const isLoading = ref(true)
 
-// Filtres rapides
-const quickFilters = [
-  { label: 'Tous', value: 'all', icon: 'i-heroicons-users' },
-  { label: 'Mieux notés', value: 'top-rated', icon: 'i-heroicons-star' },
-  { label: 'Plus actifs', value: 'most-active', icon: 'i-heroicons-bolt' },
-  { label: 'Récents', value: 'recent', icon: 'i-heroicons-clock' },
-  { label: 'Vérifiés', value: 'verified', icon: 'i-heroicons-check-badge' }
+// Tabs
+const tabs = [
+  { label: 'Tous', value: 'all' },
+  { label: 'Vérifiés', value: 'verified' },
+  { label: 'Disponibles', value: 'available' }
 ]
 
-// Récupération des experts avec leurs notations
-const fetchExperts = async () => {
+// Charger les données
+const fetchData = async () => {
   try {
     isLoading.value = true
-    const { data, error } = await supabase
-      .from('profiles')
-      .select(`
-        *,
-        profession:professions(*),
-        deals!deals_expert_id_fkey (
-          expert_rating,
-          status
-        )
-      `)
-      .eq('role', 'expert')
+    const [expertsData, professionsData] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('*, profession:professions(*)')
+        .eq('is_expert', true)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('professions')
+        .select('*')
+        .eq('is_active', true)
+        .order('name')
+    ])
 
-    if (error) throw error
-    
-    // Traiter les données pour calculer les moyennes
-    experts.value = (data || []).map(expert => {
-      // Filtrer les deals complétés avec notation
-      const completedDeals = expert.deals?.filter(deal => 
-        deal.status === 'completed' && deal.expert_rating !== null
-      ) || []
-
-      // Calculer la moyenne des notations
-      const totalRating = completedDeals.reduce((sum, deal) => 
-        sum + (deal.expert_rating || 0), 0
-      )
-      
-      const averageRating = completedDeals.length > 0 
-        ? totalRating / completedDeals.length 
-        : 0
-
-      return {
-        ...expert,
-        rating: averageRating,
-        completed_missions: completedDeals.length,
-        skills: expert.skills || [],
-        location: expert.location || 'À distance',
-        bio: expert.bio || 'Aucune description disponible'
-      }
-    })
-    
-    console.log('Experts chargés:', experts.value.length)
+    experts.value = expertsData.data || []
+    professions.value = professionsData.data || []
   } catch (error) {
-    console.error('Erreur lors de la récupération des experts:', error)
-    experts.value = []
+    console.error('Error fetching data:', error)
   } finally {
     isLoading.value = false
   }
 }
 
-// Filtrage des experts modifié pour prendre en compte les nouvelles notations
+// Filtrage amélioré
 const filteredExperts = computed(() => {
-  let filtered = [...experts.value]
+  let filtered = experts.value
 
-  // Filtre par recherche
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(expert => 
-      expert.first_name.toLowerCase().includes(query) ||
-      expert.last_name.toLowerCase().includes(query) ||
-      expert.bio?.toLowerCase().includes(query) ||
-      expert.skills?.some(skill => skill.toLowerCase().includes(query))
-    )
+  // Filtre par statut
+  if (filter.value === 'verified') {
+    filtered = filtered.filter(expert => expert.is_verified)
+  } else if (filter.value === 'available') {
+    filtered = filtered.filter(expert => expert.is_available)
   }
 
-  // Filtres rapides
-  switch (activeFilter.value) {
-    case 'top-rated':
-      filtered = filtered.sort((a, b) => b.rating - a.rating)
-      break
-    case 'most-active':
-      filtered = filtered.sort((a, b) => b.completed_missions - a.completed_missions)
-      break
-    case 'recent':
-      filtered = filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-      break
-    case 'verified':
-      filtered = filtered.filter(expert => expert.is_verified)
-      break
+  // Filtre par profession
+  if (professionFilter.value) {
+    filtered = filtered.filter(expert => expert.profession_id === professionFilter.value)
+  }
+
+  // Recherche textuelle
+  if (search.value.trim()) {
+    const searchTerm = search.value.toLowerCase().trim()
+    filtered = filtered.filter(expert => 
+      `${expert.first_name} ${expert.last_name}`.toLowerCase().includes(searchTerm) ||
+      expert.profession?.name?.toLowerCase().includes(searchTerm) ||
+      expert.bio?.toLowerCase().includes(searchTerm)
+    )
   }
 
   return filtered
 })
 
-// Initialisation modifiée
-onMounted(async () => {
-  console.log('Composant monté, début du chargement')
-  await fetchExperts()
+// Actions
+const navigateToExpert = (id) => {
+  router.push(`/experts/${id}`)
+}
+
+const contactExpert = (expert) => {
+  // Logique de contact
+  console.log('Contact expert:', expert.id)
+}
+
+const resetFilters = () => {
+  filter.value = 'all'
+  professionFilter.value = null
+  search.value = ''
+}
+
+// Fonctions utilitaires
+const formatPrice = (price) => {
+  if (!price) return 'Sur devis'
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(price)
+}
+
+const formatTimeAgo = (date) => {
+  if (!date) return 'Récemment'
+  const now = new Date()
+  const past = new Date(date)
+  const diffTime = Math.abs(now - past)
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+  if (diffDays === 0) return "Aujourd'hui"
+  if (diffDays === 1) return "Hier"
+  if (diffDays < 7) return `Il y a ${diffDays}j`
+  if (diffDays < 30) return `Il y a ${Math.floor(diffDays / 7)}sem`
+  return `Il y a ${Math.floor(diffDays / 30)}mois`
+}
+
+// Initialisation
+onMounted(() => {
+  fetchData()
 })
 </script>
 
@@ -381,4 +433,13 @@ onMounted(async () => {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+
 </style>

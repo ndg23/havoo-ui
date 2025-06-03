@@ -1,9 +1,9 @@
 -- =========================================================================
--- SCHÉMA COMPLET POUR HAVOO-UI
+-- SCHÉMA COMPLET POUR lotaf-UI
 -- =========================================================================
--- Ce fichier regroupe l'ensemble de la définition de la base de données Havoo-UI,
+-- Ce fichier regroupe l'ensemble de la définition de la base de données lotaf-UI,
 -- incluant les tables, fonctions, déclencheurs et politiques de sécurité.
--- Auteur: Havoo Team
+-- Auteur: lotaf Team
 -- Date: Juin 2024
 -- Version: 1.0.0
 -- =========================================================================
@@ -54,21 +54,6 @@ CREATE TABLE profiles (
 
 
 -- Compétences liées aux catégories
-CREATE TABLE skills (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  is_active BOOLEAN DEFAULT TRUE,
-  name VARCHAR(255) NOT NULL UNIQUE,
-  profession_id UUID REFERENCES professions(id) ON DELETE SET NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Compétences des utilisateurs
-CREATE TABLE user_skills (
-  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
-  skill_id UUID REFERENCES skills(id) ON DELETE CASCADE,
-  PRIMARY KEY (user_id, skill_id)
-);
 
 -- Demandes des clients
 CREATE TABLE missions (
@@ -108,18 +93,7 @@ CREATE TABLE deals (
   UNIQUE(mission_id, expert_id)
 );
 -- Structure de la table contracts
-CREATE TABLE IF NOT EXISTS contracts (
-    id BIGSERIAL PRIMARY KEY,
-    mission_id BIGINT REFERENCES missions(id),
-    expert_id UUID REFERENCES auth.users(id),
-    client_id UUID REFERENCES auth.users(id),
-    deal_id BIGINT REFERENCES deals(id),
-    price DECIMAL(10,2),
-    duration INTEGER,
-    status VARCHAR(50) DEFAULT 'pending',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+
 
 -- Index pour améliorer les performances
 CREATE INDEX idx_contracts_mission_id ON contracts(mission_id);
@@ -127,7 +101,7 @@ CREATE INDEX idx_contracts_expert_id ON contracts(expert_id);
 CREATE INDEX idx_contracts_client_id ON contracts(client_id);
 CREATE INDEX idx_contracts_deal_id ON contracts(deal_id);
 -- Avis
-CREATE TABLE reviews (
+CREATE TABLE ratings (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   deal_id UUID REFERENCES deals(id) ON DELETE CASCADE,
   reviewer_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
@@ -138,34 +112,7 @@ CREATE TABLE reviews (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Conversations
-CREATE TABLE conversations (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  mission_id UUID REFERENCES missions(id) ON DELETE SET NULL,
-  deal_id UUID REFERENCES deals(id) ON DELETE SET NULL,
-  last_message TEXT,
-  last_message_at TIMESTAMP WITH TIME ZONE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
 
--- Participants aux conversations
-CREATE TABLE conversation_participants (
-  conversation_id UUID REFERENCES conversations(id) ON DELETE CASCADE,
-  profile_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
-  PRIMARY KEY (conversation_id, profile_id)
-);
-
--- Messages
-CREATE TABLE messages (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  conversation_id UUID REFERENCES conversations(id) ON DELETE CASCADE,
-  sender_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
-  content TEXT NOT NULL,
-  is_read BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
 
 -- Notifications
 -- CREATE TABLE notifications (
