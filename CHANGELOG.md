@@ -5,6 +5,27 @@ All notable changes to the Havoo UI mission will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this mission adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### Ajouté
+- Refonte complète du dashboard avec un design inspiré de Twitter 2021
+- Nouvelles cartes de statistiques avec animations et effets de survol
+- Grille d'activités récentes avec icônes colorées et badges dynamiques
+- Section des derniers utilisateurs avec avatars et badges de rôle
+- Nouveaux indicateurs visuels pour les statuts et les rôles
+- Transitions et animations fluides pour une meilleure expérience utilisateur
+
+### Modifié
+- Amélioration de la mise en page pour une meilleure lisibilité
+- Optimisation des couleurs et contrastes pour le mode sombre
+- Refonte des boutons et badges avec un style plus moderne
+- Standardisation des espacements et de la typographie
+- Amélioration de la hiérarchie visuelle des informations
+
+### Technique
+- Refactoring des composants du dashboard pour plus de performance
+- Optimisation des requêtes Supabase pour les statistiques
+- Amélioration de la gestion des états de chargement
+- Mise à jour des styles avec des transitions personnalisées
+
 ## [v0.2.2] - 2025-04-11
 
 ### Ajouté
@@ -132,6 +153,8 @@ and this mission adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactoring de la requête des propositions avec double fetch pour les professions
 - Meilleure gestion des données nullables
 - Optimisation des performances de l'interface admin
+
+
 
 ## [1.0.0] - 2024-03-01
 - Version initiale

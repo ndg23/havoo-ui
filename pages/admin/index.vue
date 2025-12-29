@@ -1,12 +1,12 @@
 <template>
   <div class="min-h-screen bg-white dark:bg-black">
-    <!-- En-tête style Twitter 2022 -->
+    <!-- Header with Twitter-style design -->
     <header class="sticky top-0 z-10 bg-white/90 dark:bg-black/90 backdrop-blur-md border-b border-gray-100 dark:border-gray-800">
       <div class="max-w-7xl mx-auto">
-        <div class="px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+        <div class="px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div>
-            <h1 class="text-xl font-extrabold text-black dark:text-white">
-              Tableau de bord
+            <h1 class="text-2xl font-extrabold text-black dark:text-white tracking-tight">
+              Dashboard
             </h1>
           </div>
           
@@ -22,19 +22,18 @@
             <UButton
               color="black"
               variant="solid"
-              label="Nouvelle action"
+              label="New Action"
               icon="i-heroicons-plus"
-              class="rounded-full font-bold"
-              :ui="{ rounded: 'rounded-full' }"
+              class="rounded-full font-bold text-sm px-6"
             />
           </div>
         </div>
       </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <!-- Stats Cards style Twitter 2022 -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Stats Grid with Twitter-style cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div 
           v-for="stat in summaryStats" 
           :key="stat.name"
@@ -71,18 +70,19 @@
         </div>
       </div>
 
-      <!-- Sections principales style Twitter 2022 -->
+      <!-- Main Content Grid -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Dernières missions -->
+        <!-- Latest Missions -->
         <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
           <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
             <h2 class="text-lg font-bold text-black dark:text-white">
-              Dernières missions
+              Latest Missions
             </h2>
             <UButton
+              to="/admin/missions"
               color="gray"
               variant="ghost"
-              icon="i-heroicons-ellipsis-horizontal"
+              icon="i-heroicons-arrow-right"
               class="rounded-full h-8 w-8 !p-0"
             />
           </div>
@@ -91,7 +91,7 @@
             <div 
               v-for="mission in latestRequests" 
               :key="mission.id"
-              class="px-5 py-3 border-b border-gray-100 dark:border-gray-800 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+              class="px-5 py-4 border-b border-gray-100 dark:border-gray-800 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
             >
               <div class="flex items-center justify-between">
                 <div class="min-w-0">
@@ -107,23 +107,24 @@
                   :color="getStatusColor(mission.status)"
                   class="ml-4"
                   variant="subtle"
-                  :ui="{ rounded: 'rounded-full' }"
+                  size="sm"
                 />
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Activités récentes -->
+        <!-- Recent Activity -->
         <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
           <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
             <h2 class="text-lg font-bold text-black dark:text-white">
-              Activités récentes
+              Recent Activity
             </h2>
             <UButton
+              to="/admin/activity"
               color="gray"
               variant="ghost"
-              icon="i-heroicons-ellipsis-horizontal"
+              icon="i-heroicons-arrow-right"
               class="rounded-full h-8 w-8 !p-0"
             />
           </div>
@@ -132,7 +133,7 @@
             <div 
               v-for="activity in recentActivities" 
               :key="activity.id"
-              class="px-5 py-3 border-b border-gray-100 dark:border-gray-800 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+              class="px-5 py-4 border-b border-gray-100 dark:border-gray-800 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
             >
               <div class="flex items-start gap-3">
                 <div 
@@ -162,18 +163,18 @@
         </div>
       </div>
 
-      <!-- Section Derniers utilisateurs style Twitter 2022 -->
-      <div class="mt-6">
-        <div class="flex items-center justify-between mb-4">
+      <!-- Latest Users Section -->
+      <div class="mt-8">
+        <div class="flex items-center justify-between mb-6">
           <h2 class="text-lg font-bold text-black dark:text-white">
-            Derniers utilisateurs
+            Latest Users
           </h2>
           <UButton
+            to="/admin/users"
             color="gray"
             variant="ghost"
-            label="Voir tous"
+            label="View all"
             icon="i-heroicons-arrow-right"
-            to="/admin/users"
             class="rounded-full text-sm"
           />
         </div>
@@ -182,50 +183,53 @@
           <div 
             v-for="user in latestUsers" 
             :key="user.id"
-            class="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 hover:border-blue-300 dark:hover:border-blue-700 transition-colors group"
+            class="group bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
           >
             <div class="flex items-start gap-3">
-              <!-- Avatar avec badge de rôle -->
+              <!-- Avatar with role badge -->
               <div class="relative">
                 <div 
                   v-if="user.avatar_url"
-                  class="w-10 h-10 rounded-full bg-cover bg-center"
+                  class="w-10 h-10 rounded-full bg-cover bg-center border-2 border-white dark:border-gray-800"
                   :style="{ backgroundImage: `url(${user.avatar_url})` }"
                 ></div>
                 <div 
                   v-else
-                  class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center"
+                  class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 border-2 border-white dark:border-gray-700 flex items-center justify-center"
                 >
-                  <span class="text-sm font-medium text-gray-600 dark:text-gray-300">
+                  <span class="text-sm font-medium text-gray-600 dark:text-gray-400">
                     {{ getInitials(user.first_name, user.last_name) }}
                   </span>
                 </div>
                 <div 
-                  class="absolute -bottom-1 -right-1 rounded-full px-1.5 py-0.5 text-xs font-medium"
-                  :class="getRoleClass(user.role)"
+                  class="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-white dark:bg-gray-900 flex items-center justify-center border-2 border-white dark:border-gray-800"
                 >
-                  {{ getRoleLabel(user.role) }}
+                  <UIcon
+                    :name="getRoleIcon(user.role)"
+                    class="h-3 w-3"
+                    :class="getRoleIconColor(user.role)"
+                  />
                 </div>
               </div>
 
-              <!-- Informations utilisateur -->
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
                   <p class="text-sm font-bold text-black dark:text-white truncate">
                     {{ user.first_name }} {{ user.last_name }}
                   </p>
-                  <UButton
-                    color="gray"
-                    variant="ghost"
-                    icon="i-heroicons-chevron-right"
-                    :to="`/admin/users/${user.id}`"
-                    class="opacity-0 group-hover:opacity-100 transition-opacity -mr-2 h-7 w-7 !p-0 rounded-full"
-                  />
+                  <UBadge
+                    :color="user.is_active ? 'green' : 'red'"
+                    variant="subtle"
+                    size="xs"
+                    class="ml-2"
+                  >
+                    {{ user.is_active ? 'Active' : 'Inactive' }}
+                  </UBadge>
                 </div>
-                <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">
                   {{ user.email }}
                 </p>
-                <div class="mt-1.5 flex items-center gap-2">
+                <div class="mt-2 flex items-center gap-2">
                   <span class="text-xs text-gray-500 dark:text-gray-400">
                     {{ formatDate(user.created_at) }}
                   </span>
@@ -234,7 +238,7 @@
                     class="flex items-center text-xs text-blue-500 dark:text-blue-400"
                   >
                     <UIcon name="i-heroicons-check-badge" class="h-3 w-3 mr-0.5" />
-                    Vérifié
+                    Verified
                   </div>
                 </div>
               </div>
@@ -565,7 +569,7 @@ const formatTimeAgo = (dateString) => {
   }
 }
 
-// Mise à jour des couleurs d'activité pour le style Twitter 2022
+// Update activity colors for Twitter 2021 style
 const getActivityColorClass = (type) => {
   switch (type) {
     case 'new_user': return 'bg-blue-500'
@@ -597,15 +601,39 @@ const getActivityIcon = (type) => {
   }
 }
 
-// Récupérer la classe CSS pour un statut de demande
-const getStatusClass = (status) => {
-  switch (status) {
-    case 'pending': return 'bg-yellow-100 text-yellow-800'
-    case 'in_progress': return 'bg-blue-100 text-blue-800'
-    case 'completed': return 'bg-green-100 text-green-800'
-    case 'cancelled': return 'bg-red-100 text-red-800'
-    default: return 'bg-gray-100 text-gray-800'
+// Update role colors for Twitter 2021 style
+const getRoleIconColor = (role) => {
+  const colors = {
+    admin: 'text-blue-500',
+    expert: 'text-purple-500',
+    client: 'text-green-500'
   }
+  return colors[role] || 'text-gray-500'
+}
+
+// Update status colors for Twitter 2021 style
+const getStatusColor = (status) => {
+  const colors = {
+    pending: 'yellow',
+    in_progress: 'blue',
+    completed: 'green',
+    cancelled: 'red'
+  }
+  return colors[status] || 'gray'
+}
+
+// Helpers pour les utilisateurs
+const getInitials = (firstName = '', lastName = '') => {
+  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
+}
+
+const getRoleIcon = (role) => {
+  const icons = {
+    admin: 'i-heroicons-shield-check',
+    expert: 'i-heroicons-academic-cap',
+    client: 'i-heroicons-user',
+  }
+  return icons[role] || 'i-heroicons-user'
 }
 
 // Récupérer le libellé pour un statut de demande
@@ -619,40 +647,6 @@ const getStatusLabel = (status) => {
   }
 }
 
-// Nouvelles fonctions helper pour les statuts
-const getStatusColor = (status) => {
-  switch (status) {
-    case 'pending': return 'yellow'
-    case 'in_progress': return 'blue'
-    case 'completed': return 'green'
-    case 'cancelled': return 'red'
-    default: return 'gray'
-  }
-}
-
-// Helpers pour les utilisateurs
-const getInitials = (firstName = '', lastName = '') => {
-  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
-}
-
-const getRoleClass = (role) => {
-  const classes = {
-    expert: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
-    client: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
-    admin: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
-  }
-  return classes[role] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
-}
-
-const getRoleLabel = (role) => {
-  const labels = {
-    expert: 'Expert',
-    client: 'Client',
-    admin: 'Admin'
-  }
-  return labels[role] || role
-}
-
 // Initialisation
 onMounted(() => {
   loadDashboardData()
@@ -663,3 +657,26 @@ definePageMeta({
   layout: 'admin'
 })
 </script>
+
+<style>
+/* Add Twitter-style transitions */
+.transition-colors {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+/* Add Twitter-style hover effects */
+.hover\:border-blue-300:hover {
+  border-color: rgb(59, 130, 246);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+/* Add Twitter-style dark mode hover effects */
+.dark .dark\:hover\:border-blue-700:hover {
+  border-color: rgb(29, 78, 216);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.2), 0 2px 4px -2px rgb(0 0 0 / 0.2);
+}
+</style>

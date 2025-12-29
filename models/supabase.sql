@@ -10,7 +10,7 @@ CREATE TYPE mission_status AS ENUM ('pending', 'accepted', 'in_progress', 'compl
 CREATE TYPE payment_method AS ENUM ('mobile_money', 'card', 'cash');
 
 -- Table des utilisateurs (étend auth.users de Supabase)
-CREATE TABLE public.profiles (
+CREATE TABLE public.users (
     id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
     role user_role DEFAULT 'client',
     first_name VARCHAR(255) NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE public.profiles (
 
 -- Table des experts
 CREATE TABLE public.experts (
-    id UUID REFERENCES public.profiles(id) ON DELETE CASCADE PRIMARY KEY,
+    id UUID REFERENCES public.users(id) ON DELETE CASCADE PRIMARY KEY,
     status expert_status DEFAULT 'pending',
     bio TEXT,
     experience_years INTEGER DEFAULT 0,
@@ -73,7 +73,7 @@ CREATE TABLE public.expert_services (
 -- Table des demandes de service
 CREATE TABLE public.service_missions (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    client_id UUID REFERENCES public.profiles(id),
+    client_id UUID REFERENCES public.users(id),
     service_id UUID REFERENCES public.services(id),
     expert_id UUID REFERENCES public.experts(id),
     status mission_status DEFAULT 'pending',
@@ -118,7 +118,7 @@ CREATE TABLE public.jobs (
 CREATE TABLE public.payments (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     mission_id UUID REFERENCES public.service_missions(id),
-    client_id UUID REFERENCES public.profiles(id),
+    client_id UUID REFERENCES public.users(id),
     expert_id UUID REFERENCES public.experts(id),
     amount INTEGER NOT NULL,
     platform_fee INTEGER NOT NULL,
@@ -132,8 +132,8 @@ CREATE TABLE public.payments (
 -- Table des messages
 CREATE TABLE public.messages (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    sender_id UUID REFERENCES public.profiles(id),
-    receiver_id UUID REFERENCES public.profiles(id),
+    sender_id UUID REFERENCES public.users(id),
+    receiver_id UUID REFERENCES public.users(id),
     job_id UUID REFERENCES public.jobs(id),
     content TEXT NOT NULL,
     read BOOLEAN DEFAULT false,
@@ -143,7 +143,7 @@ CREATE TABLE public.messages (
 -- Table des notifications
 CREATE TABLE public.notifications (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    user_id UUID REFERENCES public.profiles(id),
+    user_id UUID REFERENCES public.users(id),
     type notification_type NOT NULL,
     title VARCHAR(255) NOT NULL,
     content TEXT NOT NULL,
@@ -154,7 +154,7 @@ CREATE TABLE public.notifications (
 
 -- Table des favoris
 CREATE TABLE public.favorites (
-    client_id UUID REFERENCES public.profiles(id),
+    client_id UUID REFERENCES public.users(id),
     expert_id UUID REFERENCES public.experts(id),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     PRIMARY KEY (client_id, expert_id)
@@ -185,7 +185,7 @@ CREATE TRIGGER update_profiles_updated_at
 -- Répéter pour les autres tables avec updated_at
 
 -- RLS (Row Level Security) Policies
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.experts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.service_missions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.jobs ENABLE ROW LEVEL SECURITY;
@@ -194,12 +194,12 @@ ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 
 -- Exemple de politique RLS pour les profils
 CREATE POLICY "Les profils sont visibles par tous les utilisateurs authentifiés"
-    ON public.profiles
+    ON public.users
     FOR SELECT
     USING (auth.role() = 'authenticated');
 
 CREATE POLICY "Les utilisateurs peuvent modifier leur propre profil"
-    ON public.profiles
+    ON public.users
     FOR UPDATE
     USING (auth.uid() = id);
 

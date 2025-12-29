@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+  <div class="min-h-screen bg-white dark:bg-gray-900">
     <!-- Header compact et moderne -->
     <div class="sticky top-0 z-20 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-b border-gray-200 dark:border-gray-700 shadow-sm">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4">
@@ -86,117 +86,135 @@
         </div>
       </div>
     </div>
-
+      <!-- :src="request.client?.avatar_url || defaultAvatar"
+      :alt="request.client?.first_name" -->
     <!-- Contenu principal -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+    <div class="max-w-5xl bg-white dark:bg-gray-900 mx-auto px-4 sm:px-6 py-6">
       <!-- Vue Liste (style Leboncoin amélioré) -->
       <div v-if="viewMode === 'list'" class="space-y-4">
-        <TransitionGroup name="list" tag="div">
+        <TransitionGroup name="list" tag="div" class="divide-y divide-gray-200 dark:divide-gray-700">
           <article 
             v-for="request in filteredRequests" 
             :key="request.id"
-            class="group bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 cursor-pointer overflow-hidden"
+            class="group hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200 cursor-pointer"
             @click="navigateToRequest(request.id)"
           >
-            <div class="flex">
-              <!-- Image/Avatar du client -->
-              <div class="w-72 h-48 bg-gray-100 dark:bg-gray-800 flex-shrink-0 relative overflow-hidden flex items-center justify-center">
-                <img
-                  :src="expert.avatar_url || defaultAvatar"
-                  :alt="expert.first_name"
-                  class="w-32 h-32 object-contain rounded-full ring-2 ring-white dark:ring-gray-700 shadow-lg"
-                />
-                
-                <!-- Badges de statut -->
-                <div class="absolute top-3 left-3 flex flex-col gap-2">
-                  <span 
-                    class="px-2 py-1 rounded-md text-xs font-semibold shadow-lg"
-                    :class="getStatusColor(request.status)"
-                  >
-                    {{ getStatusLabel(request.status) }}
-                  </span>
-                  <span 
-                    v-if="request.is_urgent"
-                    class="bg-red-500 text-white px-2 py-1 rounded-md text-xs font-semibold shadow-lg flex items-center gap-1"
-                  >
-                    <UIcon name="i-heroicons-fire" class="w-3 h-3" />
-                    URGENT
-                  </span>
-                </div>
-
-                <!-- Budget en overlay -->
-                <div class="absolute bottom-3 right-3">
-                  <div class="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-lg px-3 py-2">
-                    <div class="text-lg font-bold text-gray-900 dark:text-white">
-                      {{ formatPrice(request.budget) }}
-                    </div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400 text-center">
-                      {{ getWorkTypeLabel(request.work_type) }}
+            <div class="px-6 py-4">
+              <div class="flex">
+                <!-- Image/Icon container style LeBonCoin -->
+                <div class="w-56 h-40 bg-gray-100 dark:bg-gray-800 flex-shrink-0 relative overflow-hidden rounded-lg shadow-sm">
+                  <div class="w-full h-full flex items-center justify-center">
+                    <div 
+                      class="w-20 h-20 rounded-full flex items-center justify-center"
+                      :class="getCategoryColorClass(request.profession_id)"
+                    >
+                      <component 
+                        :is="getCategoryIcon(request.profession_id)" 
+                        class="w-10 h-10 text-white"
+                      />
                     </div>
                   </div>
-                </div>
-              </div>
 
-              <!-- Contenu -->
-              <div class="flex-1 p-6 flex flex-col justify-between min-h-48">
-                <!-- Header -->
-                <div>
-                  <div class="flex items-start justify-between mb-3">
-                    <div class="flex-1">
-                      <h3 class="text-xl font-bold text-gray-900 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors line-clamp-1">
+                  <!-- Badge Urgent -->
+                  <div 
+                    v-if="request.is_urgent"
+                    class="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded shadow-sm flex items-center gap-1"
+                  >
+                    <span class="w-1.5 h-1.5 bg-white rounded-full"></span>
+                    URGENT
+                  </div>
+
+                  <!-- Type de travail -->
+                  <div 
+                    class="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm text-white text-xs px-1.5 py-0.5 rounded-md flex items-center gap-1"
+                  >
+                    <UIcon :name="request.work_type === 'remote' ? 'i-heroicons-globe-alt' : 'i-heroicons-map-pin'" class="w-3 h-3" />
+                    {{ getWorkTypeLabel(request.work_type) }}
+                  </div>
+                </div>
+
+                <!-- Contenu style LeBonCoin -->
+                <div class="flex-1 pl-6">
+                  <div class="flex items-start justify-between">
+                    <!-- Info principale -->
+                    <div class="flex-1 min-w-0">
+                      <!-- Status et date -->
+                      <div class="flex items-center gap-2 mb-1.5">
+                        <span class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                          {{ formatTimeAgo(request.created_at) }}
+                        </span>
+                        <span 
+                          class="text-xs font-medium px-2 py-0.5 rounded-full"
+                          :class="getStatusColor(request.status)"
+                        >
+                          {{ getStatusLabel(request.status) }}
+                        </span>
+                      </div>
+                      
+                      <!-- Titre de la demande -->
+                      <h3 class="text-lg font-bold text-gray-900 dark:text-white group-hover:text-green-600 transition-colors">
                         {{ request.title }}
                       </h3>
-                      <p class="text-green-600 dark:text-green-400 font-medium text-sm mt-1">
-                        {{ request.profession?.name }}
+                      
+                      <!-- Budget -->
+                      <div class="mt-2 flex items-baseline gap-2">
+                        <span class="text-2xl font-bold text-gray-900 dark:text-white">
+                          {{ formatPrice(request.budget) }}
+                        </span>
+                        <span class="text-sm font-medium text-gray-500">budget</span>
+                      </div>
+
+                      <!-- Détails clés -->
+                      <div class="mt-3 flex items-center gap-6 text-sm text-gray-600 dark:text-gray-300">
+                        <span class="flex items-center gap-1.5">
+                          <UIcon name="i-heroicons-academic-cap" class="w-4 h-4 text-gray-400" />
+                          {{ request.profession?.name }}
+                        </span>
+                        <span class="flex items-center gap-1.5">
+                          <UIcon name="i-heroicons-user" class="w-4 h-4 text-gray-400" />
+                          {{ request.client?.first_name }}
+                        </span>
+                        <span class="flex items-center gap-1.5">
+                          <UIcon name="i-heroicons-map-pin" class="w-4 h-4 text-gray-400" />
+                          {{ request.location || 'À distance' }}
+                        </span>
+                      </div>
+
+                      <!-- Description courte -->
+                      <p class="mt-3 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                        {{ request.description || 'Aucune description disponible.' }}
                       </p>
                     </div>
-                    
+
                     <!-- Propositions count -->
-                    <div class="flex items-center gap-1 bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded-lg">
-                      <UIcon name="i-heroicons-user-group" class="w-4 h-4 text-orange-500" />
-                      <span class="text-sm font-semibold text-orange-700 dark:text-orange-400">
-                        {{ request.proposals_count || 0 }}
-                      </span>
+                    <div class="flex flex-col items-end gap-2 ml-4">
+                      <div class="flex items-center gap-1 bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded-lg">
+                        <UIcon name="i-heroicons-user-group" class="w-4 h-4 text-orange-500" />
+                        <span class="text-sm font-semibold text-orange-700 dark:text-orange-400">
+                          {{ request.proposals_count || 0 }}
+                        </span>
+                      </div>
+                      
+                      <!-- CTA Button -->
+                      <button 
+                        v-if="canMakeProposal(request)"
+                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
+                        @click.stop="makeProposal(request)"
+                      >
+                        Proposer
+                      </button>
                     </div>
                   </div>
 
-                  <!-- Description -->
-                  <p class="text-gray-600 dark:text-gray-300 text-sm line-clamp-2 mb-4 leading-relaxed">
-                    {{ request.description || 'Aucune description disponible.' }}
-                  </p>
-                </div>
-
-                <!-- Footer avec stats -->
-                <div class="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
-                  <div class="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
-                    <span class="flex items-center gap-1">
-                      <UIcon name="i-heroicons-clock" class="w-4 h-4" />
-                      {{ formatTimeAgo(request.created_at) }}
-                    </span>
-                    <span class="flex items-center gap-1">
-                      <UIcon name="i-heroicons-calendar-days" class="w-4 h-4" />
-                      {{ formatDuration(request.duration) }}
-                    </span>
-                    <span class="flex items-center gap-1">
-                      <UIcon name="i-heroicons-map-pin" class="w-4 h-4" />
-                      {{ request.location || 'À distance' }}
-                    </span>
+                  <!-- Deadline si présente -->
+                  <div 
+                    v-if="request.deadline"
+                    class="mt-3 inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-full"
+                    :class="isUrgent(request.deadline) ? 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-gray-50 text-gray-700 dark:bg-gray-800 dark:text-gray-300'"
+                  >
+                    <UIcon name="i-heroicons-clock" class="w-3 h-3" />
+                    Deadline: {{ formatDate(request.deadline) }}
                   </div>
-
-                  <!-- CTA Button -->
-                  <button 
-                    v-if="canMakeProposal(request)"
-                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
-                    @click.stop="makeProposal(request)"
-                  >
-                    Proposer mes services
-                  </button>
-                  <span 
-                    v-else
-                    class="text-xs text-gray-400 px-3 py-2"
-                  >
-                    {{ getActionLabel(request) }}
-                  </span>
                 </div>
               </div>
             </div>
@@ -437,37 +455,30 @@ const getActionLabel = (request) => {
 
 const getStatusLabel = (status) => {
   const labels = {
-    'open': 'NOUVELLE',
-    'assigned': 'ASSIGNÉE',
-    'in_progress': 'EN COURS',
-    'completed': 'TERMINÉE',
-    'cancelled': 'ANNULÉE'
+    'open': 'Nouvelle',
+    'in_progress': 'En cours',
+    'completed': 'Terminée',
+    'cancelled': 'Annulée'
   }
-  return labels[status] || status?.toUpperCase()
+  return labels[status] || status
 }
 
 const getStatusColor = (status) => {
   const colors = {
-    'open': 'bg-green-500 text-white',
-    'assigned': 'bg-blue-500 text-white',
-    'in_progress': 'bg-orange-500 text-white',
-    'completed': 'bg-gray-500 text-white',
-    'cancelled': 'bg-red-500 text-white'
+    'open': 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+    'in_progress': 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+    'completed': 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+    'cancelled': 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
   }
-  return colors[status] || 'bg-gray-500 text-white'
+  return colors[status] || colors.open
 }
 
 const getWorkTypeLabel = (type) => {
-  const labels = {
-    'remote': 'À distance',
-    'on_site': 'Sur place',
-    'hybrid': 'Hybride'
-  }
-  return labels[type] || 'Non spécifié'
+  return type === 'remote' ? 'À distance' : 'Sur place'
 }
 
 const formatPrice = (price) => {
-  if (!price) return 'Budget libre'
+  if (!price) return 'Sur devis'
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
     currency: 'EUR',
@@ -490,9 +501,46 @@ const formatTimeAgo = (date) => {
   return `Il y a ${Math.floor(diffDays / 30)}mois`
 }
 
-const formatDuration = (duration) => {
-  if (!duration) return 'Durée libre'
-  return duration === 1 ? '1 jour' : `${duration} jours`
+const formatDate = (date) => {
+  if (!date) return 'Non spécifié'
+  return format(new Date(date), 'dd MMM yyyy', { locale: fr })
+}
+
+const isUrgent = (deadline) => {
+  if (!deadline) return false
+  const now = new Date()
+  const deadlineDate = new Date(deadline)
+  const diffDays = Math.ceil((deadlineDate - now) / (1000 * 60 * 60 * 24))
+  return diffDays <= 3 && diffDays >= 0
+}
+
+// Style helpers
+const getCategoryColorClass = (professionId) => {
+  const colors = {
+    1: 'bg-blue-500',   // Bricolage
+    2: 'bg-green-500',  // Jardinage
+    3: 'bg-purple-500', // Ménage
+    4: 'bg-amber-500',  // Déménagement
+    5: 'bg-red-500',    // Rénovation
+    6: 'bg-indigo-500', // Informatique
+    7: 'bg-pink-500',   // Garde d'enfants
+    8: 'bg-teal-500'    // Cours particuliers
+  }
+  return colors[professionId] || 'bg-gray-500'
+}
+
+const getCategoryIcon = (professionId) => {
+  const icons = {
+    1: 'Wrench',      // Bricolage
+    2: 'Paintbrush',  // Jardinage
+    3: 'Home',        // Ménage
+    4: 'Briefcase',   // Déménagement
+    5: 'LayoutGrid',  // Rénovation
+    6: 'Monitor',     // Informatique
+    7: 'Heart',       // Garde d'enfants
+    8: 'GraduationCap' // Cours particuliers
+  }
+  return icons[professionId] || 'FileText'
 }
 
 // Initialisation
@@ -545,14 +593,4 @@ onMounted(() => {
   transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-/* Hover effects */
-.group:hover {
-  transform: translateY(-2px);
-}
-
-@media (max-width: 768px) {
-  .group:hover {
-    transform: none;
-  }
-}
 </style>

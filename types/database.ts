@@ -16,25 +16,26 @@ export interface Database {
           last_name: string;
           email: string;
           phone: string | null;
+          whatsapp: string | null;
           avatar_url: string | null;
-          profession: string | null;
-          experience: number | null;
           bio: string | null;
+          city: string | null;
+          country: string;
+          profession: string | null;
+          education_level: 'primaire' | 'secondaire' | 'supérieur' | 'autodidacte' | null;
+          languages: string[];
+          preferred_payment_method: 'mobile_money' | 'bank_transfer' | 'cash' | 'wave' | 'orange_money';
+          mobile_money_number: string | null;
+          availability_hours: {
+            weekdays: string[];
+            weekend: string[];
+          };
           is_expert: boolean;
-          is_available: boolean;
           is_verified: boolean;
-          hourly_rate: number | null;
+          role: 'client' | 'expert' | 'admin';
+          profile_completion_percentage: number;
           created_at: string;
           updated_at: string;
-          notification_preferences?: {
-            email: boolean;
-            sms: boolean;
-            app: boolean;
-            messages: boolean;
-            proposals: boolean;
-            contracts: boolean;
-            payments: boolean;
-          };
         }
         Insert: {
           id: string;
@@ -42,34 +43,46 @@ export interface Database {
           last_name: string;
           email: string;
           phone?: string | null;
+          whatsapp?: string | null;
           avatar_url?: string | null;
-          profession?: string | null;
-          experience?: number | null;
           bio?: string | null;
+          city?: string | null;
+          country?: string;
+          profession?: string | null;
+          education_level?: 'primaire' | 'secondaire' | 'supérieur' | 'autodidacte' | null;
+          languages?: string[];
+          preferred_payment_method?: 'mobile_money' | 'bank_transfer' | 'cash' | 'wave' | 'orange_money';
+          mobile_money_number?: string | null;
+          availability_hours?: {
+            weekdays: string[];
+            weekend: string[];
+          };
           is_expert?: boolean;
-          is_available?: boolean;
           is_verified?: boolean;
-          hourly_rate?: number | null;
-          created_at?: string;
-          updated_at?: string;
+          role?: 'client' | 'expert' | 'admin';
         }
         Update: {
-          id?: string;
           first_name?: string;
           last_name?: string;
           email?: string;
           phone?: string | null;
+          whatsapp?: string | null;
           avatar_url?: string | null;
-          profession?: string | null;
-          experience?: number | null;
           bio?: string | null;
+          city?: string | null;
+          country?: string;
+          profession?: string | null;
+          education_level?: 'primaire' | 'secondaire' | 'supérieur' | 'autodidacte' | null;
+          languages?: string[];
+          preferred_payment_method?: 'mobile_money' | 'bank_transfer' | 'cash' | 'wave' | 'orange_money';
+          mobile_money_number?: string | null;
+          availability_hours?: {
+            weekdays: string[];
+            weekend: string[];
+          };
           is_expert?: boolean;
-          is_available?: boolean;
           is_verified?: boolean;
-          hourly_rate?: number | null;
-          created_at?: string;
-          updated_at?: string;
-          notification_preferences?: object;
+          role?: 'client' | 'expert' | 'admin';
         }
       }
       
@@ -212,6 +225,38 @@ export interface Database {
           contract_id?: number | null;
           content: string;
           is_read?: boolean;
+        }
+      }
+    }
+    Views: {
+      view_complete_profiles: {
+        Row: {
+          id: string;
+          first_name: string;
+          last_name: string;
+          email: string;
+          phone: string | null;
+          whatsapp: string | null;
+          avatar_url: string | null;
+          bio: string | null;
+          city: string | null;
+          country: string;
+          profession: string | null;
+          education_level: string | null;
+          languages: string[];
+          preferred_payment_method: string;
+          mobile_money_number: string | null;
+          availability_hours: {
+            weekdays: string[];
+            weekend: string[];
+          };
+          is_expert: boolean;
+          is_verified: boolean;
+          profile_completion_percentage: number;
+          skills: {
+            skill_id: string;
+            skill_name: string;
+          }[];
         }
       }
     }

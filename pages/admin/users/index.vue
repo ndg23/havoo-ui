@@ -28,7 +28,7 @@
     <!-- Table -->
     <UCard>
       <UTable
-        :rows="users"
+        :rows="paginatedUsers"
         :columns="columns"
         :loading="isLoading"
         :search-value="search"
@@ -129,6 +129,37 @@
         </template>
       </UTable>
     </UCard>
+
+    <!-- Pagination -->
+    <div v-if="totalPages > 1" class="flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+      <div class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+        <span>Page</span>
+        <span class="font-medium">{{ currentPage }}</span>
+        <span>sur</span>
+        <span class="font-medium">{{ totalPages }}</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <UButton
+          color="gray"
+          variant="ghost"
+          :disabled="currentPage === 1"
+          @click="currentPage--"
+          icon="i-heroicons-chevron-left"
+        >
+          Précédent
+        </UButton>
+        <UButton
+          color="gray"
+          variant="ghost"
+          :disabled="currentPage === totalPages"
+          @click="currentPage++"
+          icon="i-heroicons-chevron-right"
+          class="flex flex-row-reverse"
+        >
+          Suivant
+        </UButton>
+      </div>
+    </div>
   </div>
   
   <!-- Modal d'ajout/modification d'utilisateur -->

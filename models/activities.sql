@@ -17,12 +17,12 @@ CREATE TABLE public.activities (
     type activity_type NOT NULL,
     title VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
-    user_id UUID REFERENCES public.profiles(id),
+    user_id UUID REFERENCES public.users(id),
     related_id UUID, -- ID de l'objet concerné (utilisateur, demande, etc.)
     related_type VARCHAR(50), -- Type de l'objet concerné (user, mission, etc.)
     metadata JSONB, -- Données supplémentaires en format JSON
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    created_by UUID REFERENCES public.profiles(id)
+    created_by UUID REFERENCES public.users(id)
 );
 
 -- Index pour optimiser les performances
@@ -39,7 +39,7 @@ CREATE POLICY "Les administrateurs peuvent voir toutes les activités"
     FOR SELECT
     USING (
         EXISTS (
-            SELECT 1 FROM public.profiles
+            SELECT 1 FROM public.users
             WHERE profiles.id = auth.uid()
             AND profiles.role = 'admin'
         )
@@ -76,7 +76,7 @@ $$ LANGUAGE plpgsql;
 
 -- Trigger pour enregistrer l'activité d'un nouvel utilisateur
 CREATE TRIGGER log_new_user_activity_trigger
-AFTER INSERT ON public.profiles
+AFTER INSERT ON public.users
 FOR EACH ROW
 EXECUTE PROCEDURE log_new_user_activity();
 

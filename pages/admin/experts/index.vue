@@ -128,6 +128,85 @@
             </UDropdown>
           </template>
         </UTable>
+
+        <!-- Pagination -->
+        <div v-if="totalPages > 1" class="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 px-4 py-3">
+          <div class="flex flex-1 justify-between sm:hidden">
+            <UButton
+              :disabled="currentPage === 1"
+              @click="currentPage--"
+              color="gray"
+              variant="ghost"
+            >
+              Précédent
+            </UButton>
+            <UButton
+              :disabled="currentPage >= totalPages"
+              @click="currentPage++"
+              color="gray"
+              variant="ghost"
+            >
+              Suivant
+            </UButton>
+          </div>
+          <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+            <div>
+              <p class="text-sm text-gray-700 dark:text-gray-300">
+                Affichage de
+                <span class="font-medium">{{ startIndex + 1 }}</span>
+                à
+                <span class="font-medium">{{ endIndex }}</span>
+                sur
+                <span class="font-medium">{{ totalItems }}</span>
+                résultats
+              </p>
+            </div>
+            <div>
+              <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                <UButton
+                  :disabled="currentPage === 1"
+                  @click="currentPage = 1"
+                  color="gray"
+                  variant="ghost"
+                  icon="i-heroicons-chevron-double-left-20-solid"
+                />
+                <UButton
+                  :disabled="currentPage === 1"
+                  @click="currentPage--"
+                  color="gray"
+                  variant="ghost"
+                  icon="i-heroicons-chevron-left-20-solid"
+                />
+                
+                <div class="flex items-center">
+                  <input
+                    v-model="currentPage"
+                    type="number"
+                    min="1"
+                    :max="totalPages"
+                    class="w-16 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 text-center text-sm focus:border-primary-500 focus:ring-primary-500"
+                  />
+                  <span class="mx-2 text-gray-500 dark:text-gray-400">sur {{ totalPages }}</span>
+                </div>
+
+                <UButton
+                  :disabled="currentPage >= totalPages"
+                  @click="currentPage++"
+                  color="gray"
+                  variant="ghost"
+                  icon="i-heroicons-chevron-right-20-solid"
+                />
+                <UButton
+                  :disabled="currentPage >= totalPages"
+                  @click="currentPage = totalPages"
+                  color="gray"
+                  variant="ghost"
+                  icon="i-heroicons-chevron-double-right-20-solid"
+                />
+              </nav>
+            </div>
+          </div>
+        </div>
       </UCard>
   
       <!-- Modal -->
@@ -253,6 +332,11 @@
   const experts = ref([])
   const professions = ref([])
   const editMode = ref(false)
+  const currentPage = ref(1)
+  const totalPages = ref(1)
+  const totalItems = ref(0)
+  const startIndex = ref(0)
+  const endIndex = ref(0)
   
   const form = ref({
     first_name: '',
@@ -440,7 +524,8 @@
             *,
             profession:professions(*)
           `)
-          .order('created_at', { ascending: false }),
+          .order('created_at', { ascending: false })
+          .range((currentPage.value - 1) * 10, currentPage.value * 10 - 1),
         supabase
           .from('professions')
           .select('*')
@@ -452,6 +537,10 @@
   
       experts.value = expertsData.data || []
       professions.value = professionsData.data || []
+      totalItems.value = expertsData.data.length
+      totalPages.value = Math.ceil(totalItems.value / 10)
+      startIndex.value = currentPage.value * 10 - 10
+      endIndex.value = currentPage.value * 10
     } catch (error) {
       console.error('Error loading data:', error)
     } finally {

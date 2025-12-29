@@ -276,13 +276,25 @@ const isExpert = computed(() => {
   return profile.value?.role === 'expert' || profile.value?.is_expert === true;
 });
 
+const isAdmin = computed(() => {
+  return profile.value?.role === 'admin' || profile.value?.is_admin === true;
+});
+
 // Éléments de navigation
-const navigationItems = [
-  { name: 'Accueil', href: '/' },
-  { name: 'Demandes', href: '/requests' },
-  { name: 'Experts', href: '/experts' },
-  { name: 'Comment ça marche', href: '/how-it-works' },
-];
+const navigationItems = computed(() => {
+  const items = [
+    { name: 'Accueil', href: '/' },
+    { name: 'Demandes', href: '/requests' },
+    { name: 'Experts', href: '/experts' },
+    { name: 'Comment ça marche', href: '/how-it-works' },
+  ];
+
+  if (isAdmin.value) {
+    items.push({ name: 'Console Admin', href: '/admin' });
+  }
+
+  return items;
+});
 
 // Vérifier si un lien est actif
 const isActive = (href) => {

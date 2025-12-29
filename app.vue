@@ -1,10 +1,15 @@
 <template>
-  <NuxtLayout>
-    <NuxtPage />
-    <CustomToast />
-
-  </NuxtLayout>
+  <div>
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
+    <Toast />
+  </div>
 </template>
+
+<script setup>
+import Toast from '~/components/ui/Toast.vue'
+</script>
 
 <style>
 /* @font-face {

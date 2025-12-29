@@ -340,7 +340,7 @@ const validateEmail = async () => {
   try {
     // 1. Vérifier si l'email existe dans profiles
     const { data: profile, error: profileError } = await supabase
-      .from('profiles')
+      .from('users')
       .select('id')
       .eq('email', form.email.toLowerCase())
       .single();
@@ -524,15 +524,15 @@ const handleSignup = async () => {
 
     // Créer/mettre à jour le profil
     const { error: profileError } = await supabase
-      .from('profiles')
+      .from('users')
       .upsert({
         id: user.id,
         first_name: form.firstName,
         last_name: form.lastName,
         email: form.email,
         phone: form.phone,
-        role: form.role,
-        is_expert: form.role === 'expert'
+        role: form.role
+        // is_expert: form.role === 'expert'
       });
 
     if (profileError) throw profileError;

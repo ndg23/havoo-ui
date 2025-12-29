@@ -68,7 +68,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pg_trgm";
 
 -- PROFILES - Table utilisateur de base
-CREATE TABLE public.profiles (
+CREATE TABLE public.users (
     id UUID PRIMARY KEY,
     first_name VARCHAR(255) NOT NULL,
     last_name VARCHAR(255) NOT NULL,
@@ -333,14 +333,14 @@ CREATE TABLE public.app_settings (
 -- ===========================================
 
 -- Relation PROFILES avec AUTH.USERS
-ALTER TABLE public.profiles 
+ALTER TABLE public.users 
 ADD CONSTRAINT profiles_id_fkey 
 FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 -- Relations PROFILE_SKILLS
 ALTER TABLE public.profile_skills
 ADD CONSTRAINT profile_skills_profile_id_fkey
-FOREIGN KEY (profile_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+FOREIGN KEY (profile_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 ALTER TABLE public.profile_skills
 ADD CONSTRAINT profile_skills_skill_id_fkey
@@ -354,7 +354,7 @@ FOREIGN KEY (profession_id) REFERENCES public.service_professions(id) ON DELETE 
 -- Relation EXPERTS avec PROFILES
 ALTER TABLE public.experts
 ADD CONSTRAINT experts_id_fkey
-FOREIGN KEY (id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+FOREIGN KEY (id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 -- Relations EXPERT_SERVICES
 ALTER TABLE public.expert_services
@@ -373,7 +373,7 @@ FOREIGN KEY (expert_id) REFERENCES public.experts(id) ON DELETE CASCADE;
 -- Relations REQUESTS
 ALTER TABLE public.missions
 ADD CONSTRAINT missions_client_id_fkey
-FOREIGN KEY (client_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+FOREIGN KEY (client_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 ALTER TABLE public.missions
 ADD CONSTRAINT missions_service_id_fkey
@@ -403,7 +403,7 @@ FOREIGN KEY (proposal_id) REFERENCES public.proposals(id) ON DELETE SET NULL;
 
 ALTER TABLE public.contracts
 ADD CONSTRAINT contracts_client_id_fkey
-FOREIGN KEY (client_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+FOREIGN KEY (client_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 ALTER TABLE public.contracts
 ADD CONSTRAINT contracts_expert_id_fkey
@@ -420,7 +420,7 @@ FOREIGN KEY (mission_id) REFERENCES public.missions(id) ON DELETE CASCADE;
 
 ALTER TABLE public.reviews
 ADD CONSTRAINT reviews_client_id_fkey
-FOREIGN KEY (client_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+FOREIGN KEY (client_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 ALTER TABLE public.reviews
 ADD CONSTRAINT reviews_expert_id_fkey
@@ -442,7 +442,7 @@ FOREIGN KEY (review_id) REFERENCES public.reviews(id) ON DELETE CASCADE;
 
 ALTER TABLE public.review_reactions
 ADD CONSTRAINT review_reactions_profile_id_fkey
-FOREIGN KEY (profile_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+FOREIGN KEY (profile_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 -- Relations CONVERSATIONS
 ALTER TABLE public.conversations
@@ -456,7 +456,7 @@ FOREIGN KEY (conversation_id) REFERENCES public.conversations(id) ON DELETE CASC
 
 ALTER TABLE public.conversation_participants
 ADD CONSTRAINT conversation_participants_profile_id_fkey
-FOREIGN KEY (profile_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+FOREIGN KEY (profile_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 -- Relations MESSAGES
 ALTER TABLE public.messages
@@ -465,12 +465,12 @@ FOREIGN KEY (conversation_id) REFERENCES public.conversations(id) ON DELETE CASC
 
 ALTER TABLE public.messages
 ADD CONSTRAINT messages_sender_id_fkey
-FOREIGN KEY (sender_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+FOREIGN KEY (sender_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 -- Relations NOTIFICATIONS
 ALTER TABLE public.notifications
 ADD CONSTRAINT notifications_profile_id_fkey
-FOREIGN KEY (profile_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+FOREIGN KEY (profile_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 -- Relations PAYMENTS
 ALTER TABLE public.payments
@@ -480,7 +480,7 @@ FOREIGN KEY (contract_id) REFERENCES public.contracts(id) ON DELETE CASCADE;
 -- Relations FAVORITES
 ALTER TABLE public.favorites
 ADD CONSTRAINT favorites_profile_id_fkey
-FOREIGN KEY (profile_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+FOREIGN KEY (profile_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 ALTER TABLE public.favorites
 ADD CONSTRAINT favorites_expert_id_fkey
@@ -521,7 +521,7 @@ BEGIN
     WHERE expert_id = v_expert_id AND is_public = TRUE;
     
     -- Mettre à jour le profil de l'expert
-    UPDATE public.profiles
+    UPDATE public.users
     SET rating = v_avg_rating,
         reviews_count = v_review_count
     WHERE id = v_expert_id;
@@ -560,7 +560,7 @@ $$ LANGUAGE plpgsql;
 
 -- Créer les triggers
 CREATE TRIGGER update_profiles_updated_at
-BEFORE UPDATE ON public.profiles
+BEFORE UPDATE ON public.users
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
 
@@ -645,7 +645,7 @@ CREATE INDEX idx_notifications_profile ON public.notifications (profile_id);
 -- ===========================================
 
 -- Activer RLS sur toutes les tables
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.skills ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.profile_skills ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.service_professions ENABLE ROW LEVEL SECURITY;
@@ -669,11 +669,11 @@ ALTER TABLE public.app_settings ENABLE ROW LEVEL SECURITY;
 
 -- Exemples de politiques RLS basiques (à adapter selon vos besoins)
 CREATE POLICY "Lecture publique des profils"
-ON public.profiles FOR SELECT
+ON public.users FOR SELECT
 USING (auth.role() = 'authenticated');
 
 CREATE POLICY "Modification de son propre profil"
-ON public.profiles FOR UPDATE
+ON public.users FOR UPDATE
 USING (auth.uid() = id);
 
 CREATE POLICY "Lecture publique des services"
@@ -686,21 +686,21 @@ USING (true);
 
 -- Permettre à un utilisateur authentifié de créer son propre profil
 CREATE POLICY "Users can create their own profile"
-ON public.profiles
+ON public.users
 FOR INSERT
 TO authenticated
 WITH CHECK (auth.uid() = id);
 
 -- Permettre à un utilisateur de lire son propre profil
 CREATE POLICY "Users can read their own profile"
-ON public.profiles
+ON public.users
 FOR SELECT
 TO authenticated
 USING (auth.uid() = id);
 
 -- Permettre à un utilisateur de mettre à jour son propre profil
 CREATE POLICY "Users can update their own profile"
-ON public.profiles
+ON public.users
 FOR UPDATE
 TO authenticated
 USING (auth.uid() = id);

@@ -247,34 +247,34 @@
         </UTable>
         
         <!-- Pagination -->
-        <div class="flex justify-center mt-6">
-          <nav class="flex items-center gap-1">
-            <button 
-              @click="currentPage > 1 ? currentPage-- : null"
+        <div v-if="totalPages > 1" class="flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+            <span>Page</span>
+            <span class="font-medium">{{ currentPage }}</span>
+            <span>sur</span>
+            <span class="font-medium">{{ totalPages }}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <UButton
+              color="gray"
+              variant="ghost"
               :disabled="currentPage === 1"
-              class="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              @click="currentPage--"
+              icon="i-heroicons-chevron-left"
             >
-              <ChevronLeft class="h-5 w-5" />
-            </button>
-            
-            <div v-for="page in totalPages" :key="page" class="flex items-center">
-              <button 
-                @click="currentPage = page"
-                class="h-10 w-10 rounded-lg flex items-center justify-center text-sm font-medium transition-colors"
-                :class="currentPage === page ? 'bg-primary-500 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'"
-              >
-                {{ page }}
-              </button>
-            </div>
-            
-            <button 
-              @click="currentPage < totalPages ? currentPage++ : null"
+              Précédent
+            </UButton>
+            <UButton
+              color="gray"
+              variant="ghost"
               :disabled="currentPage === totalPages"
-              class="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              @click="currentPage++"
+              icon="i-heroicons-chevron-right"
+              class="flex flex-row-reverse"
             >
-              <ChevronRight class="h-5 w-5" />
-            </button>
-          </nav>
+              Suivant
+            </UButton>
+          </div>
         </div>
       </div>
       

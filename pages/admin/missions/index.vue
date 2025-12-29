@@ -45,9 +45,10 @@
       <!-- Table -->
       <UCard>
         <UTable
-          :rows="paginatedMissions"
           :columns="columns"
+          :rows="paginatedMissions"
           :loading="isLoading"
+          class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm"
         >
           <!-- Mission cell -->
           <template #mission-data="{ row }">
@@ -147,21 +148,34 @@
         </UTable>
   
         <!-- Pagination -->
-        <div class="mt-4 flex items-center justify-between">
-          <p class="text-sm text-gray-700">
-            Affichage de
-            <span class="font-medium">{{ startIndex + 1 }}</span>
-            à
-            <span class="font-medium">{{ endIndex }}</span>
-            sur
-            <span class="font-medium">{{ totalItems }}</span>
-            résultats
-          </p>
-          <UPagination
-            v-model="currentPage"
-            :total="totalPages"
-            :ui="{ rounded: 'rounded-full' }"
-          />
+        <div v-if="totalPages > 1" class="flex items-center justify-between px-4 py-3 mt-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+            <span>Page</span>
+            <span class="font-medium">{{ currentPage }}</span>
+            <span>sur</span>
+            <span class="font-medium">{{ totalPages }}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <UButton
+              color="gray"
+              variant="ghost"
+              :disabled="currentPage === 1"
+              @click="currentPage--"
+              icon="i-heroicons-chevron-left"
+            >
+              Précédent
+            </UButton>
+            <UButton
+              color="gray"
+              variant="ghost"
+              :disabled="currentPage === totalPages"
+              @click="currentPage++"
+              icon="i-heroicons-chevron-right"
+              class="flex flex-row-reverse"
+            >
+              Suivant
+            </UButton>
+          </div>
         </div>
       </UCard>
     </div>
@@ -337,7 +351,7 @@
   </template>
   
   <script setup>
-  import { ref, computed, onMounted } from 'vue'
+  import { ref, computed, onMounted, watch } from 'vue'
   import { useSupabaseClient } from '#imports'
   import { format } from 'date-fns'
   import { fr } from 'date-fns/locale'
@@ -605,10 +619,10 @@ const navigateToMission = (id) => {
   navigateTo(`/admin/missions/${id}`)
 }
 
-// Watchers
-watch([currentPage, filters], () => {
-  loadData()
-}, { deep: true })
+// Reset pagination when filters change
+watch([filters.status, filters.search], () => {
+  currentPage.value = 1;
+});
 
 // Initialisation
 onMounted(() => {

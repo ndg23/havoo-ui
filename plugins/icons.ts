@@ -51,7 +51,8 @@ import {
   RiDashboard3Line,
   LaClock,
   IoBriefcaseOutline,
-  FaRegularHandshake// List settings
+  FaRegularHandshake,
+  RiFlag2Line// List settings
 } from "oh-vue-icons/icons";
 
 // Ajouter les icônes
@@ -60,6 +61,7 @@ addIcons(
   RiUser3Fill,
   RiUserStarFill,
   RiFileTextFill,
+  RiFlag2Line,
   FaHandshake,
   RiStackFill,
   GiGraduateCap,

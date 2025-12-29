@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+  <div class="min-h-screen bg-white dark:bg-gray-900">
     <!-- Header compact et moderne -->
     <div class="sticky top-0 z-20 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-b border-gray-200 dark:border-gray-700 shadow-sm">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4">
@@ -89,103 +89,130 @@
 
     <!-- Contenu principal -->
     <div class="max-w-5xl bg-white dark:bg-gray-900 mx-auto px-4 sm:px-6 py-6">
-      <!-- Vue Liste (style Leboncoin amélioré) -->
-      <div v-if="viewMode === 'list'" class="space-y-4 divide-y divide-gray-200 dark:divide-gray-700">
-        <TransitionGroup name="list" tag="div">
+      <!-- Vue Liste (style exact LeBonCoin) -->
+      <div v-if="viewMode === 'list'" class="-mx-4 sm:-mx-6">
+        <TransitionGroup name="list" tag="div" class="divide-y divide-gray-200 dark:divide-gray-700">
           <article 
             v-for="expert in filteredExperts" 
             :key="expert.id"
-            class="group bg-white dark:bg-gray-800 transition-all duration-300 cursor-pointer overflow-hidden"
-            @click="navigateToExpert(expert.id)"
+            class="group hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200 cursor-pointer"
           >
-            <div class="flex">
-              <!-- Image principale -->
-              <div class="w-72 h-48 bg-gray-100 dark:bg-gray-800 flex-shrink-0 relative overflow-hidden flex items-center justify-center">
-                <img
-                  :src="expert.avatar_url || defaultAvatar"
-                  :alt="expert.first_name"
-                  class="w-32 h-32 object-contain rounded-full ring-2 ring-white dark:ring-gray-700 shadow-lg"
-                />
-                
-                <!-- Badges -->
-                <div class="absolute top-3 left-3 flex flex-col gap-2">
-                  <span 
-                    v-if="expert.is_available"
-                    class="bg-green-500 text-white px-2 py-1 rounded-md text-xs font-semibold shadow-lg"
+            <div class="px-4 sm:px-6 py-4">
+              <div class="flex">
+                <!-- Image style LeBonCoin avec ombre -->
+                <div class="w-56 h-40 bg-gray-100 dark:bg-gray-800 flex-shrink-0 relative overflow-hidden rounded-lg shadow-sm">
+                  <img
+                    :src="expert.avatar_url || defaultAvatar"
+                    :alt="expert.first_name"
+                    class="w-full h-full object-cover"
+                  />
+                  
+                  <!-- Badge Pro/Premium avec gradient -->
+                  <div 
+                    v-if="expert.is_premium"
+                    class="absolute top-2 right-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white text-xs font-bold px-2 py-1 rounded shadow-sm"
                   >
-                    DISPONIBLE
-                  </span>
-                  <span 
-                    v-if="expert.is_verified"
-                    class="bg-blue-600 text-white px-2 py-1 rounded-md text-xs font-semibold shadow-lg flex items-center gap-1"
-                  >
-                    <UIcon name="i-heroicons-check-badge" class="w-3 h-3" />
-                    VÉRIFIÉ
-                  </span>
-                </div>
+                    PRO
+                  </div>
 
-                <!-- Prix en overlay -->
-                <div class="absolute bottom-3 right-3">
-                  <div class="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-lg px-3 py-2">
-                    <div class="text-lg font-bold text-gray-900 dark:text-white">
-                      {{ formatPrice(expert.hourly_rate) }}
-                    </div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400 text-center">par heure</div>
+                  <!-- Nombre de photos avec effet glassmorphism -->
+                  <div 
+                    v-if="expert.gallery?.length"
+                    class="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm text-white text-xs px-1.5 py-0.5 rounded-md flex items-center gap-1"
+                  >
+                    <UIcon name="i-heroicons-photo" class="w-3 h-3" />
+                    {{ expert.gallery.length }}
                   </div>
                 </div>
-              </div>
 
-              <!-- Contenu -->
-              <div class="flex-1 p-6 flex flex-col justify-between min-h-48">
-                <!-- Header -->
-                <div>
-                  <div class="flex items-start justify-between mb-3">
-                    <div>
-                      <h3 class="text-xl font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                        {{ expert.first_name }} {{ expert.last_name }}
-                      </h3>
-                      <p class="text-blue-600 dark:text-blue-400 font-medium text-sm mt-1">
+                <!-- Contenu style LeBonCoin -->
+                <div class="flex-1 pl-6">
+                  <div class="flex items-start justify-between">
+                    <!-- Info principale -->
+                    <div class="flex-1 min-w-0">
+                      <!-- Nom et prénom en premier avec style impact -->
+                      <div class="flex items-center gap-2 mb-1.5">
+                        <p class="text-sm font-medium text-gray-900 dark:text-white">
+                          {{ expert.first_name }} {{ expert.last_name }}
+                        </p>
+                        <span 
+                          v-if="expert.is_verified"
+                          class="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs px-1.5 py-0.5 rounded-full flex items-center gap-1"
+                        >
+                          <UIcon name="i-heroicons-check-circle" class="w-3 h-3" />
+                          Vérifié
+                        </span>
+                      </div>
+                      
+                      <!-- Profession avec style impact -->
+                      <h3 class="text-lg font-bold text-gray-900 dark:text-white group-hover:text-orange-600 transition-colors">
                         {{ expert.profession?.name }}
-                      </p>
+                      </h3>
+                      
+                      <!-- Prix avec style impact -->
+                      <div class="mt-2 flex items-baseline gap-2">
+                        <span class="text-2xl font-bold text-gray-900 dark:text-white">
+                          {{ formatPrice(expert.hourly_rate) }}
+                        </span>
+                        <span class="text-sm font-medium text-gray-500">/heure</span>
+                      </div>
+
+                      <!-- Détails clés avec icônes plus visibles -->
+                      <div class="mt-3 flex items-center gap-6 text-sm text-gray-600 dark:text-gray-300">
+                        <span class="flex items-center gap-1.5">
+                          <UIcon name="i-heroicons-map-pin" class="w-4 h-4 text-gray-400" />
+                          {{ expert.location || 'France' }}
+                        </span>
+                        <span class="flex items-center gap-1.5">
+                          <UIcon name="i-heroicons-briefcase" class="w-4 h-4 text-gray-400" />
+                          {{ expert.completed_missions_count || 0 }} missions
+                        </span>
+                        <span 
+                          v-if="expert.rating"
+                          class="flex items-center gap-1.5 text-yellow-600"
+                        >
+                          <UIcon name="i-heroicons-star" class="w-4 h-4" />
+                          {{ expert.rating }}/5
+                        </span>
+                      </div>
+
+                      <!-- Compétences avec style impact -->
+                      <div class="mt-3 flex flex-wrap gap-2">
+                        <span 
+                          v-for="skill in expert.skills?.slice(0, 3)" 
+                          :key="skill.id"
+                          class="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-xs px-2.5 py-1 rounded-full font-medium"
+                        >
+                          {{ skill.name }}
+                        </span>
+                      </div>
                     </div>
-                    
-                    <!-- Note -->
-                    <div v-if="expert.rating" class="flex items-center gap-1 bg-yellow-50 dark:bg-yellow-900/20 px-2 py-1 rounded-lg">
-                      <UIcon name="i-heroicons-star" class="w-4 h-4 text-yellow-500" />
-                      <span class="text-sm font-semibold text-yellow-700 dark:text-yellow-400">{{ expert.rating }}</span>
+
+                    <!-- Date et favoris avec style impact -->
+                    <div class="flex flex-col items-end gap-2 ml-4">
+                      <span class="text-xs font-medium text-gray-400">
+                        {{ formatTimeAgo(expert.last_seen_at) }}
+                      </span>
+                      <button 
+                        @click.stop="toggleFavorite(expert.id)"
+                        class="text-gray-400 hover:text-orange-500 transition-colors p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
+                      >
+                        <UIcon 
+                          :name="expert.is_favorite ? 'i-heroicons-heart-solid' : 'i-heroicons-heart'" 
+                          class="w-5 h-5"
+                        />
+                      </button>
                     </div>
                   </div>
 
-                  <!-- Description -->
-                  <p class="text-gray-600 dark:text-gray-300 text-sm line-clamp-2 mb-4 leading-relaxed">
-                    {{ expert.bio || 'Aucune description disponible.' }}
-                  </p>
-                </div>
-
-                <!-- Footer avec stats -->
-                <div class="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
-                  <div class="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
-                    <span class="flex items-center gap-1">
-                      <UIcon name="i-heroicons-briefcase" class="w-4 h-4" />
-                      {{ expert.completed_missions_count || 0 }} missions
-                    </span>
-                    <span class="flex items-center gap-1">
-                      <UIcon name="i-heroicons-map-pin" class="w-4 h-4" />
-                      {{ expert.location || 'France' }}
-                    </span>
-                    <span class="flex items-center gap-1">
-                      <UIcon name="i-heroicons-clock" class="w-4 h-4" />
-                      {{ formatTimeAgo(expert.last_seen_at) || 'Récemment' }}
-                    </span>
-                  </div>
-
-                  <!-- CTA Button -->
-                  <button 
-                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
-                    @click.stop="contactExpert(expert)"
+                  <!-- Disponibilité avec style impact -->
+                  <div 
+                    v-if="expert.is_available"
+                    class="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-full"
                   >
-                    Contacter
-                  </button>
+                    <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                    Disponible maintenant
+                  </div>
                 </div>
               </div>
             </div>

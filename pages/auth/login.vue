@@ -151,8 +151,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useSupabaseClient } from '#imports'
 import FloatingLabelInput from '~/components/ui/FloatingLabelInput.vue'
+import { useAuth } from '~/composables/useAuth'
 
 // Données du formulaire
 const email = ref('')
@@ -168,7 +168,7 @@ const messageType = ref('error')
 // Services
 const router = useRouter()
 const route = useRoute()
-const supabase = useSupabaseClient()
+const { signInWithEmail, signInWithProvider } = useAuth()
 
 // Vérifier le message d'URL au chargement
 onMounted(() => {
@@ -185,35 +185,27 @@ onMounted(() => {
 
 // Connexion avec email/password
 const login = async () => {
+  if (!email.value || !password.value) {
+    messageText.value = 'Veuillez remplir tous les champs'
+    messageType.value = 'error'
+    return
+  }
+
   isLoading.value = true
   messageText.value = ''
   
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email.value,
-      password: password.value
-    })
+    const { success, error } = await signInWithEmail(email.value, password.value)
     
-    if (error) throw error
-    
-    if (data.user) {
-      router.push('/')
+    if (success) {
+      const redirectTo = route.query.redirect?.toString() || '/'
+      router.push(redirectTo)
+    } else if (error) {
+      throw error
     }
   } catch (error) {
     console.error('Erreur de connexion:', error)
-    
-    if (error.message.includes('Invalid login credentials')) {
-      messageText.value = 'Email ou mot de passe incorrect'
-    } else if (error.message.includes('Email not confirmed')) {
-      messageText.value = 'Veuillez confirmer votre email avant de vous connecter'
-    } else if (error.message.includes('User not found')) {
-      messageText.value = 'Aucun utilisateur trouvé avec cette adresse email'
-    } else if (error.message.includes('missing email or phone')) {
-      messageText.value = 'Veuillez entrer un mot de passe ou une adresse email'
-    } else {
-      messageText.value = error.message || 'Une erreur est survenue lors de la connexion'
-    }
-    
+    messageText.value = error.message || 'Une erreur est survenue lors de la connexion'
     messageType.value = 'error'
   } finally {
     isLoading.value = false
@@ -223,14 +215,11 @@ const login = async () => {
 // Connexion avec fournisseur social
 const socialLogin = async (provider) => {
   try {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`
-      }
-    })
+    const { success, error } = await signInWithProvider(provider)
     
-    if (error) throw error
+    if (!success && error) {
+      throw error
+    }
   } catch (error) {
     console.error(`Erreur de connexion avec ${provider}:`, error)
     messageText.value = `Erreur de connexion avec ${provider}`

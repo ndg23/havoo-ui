@@ -374,29 +374,34 @@
         </div>
       </div>
       
-      <!-- Pagination améliorée -->
-      <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6">
-        <div class="text-sm text-gray-600 dark:text-gray-400 order-2 sm:order-1">
-          Affichage de {{ paginatedProposals.length }} sur {{ filteredProposals.length }} propositions
+      <!-- Pagination -->
+      <div v-if="totalPages > 1" class="flex items-center justify-between px-4 py-3 mt-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+          <span>Page</span>
+          <span class="font-medium">{{ currentPage }}</span>
+          <span>sur</span>
+          <span class="font-medium">{{ totalPages }}</span>
         </div>
-        <div class="flex items-center justify-center gap-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-1 shadow-sm order-1 sm:order-2">
-          <button 
-            @click="currentPage--"
+        <div class="flex items-center gap-2">
+          <UButton
+            color="gray"
+            variant="ghost"
             :disabled="currentPage === 1"
-            class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 disabled:opacity-50 disabled:hover:bg-transparent dark:disabled:hover:bg-transparent transition-colors"
+            @click="currentPage--"
+            icon="i-heroicons-chevron-left"
           >
-            <ChevronLeft class="h-5 w-5" />
-          </button>
-          <span class="px-2 text-sm text-gray-600 dark:text-gray-400">
-            Page {{ currentPage }} sur {{ totalPages }}
-          </span>
-          <button 
+            Précédent
+          </UButton>
+          <UButton
+            color="gray"
+            variant="ghost"
+            :disabled="currentPage === totalPages"
             @click="currentPage++"
-            :disabled="currentPage === totalPages || totalPages === 0"
-            class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 disabled:opacity-50 disabled:hover:bg-transparent dark:disabled:hover:bg-transparent transition-colors"
+            icon="i-heroicons-chevron-right"
+            class="flex flex-row-reverse"
           >
-            <ChevronRight class="h-5 w-5" />
-          </button>
+            Suivant
+          </UButton>
         </div>
       </div>
     </div>

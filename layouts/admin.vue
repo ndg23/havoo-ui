@@ -375,12 +375,12 @@ const managementItems = computed(() => [
   
   // Gestion du catalogue
   { to: '/admin/professions', label: 'Professions', icon: 'la-graduation-cap-solid' },
-    { to: '/admin/skills', label: 'Compétences', icon: 'bi-star' },
+    // { to: '/admin/skills', label: 'Compétences', icon: 'bi-star' },
   { to: '/admin/activities', label: 'Activités', icon: 'la-clock' },
   
   // Communication
   // { to: '/admin/conversations', label: 'Conversations', icon: 'ri-message2-fill' },
-  { to: '/admin/reviews', label: 'Avis', icon: 'bi-chat-text' },
+  // { to: '/admin/reports', label: 'Signalements', icon: 'bi-chat-text' },
   { to: '/admin/reports', label: 'Signalements', icon: 'ri-flag-2-line' },
 ])
 
